@@ -90,6 +90,10 @@ namespace mv.animations
     private delay = 0
     private field = invalid
     public duration = 0.5
+    private isObservingFraction = false
+    private observedFraction = 0.5
+    private fractionObservers = {}
+    private pendingFractionObservers = {}
 
     function new(target, field, duration, fromValue, toValue, name = "AbstractAnimation", delay = 0)
       super(name, target)
@@ -191,8 +195,14 @@ namespace mv.animations
       end if
     end function
 
+    override function start()
+      m.pendingFractionObservers = {}
+      m.pendingFractionObservers.append(m.fractionObservers)
+      super.start()
+    end function
+
     function jumpToEnd()
-      m.pause()
+      m.stop()
       m.target[m.field] = m.toValue
     end function
 
@@ -210,6 +220,52 @@ namespace mv.animations
 
     function unobserveState()
       mc.tasks.cleanNodeObserver(m.node, "state")
+    end function
+
+    function onFraction(fraction, func, scope)
+      if not m.isObservingFraction
+        m.observeFraction(m._onFraction, m)
+        m.isObservingFraction = true
+      end if
+      m.fractionObservers[`${fraction}`] = { f: fraction, cb: func, scope: scope }
+    end function
+
+    function callOnFraction(fraction, func, instance)
+      if not m.isObservingFraction
+        m.observeFraction(m._onFraction, m)
+        m.isObservingFraction = true
+      end if
+      m.fractionObservers[`${fraction}`] = { f: fraction, cb: func, instance: instance }
+    end function
+
+    function _onFraction(fraction)
+      if m.pendingFractionObservers.count() > 0
+        for each id in m.pendingFractionObservers
+          observer = m.pendingFractionObservers[id]
+          if fraction >= observer.f
+            m.pendingFractionObservers.delete(id)
+            if observer.instance <> invalid
+              observer.instance.__cb = observer.cb
+              'bs:disable-next-line
+              observer.instance.__cb()
+              observer.instance.delete("__cb")
+            else
+              executeInScope = sub(this, callback)
+                m = this
+                callback()
+              end sub
+              executeInScope(observer.scope, observer.cb)
+            end if
+          end if
+        end for
+      end if
+    end function
+
+    function clearFractionObservers()
+      m.fractionObservers = {}
+      m.pendingFractionObservers = {}
+      m.isObservingFraction = false
+      m.unobserveFraction()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -282,7 +338,7 @@ namespace mv.animations
     end function
 
     public override function destroy()
-      for each animation in parallelAnimations
+      for each animation in m.animations
         animation.destroy()
       end for
     end function
@@ -296,7 +352,7 @@ namespace mv.animations
     end function
 
     function jumpToEnd()
-      for each animation in parallelAnimations
+      for each animation in m.animations
         animation.jumpToEnd()
       end for
     end function
@@ -509,7 +565,7 @@ namespace mv.animations
       ]
       m.target.scale = fromScale
       m.sAnim.setFromToValue(fromScale, toScale)
-      corners = [{ x: 0, y: 0}, { x: 1, y: 0}, { x: 0, y: 1}, { x: 1, y: 1}]
+      corners = [{ x: 0, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }, { x: 1, y: 1 }]
 
       if m.target.width <> invalid
         w = m.target.width
