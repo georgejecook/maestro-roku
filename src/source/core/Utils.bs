@@ -1,0 +1,353 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+namespace mc
+  function isUndefined(value)
+    return type(value) = "<uninitialized>"
+  end function
+
+  function isInvalid(value)
+    return type(value) = "<uninitialized>" or value = invalid
+  end function
+
+  function isArray(value)
+    return type(value) <> "<uninitialized>" and value <> invalid and GetInterface(value, "ifArray") <> invalid
+  end function
+
+  function isAACompatible(value)
+    return type(value) <> "<uninitialized>" and value <> invalid and GetInterface(value, "ifAssociativeArray") <> invalid
+  end function
+
+  function isString(value)
+    return type(value) <> "<uninitialized>" and GetInterface(value, "ifString") <> invalid
+  end function
+
+  function isBoolean(value)
+    return type(value) <> "<uninitialized>" and GetInterface(value, "ifBoolean") <> invalid
+  end function
+
+  function isFunction(value)
+    return type(value) = "Function" or type(value) = "roFunction"
+  end function
+
+  function isInteger(value)
+    return type(value) <> "<uninitialized>" and GetInterface(value, "ifInt") <> invalid
+  end function
+
+  function isNumber(value)
+    return type(value) <> "<uninitialized>" and (GetInterface(value, "ifFloat") <> invalid or GetInterface(value, "ifInt") <> invalid)
+  end function
+
+  function isFloat(value)
+    return type(value) <> "<uninitialized>" and GetInterface(value, "ifFloat") <> invalid
+  end function
+
+  function isPoint(value)
+    return mc.isArray(value) and value.count() = 2
+  end function
+
+  function isPointEqual(value, otherValue)
+    return mc.isPoint(value) and mc.isPoint(otherValue) and value[0] = othervalue[0] and value[1] = otherValue[1]
+  end function
+
+  function dv(view)
+    if type(view) = "roSGNode"
+      return view.subtype() + "." + view.id
+    else
+      return "#INVALID#"
+    end if
+  end function
+
+  ' /**
+  '  * @member callAAFunc
+  '  * @memberof module:Utils
+  '  * @instance
+  '  * @function
+  '  * @description allows for easy calling of a method with variargs, on an aa
+  '  * @param {class} target
+  '  * @param {funcName} name of func to call
+  '  * @param {Any} p1 param 1, can leave blank to skip
+  '  * @param {Any} p2 param 2, can leave blank to skip
+  '  * @param {Any} p3 param 3, can leave blank to skip
+  '  * @returns {any} whatever the func returns, or invald if not found
+  '  */
+  function callAAFunc(target, funcName, p1 = "#M_NONE#", p2 = "#M_NONE#", p3 = "#M_NONE#")
+
+    if target <> invalid
+      if mc.isFunction(target[funcName])
+        if not mc.isString(p3) or p3 <> "#M_NONE#"
+          return target[funcName](p1, p2, p3)
+        else if not mc.isString(p2) or p2 <> "#M_NONE#"
+          return target[funcName](p1, p2)
+        else if not mc.isString(p1) or p1 <> "#M_NONE#"
+          return target[funcName](p1)
+        else
+          return target[funcName]()
+        end if
+      else
+        m.log.error("target did not have function named", funcName)
+      end if
+    else
+      'm.log.error("tried to call AAFunc; with empty target")
+    end if
+
+    return invalid
+  end function
+
+  function apply(func, args = [], target = invalid)
+    if not mc.isArray(args)
+      'm.log.error("apply expects an array of args")
+      return invalid
+    end if
+
+    count = args.count()
+    if count > 4
+      'm.log.error("apply only supports up to 4 params")
+      return invalid
+    end if
+
+    if target <> invalid
+      if not mc.isFunction(target[func])
+        'm.log.error("target did not have function ", func)
+        return invalid
+      end if
+
+      if count = 0
+        return target[func]()
+      else if count = 1
+        return target[func](args[0])
+      else if count = 2
+        return target[func](args[0], args[1])
+      else if count = 3
+        return target[func](args[0], args[1], args[2])
+      else if count = 4
+        return target[func](args[0], args[1], args[2], args[3])
+      end if
+    else
+      if not mc.isFunction(func)
+        'm.log.error("tried to apply to out of scope function")
+        return invalid
+      end if
+
+      if count = 0
+        return func()
+      else if count = 1
+        return func(args[0])
+      else if count = 2
+        return func(args[0], args[1])
+      else if count = 3
+        return func(args[0], args[1], args[2])
+      else if count = 4
+        return func(args[0], args[1], args[2], args[3])
+      end if
+    end if
+  end function
+
+  function removeDuplicateKeys(aa = invalid, otherAA = invalid)
+    if otherAA <> invalid and aa <> invalid
+
+      for each key in otherAA
+        if aa.doesExist(key) and formatJson(aa[key]) = formatJson(otherAA[key])
+          aa.delete(key)
+        end if
+      end for
+
+    end if
+
+    return aa
+  end function
+
+  ' /**
+  '  * @member getPath
+  '  * @memberof module:Utils
+  '  * @instance
+  '  * @function
+  '  * @description get's content field from array. This variation has a slower implementation that supports array lookup
+  '  * @param {assocarray} content - node/aa to look up on
+  '  * @param {string} field - path to field, with "items.2.path.syntax",
+  '  * @returns {any} value if foud, or default value
+  '  */
+  function getPath(content, field, default = invalid)
+    part = invalid
+
+    if field <> invalid
+      parts = field.split(".")
+      numParts = parts.count()
+      i = 0
+
+      part = content
+      while i < numParts and part <> invalid
+        'TODO find better way of doing this
+        if parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
+          if mc.isArray(part)
+            part = part[parts[i].toInt()]
+          else if type(part) = "roSGNode"
+            part = part.getChild(parts[i].toInt())
+          else
+            part = invalid
+          end if
+        else
+          if mc.isAACompatible(part)
+            part = part[parts[i]]
+          else
+            part = invalid
+          end if
+        end if
+        i++
+      end while
+    end if
+
+    if part <> invalid
+      return part
+    else
+      return default
+    end if
+  end function
+
+  function setOrAddNodeField(node, field, value = invalid)
+    if type(node) = "roSGNode"
+      if node.doesExist(field)
+        node[field] = value
+      else
+        info = {}
+        info[field] = value
+        node.addFields(info)
+      end if
+    else if mc.isAACompatible(node)
+      node[field] = value
+    else
+      m.log.error("tried to set field on invalid node")
+    end if
+  end function
+
+  function setOrAddNodeFields(node, fields)
+    for each field in fields
+      mc.setOrAddNodeField(node, field, fields[field])
+    end for
+  end function
+
+  function getChildAtDepth(node, depth)
+    currentDepth = 0
+
+    while node <> invalid and currentDepth < depth
+      node = node.getChild(0)
+      currentDepth++
+    end while
+
+    return node
+  end function
+
+  function strToBool(s)
+    if s = invalid
+      return false
+    else
+      return (s.toStr() = "true")
+    end if
+  end function
+
+  function strToInt(s)
+    if s = invalid
+      return 0
+    else
+      return s.toInt()
+    end if
+  end function
+
+  function strToLong(value)
+    a& = 0
+    if mc.isString(value)
+      return a& + parseJson(value)
+    end if
+
+    return a&
+  end function
+
+  function getIndexOfItem(parent, item)
+    if item <> invalid
+      for index = 0 to parent.getChildCount() - 1
+        node = parent.getChild(index)
+        if node.id = item.id
+          return index
+        end if
+      end for
+    end if
+    return -1
+  end function
+
+  function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, isCalligInitialize = true)
+    if parent <> invalid
+      node = parent.createChild(nodeType)
+    else
+      node = createObject("roSGNode", nodeType)
+    end if
+
+    if node <> invalid
+      if id = invalid
+        id = StrI(rnd(2147483647)).trim()
+      end if
+
+      node.id = id
+
+      if args <> invalid
+        node.setFields(args)
+      end if
+
+      if isCalligInitialize and node.isInitialized <> invalid
+        node@._initialize()
+      end if
+    end if
+
+    return node
+  end function
+
+  function createNode(nodeType)
+    node = createObject(nodeType)
+    return node
+  end function
+
+  function getFunctionName(value)
+    if mc.isFunction(value)
+      return value.toStr().mid(10)
+    else
+      return invalid
+    end if
+  end function
+
+  function toggleObserver(target, field, callbackName = invalid)
+    if target <> invalid
+      if callbackName <> invalid
+        target.observeFieldScoped(field, callbackName)
+      else
+        target.unObserveFieldScoped(field)
+      end if
+    end if
+  end function
+
+  function clamp(number, low, high, wrap = false)
+    if number < low
+      number = wrap ? high : low
+    else if number > high
+      number = wrap ? low : high
+    end if
+    return number
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ punch out methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function getMField(fieldName)
+    return m[fieldName]
+  end function
+
+  function getGlobal()
+    return m.global
+  end function
+
+  function getTop()
+    return m.top
+  end function
+
+  function getScene()
+    return m.top.getScene()
+  end function
+
+end namespace

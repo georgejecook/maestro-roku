@@ -1,0 +1,71 @@
+namespace tests
+  @suite("FontManager tests")
+  class FontManagerTests extends mv.tests.BaseTestSuite
+
+    private manager
+
+    override function beforeEach()
+      m.manager = new mv.FontManager(invalid, invalid)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests getFont")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("handles bad values")
+    @params("notThere")
+    function _(name)
+      font = m.manager.getFont(name, 20)
+      m.assertSubType(font, "Font")
+    end function
+
+    @it("gets filesystem fonts")
+    @params("HelveticaNeue.ttf", 20)
+    @params("HelveticaNeue.ttf", 30)
+    @params("HelveticaNeue.ttf", 50)
+    @params("HelveticaNeue.ttf", 30)
+    @params("HelveticaNeue.ttf", 30)
+    function _(name, size)
+      font = m.manager.getFont(name, size)
+      m.assertEqual(font.uri, "pkg:/fonts/" + name)
+      m.assertEqual(font.size, size)
+      m.assertSubType(font, "Font")
+    end function
+
+    @it("gets system fonts")
+    @params("Smallest", 20)
+    @params("SmallBold", 30)
+    @params("MediumBold", 50)
+    @params("Medium", 30)
+    @params("LargeBold", 30)
+    function _(name, size)
+      font = m.manager.getFont(name, size)
+      m.assertEqual(font.size, size)
+      m.assertEqual(font.uri, "font:" + name + "SystemFont")
+      m.assertSubType(font, "Font")
+    end function
+
+    @it("caches font values")
+    function _()
+      m.manager.getFont("HelveticaNeue.ttf", 30)
+      m.manager.getFont("HelveticaNeue.ttf", 30)
+      m.manager.getFont("HelveticaNeue.ttf", 30)
+      m.manager.getFont("HelveticaNeue.ttf", 30)
+      m.manager.getFont("HelveticaNeue.ttf", 40)
+
+      m.assertAAHasKey(m.manager.cachedFonts, "HelveticaNeue.ttf,30")
+      m.assertAAHasKey(m.manager.cachedFonts, "HelveticaNeue.ttf,30")
+      m.assertAAHasKey(m.manager.cachedFonts, "HelveticaNeue.ttf,40")
+
+      m.manager.registry = { "id": "manager.fontRegistry" }
+
+      m.expectNone(m.manager.registry, "getFont")
+
+      m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
+      m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
+      m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
+      m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
+      m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 40), "Font")
+    end function
+  end class
+end namespace

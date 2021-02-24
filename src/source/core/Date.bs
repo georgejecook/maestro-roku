@@ -1,0 +1,37 @@
+namespace mc
+  class Date
+
+    private date = CreateObject("roDateTime")
+
+    public function new(seconds = invalid, isoDate = invalid)
+      if seconds <> invalid
+        m.setSeconds(seconds)
+      else if isoDate <> invalid
+        m.date.fromISO8601String(isoDate)
+      else
+        m.date.mark()
+      end if
+    end function
+
+    public function getSeconds()
+      return m.date.asSeconds()
+    end function
+
+    public function setSeconds(seconds)
+      m.date.fromSeconds(seconds)
+    end function
+
+    public function getSecondsSince(otherTimeInSeconds)
+      return m.getSeconds() - otherTimeInSeconds
+    end function
+
+    public function getSecondsUntil(otherTimeInSeconds)
+      return otherTimeInSeconds - m.getSeconds()
+    end function
+
+    public function getUserFriendlyDateString(format = "no-weekday")
+      return m.date.asDateString(format)
+    end function
+
+  end class
+end namespace

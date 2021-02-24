@@ -1,0 +1,56 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+
+namespace mv
+  function findNodes(nodeIds) as void
+    if (type(nodeIds) = "roArray")
+      for each nodeId in nodeIds
+        node = m.top.findNode(nodeId)
+        if (node <> invalid)
+          m[nodeId] = node
+        else
+          m.log.warn("could not find node with id {0}", nodeId)
+        end if
+      end for
+    end if
+  end function
+
+  function getFirstParentWithType(node, parentType)
+    currentNode = node
+
+    while currentNode <> invalid
+
+      if currentNode.subType() = parentType
+        return currentNode
+      end if
+
+      currentNode = currentNode.getParent()
+    end while
+    return invalid
+  end function
+
+  function getFieldInParent(content, fieldName, maxIterations = 3, defaultValue = {})
+    currentNode = content
+    value = invalid
+
+    i = 0
+    while currentNode <> invalid and i < maxIterations
+      value = currentNode[fieldName]
+      if value <> invalid
+        return value
+      end if
+      currentNode = currentNode.getParent()
+      i++
+    end while
+
+    return defaultValue
+  end function
+
+  function destroyView(view)
+    p = view.getParent()
+
+    if p <> invalid
+      p.removeChild(view)
+    end if
+  end function
+end namespace

@@ -1,0 +1,60 @@
+namespace tests
+  @nocatch
+  @suite("Set tests")
+  class SetTests extends rooibos.BaseTestSuite
+
+    private set
+
+    override function setup()
+      super.setup()
+      m.set = createObject("roSGNode", "Set")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("basic scenarios")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("addes")
+    function _()
+      m.set@.add("a")
+      m.assertEqual(m.set.length, 1)
+      m.assertEqual(m.set@.get(0), "a")
+    end function
+
+    @it("gets")
+    function _()
+      m.set@.add("b")
+      m.assertEqual(m.set.length, 2)
+      m.assertEqual(m.set@.get(0), "a")
+      m.assertEqual(m.set@.get(1), "b")
+    end function
+
+    @it("gets values")
+    function _()
+      m.assertEqual(m.set@.getValues(), ["a", "b"])
+    end function
+
+    @it("deletes")
+    function _()
+      m.set@.add("c")
+      m.assertEqual(m.set.length, 3)
+      m.assertEqual(m.set@.get(0), "a")
+      m.assertEqual(m.set@.get(1), "b")
+      m.assertEqual(m.set@.get(2), "c")
+
+      m.set@.delete(1)
+      m.assertEqual(m.set.length, 2)
+      m.assertEqual(m.set@.get(0), "a")
+      m.assertEqual(m.set@.get(1), "c")
+      m.assertEqual(m.set@.get(2), invalid)
+
+      m.set@.delete(1)
+      m.assertEqual(m.set.length, 1)
+      m.assertEqual(m.set@.get(0), "a")
+      m.assertEqual(m.set@.get(1), invalid)
+      m.assertEqual(m.set@.get(2), invalid)
+    end function
+
+
+  end class
+end namespace

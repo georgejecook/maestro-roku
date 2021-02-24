@@ -1,0 +1,53 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/core/Request.bs"
+
+namespace mc
+  @task("RequestTask", "Task")
+  @strict
+  class RequestTask
+    public url = ""
+    private log = new log.Logger("RequestTask")
+
+    public function nodeRun(args)
+      instance = new RequestTask()
+      return instance.execute(args)
+    end function
+
+    function new()
+    end function
+
+    private function execute(args)
+      request = m.makeRequest()
+      method = lcase(mc.getPath(args, "method", ""))
+
+      if method = "get"
+        m.log.info("executing get")
+        result = request.get(args.url, args.params, args.headers, args.otherArgs)
+      else if method = "post"
+        m.log.info("executing post")
+        result = request.post(args.url, args.params, args.headers, args.otherArgs)
+      else if method = "put"
+        m.log.info("executing put")
+        result = request.put(args.url, args.params, args.headers, args.otherArgs)
+      else if method = "delete"
+        m.log.info("executing delete")
+        result = request.delete(args.url, args.params, args.headers, args.otherArgs)
+      else
+        m.log.error("unknown method", method)
+        result = invalid
+      end if
+
+      if result <> invalid
+        if not mc.getPath(args, "otherArgs.keepHeaders", false)
+          result.delete("headers")
+        end if
+      end if
+      return result
+    end function
+
+    private function makeRequest()
+      return new mc.net.Request()
+    end function
+  end class
+end namespace

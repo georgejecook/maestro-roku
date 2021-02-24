@@ -1,0 +1,187 @@
+import "pkg:/source/core/Utils.bs"
+
+namespace mc.collections
+
+  ' /**
+  '  * @member mapArray
+  '  * @memberof module:Collections
+  '  * @instance
+  '  * @function
+  '  * @description returns an array with items mapped by the mapper
+  '  * @param {array} array of items to map
+  '  * @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
+  '  * @returns {outputType} items mapped by the mapper
+  '  */
+  function mapArray(array, mapper)
+    items = []
+    if array <> invalid
+      isClass = isClass(mapper)
+      for each item in array
+        if isClass
+          transformed = mapper.transform(item)
+          if transformed <> invalid
+            items.push(transformed)
+          end if
+        else
+          transformed = mapper(item)
+          if transformed <> invalid
+            items.push(transformed)
+          end if
+        end if
+      end for
+    end if
+    return items
+  end function
+
+  function getItemAtOffset(array, item, offset)
+    if array = invalid or array.count() = 0
+      return invalid
+    end if
+    index = collections.getArrayIndex(array, item)
+    return array[mc.clamp(index + offset, 0, array.count() - 1)]
+  end function
+
+  function getArrayIndex(array, item)
+    if array = invalid or array.count() = 0
+      return -1
+    end if
+
+    for i = 0 to array.count() - 1
+      if array[i] = item
+        return i
+      end if
+    end for
+    return -1
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ mappers
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  class CallFuncMapper
+    function new(funcName, args)
+      m.funcName = funcName
+      m.args = args
+    end function
+
+    function transform(item)
+      if (item = invalid) then return invalid
+      return item.callFunc(m.funcName, m.args)
+    end function
+  end class
+
+  class FuncMapper
+    function new(funcName)
+      m.funcName = funcName
+    end function
+
+    function transform(item)
+      if (item = invalid) then return invalid
+      if (item[m.funcName] = invalid) then return invalid
+      return item[m.funcName]()
+    end function
+  end class
+
+  class FieldMapper
+    function new(fieldName)
+      m.fieldName = fieldName
+    end function
+
+    function transform(item)
+      if (item = invalid) then return invalid
+      return item[m.fieldName]
+    end function
+  end class
+
+  ' /**
+  '  * @member filterArray
+  '  * @memberof module:Collections
+  '  * @instance
+  '  * @function
+  '  * @description returns an array with items that match the filter predicate
+  '  * @param {array} array of items to filter
+  '  * @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+  '  * @returns {boolean} items that match the predicate
+  '  */
+  function filterArray(array, predicate)
+    items = []
+    if array <> invalid
+      isClass = isClass(predicate)
+      for each item in array
+        if (isClass and predicate.isMatch(item)) or (not isClass and predicate(item))
+          items.push(item)
+        end if
+      end for
+    end if
+    return items
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ filter predicates
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  class ValuePredicate
+    function new(expected)
+      m.expected = expected
+    end function
+
+    function isMatch(item)
+      return item = m.expected
+    end function
+  end class
+
+  class FieldPredicate
+    function new(fieldName, expected)
+      m.fieldName = fieldName
+      m.expected = expected
+    end function
+
+    function isMatch(item)
+      if (item = invalid) then return false
+      return item[m.fieldName] = m.expected
+    end function
+  end class
+
+  class FuncPredicate
+    function new(funcName, expected)
+      m.funcName = funcName
+      m.expected = expected
+    end function
+
+    function isMatch(item)
+      if (item = invalid) then return false
+      if (item[m.funcName] = invalid) then return false
+      compareTo = item[m.funcName]()
+      return compareTo = m.expected
+    end function
+  end class
+
+  class CallFuncPredicate
+    function new(funcName, args, expected)
+      m.funcName = funcName
+      m.args = args
+      m.expected = expected
+    end function
+
+    function isMatch(item)
+      if (item = invalid) then return false
+      compareTo = item.callFunc(m.funcName, m.args)
+      return m.expected = compareTo
+    end function
+  end class
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ basic utils
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function arrayContains(array, value)
+    for each item in array
+      if item = value
+        return true
+      end if
+    end for
+    return false
+  end function
+
+end namespace

@@ -1,0 +1,111 @@
+' /**
+'  * @module BaseScreen
+'  * @description Base view for all screens.
+'     provides common functions, which all screens require
+'  */
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ nav support
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function push(view)
+  navController = getNavController()
+
+  if (navController <> invalid)
+    navController@.push(view)
+  else
+    m.log.error("Push failed - there is no navcontroller on ", m.top)
+  end if
+end function
+
+function pop() as object
+  navController = getNavController()
+
+  if (navController <> invalid)
+    return navController@.pop()
+  else
+    m.log.error("Pop failed - there is no navcontroller on ", m.top)
+  end if
+end function
+
+function replaceNavControllerScreen(targetScreen)
+  navController = getNavController()
+
+  if (navController <> invalid)
+    navController@.replace(targetScreen)
+  else
+    m.log.error("Pop failed - there is no navcontroller on ", m.top)
+  end if
+end function
+
+
+function resetNavControllerToRoot()
+  m.log.method("resetNavControllerToRoot." + m.top.id)
+  resetNavController(invalid, 0)
+end function
+
+function resetNavController(newFirstScreen = invalid, endIndex = -1)
+  m.log.method("resetNavController." + m.top.id)
+  navController = getNavController()
+
+  if (navController <> invalid)
+    navController@.reset(newFirstScreen, endIndex)
+  else
+    m.log.error("Pop failed - there is no navcontroller on ", m.top)
+  end if
+end function
+
+function getNavController()
+  if m.top.navController <> invalid
+    return m.top.navController
+  else
+    'might be nested in a screen; ultimately, there has to be a navcontroller somewhere
+    return mv.getFirstParentWithType(m.top, "NavController")
+  end if
+end function
+
+function onAddedToAggregateView(navController)
+end function
+
+function onRemovedFromAggregateView(navController)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Screen helpers
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+' /**
+'  * @member _getTopScreen
+'  * @memberof module:BaseScreen
+'  * @instance
+'  * @function
+'  * @description gets the screen at the top of this screen's sceneGraph.
+'  * @returns {BaseScreen} a screen considered as the top of this graph
+'  */
+function _getTopScreen(args = invalid)
+  m.log.method("_getTopScreen")
+  topScreen = getTopScreen()
+  navController = getNavController()
+  if topScreen = invalid
+    if navController <> invalid and navController.numberOfViews > 0
+      topScreen = navController.currentView
+    else
+      topScreen = m.top
+    end if
+  end if
+  return topScreen
+end function
+
+' /**
+'  * @member getTopScreen
+'  * @memberof module:BaseScreen
+'  * @instance
+'  * @function
+'  * @description override point, for a screen to provide it's own means
+'  * of looking up a screen at the top of it's stack
+'  * @param {paramType} paramDescription
+'  * @returns {returnType} returnDescription
+'  */
+function getTopScreen()
+  return invalid
+end function

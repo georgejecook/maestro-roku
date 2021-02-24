@@ -1,0 +1,380 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/core/Tasks.bs"
+
+namespace mx
+  ' /**
+  '  * @module BaseObservable
+  '  * @description Base class of all observables
+  '  */
+  ' /**
+  '  * @member BaseObservable
+  '  * @memberof module:BaseObservable
+  '  * @instance
+  '  * @function
+  '  * @description creates a BaseObserver instance, which you can extend,
+  '  *              note - that for correct function you must use the BaseObservableMixin methods to interact with this class for registering, observing and binding
+  '  */
+
+  @strict
+  class BaseObservable
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Base observer class
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private log
+    public __name
+
+    public function new(name)
+      m.log = new log.Logger(name)
+      m.__name = name
+    end function
+
+    public isBindingNotificationEnabled = false
+    public observers = {}
+    public pendingObservers = {}
+    public bindings = {}
+    public pendingBindings = {}
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Utils
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function getNodeFieldBindingKey(node, field, targetField)
+      return "vm_" + node.id + "_" + field + "_" + targetField
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public function initialize()
+      m.toggleNotifications(true)
+    end function
+
+    public function destroy() as void
+      m.unobserveAllFields()
+      m.unbindAllFields()
+    end function
+
+    public function toggleNotifications(isEnabled) as void
+      m.isBindingNotificationEnabled = isEnabled
+      if(m.isBindingNotificationEnabled = true)
+        '        logDebug("bindings renabled notifying pending observers")
+        m.firePendingObserverNotifications()
+        m.firePendingBindingNotifications()
+      end if
+    end function
+
+    public function firePendingObserverNotifications() as void
+      for each field in m.pendingObservers
+        m.notify(field)
+      end for
+      m.pendingObservers = {}
+    end function
+
+    public function firePendingBindingNotifications() as void
+      for each field in m.pendingBindings
+        m.notifyBinding(field)
+      end for
+      m.pendingBindings = {}
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ ObserverPattern
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    ' /**
+    '  * @member setField
+    '  * @memberof module:BaseObservable
+    '  * @instance
+    '  * @function
+    '  * @description sets the field on this object, and notifies all observers
+    '  * @param {string} fieldName - name of field to set
+    '  * @param {any} value - new value
+    '  * @param {boolean} alwaysNotify - if true, will notify on same value being set
+    '  * @returns {boolean} true if succesful
+    '  */
+    public function setField(fieldName, value, originKey = invalid, notify = true) as boolean
+      if not mc.isString(fieldName) or fieldName.trim() = ""
+        m.log.error("Tried to setField with illegal field name class", m.__className)
+        return false
+      end if
+
+      if not m.doesExist(fieldName)
+        m.log.error("called setField on unknown field '", fieldName, "'", "class", m.__className)
+        return false
+      end if
+
+      if type(value) = "<uninitialized>"
+        m.log.error("Tried to set a value to uninitialized! interpreting as invalid class", m.__className)
+        value = invalid
+      end if
+
+      m[fieldName] = value
+
+      if notify
+        m.notify(fieldName)
+        m.notifyBinding(fieldName, originKey)
+      end if
+      return true
+    end function
+
+    ' /**
+    '  * @member observeField
+    '  * @memberof module:BaseObservable
+    '  * @instance
+    '  * @description observes a field on this observable; will call func, when the field is changed, via SetField
+    '  * @param {boolean} fireOnSet - if true, field will be set on binding call
+    '  * @param {function} transformFunc - pointer to function to call to modify this value when executing the binding
+    '  * @param {boolean} isFiringOnce - if true, then the binding is removed as soon as as it is invoked
+    '  * @param {string} sendMode - (none|value|node|both)
+    '  * @param {function} func - pointer to function to call to call back with
+    '  */
+    public function observeField(fieldName, func, fireOnSet = false, transformFunc = invalid, once = false, mode = "value")
+
+      properties = m.createBindingProperties(fireOnSet, transformFunc, once, mode, func)
+
+      observers = m.observers[fieldName]
+      if observers = invalid
+        observers = {}
+      end if
+      observers[mc.getFunctionName(func)] = properties
+
+      m.observers[fieldName] = observers
+
+      if fireOnSet
+        m.notify(fieldName)
+      end if
+    end function
+
+    public function unobserveField(fieldName, func) as boolean
+      observers = m.observers[fieldName]
+      if observers = invalid
+        observers = {}
+      end if
+      observers.delete(mc.getFunctionName(functionName))
+
+      if observers.count() = 0
+        m.observers.delete(fieldName)
+      else
+        m.observers[fieldName] = observers
+      end if
+      return true
+    end function
+
+    public function unobserveAllFields() as void
+      m.observers = {}
+    end function
+
+    public function notify(fieldName) as void
+      observers = m.observers[fieldName]
+      if observers = invalid
+        observers = {}
+      end if
+
+      value = m[fieldName]
+      if mc.isUndefined(value)
+        m.log.error("Tried notify about uninitialized value! interpreting as invalid")
+        value = invalid
+      end if
+
+      if m.isBindingNotificationEnabled
+        for each funcName in observers
+          observer = observers[funcName]
+          'bs:disable-next-line
+          observerCallback(observer[4], value, observer[1], observer[3])
+          if observer[2]
+            m.unobserveField(fieldName, funcName)
+          end if
+        end for
+      else
+        m.pendingObservers[fieldName] = 1
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Bindings
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' /**
+    '  * @member bindField
+    '  * @memberof module:BaseObservable
+    '  * @instance
+    '  * @function
+    '  * @description binds a field on this observer to the target node's field
+    '  * @param {string} fieldName - field on this observer to observe
+    '  * @param {node} targetNode - the node to notify when the field changes - must have a unique id
+    '  * @param {string} targetField - field on node to update with change values
+    '  * @param {boolean} fireOnSet - if true, field will be set on binding call
+    '  * @param {function} transformFunc - pointer to function to call to modify this value when executing the binding
+    '  * @param {boolean} isFiringOnce - if true, then the binding is removed as soon as as it is invoked
+    '  */
+    public function bindField(fieldName, targetNode, targetField, fireOnSet = false, transformFunc = invalid, isFiringOnce = false)
+      bindings = m.bindings[fieldName]
+
+      if bindings = invalid
+        bindings = {}
+      end if
+
+      key = m.getNodeFieldBindingKey(targetNode, fieldName, targetField)
+
+      if bindings.doesExist(key)
+        m.log.warn("Binding already existed for key")
+        binding = bindings[key]
+        if binding.node.isSameNode(targetNode)
+          m.log.warn("is same node - ignoring")
+          return true
+        else
+          m.log.error("was a different node - ignoring")
+          return false
+        end if
+      end if
+
+      bindings[key] = m.createNodeBindingProperties(fieldName, targetNode, targetField, fireOnSet, transformFunc, isFiringOnce)
+
+      m.bindings[fieldName] = bindings
+
+      if fireOnSet
+        m.notifyBinding(fieldName, key)
+      end if
+
+      return true
+    end function
+
+    ' /**
+    '  * @member unbindField
+    '  * @memberof module:BaseObservable
+    '  * @instance
+    '  * @function
+    '  * @description binds a field on this observer to the target node's field
+    '  * @param {string} fieldName - field on this observer to observe
+    '  * @param {node} targetNode - the node to notify when the field changes
+    '  * @param {string} targetField - field on node to update with change values
+    '  * @returns {boolean} true if successful
+    '  */
+    public function unbindField(fieldName, targetNode, targetField) as boolean
+      bindings = m.bindings[fieldName]
+      if bindings = invalid
+        bindings = {}
+      end if
+
+      key = m.getNodeFieldBindingKey(targetNode, fieldName, targetField)
+
+      if not bindings.doesExist(key)
+        m.log.error("tried to unbind unknown field/node/target field with id of", key, "class", m.__className)
+      end if
+
+      bindings.delete(key)
+
+      if bindings.count() > 0
+        m.bindings[fieldName] = bindings
+      else
+        m.bindings.delete(fieldName)
+      end if
+
+      return true
+    end function
+
+    ' /**
+    '  * @member notifyBinding
+    '  * @memberof module:BaseObservable
+    '  * @instance
+    '  * @function
+    '  * @description Will notify observers of fieldName, of it's value
+    '  * @param {string} fieldName - field to update
+    '  * @param {string} specificKey - if present, will specify a particular binding key
+    '  * @param {string} excludeKey - if present, will not update this node field - to stop cyclical bindings
+    '  */
+    public function notifyBinding(fieldName, specificKey = invalid, excludeKey = invalid) as boolean
+      bindings = m.bindings[fieldName]
+      if bindings = invalid
+        m.pendingBindings[fieldName] = 1
+        return false
+      end if
+
+      value = m[fieldName]
+      if mc.isUndefined(value)
+        m.log.error("Tried notify about uninitialized value! interpreting as invalid")
+        value = invalid
+      end if
+
+      if m.isBindingNotificationEnabled
+        for each key in bindings
+          if (specificKey = invalid or specificKey = key) and (excludeKey = invalid or excludeKey <> key)
+            binding = bindings[key]
+            node = binding[1]
+            if binding[4] <> invalid
+              bindingValue = binding[4](value)
+            else
+              bindingValue = value
+            end if
+
+
+            if node.doesExist(binding[2])
+              node[binding[2]] = bindingValue
+            else
+              'attempt to call func
+              m.log.debug("target field did not exist for binding ", key, "using callfunc")
+              node.callFunc(binding[2], bindingValue)
+            end if
+            if binding[5]
+              m.unobserveField(node, binding[2])
+            end if
+          end if
+        end for
+      else
+        m.pendingBindings[fieldName] = 1
+      end if
+      return true
+    end function
+
+    public function unbindAllFields() as void
+      m.bindings = {}
+    end function
+
+    ' /**
+    '  * @member createBindingProperties
+    '  * @memberof module:BaseObservable
+    '  *
+    '  * @function
+    '  * @description creates properties for using in bindings
+    '  * @param {boolean} fireOnSet - if true, field will be set on binding call
+    '  * @param {function} transformFunc - pointer to function to call to modify this value when executing the binding
+    '  * @param {boolean} isFiringOnce - if true, then the binding is removed as soon as as it is invoked
+    '  * @param {string} sendMode - (none|value|node|both)
+    '  * @param {function} func - pointer to function to call to call back with
+    '  */
+    function createBindingProperties(fireOnSet = false, transformFunc = invalid, isFiringOnce = false, sendMode = "value", func = invalid)
+      return [fireOnSet, transformFunc, isFiringOnce, sendMode, func]
+    end function
+
+    function createNodeBindingProperties(field, node, targetField, fireOnSet = false, transformFunc = invalid, isFiringOnce = false)
+      return [field, node, targetField, fireOnSet, transformFunc, isFiringOnce]
+    end function
+
+  end class
+
+  ' /**
+  '  * @member observerCallback
+  '  * @memberof module:ObservableMixin
+  '  *
+  '  * @function
+  '  * @description event handler for handling observable events, allows us to punch out of
+  '  *              the class
+  '  * @param {event} event
+  '  */
+  function observerCallback(func, value, transformFunc, mode) as void
+    if m.vm <> invalid
+      if transformFunc <> invalid
+        value = transformFunc(value)
+      end if
+
+      if mode = "none"
+        func()
+      else if mode = "value"
+        func(value)
+      end if
+    end if
+  end function
+
+end namespace

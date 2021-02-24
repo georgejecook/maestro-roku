@@ -1,0 +1,93 @@
+namespace tests
+
+  @nocatch
+  @suite("Tasks tests")
+  class TasksTests extends rooibos.BaseTestSuite
+
+    override function beforeEach()
+      super.beforeEach()
+      tests.setNodeLogger()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("creatTask")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does not fail on undefined field args")
+    function _()
+      t = tasks.createTask("RequestTask", fields, m.taskCallback, false, "none", m)
+      m.assertSubType(t, "RequestTask")
+    end function
+
+    @it("does not fail on illegal field args")
+    @params(invalid)
+    @params("illegal")
+    @params([])
+    function _(fields)
+      t = tasks.createTask("RequestTask", fields, m.taskCallback, false, "none", m)
+      m.assertSubType(t, "RequestTask")
+    end function
+
+    @it("creates a task and passes it the args")
+    function _()
+      fields = {
+        "fv1": "a"
+        "fv2": "b"
+      }
+
+      t = tasks.createTask("RequestTask", fields, m.taskCallback, false, "none", m)
+      m.assertSubType(t, "RequestTask")
+      m.assertEqual(t.fv1, "a")
+      m.assertEqual(t.fv2, "b")
+      m.assertEqual(t.control, "init")
+
+    end function
+
+    @it("starts a task")
+    function _()
+      fields = {
+        "fv1": "a"
+        "fv2": "b"
+      }
+
+      t = tasks.createTask("RequestTask", fields, m.taskCallback, true, "none", m)
+      m.assertSubType(t, "RequestTask")
+      m.assertEqual(t.fv1, "a")
+      m.assertEqual(t.fv2, "b")
+      m.assertEqual(t.control, "run")
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("waitAFrame")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creats a timer for waiting")
+    @params(0.01)
+    @params(0.02)
+    @params(5)
+    function _(duration)
+
+      timer = tasks.waitAFrame(m.taskCallback, duration)
+
+      m.assertSubType(timer, "Timer")
+      m.assertEqual(`${timer.duration}`, `${duration}`)
+      m.assertEqual(timer.control, "start")
+      m.assertTrue(timer.removeOnObserve)
+
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ utils
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function taskCallback()
+    end function
+
+  end class
+
+  function setNodeLogger()
+    m.log = new log.Logger("TasksTests")
+  end function
+end namespace

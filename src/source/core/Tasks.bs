@@ -1,0 +1,241 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Collections.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace mc.tasks
+
+  function waitAFrame(callback, duration = 0.01, sendMode = "none", scope = invalid)
+    callbackName = mc.getFunctionName(callback)
+    if callbackName = invalid
+      m.log.error("function ", callback, "does not exist, or is not in scope")
+      return invalid
+    end if
+
+    if m.log <> invalid
+      m.log.info("waiting", duration, "before invoking", callbackName)
+    end if
+    frameTimer = mc.createSGNode("Timer", m.top.getScene(), "frameTimer")
+    frameTimer.duration = duration
+    mc.tasks.observeNodeField(frameTimer, "fire", callback, sendMode, true, scope)
+    mc.setOrAddNodeField(frameTimer, "removeOnObserve", true)
+    frameTimer.control = "start"
+    return frameTimer
+  end function
+
+  function cancelWaitTimer(timer, callback = invalid)
+    if timer <> invalid
+      mc.tasks.unobserveNodeField(timer, "fire", invalid)
+      timer.control = "stop"
+      if timer.getParent() <> invalid
+        timer.getParent().removeChild(timer)
+      end if
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ task support
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  ' /**
+  '  * @member createTask
+  '  * @memberof module:Tasks
+  '  * @instance
+  '  * @description description
+  '  * @param {string} taskType
+  '  * @param {assocarray} fields - fields to apply to task
+  '  * @param {function} callback function to call when task has completed
+  '  * @param {boolean} isRunning indicates if task should be started
+  '  * @param {string} fieldName name of the field ot listen for on the task node
+  '  * @param {string} sendMode ("value"|"node"|"both"|"none") - if both, then your function must have 2 params (result, node)
+  '  * @param {object|invalid} scope - scope on which to execute the callback (default to node's m)
+  '  * @returns {node|invalid} task, or invalid it could not be created
+  '  */
+  function createTask(taskType, fields, callback = invalid, isRunning = true, sendMode = "value", scope = invalid, fieldName = "output")
+
+    task = mc.createSGNode(taskType)
+
+    if task = invalid
+      m.log.error("could not create task of type", taskType)
+      return invalid
+    end if
+
+    if not mc.isAACompatible(fields)
+      fields = {}
+      if mc.isUndefined(field)
+        m.log.error("was passed undefined fields - probs a coding mistake")
+      end if
+    end if
+
+    fields._observedField = fieldName
+
+    mc.setOrAddNodeFields(task, fields)
+    if callback <> invalid
+      mc.tasks.observeNodeField(task, fieldName, callback, sendMode, true, scope)
+    end if
+
+    if isRunning
+      task.control = "RUN"
+    end if
+
+    return task
+  end function
+
+  ' /**
+  '  * @member observeNodeField
+  '  * @memberof module:Tasks
+  '  * @instance
+  '  * @function
+  '  * @description observes a node in a way that makes it clean and easy to get value back out
+  '  * @param {node} node with field to observe
+  '  * @param {string} fieldName field to observe
+  '  * @param {function|string} callback pointer to function to call, or string of field to set, if sendmode is "field"
+  '  * @param {string} sendMode ("value"|"node"|"both"|"field"|"none") - if both, then your function must have 2 params (result, node), if "fied, then it will set the field named callback on instance"
+  '  * @param {boolean} once if true observer is removed when first fired
+  '  * @param {object|invalid} scope - scope on which to execute the callback (default to node's m)
+  '  * @returns {boolean} true if set, false otherwise
+  '  */
+  function observeNodeField(node, fieldName, callback, sendMode = "value", once = false, scope = invalid)
+    if mc.isInvalid(callback)
+      if mc.isUndefined(callback)
+        m.log.error("callback is not in scope for field", fieldName)
+      else
+        m.log.error("callback is not provided for field", fieldName)
+      end if
+    else if mc.isString(callback)
+      if scope = invalid
+        m.log.error("can't use callback for member", callback, "as member, when no scope is provided for field", fieldName)
+        return false
+      else if not scope.doesExist(callback)
+        m.log.error("callback member", callback, "does not exist on target scope for field", fieldName)
+        return false
+      end if
+    end if
+
+    if mc.isInvalid(node)
+      m.log.error("no node provided to observe for field", fieldName)
+      return false
+    end if
+
+    context = {}
+    if scope <> invalid
+      context.instance = scope
+    else
+      scope = m
+    end if
+
+    context.callback = callback
+    context.scope = scope
+    context.field = fieldName
+    context.sendMode = sendMode
+    context.once = once = true
+    context.node = node
+    if m.global.__md_task_keys = true
+      if context.instance <> invalid
+        context.key = `${node.id}.${fieldName}->${context.instance.id}.${mc.getFunctionName(callback)}`
+      else
+        context.key = `${node.id}.${fieldName}->m.${mc.getFunctionName(callback)}`
+      end if
+    end if
+    if node._oid = invalid
+      node.addFields({ "_oid": StrI(rnd(2147483647)).trim() })
+    end if
+
+    mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = context
+
+    node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
+
+  end function
+
+  function _getScopeContexts()
+    if m._nodeContexts = invalid
+      m.["_nodeContexts"] = {}
+    end if
+    return m._nodeContexts
+  end function
+
+  function _nodeCallbackBridge(evt)
+    node = evt.getROSGNode()
+    fieldName = evt.getField()
+    context = mc.getPath(m, "_nodeContexts." + node._oid + "_" + fieldName)
+
+    if context <> invalid
+      if context.once
+        mc.tasks.cleanNodeObserver(node, fieldName)
+        if node.removeOnObserve = true and node.getParent() <> invalid
+          node.getParent().removeChild(node)
+        end if
+      end if
+      if context.callback <> invalid
+        if context.sendMode = "field"
+          context.instance[context.callback] = node[fieldName]
+        else
+          executeInScope = sub(this, callback, value, sendMode, node = invalid)
+            m = this
+            if sendMode = "both"
+              callback(value, node)
+            else if sendMode = "node"
+              callback(node)
+            else if sendMode = "none"
+              callback()
+            else
+              callback(value)
+            end if
+          end sub
+
+          if context.instance <> invalid
+            context.instance.__cb = context.callback
+            if context.sendMode = "both"
+              'bs:disable-next-line
+              context.instance.__cb(node[fieldName], context.node)
+            else if context.sendMode = "node"
+              'bs:disable-next-line
+              context.instance.__cb(context.node)
+            else if context.sendMode = "none"
+              'bs:disable-next-line
+              context.instance.__cb()
+            else
+              'bs:disable-next-line
+              context.instance.__cb(node[fieldName])
+            end if
+            context.instance.delete("__cb")
+          else
+            executeInScope(context.scope, context.callback, node[fieldName], context.sendMode, node)
+          end if
+        end if
+      else
+        m.log.error("class does not have function for callback", node._callbackName)
+      end if
+    else
+      m.log.error("context not found for node", node._oid)
+    end if
+  end function
+
+  function unobserveNodeField(node, fieldName, callback, scope = invalid)
+    'TODO - we should be ehcking how many callbacks are registered on the bridge
+    mc.tasks.cleanNodeObserver(node, fieldName)
+  end function
+
+  function cleanNodeObserver(node, fieldName)
+    if node <> invalid and fieldName <> invalid and m._nodeContexts <> invalid
+      m._nodeContexts.delete(node.id + "_" + fieldName)
+      node.unobserveFieldScoped(fieldName)
+    end if
+  end function
+
+  function cleanScope()
+    contexts = tasks._getScopeContexts()
+    for each key in contexts
+      context = contexts[key]
+      mc.tasks.cleanNodeObserver(context.node, context.fieldName)
+    end for
+    m.["_nodeContexts"] = {}
+  end function
+
+  function cancelTask(task)
+    if task <> invalid
+      mc.tasks.cleanNodeObserver(task, task._observedField)
+      task.control = "stop"
+    end if
+  end function
+
+end namespace

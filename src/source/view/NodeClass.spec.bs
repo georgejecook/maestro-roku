@@ -1,0 +1,106 @@
+namespace tests
+
+  @suite("NodeClass tests")
+  class NodeClassTests extends mv.tests.BaseTestSuite
+
+    private nodeTop
+    private nodeGlobal
+    private nc
+    override function beforeEach()
+      super.beforeEach()
+      m.nodeTop = new rooibos.utils.MockNode("top")
+      m.nodeGlobal = new rooibos.utils.MockNode("top")
+      m.nc = new mv.NodeClass("test", m.nodeGlobal, m.nodeTop)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests constructor")
+    ' +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes")
+    function _()
+      m.assertEqual(m.nc.log.name, "test")
+      m.assertEqual(m.nc.global, m.nodeGlobal)
+      m.assertEqual(m.nc.top, m.nodeTop)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("net helpers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.nc, "executeRequest", ["GET", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.nc.get("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("posts")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.nc, "executeRequest", ["POST", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.nc.post("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("puts")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.nc, "executeRequest", ["PUT", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.nc.put("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("deletes")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.nc, "executeRequest", ["DELETE", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.nc.del("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("executeRequest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("bundles up all the args into a rquest task")
+    @params("m", "u", "p", "c", "h", "o")
+    @params("m2", "u2", "p2", "c2", "h2", "o2")
+    function _(method, url, params, callback, headers, otherArgs)
+      args = {
+        "method": method
+        "url": url
+        "params": params
+        "headers": headers
+        "otherArgs": otherArgs
+      }
+      result = { "id": "result" }
+      m.expectOnce(m.nc, "createTask", ["mc_RequestTask", { args: args }, callback], result)
+      m.assertEqual(m.nc.executeRequest(method, url, params, callback, headers, otherArgs), result)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createTask")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("configures task")
+    function _()
+      args = {
+        v1: "a"
+        v2: "b"
+      }
+      task = m.nc.createTask("mc_RequestTask", args, m.nc.cancelWaitTimer, false, "none")
+      m.assertSubType(task, "mc_RequestTask")
+      m.assertEqual(task.v1, "a")
+      m.assertEqual(task.v2, "b")
+    end function
+
+  end class
+end namespace

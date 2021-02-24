@@ -1,0 +1,27 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/FontManager.bs"
+
+function init()
+  m.top.observeFieldScoped("fontKey", "onFontKeyChange")
+  m.top.observeFieldScoped("style", "onStyleChange")
+  m.top.observeFieldScoped("size", "onSizeChange")
+  onFontKeyChange()
+end function
+
+function onFontKeyChange()
+  if m.top.fontKey <> invalid and m.global.fontManager <> invalid
+    m.top.font = m.global.fontManager@.getFontWithKey(m.top.fontKey)
+  end if
+end function
+
+function onStyleChange()
+  m.top.setFields(m.top.style)
+end function
+
+function onSizeChange()
+  if m.top.size <> invalid and m.top.size.count() > 0
+    m.top.width = m.top.size[0]
+    m.top.height = m.top.size[1]
+  end if
+end function
+

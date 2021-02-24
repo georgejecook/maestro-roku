@@ -1,0 +1,104 @@
+namespace tests
+
+  @strict
+  @suite("BaseViewModel tests")
+  class BaseViewModelTests extends rooibos.BaseTestSuite
+
+    private nodeTop
+    private nodeGlobal
+    private vm
+    override function beforeEach()
+      super.beforeEach()
+      m.nodeTop = new rooibos.utils.MockNode("top")
+      m.nodeGlobal = new rooibos.utils.MockNode("top")
+      m.vm = new mx.BaseViewModel("test")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests constructor")
+    ' +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes")
+    function _()
+      m.assertEqual(m.vm.log.name, "test")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("net helpers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.vm, "executeRequest", ["GET", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.vm.get("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("posts")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.vm, "executeRequest", ["POST", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.vm.post("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("puts")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.vm, "executeRequest", ["PUT", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.vm.put("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("deletes")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.vm, "executeRequest", ["DELETE", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.vm.del("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("executeRequest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("bundles up all the args into a rquest task")
+    @params("m", "u", "p", "c", "h", "o")
+    @params("m2", "u2", "p2", "c2", "h2", "o2")
+    function _(method, url, params, callback, headers, otherArgs)
+      args = {
+        "method": method
+        "url": url
+        "params": params
+        "headers": headers
+        "otherArgs": otherArgs
+      }
+      result = { "id": "result" }
+      m.expectOnce(m.vm, "createTask", ["mc_RequestTask", { args: args }, callback], result)
+      m.assertEqual(m.vm.executeRequest(method, url, params, callback, headers, otherArgs), result)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createTask")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("configures task")
+    function _()
+      args = {
+        v1: "a"
+        v2: "b"
+      }
+      task = m.vm.createTask("mc_RequestTask", args, m.vm.cancelWaitTimer, false, "none")
+      m.assertSubType(task, "mc_RequestTask")
+      m.assertEqual(task.v1, "a")
+      m.assertEqual(task.v2, "b")
+    end function
+
+  end class
+end namespace

@@ -1,0 +1,89 @@
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace mc
+  @strict
+  class BaseClass
+
+    protected name
+    protected log
+
+    protected function new(name)
+      m.log = new log.Logger(name)
+      m.name = name
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ creation
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, callInitialize = true)
+      return mc.createSGNode(nodeType, parent, id, args, callInitialize)
+    end function
+
+    protected function createNode(nodeType)
+      return mc.createNode(nodeType)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Net helpers - TODO these will be added with the with keyword
+    '  when bs supports it
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function get(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("GET", url, params, callback, headers, otherArgs)
+    end function
+
+    protected function post(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("POST", url, params, callback, headers, otherArgs)
+    end function
+
+    protected function del(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("DELETE", url, params, callback, headers, otherArgs)
+    end function
+
+    protected function put(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("PUT", url, params, callback, headers, otherArgs)
+    end function
+
+    protected function executeRequest(method, url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      args = {
+        "method": method
+        "url": url
+        "params": params
+        "headers": headers
+        "otherArgs": otherArgs
+      }
+      return m.createTask("mc_RequestTask", { args: args }, callback)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ task wrappers, for easy stubbing
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function observeNodeField(node, fieldName, callback, sendMode = "value", once = false)
+      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
+    end function
+
+    protected function unobserveNodeField(node, fieldName, callback = invalid)
+      mc.tasks.cleanNodeObserver(node, fieldName)
+    end function
+
+    protected function waitAFrame(callback, duration = 0.01, sendMode = "none")
+      return mc.tasks.waitAFrame(callback, duration, sendMode, m)
+    end function
+
+    protected function cancelWaitTimer(timer)
+      mc.tasks.cancelWaitTimer(timer)
+    end function
+
+    protected function createTask(taskType, fields, callback = invalid, isRunning = true, sendMode = "value", fieldName = "output")
+      return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
+    end function
+
+    protected function cancelTask(task)
+      mc.tasks.cancelTask(task)
+    end function
+
+  end class
+end namespace

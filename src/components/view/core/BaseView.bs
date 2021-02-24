@@ -1,0 +1,231 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/components/view/mixin/FocusMixin.bs"
+import "pkg:/components/view/mixin/KeyMixin.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/ViewUtils.bs"
+import "pkg:/source/core/MIOC.bs"
+
+' /**
+'  * @module BaseView
+'  * @description BaseView class for all controls or screens
+'  */
+
+function init() as void
+  m.log = new log.Logger(getViewName())
+  mioc.initialize()
+  if m.global._mIocContainer <> invalid
+    'TODO - I will probs import ioc into base view
+    'bs:disable-next-line
+  end if
+  m.top.observeFieldScoped("isFocused", "onIsFocusedChange")
+  m.top.observeFieldScoped("isChildFocused", "onIsChildFocusedChange")
+
+  keyPressMixinInit()
+
+  'TODO - guard these observers to not include in prod builds
+  m.top.observeFieldScoped("__debugM", "onDebugMChange")
+
+  m.wasShown = false
+end function
+
+function getViewName()
+  return m.top.subType()
+end function
+
+function onDebugMChange()
+  m.log.info("dumping m for debugging purposes")
+  mc.setOrAddNodeField(m.top, "__m", m)
+  mc.setOrAddNodeField(m.top, "__vm", m.vm)
+end function
+
+
+' /**
+'  * @member intializeView
+'  * @memberof module:BaseView
+'  * @instance
+'  * @function
+'  * @description initializes the passed in View
+'  * @param {BaseView} the view to initialize
+'  */
+function initializeView(view, args = invalid) as void
+  if view <> invalid
+    view@._initialize(args)
+  else
+    m.log.error("view is invalid!")
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'** VISIBILITY
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onVisibleChange()
+  'TODO - does the nav controller handle this in future?
+  m.log.info(m.top.id, "onVisibleChange visible ", m.top.visible)
+  if m.top.visible
+    _onShow(invalid)
+  else
+    _onHide(invalid)
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Lifecycle methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function _onShow(args) as void
+  ' ? ">> base VIEW _ONSHOW " ; m.top.id ; " isShown " ; m.top.isShown
+  oldIsShowing = m.top.isShown
+  if not m.top.isInitialized
+    return
+  end if
+  m.top.isShown = true
+
+  if not m.wasShown
+    if mc.isFunction(onFirstShow)
+      'bs:disable-next-line
+      onFirstShow()
+    end if
+    m.wasShown = true
+
+    if m.vm <> invalid and m.vm.onFirstShow <> invalid
+      m.vm.onFirstShow()
+    end if
+
+  end if
+
+  if oldIsShowing <> m.top.isShown
+    if mc.isFunction(onShow)
+      'bs:disable-next-line
+      onShow()
+    end if
+
+    if m.vm <> invalid and m.vm.onShow <> invalid
+      m.vm.onShow()
+    end if
+
+  end if
+end function
+
+function _onHide(args)
+  if m.wasShown
+    m.top.isShown = false
+    if mc.isFunction(onHide)
+      'bs:disable-next-line
+      onHide()
+    end if
+
+    if m.vm <> invalid and m.vm.onHide <> invalid
+      m.vm.onHide()
+    end if
+
+  else
+    m.log.warn("onHide called before show: ignoring")
+  end if
+end function
+
+function _initialize(args = invalid)
+  m.log.method("initialize")
+  if not m.top.isInitialized
+    m.top.isInitialized = true
+    initialize(args)
+    if m.vm <> invalid
+      m.vm.initialize()
+    end if
+    m.top.observeFieldScoped("visible", "onVisibleChange")
+    if m.top.visible and not m.top.isShown
+      _onShow(invalid)
+    end if
+  else
+    m.log.warn("View was already initialized. Ignoring subsequent call ", m.top)
+  end if
+end function
+
+function callVMFunc(funcName, p1 = "#M_NONE#", p2 = "#M_NONE#", p3 = "#M_NONE#")
+  return mc.callAAFunc(m.vm, funcName, p1, p2, p3)
+end function
+
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ focus
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onIsFocusedChange()
+  if m.global.focusManager.isLogging
+    m.log.verbose("m.top.isFocused", m.top.isFocused, mc.dv(m.top))
+  end if
+
+  if m.top.isFocused
+    onGainedFocus(true)
+  else
+    onLostFocus()
+  end if
+end function
+
+function onIsChildFocusedChange()
+  if m.global.focusManager.isLogging
+    m.log.verbose("m.top.isChildFocused", m.top.isChildFocused, mc.dv(m.top))
+  end if
+
+  if m.top.isChildFocused
+    onGainedFocus(false)
+  else
+    'we dont' notify about this
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ abstract focus methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+' /**
+'  * @member onGainedFocus
+'  * @memberof module:FocusMixin
+'  * @instance
+'  * @function
+'  * @description invoked when a control, or a parent of a focused control, gains focus
+'  * @param {boolean} isSelfFocused - if true, then this is the control that is focused, if false, then it is one of the control's parents
+'  */
+function onGainedFocus(isSelfFocused)
+  if m.global.focusManager.isLogging
+    m.log.info("onGainedFocus", m.top.subType(), isSelfFocused)
+  end if
+
+  if isSelfFocused
+    if m.vm <> invalid
+      if m.vm.onGainedFocus <> invalid
+        m.vm.onGainedFocus(isSelfFocused)
+      end if
+
+      if mc.isFunction(mx_onFocusIdChange)
+        'bs:disable-next-line
+        mx_onFocusIdChange(m.vm.focusId)
+      end if
+    end if
+
+  end if
+end function
+
+' /**
+'  * @member onGainedFocus
+'  * @memberof module:FocusMixin
+'  * @instance
+'  * @function
+'  * @description invoked when a control, loses focus
+'  */
+function onLostFocus()
+  if m.global.focusManager.isLogging
+    m.log.info("lost focus:", m.top.subType(), ".", m.top.id)
+  end if
+  if m.vm <> invalid and m.vm.onLostFocus <> invalid
+    m.vm.onLostFocus()
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ abstract lifecycle methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function initialize(args)
+end function

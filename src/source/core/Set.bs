@@ -1,0 +1,88 @@
+' /**
+'  * @member Dicationry
+'  * @memberof module:Set
+'  * @instance
+'  * @function
+'  * @description light node wrapper around a Set to stop copies
+'  */
+namespace mc.collections
+  @node("Set", "Node")
+  class Set
+
+    private top
+    protected data
+
+    @field("integer")
+    public length = 0
+
+    @field("boolean")
+    @observer("onDebugChange")
+    public _debug
+
+    @field("array")
+    public __contents
+
+    function new(globalNode, top)
+      m.data = []
+      m.top = top
+    end function
+
+    @nodefunc
+    function clear()
+      m.data = {}
+      m.top.length = 0
+      m.top._debug = invalid
+    end function
+
+    @nodefunc
+    function add(value)
+      index = m.getIndex(value)
+      if index <> -1
+        m.data.delete(index)
+      end if
+      m.data.push(value)
+      m.top.length = m.data.count()
+    end function
+
+    @nodefunc
+    function append(other)
+      m.data.append(other)
+      m.top.length = m.data.count()
+    end function
+
+    @nodefunc
+    function get(index)
+      return m.data[index]
+    end function
+
+    @nodefunc
+    function delete(index)
+      m.data.delete(index)
+      m.top.length = m.data.count()
+    end function
+
+    @nodefunc
+    function doesExist(value)
+      return m.getIndex(value) <> -1
+    end function
+
+    @nodefunc
+    function getIndex(value)
+      for i = 0 to m.data.count() - 1
+        if m.data[i] = value
+          return i
+        end if
+      end for
+      return -1
+    end function
+
+    @nodefunc
+    function getValues()
+      return m.data
+    end function
+
+    function onDebugChange(value)
+      m.top.contents = m.data
+    end function
+  end class
+end namespace

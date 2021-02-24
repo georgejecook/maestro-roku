@@ -1,0 +1,238 @@
+namespace tests
+  @suite("Animation tests")
+  class AnimationTests extends mv.tests.BaseTestSuite
+
+    private manager
+    private nodeGlobal
+    private parent
+
+    override function beforeEach()
+      m.nodeGlobal = new rooibos.utils.MockNode("global")
+      m.parent = createObject("roSGNode", "Group")
+      m.parent.id = "topNode"
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests ScaleAnimation")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates ScaleAnimation correctly")
+    @params(2.0, [0, 0], [1.0, 1.0])
+    @params(2.0, [1.0, 1], [0, 0])
+    @params(2.5, [0.2, 0.2], [1.0, 0.3])
+    function _(duration, fromValue, toValue)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      sa = new mv.animations.Scale(target, duration, fromValue, toValue)
+
+      m.assertSubType(sa.node, "Animation")
+      m.assertTrue(sa.node.id.instr("t1_scale_") <> -1)
+      m.assertSubType(sa.interpolator, "Vector2DFieldInterpolator")
+      m.assertTrue(sa.interpolator.id.instr("t1_i_scale_") <> -1)
+
+      m.assertEqual(sa.node.getParent(), target)
+      m.assertEqual(sa.node.getChild(0), sa.interpolator)
+
+      m.assertEqual(sa.node.easeFunction, "linear")
+      m.assertTrue(sa.duration = duration)
+      m.assertTrue(sa.node.duration = duration)
+      m.assertTrue(sa.node.delay = 0)
+      m.assertTrue(mc.isPointEqual(sa.interpolator.key, [0, 1]))
+      m.assertTrue(mc.isPointEqual(sa.interpolator.keyValue[0], fromValue))
+      m.assertTrue(mc.isPointEqual(sa.interpolator.keyValue[1], toValue))
+
+    end function
+
+    @it("correclty assesses valid values")
+    @params([-1, -1], true)
+    @params([0, 0], true)
+    @params([0.5, 0.5], true)
+    @params(1, false)
+    @params(1.2, false)
+    @params("0", false)
+    @params([], false)
+    @params(invalid, false)
+    function _(value, expected)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      sa = new mv.animations.Scale(target, 1, 1, 2)
+
+      m.assertEqual(sa.isValidValue(value), expected)
+    end function
+
+    @it("correctly updates animation controls")
+    function _()
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      sa = new mv.animations.Scale(target, 1, 1, 2)
+
+      sa.start()
+      m.assertEqual(sa.node.control, "start")
+      m.assertEqual(sa.control, "start")
+
+      sa.pause()
+      m.assertEqual(sa.node.control, "pause")
+      m.assertEqual(sa.control, "pause")
+
+      sa.start(true)
+      m.assertEqual(sa.node.control, "resume")
+      m.assertEqual(sa.control, "resume")
+
+      sa.stop(true)
+      m.assertEqual(sa.node.control, "finish")
+      m.assertEqual(sa.control, "finish")
+
+      sa.stop()
+      m.assertEqual(sa.node.control, "stop")
+      m.assertEqual(sa.control, "stop")
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests animateToWithSpeed")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets correct speed for float")
+    @params(0, 1, 10, 100)
+    @params(0.25, 1, 10, 75)
+    @params(0.5, 1, 10, 50)
+    @params(0.75, 1, 10, 25)
+    function _(currentValue, toValue, stepSpeed, expectedDuration)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      fa = new mv.animations.Fade(target, 2.5, 0.0, 1.0)
+      target.opacity = currentValue
+      fa.animateToWithSpeed(toValue, stepSpeed, "float")
+      m.assertEqual(fa.fromValue * 1.0, currentValue * 1.0)
+      m.assertEqual(fa.toValue * 1.0, toValue * 1.0)
+      m.assertEqual(fa.duration * 1.0, expectedDuration * 1.0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @ignore
+    @describe("tests ParallelAnimation")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates ParallelAnimation with simple values")
+    function _()
+      pa = new mv.animations.Parallel("anim", true)
+      m.assertTrue(pa.node.repeat)
+      m.assertEqual(pa.node.id, "anim")
+      m.assertSubType(pa.node, "ParallelAnimation")
+    end function
+
+    @ignore
+    @it("creates ParallelAnimation correctly")
+    function _()
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      pa = new mv.animations.Parallel(target, [
+        new mv.animations.Scale(target, 2, 1.0, 2.0),
+        new mv.animations.Fade(target, 2.5, 0.0, 1.0)
+      ])
+
+      pa.start()
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests util functions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates fadeTo animations")
+    @params(0)
+    @params(0.5)
+    @params(0.9)
+    function _(fromOpacity)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      target.opacity = fromOpacity
+      sa = mv.animations.utils.fadeTo(target, 2, 1)
+      m.assertTrue(sa.duration = 2)
+      m.assertTrue(sa.fromValue = fromOpacity)
+      m.assertTrue(sa.toValue = 1)
+
+    end function
+
+    @it("creates moveTo animations")
+    @params([0, 0])
+    @params([1000, 0])
+    @params([2000, 0])
+    function _(fromTranslation)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      target.translation = fromTranslation
+      sa = mv.animations.utils.moveTo(target, 2, [3000, 0])
+      m.assertTrue(sa.duration = 2)
+      m.assertTrue(mc.isPointEqual(sa.fromValue, fromTranslation))
+      m.assertTrue(mc.isPointEqual(sa.toValue, [3000, 0]))
+
+    end function
+
+    @it("creates scaleTo animations")
+    @params([0, 0])
+    @params([0.5, 0.5])
+    @params([0.9, 0.9])
+    function _(fromScale)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      target.scale = fromScale
+      sa = mv.animations.utils.scaleTo(target, 2, [1, 1])
+      m.assertTrue(sa.duration = 2)
+      m.assertTrue(mc.isPointEqual(sa.fromValue, fromScale))
+      m.assertTrue(mc.isPointEqual(sa.toValue, [1, 1]))
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests getDelta")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("reports correctDelta for various types")
+    @params(0, 0, 0)
+    @params(0, 1, 1)
+    @params(0, 2, 2)
+    @params(1, 0, 1)
+    @params(-1, 0, 1)
+    @params(0, -1, 1)
+    @params(1, 1, 0)
+    @params(0, 0.5, 0.5)
+    function _(fromValue, toValue, expected)
+      m.assertTrue(mv.animations.utils.getDelta(fromValue, toValue) = expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("kenburns")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("configures the animations correctly on init")
+    function _()
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      kb = new mv.animations.KenBurns(target, 1, 1.3, 1)
+      m.assertEqual(kb.delay, 1)
+      m.assertEqual(kb.maxScale, 1.3)
+      m.assertNotInvalid(kb.sAnim)
+      m.assertNotInvalid(kb.mAnim)
+      m.assertEqual(kb.target, target)
+      m.assertEqual(kb.sAnim.target, target)
+      m.assertEqual(kb.sAnim.target, target)
+    end function
+
+    @nocatch
+    @it("generated some kenburns values and applies them on start")
+    function _()
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      target.scale = [0, 0]
+      target.translation = [0, 0]
+
+      kb = new mv.animations.KenBurns(target, 1, 1.3, 1)
+      kb.start()
+      kb.stop()
+      m.assertNotEqual(target.scale, [1, 1])
+      m.assertNotEqual(target.translation, [0, 0])
+    end function
+
+  end class
+end namespace

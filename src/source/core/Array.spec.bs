@@ -1,0 +1,59 @@
+namespace tests
+  @strict
+  @suite("Array tests")
+  class ArrayTests extends rooibos.BaseTestSuite
+
+    private array
+
+    override function setup()
+      super.setup()
+      m.array = createObject("roSGNode", "Array")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("basic scenarios")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("pushes")
+    function _()
+      m.array@.push("a")
+      m.assertEqual(m.array.length, 1)
+      m.assertEqual(m.array@.get(0), "a")
+    end function
+
+    @it("gets")
+    function _()
+      m.array@.push("b")
+      m.assertEqual(m.array.length, 2)
+      m.assertEqual(m.array@.get(0), "a")
+      m.assertEqual(m.array@.get(1), "b")
+    end function
+
+    @it("gets values")
+    function _()
+      m.assertEqual(m.array@.getValues(), ["a", "b"])
+    end function
+
+    @it("deletes")
+    function _()
+      m.array@.push("c")
+      m.assertEqual(m.array.length, 3)
+      m.assertEqual(m.array@.get(0), "a")
+      m.assertEqual(m.array@.get(1), "b")
+      m.assertEqual(m.array@.get(2), "c")
+
+      m.array@.delete(1)
+      m.assertEqual(m.array.length, 2)
+      m.assertEqual(m.array@.get(0), "a")
+      m.assertEqual(m.array@.get(1), "c")
+      m.assertEqual(m.array@.get(2), invalid)
+
+      m.array@.delete(1)
+      m.assertEqual(m.array.length, 1)
+      m.assertEqual(m.array@.get(0), "a")
+      m.assertEqual(m.array@.get(1), invalid)
+      m.assertEqual(m.array@.get(2), invalid)
+    end function
+
+  end class
+end namespace

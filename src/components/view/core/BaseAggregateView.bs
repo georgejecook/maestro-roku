@@ -1,0 +1,79 @@
+function init() as void
+  m.currentView = invalid
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ view management
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function showView(view)
+  m.log.verbose("showView")
+  children = m.top.getChildren( - 1, 0)
+
+  for each child in children
+    if not child.isSameNode(view)
+      hideView(child)
+    end if
+  end for
+
+  if view <> invalid
+    m.log.method("view is valid. isShown", m.top.isShown, "view", view.id)
+
+    m.top.AppendChild(view)
+    m.top.currentView = view
+
+    if m.top.isShown
+      view.visible = true
+    end if
+
+  end if
+end function
+
+function hideView(view)
+  if view <> invalid
+    if view.isSameNode(m.top.currentView)
+      m.top.currentView = invalid
+    end if
+    view.visible = false
+    m.top.RemoveChild(view)
+  end if
+
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Lifecycle methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onShow()
+  m.log.verbose("onShow", m.top.subType(), ".", m.top.id)
+  if m.top.currentView <> invalid
+    m.log.info("setting view visible: ",  m.top.currentView.subType(), ".", m.top.currentView.id)
+    m.top.currentView.visible = true
+  else
+    m.log.warn("this aggregrate view has no currentView")
+  end if
+end function
+
+function onHide()
+  m.log.verbose("onHide", m.top.subType(), ".", m.top.id)
+  if m.top.currentView <> invalid
+    m.log.info("setting view invisible: ",  m.top.currentView.subType(), ".", m.top.currentView.id)
+    m.top.currentView.visible = false
+  else
+    m.log.warn("this aggregrate view has no currentView")
+  end if
+end function
+
+function onGainedFocus(isSelfFocused)
+  ' m.log.verbose("onGainedFocus", isSelfFocused)
+
+  if isSelfFocused
+    if m.top.currentView <> invalid
+      ' m.log.debug("setting focus to view ", m.top.currentView.id)
+      mv.setFocus(m.top.currentView)
+    else
+      m.log.debug("no current view when gaining focus")
+    end if
+  end if
+end function
+

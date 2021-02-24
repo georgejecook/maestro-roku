@@ -1,0 +1,19 @@
+namespace mc.utils
+
+  class DebugTimer
+
+    public function new(name)
+      m.name = name
+      m.lastTime = 0
+      m.timer = CreateObject("roTimespan")
+    end function
+
+    public function log(message = "")
+      currentTime = m.timer.totalmilliseconds()
+      sinceLast = currentTime - m.lastTime
+      m.lastTime = currentTime
+      print ">--TIMER : " ; m.name; " " ; message ; " " ; sinceLast ; " (TOTAL "; currentTime ; ")"
+    end function
+
+  end class
+end namespace

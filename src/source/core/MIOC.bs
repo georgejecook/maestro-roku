@@ -1,0 +1,224 @@
+import "pkg:/source/core/Utils.bs"
+namespace mioc
+  ' /**
+  '  * @module MIOC
+  '  * @description Maestro IOC mixin methods. You can use this IOC container to allow for easy stubbing/mocking of data items in your app.
+  '  */
+
+  ' /**
+  '  * @member nameOfFunction
+  '  * @memberof module:MIOC
+  '  * @instance
+  '  * @function createContainer
+  '  * @description creates an IOC container on your app. Call this as early as you can.
+  '  */
+  function createContainer()
+    mioc.reset()
+    __mioc = createObject("roSGNode", "Node")
+    mc.setOrAddNodeField(mc.getGlobal(), "__mioc", __mioc)
+    mc.setOrAddNodeField(mc.getScene(), "__mioc", __mioc)
+  end function
+
+  ' /**
+  '  * @member nameOfFunction
+  '  * @memberof module:MIOC
+  '  * @instance
+  '  * @function initialize
+  '  * @description Called automatically to setup your scope with ioc
+  '  */
+  function initialize()
+    m.__mioc = mc.getGlobal().__mioc
+    if m.__mioc = invalid
+      'in some cases (like tests, the global reference can get screwed up - fall back to scene)
+      m.__mioc = mc.getScene().__mioc
+    end if
+    if m.__mioc = invalid
+      m.log.error("call createContainer must be called before initizliaing any scopes")
+    end if
+  end function
+
+  function reset()
+    container = mc.getGlobal().__mioc
+    if container <> invalid
+      'bs:disable-next-line
+      fields = container.getFields()
+      fieldNames = []
+      for each key in fields
+        fieldNames.push(key)
+      end for
+      container.removeFields(fieldNames)
+    end if
+    mioc.clearClassInstances()
+  end function
+
+  function getInstance(name, path = invalid)
+    if m.__mioc = invalid
+      mioc.initialize()
+    end if
+
+    instance = m.__mioc[name]
+    if instance = invalid
+      m.log.warn("value", name, "was not found in IOC")
+    end if
+
+    if path = invalid
+      return instance
+    else
+      return mc.getPath(instance, path)
+    end if
+
+    return invalid
+  end function
+
+  function setInstances(instances)
+    for each key in instances
+      mioc.setInstance(key, instances[key])
+    end for
+  end function
+  ' /**
+  '  * @member setInstance
+  '  * @memberof module:MIOC
+  '  * @instance
+  '  * @function
+  '  * @description sets a node instance on the DI container
+  '  * @param {field} name of the instance
+  '  * @returns {boolean} true if added
+  '  */
+  function setInstance(field, instance)
+    if type(instance) = "<uninitialized>"
+      m.log.error("tried to add uninitialized instance to IOC container for field ", field)
+      return false
+    end if
+
+    if m.__mioc = invalid
+      mioc.initialize()
+    end if
+
+    if m.__mioc.doesExist(field)
+      m.__mioc[field] = instance
+    else
+      newFields = {}
+      newFields[field] = instance
+      m.__mioc.addfields(newFields)
+    end if
+    return true
+  end function
+
+  function setInstanceField(field, instanceField, value)
+    instance = mioc.getInstance(field)
+    if instance <> invalid
+      mc.setOrAddNodeField(instanceField, value)
+      mioc.setInstance(field, instance)
+    end if
+  end function
+  ' /**
+  '  * @member unsetInstance
+  '  * @memberof module:MIOC
+  '  * @instance
+  '  * @function
+  '  * @description sets a node instance on the DI container
+  '  * @param {field} name of the instance
+  '  * @returns {boolean} true if added
+  '  */
+  function unsetInstance(field)
+    if m.__mioc = invalid
+      mioc.initialize()
+    end if
+
+    if m.__mioc.doesExist(field)
+      m.__mioc.removeField(field)
+    end if
+    return true
+  end function
+
+  function setClassInstance(instance)
+    if instance.doesExist("__classname")
+
+      if m._instancesByType = invalid
+        m._instancesByType = {}
+      end if
+
+      if not m._instancesByType.doesExist(instance.__classname)
+        m._instancesByType[instance.__classname] = instance
+      else
+        m.log.error("instance with type", instance.__classname, "already existed")
+      end if
+    else
+      m.log.error("passed non class value")
+    end if
+  end function
+
+  ' /**
+  '  * @member getClassInstance
+  '  * @memberof module:MIOCC
+  '  * @instance
+  '  * @function
+  '  * @description wrapper for IOC purposes - getting the named item from the model Locator
+  '  * @param {string} classname type to create
+  '  * @param {boolean} createTypeIfNotPresent
+  '  * @param {boolean}  storeInstance - defaults to true
+  '  * @returns {any|invalid} resource, or invalid if not found
+  '  */
+  function getClassInstance(classname, args = [], createTypeIfNotPresent = true, storeInstance = true)
+    if m._instancesByType = invalid
+      m._instancesByType = {}
+    end if
+
+    if m._instancesByType.doesExist(classname)
+      instance = m._instancesByType[classname]
+    else if createTypeIfNotPresent
+      instance = mioc.createClassInstance(classname, args)
+      if storeInstance and instance <> invalid
+        mioc.setClassInstance(instance)
+      end if
+    end if
+
+    return instance
+  end function
+
+  function createClassInstance(classname, args = [])
+    'bs:disable-next-line
+    clazz = MRuntime_getClass(classname)
+
+    if mc_isFunction(clazz)
+      return mc_apply(clazz, args)
+    else
+      if type(m.top) = "roSGNode"
+        subType = m.top.subtype()
+      else
+        subType = "UNKNOWN SCOPE"
+      end if
+      m.log.error("class", classname, "is not in scope inside", subType)
+    end if
+
+    return invalid
+  end function
+
+  function clearClassInstances()
+    ' m.log.warn("WARN clearing class instance store")
+    m._instancesByType = {}
+  end function
+end namespace
+
+namespace mioc.testing
+
+  function setContainer(container)
+    testing.unset__mioc()
+    m.__mioc = container
+    mc.setOrAddNodeField(mc.getGlobal(), "__mioc", m.__mioc)
+    mc.setOrAddNodeField(mc.getScene(), "__mioc", m.__mioc)
+  end function
+
+  function unset__mioc()
+    m.__mioc = invalid
+    mc.getGlobal().delete("__mioc")
+  end function
+
+  function createMockClassInstance(classname, id, fields = {})
+    instance = { "id": id, "__classname": classname }
+    instance.append(fields)
+    mioc.setClassInstance(instance)
+    return instance
+  end function
+
+end namespace

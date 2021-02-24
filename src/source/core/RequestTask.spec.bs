@@ -1,0 +1,124 @@
+namespace tests
+
+  @nocatch
+  @suite("RequestTask tests")
+  class MButtonTests extends rooibos.BaseTestSuite
+
+    override function beforeEach()
+      super.beforeEach()
+    end function
+
+    '++++++++++++++++++++++++++++++++++++++++++swv+++++++++++++++++++
+    @describe("tests constructor")
+    ' +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("tests constructor")
+    function _()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("execute")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid for unknown method")
+    @params(invalid)
+    @params({})
+    @params({ "method": "other" })
+    function _(args)
+      rt = new mc.RequestTask()
+      req = { "id": "req" }
+      m.expectOnce(rt, "makeRequest", [], req)
+
+      m.assertInvalid(rt.execute(args), result)
+    end function
+
+    @it("gets")
+    @params("get")
+    @params("GET")
+    function _(method)
+      rt = new mc.RequestTask()
+      result = { "id": "result" }
+
+      req = { "id": "req" }
+      m.expectOnce(rt, "makeRequest", [], req)
+      m.expectOnce(req, "get", ["url", "params", "headers", "otherArgs"], result)
+
+      args = {
+        method: method
+        url: "url"
+        params: "params"
+        headers: "headers"
+        otherArgs: "otherArgs"
+      }
+      m.assertEqual(rt.execute(args), result)
+
+    end function
+
+    @it("posts")
+    @params("post")
+    @params("POST")
+    function _(method)
+      rt = new mc.RequestTask()
+      result = { "id": "result" }
+
+      req = { "id": "req" }
+      m.expectOnce(rt, "makeRequest", [], req)
+      m.expectOnce(req, "post", ["url", "params", "headers", "otherArgs"], result)
+
+      args = {
+        method: method
+        url: "url"
+        params: "params"
+        headers: "headers"
+        otherArgs: "otherArgs"
+      }
+      m.assertEqual(rt.execute(args), result)
+
+    end function
+
+    @it("puts")
+    @params("put")
+    @params("PUT")
+    function _(method)
+      rt = new mc.RequestTask()
+      result = { "id": "result" }
+
+      req = { "id": "req" }
+      m.expectOnce(rt, "makeRequest", [], req)
+      m.expectOnce(req, "put", ["url", "params", "headers", "otherArgs"], result)
+
+      args = {
+        method: method
+        url: "url"
+        params: "params"
+        headers: "headers"
+        otherArgs: "otherArgs"
+      }
+      m.assertEqual(rt.execute(args), result)
+
+    end function
+
+    @it("deletes")
+    @params("delete")
+    @params("DELETE")
+    function _(method)
+      rt = new mc.RequestTask()
+      result = { "id": "result" }
+
+      req = { "id": "req" }
+      m.expectOnce(rt, "makeRequest", [], req)
+      m.expectOnce(req, "delete", ["url", "params", "headers", "otherArgs"], result)
+
+      args = {
+        method: method
+        url: "url"
+        params: "params"
+        headers: "headers"
+        otherArgs: "otherArgs"
+      }
+      m.assertEqual(rt.execute(args), result)
+
+    end function
+
+  end class
+end namespace

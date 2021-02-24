@@ -1,0 +1,89 @@
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Initialization
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function init()
+  m.log.method("init")
+  m.top.navController = m.top.findNode("navController")
+  initializeView(m.top.navController)
+  m.wasRootViewDisplayed = false
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Public API
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function reset(args = invalid)
+  m.log.method("reset")
+  resetNavControllerToRoot()
+
+  if m.top.navController.currentView <> invalid
+    m.top.navController.currentView@.reset()
+  end if
+
+  if m.top.hasFocus()
+    mv.setFocus(m.top.navController)
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Private impl
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function createFirstScreen()
+  m.log.method("createFirstScreen")
+  if m.top.rootView <> invalid
+    if m.top.rootView <> invalid
+      push(m.top.rootView)
+      m.wasRootViewDisplayed = true
+    else
+      m.log.error("no screen ")
+    end if
+  else
+    m.log.error("rootView was invalid!")
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Key handling
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onKeyPressBack() as boolean
+  m.log.method("onKeyPressBack")
+
+  if m.top.navController.numberOfViews > 1
+    pop()
+    mv.setFocus(m.top.navController)
+    return true
+  end if
+
+  return false
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Lifecycle methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onShow()
+  m.log.method("onShow")
+
+  if m.wasRootViewDisplayed
+    reset()
+  else
+    createFirstScreen()
+  end if
+  m.top.navController.visible = true
+end function
+
+function onHide()
+  m.log.method("onHide")
+  m.top.navController.visible = false
+  reset()
+end function
+
+function onGainedFocus(isSelfFocused)
+  ' m.log.method("onGainedFocus ", isSelfFocused)
+  if isSelfFocused
+    mv.setFocus(m.top.navController)
+  end if
+end function

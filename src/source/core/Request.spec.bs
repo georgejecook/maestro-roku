@@ -1,0 +1,129 @@
+namespace tests
+  @nocatch
+  @suite("Request tests")
+  class RequesTests extends rooibos.BaseTestSuite
+
+    override function beforeEach()
+      super.beforeEach()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("helper methods")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets")
+    function _()
+      req = new mc.net.Request()
+      result = { "id": "result" }
+
+      m.expectOnce(req, "get", ["url", "params", "headers", "otherArgs"], result)
+
+      m.assertEqual(req.get("url", "params", "headers", "otherArgs"), result)
+    end function
+
+    @it("posts")
+    function _()
+      req = new mc.net.Request()
+      result = { "id": "result" }
+
+      m.expectOnce(req, "post", ["url", "params", "headers", "otherArgs"], result)
+
+      m.assertEqual(req.post("url", "params", "headers", "otherArgs"), result)
+    end function
+
+    @it("puts")
+    function _()
+      req = new mc.net.Request()
+      result = { "id": "result" }
+
+      m.expectOnce(req, "put", ["url", "params", "headers", "otherArgs"], result)
+
+      m.assertEqual(req.put("url", "params", "headers", "otherArgs"), result)
+    end function
+
+    @it("deletes")
+    function _()
+      req = new mc.net.Request()
+      result = { "id": "result" }
+
+      m.expectOnce(req, "delete", ["url", "params", "headers", "otherArgs"], result)
+
+      m.assertEqual(req.delete("url", "params", "headers", "otherArgs"), result)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("executeRequest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    @it("does not pass parmas or headers if not set")
+    @params("get", "u1", invalid, invalid)
+    @params("put", "u2", invalid, invalid)
+    @params("get", "u1", "illegal", invalid)
+    @params("put", "u2", invalid, "illegal")
+    @params("put", "u2", "illegal", "illegal")
+    function _(method, url, params, headers)
+      req = new mc.net.Request()
+
+      expectedArgs = {
+      }
+
+      result = { "id": "result" }
+      m.expectOnce(req, "request", [method, url, expectedArgs], result)
+
+      m.assertEqual(req.executeRequest(method, url, params, headers), result)
+    end function
+
+
+    @it("passes headers values to request, if set")
+    @params("put", "u2", { "i": 1 }, { "i": 2 })
+    function _(method, url, params, headers)
+      req = new mc.net.Request()
+
+      expectedArgs = {
+        params: params
+        headers: headers
+      }
+
+      result = { "id": "result" }
+      m.expectOnce(req, "request", [method, url, expectedArgs], result)
+
+      m.assertEqual(req.executeRequest(method, url, params, headers), result)
+    end function
+
+    @it("reformats args if receiving otherArgs")
+    function _()
+      req = new mc.net.Request()
+      otherArgs = { "id": "otherArgs" }
+
+      expectedArgs = {
+        id: "otherArgs"
+      }
+
+      result = { "id": "result" }
+      m.expectOnce(req, "request", ["method", "url", expectedArgs], result)
+
+      m.assertEqual(req.executeRequest("method", "url", invalid, invalid, otherArgs), result)
+    end function
+
+    @it("reformats args if receiving otherArgs - with params and headers")
+    function _()
+      req = new mc.net.Request()
+      otherArgs = { "id": "otherArgs" }
+
+      headers = { "id": "headers" }
+      params = { "id": "params" }
+
+      expectedArgs = {
+        id: "otherArgs"
+        params: params
+        headers: headers
+      }
+
+      result = { "id": "result" }
+      m.expectOnce(req, "request", ["method", "url", expectedArgs], result)
+
+      m.assertEqual(req.executeRequest("method", "url", params, headers, otherArgs), result)
+    end function
+  end class
+end namespace

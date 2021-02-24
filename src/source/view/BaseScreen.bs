@@ -1,0 +1,53 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/view/BaseView.bs"
+
+namespace mv
+  ' /**
+  '  * @module BaseScreen
+  '  * @description Class based counterpart to BaseView component
+  '  *              used for MVC style programming
+  '  */
+  class BaseScreen extends mv.BaseView
+
+    function new(name, globalNode, top)
+      super(name, globalNode, top)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ nav support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    'Note the following methods are proxies to facilitate testing.
+    'All of them will call out to the top level scope
+
+    ' /**
+    '  * @member push
+    '  * @memberof module:BaseViewModel
+    '  * @instance
+    '  * @function
+    '  * @description wrapper for push
+    '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
+    '  */
+    protected function push(view)
+      'bs:disable-next-line
+      push(view)
+    end function
+
+    protected function pop() as object
+      'bs:disable-next-line
+      return(pop())
+    end function
+
+    protected function resetNavControllerToRoot()
+      'bs:disable-next-line
+      resetNavControllerToRoot()
+    end function
+
+    protected function resetNavController(newFirstScreen = invalid, endIndex = -1)
+      'bs:disable-next-line
+      resetNavController(newFirstScreen, endIndex)
+    end function
+
+  end class
+end namespace

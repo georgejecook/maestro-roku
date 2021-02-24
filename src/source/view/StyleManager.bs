@@ -1,0 +1,68 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/NodeClass.bs"
+
+namespace mv
+  @node("mv_StyleManager", "Node")
+  class StyleManager extends mv.NodeClass
+
+    private styles = {}
+    private cachedStyles = {}
+
+    function new(globalNode, top)
+      super("StyleManager", globalNode, top)
+      m.log = new log.Logger("StyleManager")
+      m.setStyleJson(invalid)
+    end function
+
+    @nodefunc
+    public function setStyleJson(json)
+      if mc.isAACompatible(json)
+        m.styles = json
+      else
+        m.styles = {}
+      end if
+      m.cachedStyles = {} ' we lazily pull out styles and parse them on demand
+    end function
+
+    ' /**
+    '  * @member getStyle
+    '  * @memberof module:StyleManager
+    '  * @instance
+    '  * @function
+    '  * @description get's a maestro compliant style
+    '  * @param {string} key
+    '  * @returns {assocarray} style, marshalled for maestro compatible values
+    '  */
+    @nodefunc
+    function getStyle(key) as dynamic
+      if key = invalid or key.trim() = ""
+        return {}
+      end if
+
+      style = m.cachedStyles[key]
+
+      if style = invalid
+        style = m.parseStyle(key)
+        if style <> invalid
+          m.cachedStyles[key] = style
+        else
+          style = {}
+        end if
+      end if
+
+      return style
+    end function
+
+
+    function parseStyle(key)
+      style = m.styles[key]
+
+      if style <> invalid
+        'TODO parse the various components of the style here.
+        'in future could even register plugins for this purpose.
+      end if
+      return style
+    end function
+  end class
+end namespace

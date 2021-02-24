@@ -1,0 +1,286 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+
+function init()
+  m.backgroundGroup = m.top.findNode("container_backgroundGroup")
+  m.layoutGroup = m.top.findNode("container_layoutGroup")
+  m.container_moveableContent = m.top.findNode("container_moveableContent")
+  m.updateTimer = m.top.findNode("container_updateTimer")
+  m.animation = m.top.findNode("container_animation")
+  m.interpolator = m.top.findNode("container_interpolator")
+  m.previousY = 0
+
+  m.top.observeFieldScoped("index", "onIndexChange")
+  m.top.observeFieldScoped("size", "onSizeChange")
+  m.top.observeFieldScoped("children", "onChildrenChange")
+  m.top.observeFieldScoped("needsRecalculating", "onNeedsRecalcuatingChange")
+  m.top.observeFieldScoped("yOffsets", "onIndexChange")
+  m.updateTimer.observeFieldScoped("fire", "onNeedsRecalcuatingChange")
+  m.previousCurrFocusRow = 1
+  m.isFloatingFocusOffsetApplied = false
+  m.rowListFloatingFocusPositionOffset = 0
+  m.protectedChildIds = {
+    "container_backgroundGroup": true
+    "container_layoutGroup": true
+    "container_animation": true
+    "container_updateTimer": true
+    "container": true
+    "container_moveableContent": true
+  }
+  onSizeChange()
+end function
+
+function initialize(args)
+  updateChildren()
+end function
+
+function updateChildren(newChildren = invalid)
+  children = []
+  backgroundChildren = []
+  m.updateTimer.control = "stop"
+
+  if newChildren = invalid
+    newChildren = m.top.getChildren(-1, 0)
+  end if
+
+  for each child in newChildren
+    if m.protectedChildIds[child.id] = invalid
+      if child.isBackgroundView = true
+        backgroundChildren.push(child)
+      else
+        children.push(child)
+      end if
+      if child.doesExist("currFocusRow")
+        child.observeFieldScoped("currFocusRow", "onHeroOffsetChildCurrFocusRowChange")
+      end if
+
+    end if
+  end for
+
+  m.backgroundGroup.appendChildren(backgroundChildren)
+  m.layoutGroup.appendChildren(children)
+  m.top.numChildren = children.count()
+  m.top.index = 0
+  onNeedsRecalcuatingChange()
+  m.updateTimer.control = "start"
+end function
+
+function onHeroOffsetChildCurrFocusRowChange(event)
+  'change override offset back to 0
+  currFocusRow = event.getData()
+  node = event.getroSGNode()
+  delta = currFocusRow - m.previousCurrFocusRow
+  m.previousCurrFocusRow = currFocusRow
+
+  if delta < 0
+    direction = -1
+  else
+    direction = 1
+  end if
+
+  if true or node.vertFocusAnimationStyle = "floatingFocus"
+    'TODO guard this
+    fixRowListPosition(node, direction, currFocusRow)
+  end if
+
+  ' m.log.verbose("currFocus Row", currFocusRow, "node.itemFocused", node.itemFocused, "delta", delta, "direction", direction, "animationDirection", m.animationDirection)
+
+  if node.doesExist("isHeroOffsetApplied")
+    ' m.log.info("currFocusChange", currFocusRow, "offsetRequired", node.isHeroOffsetApplied = true, "animationDirection", m.animationDirection)
+    if node.isHeroOffsetApplied = false and currFocusRow >= 0 and currFocusRow < 1 and direction = -1
+      node.isHeroOffsetApplied = true
+      m.log.verbose("ADDING HERO")
+
+      moveToCurrentIndex()
+
+    else if node.isHeroOffsetApplied = true and currFocusRow < 1 and direction = 1
+      m.log.verbose("REMOVING HERO")
+      node.isHeroOffsetApplied = false
+      moveToCurrentIndex()
+    end if
+  end if
+end function
+
+function fixRowListPosition(rowlist, direction, currFocusRow)
+  if m.rowListFloatingFocusPositionOffset <> 0 and direction = 1 and not m.isFloatingFocusOffsetApplied and currFocusRow > 1.5 and currFocusRow < 2.5
+    ' ? "applying fix"
+    m.isFloatingFocusOffsetApplied = true
+    newY = getYOfIndex(m.top.index) - m.rowListFloatingFocusPositionOffset
+    moveContentTo(m.previousY, newY)
+  else if direction = -1 and currFocusRow < 1.5
+    ' ? "removing fix"
+    m.isFloatingFocusOffsetApplied = false
+    newY = getYOfIndex(m.top.index)
+    moveContentTo(m.previousY, newY)
+  end if
+end function
+
+function onSizeChange()
+  setClippingRectangle()
+end function
+
+
+function setClippingRectangle()
+  child = m.layoutGroup.getChild(m.top.index)
+  clippingOffsets = invalid
+  if child <> invalid
+    clippingOffsets = child.containerClippingOffsets
+  end if
+
+  if clippingOffsets = invalid
+    clippingOffsets = [0, 0, 0, 0]
+  end if
+
+  m.container_moveableContent.clippingRect = [clippingOffsets[0], clippingOffsets[1], m.top.size[0] + clippingOffsets[2], m.top.size[1] + clippingOffsets[3]]
+end function
+
+function onChildrenChange()
+  m.layoutGroup.removeChildren(m.layoutGroup.getChildren(-1, 0))
+  m.backgroundGroup.removeChildren(m.backgroundGroup.getChildren(-1, 0))
+  updateChildren(m.top.children)
+  onIndexChange()
+  onSizeChange()
+end function
+
+function onIndexChange()
+  m.log.method("onIndexChange", m.top.index, "isAnimated", m.top.isAnimated)
+  child = m.layoutGroup.getChild(m.top.index)
+
+  if child = invalid
+    m.log.warn("tried to set index before the children were created")
+    return invalid
+  end if
+
+  setClippingRectangle()
+
+  if child.heroControl <> invalid and child.itemFocused <> invalid and child.itemFocused < 1
+    m.previousCurrFocusRow = 1
+    child.isHeroOffsetApplied = true
+  end if
+
+  ' m.log.verbose("child.isHeroOffsetApplied", child.isHeroOffsetApplied)
+  moveToCurrentIndex()
+
+  if m.top.isFocused or m.top.isChildFocused
+    'another ropm miss
+    'bs:disable-next-line
+    mv_setFocus(child)
+  end if
+
+end function
+
+function moveToCurrentIndex(forceNoAnimation = false)
+  newY = getYOfIndex(m.top.index)
+  if newY < m.layoutGroup.translation[1]
+    m.animationDirection = 1
+  else
+    m.animationDirection = -1
+  end if
+
+  ' m.log.info("index", m.top.index, "new Y is", newY, "force no animation", forceNoAnimation, "animationDirection", m.animationDirection)
+
+  moveContentTo(m.previousY, newY)
+  m.previousY = newY
+end function
+
+function moveContentTo(previousY, newY, forceNoAnimation = false)
+  if m.top.isAnimated and not forceNoAnimation
+    if m.animation.state = "running"
+      m.animation.control = "pause"
+    end if
+
+    m.interpolator.keyValue = [[0, m.previousY], [0, newY]]
+
+    if m.animation.control = "pause"
+      m.animation.control = "start"
+    else
+      m.animation.control = "resume"
+    end if
+
+  else
+    ' m.log.info("moving with no animation")
+    m.layoutGroup.translation = [0, newY]
+  end if
+
+end function
+
+function getYOfIndex(index)
+  y = 0
+  currentOffset = 0
+  ' m.log.verbose("index", index)
+  child = m.layoutGroup.getchild(index)
+
+  if child <> invalid and child.heroControl <> invalid and child.isHeroOffsetApplied
+    ' m.log.verbose("child is hero with offset applied")
+    ' m.log.verbose(">>> adding child hero height", child.heroControl.boundingRect().height)
+    currentOffset += - child.heroControl.boundingRect().height
+  else
+    if index < m.top.yOffsets.count()
+      currentOffset -= m.top.yOffsets[index]
+    else
+      if m.top.yOffsets.count() > 0
+        currentOffset -= m.top.yOffsets[m.top.yOffsets.count() - 1]
+      end if
+    end if
+
+  end if
+
+  ' m.log.verbose(">> offsets", m.top.yOffsets)
+
+  for i = 0 to index - 1
+    ' m.log.verbose(">>> ", index, " currentOffset ", currentOffset)
+
+    child = m.layoutGroup.getChild(i)
+
+    if child <> invalid
+      ' m.log.verbose(" child height si ", child.boundingRect().height)
+      y += child.boundingRect().height
+    else
+      ' m.log.warn("child of _multiContainer with index", i, "is invalid")
+    end if
+  end for
+
+  y += currentOffset
+  return - y
+end function
+
+function onNeedsRecalcuatingChange()
+  m.log.info("onNeedsRecalcuatingChange - recalcuating _multiContainer")
+  y = 0
+  heroControl = invalid
+  m.rowListFloatingFocusPositionOffset = 0
+
+  for each child in m.layoutGroup.getChildren(-1, 0)
+    'TODO observe the bounds.. not gonna be fun.. :(
+    child.translation = [0, y]
+    y += child.boundingRect().height
+
+    mc.setOrAddNodeField(child, "heroControl", heroControl)
+    mc.setOrAddNodeField(child, "isHeroOffsetApplied", child.isHeroOffsetApplied = true)
+    mc.setOrAddNodeField(child, "_multiContainer", m.top)
+
+    if child.isHero = true
+      heroControl = child
+    else
+      heroControl = invalid
+    end if
+
+    if m.rowListFloatingFocusPositionOffset = 0 and child.rowListFloatingFocusPositionOffset <> invalid and child.rowListFloatingFocusPositionOffset <> 0
+      m.rowListFloatingFocusPositionOffset = child.rowListFloatingFocusPositionOffset
+    end if
+  end for
+
+end function
+
+function onGainedFocus(isSelfFocused)
+  ' m.log.method("onGainedFocus", isSelfFocused)
+
+  if isSelfFocused
+    ' onIndexChange()
+    child = m.layoutGroup.getChild(m.top.index)
+    if child <> invalid
+      'another ropm miss here. :(
+      'bs:disable-next-line
+      mv_setFocus(child)
+    end if
+  end if
+end function

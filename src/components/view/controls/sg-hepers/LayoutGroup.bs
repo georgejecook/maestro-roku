@@ -1,0 +1,31 @@
+function init()
+  m.originalChildren = []
+  m.top.observeFieldScoped("style", "onStyleChange")
+end function
+
+function _initialize(args = invalid)
+  m.originalChildren = m.top.getChildren( - 1, 0)
+  i = 0
+  for each child in m.originalChildren
+    child.observeFieldScoped("visible", "onChildVisibleChange")
+    child.addFields({ "layoutIndex": i })
+    if not child.visible
+      m.top.removeChild(child)
+    end if
+    i++
+  end for
+end function
+
+function onChildVisibleChange(event)
+  node = event.getRoSGNode()
+  if not node.visible
+    m.top.removeChild(node)
+  else
+    m.top.insertChild(node, node.layoutIndex)
+  end if
+end function
+
+function onStyleChange()
+  m.top.setFields(m.top.style)
+end function
+

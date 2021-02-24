@@ -1,0 +1,142 @@
+
+function init()
+  m.log = new log.Logger("MList")
+  m.rowList = m.top.findNode("rowList")
+  m.rowList.observeFieldScoped("rowItemFocused", "onRowListItemFocused")
+  m.rowList.observeFieldScoped("rowItemSelected", "onRowListItemSelected")
+
+  m.top.observeFieldScoped("style", "onStyleChange")
+  m.top.observeFieldScoped("content", "onLayoutChange")
+  m.top.observeFieldScoped("direction", "onLayoutChange")
+  m.top.observeFieldScoped("horizAlignment", "onLayoutChange")
+  m.top.observeFieldScoped("width", "onLayoutChange")
+  m.top.observeFieldScoped("focusXOffset", "onLayoutChange")
+  m.top.observeFieldScoped("itemSize", "onLayoutChange")
+  onLayoutChange()
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ observers
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onStyleChange()
+  m.top.setFields(m.top.style)
+end function
+
+function onLayoutChange() as void
+  if m.top.content = invalid
+    return
+  end if
+  m.content = createContent()
+
+  if m.top.layout = "horizontal"
+    m.top.numRows = 1
+  end if
+
+  m.rowList.itemSize = [m.top.width, m.top.itemSize[1]]
+  m.rowList.rowItemSize = [m.top.itemSize]
+  m.rowList.rowItemSpacing = [m.top.itemSpacing]
+  m.rowList.focusXOffset = [getXOffset()]
+  m.rowList.content = m.content
+
+  'roku bug stops the last spacing value being repeated: so we have to workaround it
+  ySpacing = [m.top.itemSpacing[1]]
+  spacings = []
+  for i = 0 to m.content.count()
+    spacings.push(ySpacing)
+  end for
+  m.rowList.rowSpacings = spacings
+  if m.top.content._style <> invalid
+    m.content.addFields({ _style: m.top.content._style })
+  end if
+  m.rowList.setFocus(true)
+end function
+
+
+function onRowListItemSelected()
+  m.top.itemSelected = getItemIndex(m.rowList.rowItemSelected)
+  m.log.info("onRowListItemSelected", m.rowList.rowItemSelected, ">", m.top.itemSelected)
+end function
+
+function onRowListItemFocused()
+  m.top.itemFocused = getItemIndex(m.rowList.rowItemFocused)
+end function
+
+function onJumpToIndexChange()
+  m.rowList.jumpToRowItem = getRowListIndex(m.top.jumpToIndex)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ private impl
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function getXOffset()
+  if m.top.direction = "vertical"
+    if m.top.horizAlignment = "left"
+      return m.top.focusXOffset
+    else if m.top.horizAlignment = "center"
+      return (m.top.width - m.top.itemSize[0]) / 2
+    end if
+  else
+    if m.top.horizAlignment = "left"
+      return m.top.focusXOffset
+    else if m.top.horizAlignment = "center"
+      minWidth = (m.top.content.getChildCount()) * (m.top.itemSize[0] + m.top.itemSpacing[0])
+      if minWidth > m.top.width
+        return m.top.focusXOffset
+      else
+        return (m.top.width - minWidth) / 2
+      end if
+    end if
+  end if
+end function
+
+function createContent()
+  m.items = m.top.content.clone(true).getChildren(-1, 0)
+  content = createObject("roSGNode", "ContentNode")
+  children = []
+  for each item in m.items
+    if m.top.direction = "vertical"
+      child = createObject("roSGNode", "ContentNode")
+      child.appendChild(item)
+    else
+      child = item
+    end if
+    children.push(child)
+  end for
+
+  if m.top.direction = "vertical"
+    content.appendChildren(children)
+  else
+    row = content.CreateChild("ContentNode")
+    row.appendChildren(children)
+  end if
+
+  return content
+end function
+
+function getItemIndex(rowListIndex)
+  if m.top.direction = "horizontal"
+    return rowListIndex[1]
+  else
+    return rowListIndex[0]
+  end if
+end function
+
+function getRowListIndex(itemIndex)
+  if m.top.direction = "vertical"
+    return [itemIndex, 0]
+  else
+    return [0, itemIndex]
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ lifecycle
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onGainedFocus(isSelfFocused)
+  if isSelfFocused
+    mv.setFocus(m.rowList)
+  end if
+end function

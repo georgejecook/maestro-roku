@@ -1,0 +1,128 @@
+' /**
+'  * @module TabController
+'  * @description IOS style tab controller component for managing tabbed views
+'  */
+
+function init()
+  m.log.method("init")
+  m.top.currentItem = invalid
+  m.top.isDestroyingChildViewsOnRemoval = false
+  m.viewsByMenuItemId = {}
+end function
+
+function addChildViews()
+  children = m.top.getChildren( - 1, 0)
+  for each child in children
+    addExistingView(child)
+  end for
+  m.top.removeChildren(children)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ public api
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function changeCurrentItem(item)
+  m.log.info("changeCurrentItem", item)
+
+  if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
+    m.top.currentItem = item
+    view = getViewForMenuItemContent(m.top.currentItem, item.screenType <> "DeepLinkingController")
+    if view <> invalid
+      'we want to clear out the view's vis, so the initialize
+      'won't trigger show callbacks prematurely
+      view.visible = false
+      view.isShown = false
+
+      if not view.isInitialized
+        initializeView(view)
+      end if
+      showView(view)
+    else
+      m.log.error("no view for item", m.top.currentItem)
+    end if
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ View management
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function getViewForMenuItemContent(menuItemContent, useCache = true)
+  if menuItemContent = invalid
+    return invalid
+  end if
+
+  view = m.viewsByMenuItemId[menuItemContent.id]
+
+  if view = invalid or not useCache
+    view = _createView(menuItemContent)
+  end if
+
+  return view
+end function
+
+function getViews()
+  views = []
+  for each id in m.viewsByMenuItemId
+    views.push(m.viewsByMenuItemId[id])
+  end for
+  return views
+end function
+
+function addExistingView(existingView)
+  m.viewsByMenuItemId[existingView.id] = existingView
+  existingView.visible = false
+end function
+
+function _createView(menuItemContent)
+  m.log.method("createView menuItemContent.screenType", menuItemContent.screenType)
+  childView = createView(menuItemContent)
+
+  if childView <> invalid
+    containerView = createObject("roSGNode", "TabChildScreen")
+    containerView.rootView = childView
+    containerView.id = menuItemContent.id
+    childView.navController = containerView.navController
+    containerView.isResettingNavController = menuItemContent.screenType <> "DeepLinkingController"
+
+    m.viewsByMenuItemId[menuItemContent.id] = containerView
+    'won't trigger show callbacks prematurely
+    childView.visible = false
+    childView.isShown = false
+
+    ' initializeView(view)
+    initializeView(containerView)
+    containerView.visible = false
+    return containerView
+  else
+    m.log.error("menu item ", menuItemContent.id, " resulted in invalid view from createView. Was this view inteded to be added via addExistingView?")
+    return invalid
+  end if
+end function
+
+' /**
+'  * @member createView
+'  * @memberof module:TabController
+'  * @instance
+'  * @description override point for providing your own view, based on a menuitem content
+'  * @param {node} a selected menu item
+'  * @returns {BaseScreen} a screen to display in a TabChildScreen
+'  */
+function createView(menuItemContent)
+
+  if menuItemContent.screenType <> "none"
+    view = createObject("roSGNode", menuItemContent.screenType)
+    view.id = menuItemContent.id
+  end if
+
+  return view
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Lifecycle
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function initialize(args)
+  addChildViews()
+end function

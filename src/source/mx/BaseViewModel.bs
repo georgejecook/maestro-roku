@@ -1,0 +1,380 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/core/Tasks.bs"
+import "BaseObservable.bs"
+
+namespace mx
+  ' /**
+  '  * @module BaseViewModel
+  '  * @description Base class for all ViewModels
+  '  */
+  @useSetField
+  class BaseViewModel extends mx.BaseObservable
+
+    public state = "none"
+    public focusId = invalid
+    public isFocused = false
+    public isShown = false
+    protected isLongPressStarted = false
+    protected longPressKey = ""
+
+
+    ' /**
+    '  * @member new
+    '  * @memberof module:BaseViewModel
+    '  * @instance
+    '  * @function
+    '  * @description contsructor for a view model.
+    '  *              this class contains the common functions to assist in vm management
+    '  *               - KeyMixin integration points
+    '  *               - FocusMixin integration points
+    '  *               - wrappers for key navigation methods
+    '  * @param {string} name to use in logs, etc
+    '  */
+
+    public function new(name = "BaseViewModel")
+      super(name)
+    end function
+
+    @inject("styleManager")
+    protected styleManager
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public API
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function initialize()
+      super.initialize()
+      m.log.method("initialize", m.__name)
+      m.state = "initialized"
+    end function
+
+    override function destroy()
+      super.destroy()
+      m.log.method("destroy")
+      m.state = "destroyed"
+    end function
+
+    public function onShow()
+      m.isShown = true
+    end function
+
+    public function onHide()
+      m.isShown = false
+    end function
+
+    public function onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.isFocused = true
+        m.setFocusId(m.focusId)
+      end if
+    end function
+
+    public function onLostFocus()
+      m.isFocused = false
+    end function
+
+    public function setFocusId(id)
+      if m.isFocused
+        m.setField("focusId", id)
+      else
+        m.focusId = id
+      end if
+    end function
+
+    protected function initializeView(view, args = invalid)
+      if view <> invalid
+        view@._initialize(args)
+      else
+        m.log.error("view is invalid!")
+      end if
+    end function
+
+    protected function setFocus(target)
+      'bs:disable-next-line
+      mv_setFocus(target)
+    end function
+
+    protected function setFocusLocked(target, message)
+      'bs:disable-next-line
+      mv_setFocusLocked(target, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ creation
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid)
+      return mc.createSGNode(nodeType, parent, id, args)
+    end function
+
+    protected function createNode(nodeType)
+      return mc.createNode(nodeType)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ KEY HANDLING
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function onKeyEvent(key as string, press as boolean) as boolean
+      result = false
+      if press
+        'bs:disable-next-line
+        if mc.isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked()
+          return true
+        end if
+        if mc.isFunction(m[`onKeyPress${key}`])
+          result = m[`onKeyPress${key}`]()
+        end if
+      else
+        result = false
+      end if
+
+      if (result = invalid)
+        result = false
+      end if
+
+      if result and press
+
+        'bs:disable-next-line
+        if mc.isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
+        if longPressInterval > 0
+          m.log.info("entering long press for key ", key)
+          m.longPressKey = key
+          'bs:disable-next-line
+          m.toggleLongPressTimer(longPressInterval)
+        end if
+      else
+        'bs:disable-next-line
+        result = mc.isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
+      end if
+
+      'bs:disable-next-line
+      if result = false and mc.isFunction(m.isCapturingAnyKeyPress)
+        'bs:disable-next-line
+        result = m.isCapturingAnyKeyPress(key, press)
+      end if
+
+      return result
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ scope support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function getTopField(fieldName)
+      return mc.getMField("top")[fieldName]
+    end function
+
+    protected function getMField(fieldName)
+      return mc.getMField(fieldName)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ nav support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    'Note the following methods are proxies to facilitate testing.
+    'All of them will call out to the top level scope
+
+    ' /**
+    '  * @member push
+    '  * @memberof module:BaseViewModel
+    '  * @instance
+    '  * @function
+    '  * @description wrapper for push
+    '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
+    '  */
+    protected function push(view)
+
+      if mc.isString(view)
+        view = m.getViewById(view)
+      end if
+      'bs:disable-next-line
+      push(view)
+    end function
+
+    protected function pop() as object
+      'bs:disable-next-line
+      return(pop())
+    end function
+
+    protected function getViewById(id)
+      view = mc.getMField(id)
+
+      if view = invalid
+        m.log.error("could not find view with name ", id)
+      end if
+
+      return view
+    end function
+
+    protected function resetNavControllerToRoot()
+      'bs:disable-next-line
+      resetNavControllerToRoot()
+    end function
+
+    protected function resetNavController(newFirstScreen = invalid, endIndex = -1)
+      'bs:disable-next-line
+      resetNavController(newFirstScreen, endIndex)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ task wrappers, for easy stubbing
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function observeNodeField(node, fieldName, callback, sendMode = "value", once = false)
+      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
+    end function
+
+    protected function unobserveNodeField(node, fieldName, callback = invalid)
+      'TODO - we need to be a bitmore clever about observing things, as they might be going to various callbacks
+      mc.tasks.cleanNodeObserver(node, fieldName)
+    end function
+
+    protected function waitAFrame(callback, duration = 0.01, sendMode = "none")
+      mc.tasks.waitAFrame(callback, duration, sendMode, m)
+    end function
+
+    protected function cancelWaitTimer(timer)
+      mc.tasks.cancelWaitTimer(timer)
+    end function
+
+    protected function createTask(taskType, fields, callback = invalid, isRunning = true, sendMode = "value", fieldName = "output")
+      return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
+    end function
+
+    protected function cancelTask(task)
+      mc.tasks.cancelTask(task)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ ioc wrappers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function getInstance(name)
+      return mioc.getInstance(name)
+    end function
+
+    protected function setInstance(field, instance)
+      mioc.setInstance(field, instance)
+    end function
+
+    protected function getClassInstance(classname, args = [], createTypeIfNotPresent = true, storeInstance = true)
+      return mioc.getClassInstance(classname, args, createTypeIfNotPresent, storeInstance)
+    end function
+
+    protected function createClassInstance(classname, args = [])
+      return mioc.createClassInstance(classname, args)
+    end function
+
+    protected function setClassInstance(instance)
+      return mioc.setClassInstance(instance)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Net helpers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function get(url as string, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("GET", url, params, callback, headers, otherArgs)
+    end function
+
+    function post(url as string, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("POST", url, params, callback, headers, otherArgs)
+    end function
+
+    function del(url as string, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("DELETE", url, params, callback, headers, otherArgs)
+    end function
+
+    function put(url as string, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      return m.executeRequest("PUT", url, params, callback, headers, otherArgs)
+    end function
+
+    protected function executeRequest(method, url as string, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
+      args = {
+        "method": method
+        "url": url
+        "params": params
+        "headers": headers
+        "otherArgs": otherArgs
+      }
+      return m.createTask("mc_RequestTask", { args: args }, callback)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ long press support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function toggleLongPressTimer(interval)
+      if interval > 0
+        m.waitAFrame(m.onLongPressTimerFire, interval)
+      else if m.longPressKey <> invalid and m.longPressKey <> ""
+        m.log.info("finishing longPress on key ", key)
+        if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
+          'bs:disable-next-line
+          onLongPressFinish(m.longPressKey)
+        end if
+        m.longPressKey = ""
+        m.isLongPressStarted = false
+      end if
+    end function
+
+    protected function onLongPressTimerFire()
+      if m.isLongPressStarted
+        'bs:disable-next-line
+        if mc.isFunction(m.onLongPressUpdate) and not m.onLongPressUpdate(m.longPressKey)
+          m.log.info("long press was cancelled by the onLongPressUpdate call")
+          if mc.isFunction(toggleLongPressTimer)
+            m.toggleLongPressTimer(0)
+          end if
+        end if
+      else
+        'bs:disable-next-line
+        if mc.isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
+          m.log.info("long press was rejected by onLongPressStart call")
+          m.toggleLongPressTimer(0)
+        else
+          m.log.info("long press is accepted : starting for key ", m.longPressKey)
+          m.isLongPressStarted = true
+        end if
+      end if
+    end function
+  end class
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ helpers
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function onFocusIdChange(focusId)
+    m.log.verbose("onFocusIdChange", focusId, m.top.isShown)
+
+    if focusId <> invalid and focusId <> "" and m.top.isShown
+      control = m[focusId]
+
+      if control <> invalid
+        m.log.verbose("setting focus on ", control)
+        'bs:disable-next-line
+        mv.setFocus(control)
+      else
+        m.log.error("the focus map contained a focusId that did not exist!", focusId)
+      end if
+
+    end if
+  end function
+
+
+  function initializeBindings()
+    if mc.isFunction(m_initBindings)
+      'bs:disable-next-line
+      m_initBindings()
+    end if
+
+    if mc.isFunction(M_initStaticBindings)
+      'bs:disable-next-line
+      M_initStaticBindings()
+    end if
+
+    m.vm.observeField("focusId", onFocusIdChange)
+  end function
+end namespace

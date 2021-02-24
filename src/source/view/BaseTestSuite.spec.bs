@@ -1,0 +1,31 @@
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+namespace mv.tests
+
+  @strict
+  class BaseTestSuite extends rooibos.BaseTestSuite
+    private styleManager
+    private log
+
+    override function setup()
+      mv.tests.setUpMScope()
+      m.log = new log.Logger(m.name)
+    end function
+
+    override function beforeEach()
+      mioc.createContainer()
+      m.styleManager = createObject("roSGNode", "mv_StyleManager")
+      mioc.setInstance("styleManager", m.styleManager)
+    end function
+
+    override function afterEach()
+      mioc.reset()
+      mioc.clearClassInstances()
+    end function
+  end class
+
+  function setUpMScope()
+    log.initializeLogManager()
+    m.log = new log.Logger("rooibosScope")
+  end function
+end namespace

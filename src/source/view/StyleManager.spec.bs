@@ -1,0 +1,91 @@
+namespace tests
+  @suite("StyleManager tests")
+  class StyleManagerTests extends mv.tests.BaseTestSuite
+
+    private manager
+    private nodeGlobal
+    private nodeTop
+    private testData = {
+      "comp1": {
+        "fontKey": "a,10,true,false"
+        "width": 100
+        "height": 100
+      }
+      "comp2": {
+        "translation": [100, 100]
+      }
+    }
+
+    override function beforeEach()
+      m.nodeGlobal = new rooibos.utils.MockNode()
+      m.nodeTop = new rooibos.utils.MockNode()
+      m.manager = new mv.StyleManager(m.nodeGlobal, m.nodeTop)
+      m.manager.setStyleJson(m.testData)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests constructor")
+    ' +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes")
+    function _()
+      m.manager = new mv.StyleManager(m.nodeGlobal, m.nodeTop)
+      m.assertEmpty(m.manager.styles)
+      m.assertEmpty(m.manager.cachedStyles)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests setStyleJson")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("handles bad values")
+    @params(invalid)
+    @params([])
+    function _(value)
+      m.manager.setStyleJson(value)
+      m.assertEmpty(m.manager.styles)
+      m.assertEmpty(m.manager.cachedStyles)
+    end function
+
+    @it("handles valid json")
+    function _()
+      m.manager.setStyleJson(m.testData)
+      m.assertEqual(m.manager.styles, m.testData)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests getStyle")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns empty for unknown keys")
+    @params(invalid)
+    @params("notThere")
+    function _(name)
+      m.assertEmpty(m.manager.getStyle(name))
+    end function
+
+    @it("handles valid values")
+    function _()
+      m.manager.setStyleJson(m.testData)
+
+      m.assertEqual(m.manager.getStyle("comp1"), m.testData.comp1)
+      m.assertEqual(m.manager.getStyle("comp2"), m.testData.comp2)
+    end function
+
+    @it("caches values")
+    function _()
+      m.assertEmpty(m.manager.cachedStyles)
+
+      m.assertEqual(m.manager.getStyle("comp1"), m.testData.comp1)
+      m.assertEqual(m.manager.cachedStyles.comp1, m.testData.comp1)
+
+      m.assertEqual(m.manager.getStyle("comp2"), m.testData.comp2)
+      m.assertEqual(m.manager.cachedStyles.comp2, m.testData.comp2)
+
+      m.expectNone(m.manager, "parseStyle")
+
+      m.assertEqual(m.manager.getStyle("comp1"), m.testData.comp1)
+      m.assertEqual(m.manager.getStyle("comp2"), m.testData.comp2)
+    end function
+  end class
+end namespace

@@ -1,0 +1,167 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/view/NodeClass.bs"
+
+namespace mv
+  ' /**
+  '  * @module BaseView
+  '  * @description Is the class counterpart to BaseView component
+  '  *              used for MVC style programming
+  '  */
+  class BaseView extends mv.NodeClass
+
+    @inject("styleManager")
+    protected styleManager
+
+    @field("string")
+    public state = "none"
+
+    protected isFocused = false
+    protected isShown = false
+    protected isLongPressStarted = false
+    protected longPressKey = ""
+
+    private vm = invalid
+
+    function new(name, globalNode, top)
+      super(name, globalNode, top)
+    end function
+
+    function initialize()
+      m.log.method("initialize", m.name)
+      m.state = "initialized"
+    end function
+
+    protected function initializeView(view, args = invalid)
+      if view <> invalid
+        view@._initialize(args)
+      else
+        m.log.error("view is invalid!")
+      end if
+    end function
+
+    protected function setFocus(target)
+      'bs:disable-next-line
+      mv.setFocus(target)
+    end function
+
+    protected function setFocusLocked(target, message)
+      'bs:disable-next-line
+      mv.setFocusLocked(target, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ key support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function onKeyEvent(key as string, press as boolean) as boolean
+      result = false
+      if press
+        'bs:disable-next-line
+        if mc.isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked()
+          return true
+        end if
+        if mc.isFunction(m[`onKeyPress${key}`])
+          result = m[`onKeyPress${key}`]()
+        end if
+      else
+        result = false
+      end if
+
+      if (result = invalid)
+        result = false
+      end if
+
+      if result and press
+
+        'bs:disable-next-line
+        if mc.isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
+        if longPressInterval > 0
+          m.log.info("entering long press for key ", key)
+          m.longPressKey = key
+          'bs:disable-next-line
+          m.toggleLongPressTimer(longPressInterval)
+        end if
+      else
+        'bs:disable-next-line
+        result = mc.isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
+      end if
+
+      'bs:disable-next-line
+      if result = false and mc.isFunction(m.isCapturingAnyKeyPress)
+        'bs:disable-next-line
+        result = m.isCapturingAnyKeyPress(key, press)
+      end if
+
+      return result
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ long press support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function toggleLongPressTimer(interval)
+      if interval > 0
+        m.waitAFrame(m.onLongPressTimerFire, interval)
+      else if m.longPressKey <> invalid and m.longPressKey <> ""
+        m.log.info("finishing longPress on key ", key)
+        if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
+          'bs:disable-next-line
+          onLongPressFinish(m.longPressKey)
+        end if
+        m.longPressKey = ""
+        m.isLongPressStarted = false
+      end if
+    end function
+
+    protected function onLongPressTimerFire()
+      if m.isLongPressStarted
+        'bs:disable-next-line
+        if mc.isFunction(m.onLongPressUpdate) and not m.onLongPressUpdate(m.longPressKey)
+          m.log.info("long press was cancelled by the onLongPressUpdate call")
+          if mc.isFunction(toggleLongPressTimer)
+            m.toggleLongPressTimer(0)
+          end if
+        end if
+      else
+        'bs:disable-next-line
+        if mc.isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
+          m.log.info("long press was rejected by onLongPressStart call")
+          m.toggleLongPressTimer(0)
+        else
+          m.log.info("long press is accepted : starting for key ", m.longPressKey)
+          m.isLongPressStarted = true
+        end if
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle stuff
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function destroy()
+      m.log.method("destroy")
+      m.state = "destroyed"
+    end function
+
+    function onShow()
+      m.isShown = true
+    end function
+
+    function onHide()
+      m.isShown = false
+    end function
+
+    function onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.isFocused = true
+      end if
+    end function
+
+    function onLostFocus()
+      m.isFocused = false
+    end function
+
+  end class
+end namespace

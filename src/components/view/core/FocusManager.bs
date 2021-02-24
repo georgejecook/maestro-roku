@@ -1,0 +1,207 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+
+' /**
+'  * @module FocusManager
+'  * @description Source of truth about application focus
+'  */
+
+function init() as void
+  m.top.observeFieldScoped("_debugM", "onDebugMChange")
+  m.log = new log.Logger("FocusManager")
+  m.focusTimer = m.top.findNode("focusTimer")
+  m.wasShown = false
+  m.isKeyPressLocked = false
+  m.lockedNode = invalid
+  m.top.observeFieldScoped("focusTimerFire", "onFocusTimerFire")
+end function
+
+function onDebugMChange()
+  m.log.info("dumping m for debugging purposes")
+  m.top._m = m
+end function
+
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Protected api - only call from mixin
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function _setFocusOn(node, isForced = false) as void
+  ' m.log.method("setFocusOn", node)
+
+  if m.top.isLocked
+    if isForced
+      m.log.warn("overriding setting m.locked focus (locked reason:", m.top.lockReason, ")")
+    else
+      m.log.warn("cannot set focus, it is m.locked - reason :", m.top.lockReason)
+      return
+    end if
+  end if
+
+  if isValid(node)
+    parents = getParents(node)
+
+    if isInScene(parents)
+
+      if m.top.isLogging
+        m.log.info("setting focus to ", node.subType(), ".", node.id)
+      end if
+
+      _setFocusOnImpl(node, parents)
+    else
+      m.log.error("set focus to an off scene node! - in future this will set the focus to a backup-context node, to stop illegal focus scenarios")
+      _setFocusOnImpl(node, parents)
+    end if
+  end if
+
+end function
+
+function _unsetFocusOn(node)
+  m.log.info("manualy unsetting focus on node")
+  node.setFocus(false)
+end function
+
+function _setFocusLocked(node, reason = "")
+
+  if node <> invalid
+    _setFocusOn(node, true)
+    m.lockedNode = node
+    m.log.info("locking focus due to reason", reason)
+    m.focusTimer.control = "start"
+  else
+    m.log.info("unlocking focus - previous m.lock reason:", m.top.lockReason)
+    m.focusTimer.control = "stop"
+    m.lockedNode = invalid
+  end if
+
+  m.top.lockReason = reason
+  m.top.isLocked = m.lockedNode <> invalid
+end function
+
+function onFocusTimerFire()
+  ' m.log.info("onFocusTimerFire")
+  if m.focusedNode <> invalid
+    m.focusedNode.setFocus(true)
+  end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ private impl
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function _setFocusOnImpl(node, parents) as void
+
+  currentNode = m.top.focusedNode
+  isCurrentNode = false
+  if (node = invalid and currentNode = invalid) or (node <> invalid and node.isSamenode(currentNode))
+    m.log.info("setting focus on same node - ignoring")
+    if node <> invalid
+      if node.doesExist("isFocused")
+        node.isFocused = true
+      end if
+      if not node.isInFocusChain()
+        isCurrentNode = true
+      end if
+    end if
+    if not isCurrentNode
+      return
+    end if
+  end if
+
+  if currentNode <> invalid and not isCurrentNode
+    ' m.log.info("setting focus on new node - unsetting focus on", currentNode.id)
+    if currentNode.doesExist("isFocused") and currentNode.isFocused = true
+      currentNode.isFocused = false
+    end if
+
+    setFieldOnNodes(m.parents, "isChildFocused", false)
+  end if
+
+  m.top.focusedNode = node
+  m.parents = parents
+
+  if node <> invalid
+    if node.doesExist("drawFocusFeedback")
+      previousDrawFocusFeedback = node.drawFocusFeedback
+      node.drawFocusFeedback = false
+    end if
+
+    node.setFocus(true)
+
+    if node.doesExist("drawFocusFeedback")
+      node.drawFocusFeedback = previousDrawFocusFeedback
+    end if
+
+    if node.doesExist("isFocused")
+      ' m.log.info("setting node as focused, and telling parents", node.id)
+      node.isFocused = true
+    end if
+    setFieldOnNodes(parents, "isChildFocused", true)
+  else
+    m.log.error("set focus to invalid node! - in future this will set the focus to a backup-context node, to stop illegal focus scenarios")
+  end if
+end function
+
+function getParents(node)
+  parent = node.getParent()
+  parents = []
+  while (parent <> invalid)
+
+    if parent.subType() = "ModelLocator"
+      m.log.warn("trying to focus on a view that is not yet on the view hierarchy")
+      return []
+    end if
+    parents.push(parent)
+    parent = parent.getParent()
+  end while
+
+  return parents
+end function
+
+function isValid(node)
+
+  if mc.isUndefined(node)
+    m.log.error("asked to focus on undefined node")
+    return false
+  else if node = invalid
+    m.log.error("asked to focus on invalid node")
+    return false
+  else if type(node) <> "roSGNode"
+    m.log.error("asked to focus on non rsgnode")
+    return false
+  end if
+
+  return true
+end function
+
+function isInScene(parents)
+
+  if parents.count() = 0
+    m.log.error("asked to focus on node with no parents")
+    return false
+  end if
+
+  lastParent = parents[parents.count() - 1]
+
+  if not lastParent.isSubType("Scene")
+    m.log.error("node is not in the scene")
+    return false
+  end if
+
+  return true
+end function
+
+function setFieldOnNodes(nodes, field, value)
+  ' m.log.info("--------------------------------START")
+  for i = 0 to nodes.count() - 1
+    node = nodes[i]
+    ' m.log.info(i, "id", node.id)
+    if node.doesExist(field) and node[field] <> value
+      ' m.log.info(field, "node[field]", node[field], value)
+      node[field] = value
+    end if
+
+  end for
+  ' m.log.info("--------------------------------END")
+
+end function

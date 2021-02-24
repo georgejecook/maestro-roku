@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<component
+    name='mv_FocusManager'
+    extends='Group'>
+
+  <interface>
+    <!-- base of all views -->
+
+    <!-- readonly -->
+    <field
+        id='focusedNode'
+        type='node'
+        value='invalid' />
+    <field
+        id='isLocked'
+        type='boolean'
+        value='false' />
+    <field
+        id='lockReason'
+        type='string'
+        value='' />
+    <field
+        id='isLogging'
+        type='boolean'
+        value='true' />
+
+    <!-- debug fields -->
+    <field
+        id='_m'
+        type='assocarray' />
+    <field
+        id='_debugM'
+        type='boolean'
+        alwaysNotify='true' />
+
+    <!-- private -->
+    <field
+        id='focusTimerFire'
+        alias='focusTimer.fire' />
+
+    <function name='_setFocusOn' />
+    <function name='_unsetFocusOn' />
+    <function name='_setFocusLocked' />
+  </interface>
+  <children>
+    <Timer
+        id='focusTimer'
+        repeat='true'
+        duration='0.5' />
+  </children>
+</component>

@@ -1,0 +1,29 @@
+
+function init()
+  m.top.observeFieldScoped("fontKey", "onFontKeyChange")
+  m.top.observeFieldScoped("style", "onStyleChange")
+
+  onFontKeyChange()
+end function
+
+function onFontKeyChange()
+
+  if m.top.systemFont <> invalid
+    parts = m.top.systemFont.split(",")
+    if parts <> invalid and parts.count() > 0
+      m.top.font = "font:" + parts[0] + "SystemFont"
+    end if
+
+    if parts.count() > 1
+      if m.top.font <> invalid
+        m.top.font.size = parts[1].toInt()
+      else
+        ' logError("could not create font")
+      end if
+    end if
+  end if
+end function
+
+function onStyleChange()
+  m.top.setFields(m.top.style)
+end function

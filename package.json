@@ -1,0 +1,62 @@
+{
+    "name": "maestro-roku",
+    "version": "0.1.0",
+    "description": "A development platform for building roku channels in brighterscript",
+    "directories": {
+        "doc": "docs"
+    },
+    "files": [
+        "dist/**/!(manifest)*",
+        "!dist/components/maestro",
+        "!roku_modules",
+        "dist/**/!(*.spec.)*"
+    ],
+    "dependencies": {
+        "log": "/home/george/hope/open-source/maestro/roku-log"
+    },
+    "devDependencies": {
+        "brighterscript": "/home/george/hope/open-source/vsc/brighterscript",
+        "maestro-roku-bsc-plugin": "/home/george/hope/open-source/maestro/maestro-roku-bsc-plugin",
+        "rimraf": "^3.0.2",
+        "roku-log-bsc-plugin": "/home/george/hope/open-source/maestro/roku-log",
+        "rooibos-roku": "/home/george/hope/open-source/rooibos/bsc-plugin",
+        "ropm": "^0.5.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/georgejecook/maestro-roku-core.git"
+    },
+    "keywords": [
+        "ropm",
+        "brightscript",
+        "mvvm",
+        "framework",
+        "fun"
+    ],
+    "author": "George Cook",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/georgejecook/maestro-roku-core/issues"
+    },
+    "homepage": "https://github.com/georgejecook/maestro-roku-core#readme",
+    "ts-node": {
+        "transpileOnly": true,
+        "compileOptions": {
+            "incremental": true,
+            "allowJs": false
+        }
+    },
+    "ropm": {
+        "rootDir": "src",
+        "packageRootDir": "dist",
+        "prefixMatching": "expanded"
+    },
+    "scripts": {
+        "local": "ts-node scripts/install-local.js",
+        "remote": "ts-node scripts/install-npm.js",
+        "build": "node scripts/run.js && ts-node scripts/cleanup-build.js",
+        "build-remote": "npm run remote && npm run build",
+        "build-local": "npm run local && npm run build",
+        "build-test": "node scripts/run-test.js"
+    }
+}

@@ -1,0 +1,67 @@
+namespace tests
+
+  @strict
+  @nocatch
+  @suite("Map tests")
+  class MapTests extends rooibos.BaseTestSuite
+
+    private map
+
+    override function setup()
+      super.setup()
+      m.map = createObject("roSGNode", "Map")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("basic scenarios")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("addes")
+    function _()
+      m.map@.set("a", 1)
+      m.assertEqual(m.map.length, 1)
+      m.assertEqual(m.map@.get("a"), 1)
+    end function
+
+    @it("gets")
+    function _()
+      m.map@.set("b", 2)
+      m.assertEqual(m.map.length, 2)
+      m.assertEqual(m.map@.get("a"), 1)
+      m.assertEqual(m.map@.get("b"), 2)
+    end function
+
+    @it("gets values")
+    function _()
+      m.assertEqual(m.map@.getValues(), { "a": 1, "b": 2 })
+    end function
+
+    @it("deletes")
+    function _()
+      m.map@.set("c", 3)
+      m.assertEqual(m.map.length, 3)
+      m.assertEqual(m.map@.get("a"), 1)
+      m.assertEqual(m.map@.get("b"), 2)
+      m.assertEqual(m.map@.get("c"), 3)
+
+      m.map@.delete("b")
+      m.assertEqual(m.map.length, 2)
+      m.assertEqual(m.map@.get("a"), 1)
+      m.assertEqual(m.map@.get("b"), invalid)
+      m.assertEqual(m.map@.get("c"), 3)
+
+      m.map@.delete("a")
+      m.assertEqual(m.map.length, 1)
+      m.assertEqual(m.map@.get("a"), invalid)
+      m.assertEqual(m.map@.get("b"), invalid)
+      m.assertEqual(m.map@.get("c"), 3)
+
+      m.map@.delete("c")
+      m.assertEqual(m.map.length, 0)
+      m.assertEqual(m.map@.getValues(), {})
+
+    end function
+
+
+  end class
+end namespace

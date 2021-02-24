@@ -1,0 +1,69 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/NodeClass.bs"
+
+namespace mv
+  @node("mv_FontManager", "Node")
+  class FontManager extends mv.NodeClass
+
+    @field("assocarray")
+    public settings = {}
+
+    private cachedFonts = {}
+
+    function new(globalNode, top)
+      super("FontManager", invalid, invalid)
+    end function
+
+    ' /**
+    '  * @member getFontWithKey
+    '  * @memberof module:FontManager
+    '  * @instance
+    '  * @function
+    '  * @description will get a font with the text ${familyName}${size}${bold}${italic}
+    '  * @param {paramType} paramDescription
+    '  * @returns {returnType} returnDescription
+    '  */
+    @nodefunc
+    function getFontWithKey(key as string) as dynamic
+      font = m.cachedFonts[key]
+      if font <> invalid
+        return font
+      end if
+      parts = key.split(",")
+
+      if parts <> invalid and parts.count() = 2
+        return m.getfont(parts[0], parts[1].toInt())
+      end if
+
+      m.log.warn("could not get font", key, "error", error)
+      return invalid
+    end function
+
+    @nodefunc
+    function getFont(name as string, size as integer) as dynamic
+      if name = invalid or name.trim() = ""
+        return invalid
+      end if
+      key = `${name},${size}`
+      font = m.cachedFonts[key]
+
+      if font = invalid
+        font = CreateObject("roSGNode", "Font")
+        if name.instr(".ttf") <> -1
+          font.uri = "pkg:" + "/fonts/" + name
+        else
+          'it's a system font
+          font.uri = "font:" + name + "SystemFont"
+        end if
+        font.size = size
+
+        if font <> invalid
+          m.cachedFonts[key] = font
+        end if
+      end if
+      return font
+    end function
+
+  end class
+end namespace
