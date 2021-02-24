@@ -230,25 +230,17 @@ namespace mv.animations
       m.fractionObservers[`${fraction}`] = { f: fraction, cb: func, scope: scope }
     end function
 
-    function callOnFraction(fraction, func, instance)
-      if not m.isObservingFraction
-        m.observeFraction(m._onFraction, m)
-        m.isObservingFraction = true
-      end if
-      m.fractionObservers[`${fraction}`] = { f: fraction, cb: func, instance: instance }
-    end function
-
     function _onFraction(fraction)
       if m.pendingFractionObservers.count() > 0
         for each id in m.pendingFractionObservers
           observer = m.pendingFractionObservers[id]
           if fraction >= observer.f
             m.pendingFractionObservers.delete(id)
-            if observer.instance <> invalid
-              observer.instance.__cb = observer.cb
+            if mc.isAACompatible(observer.scope)
+              observer.scope.__cb = observer.cb
               'bs:disable-next-line
-              observer.instance.__cb()
-              observer.instance.delete("__cb")
+              observer.scope.__cb()
+              observer.scope.delete("__cb")
             else
               executeInScope = sub(this, callback)
                 m = this

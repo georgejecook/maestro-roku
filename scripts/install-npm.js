@@ -26,7 +26,7 @@ let devPackages = [
   'brighterscript',
   'roku-log-bsc-plugin',
   'maestro-roku-bsc-plugin',
-  'rooibos-roku',
+  'rooibos-roku'
 ];
 
 for (let packageName of devPackages) {
