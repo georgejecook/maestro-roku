@@ -1,0 +1,133 @@
+import "pkg:/source/view/ViewUtils.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace cells
+
+  @strict
+  @lazy
+  @node("BaseCell", "Group")
+  class BaseCell
+    'todo - add code for various events here
+    private top
+    private style
+    protected isViewCreated = false
+    protected isFocused = false
+
+    @field("node")
+    @observer("onContentChange")
+    public itemContent
+
+    @field("integer")
+    public index
+
+    @field("integer")
+    public rowIndex
+
+    @field("float")
+    @observer("onFocusPercentChange")
+    public focusPercent
+
+    @field("boolean")
+    @observer("onRowHasFocusChange")
+    public rowHasFocus
+
+    @field("boolean")
+    @observer("onRowListHasFocusChange")
+    public rowListHasFocus
+
+    @field("float")
+    @observer("onRowFocusChange")
+    public rowFocusPercent
+
+    private owner
+
+    private willChangeFocusReported = false
+
+    function new(globalNode, top)
+      m.top = top
+    end function
+
+    protected function onContentChange(content)
+      if not m.isViewCreated
+        m.createView()
+      end if
+      if content <> invalid
+        m.owner = content.getParent().getParent().getParent()
+      end if
+    end function
+
+    protected function onRowHasFocusChange(focused) as void
+    end function
+
+    protected function onRowListHasFocusChange(focused) as void
+    end function
+
+    private function onRowFocusChange(percent) as void
+    end function
+
+    private function onFocusPercentChange(percent) as void
+
+      if percent = 1
+        m.isFocused = true
+        m.owner.lastFocusIndex = m.top.index
+        m.onGainedFocus(m.owner.direction)
+        m.willChangeFocusReported = false
+        return
+      else if percent = 0
+        m.isFocused = false
+        m.onLostFocus(m.owner.direction)
+        m.willChangeFocusReported = false
+        return
+      end if
+
+      if m.owner.lastFocusIndex < m.top.index
+        m.owner.direction = 1
+      else if m.owner.lastFocusIndex > m.top.index
+        m.owner.direction = -1
+      end if
+
+      if m.isFocused
+        m.owner.currFocusRowItem = percent
+        if not m.willChangeFocusReported
+          m.onWillLoseFocus(m.owner.direction)
+        end if
+        m.onLosingFocus(percent, m.owner.direction)
+      else
+        if not m.willChangeFocusReported
+          m.onWillGainFocus(m.owner.direction)
+        end if
+        m.onGainingFocus(percent, m.owner.direction)
+      end if
+    end function
+
+    private function createView()
+      m.style = mv.getFieldInParent(m.itemContent, "_style")
+      m._createView()
+      m.isViewCreated = true
+    end function
+
+    protected function _createView()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ focus management
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function onLostFocus(direction)
+    end function
+
+    protected function onGainedFocus(direction)
+    end function
+
+    protected function onGainingFocus(percent, direction)
+    end function
+
+    protected function onLosingFocus(percent, direction)
+    end function
+    protected function onWillLoseFocus(direction)
+    end function
+
+    protected function onWillGainFocus(direction)
+    end function
+  end class
+end namespace
