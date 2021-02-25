@@ -13,7 +13,8 @@ process.chdir(thisProjectRootPath);
 let packageJson = JSON.parse(fsExtra.readFileSync('package.json').toString());
 
 let packages = {
-    'log': 'npm:roku-log@latest'
+    'log': 'npm:roku-log@latest',
+    'maestro-roku': 'npm:maestro-roku@latest'
 };
 
 for (let packageName in packages) {
