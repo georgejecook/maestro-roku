@@ -79,6 +79,11 @@ namespace mv.animations
       end if
     end function
 
+    public function clone()
+      'override me
+      return invalid
+    end function
+
   end class
 
   class AbstractAnimation extends mv.animations.AnimationBase
@@ -121,6 +126,10 @@ namespace mv.animations
       m.node.easeFunction = easeFunction
     end function
 
+    function setAnimateFromCurrentValue(value)
+      m.animateFromCurrentValue = value
+    end function
+
     function setKeys(keys, keyValues)
       if not mc.isArray(keys)
         m.log.error("received invalid keys", keys)
@@ -141,9 +150,18 @@ namespace mv.animations
       m.interpolator.keyValue = keyValues
     end function
 
+    function syncStartKeys()
+      if m.interpolator.keyValue <> invalid and m.interpolator.keyValue.count() > 0
+        m.log.info("setting start keys to ")
+        mc.setNodeArrayValue(m.interpolator, "keyValue", 0, m.target[m.field])
+      end if
+    end function
+
     override function start(resume = false)
+      m.pendingFractionObservers = {}
+      m.pendingFractionObservers.append(m.fractionObservers)
       if m.animateFromCurrentValue
-        m.interpolator.keyValue = [m.target[m.field], toValue]
+        m.syncStartKeys()
       end if
       super.start(resume)
     end function
@@ -307,7 +325,7 @@ namespace mv.animations
       animId = mv.animations.getAnimationKeyId()
       m.delay = delay
       'bs:disable-next-line
-      m.node.id = `${m.target.id}_${m.field}_${animId}`
+      m.node.id = `${m.target.id}_${m.parallel}_${animId}`
       m.setRepeat(repeat)
       if animations <> invalid
         m.addAnimations(animations)
@@ -315,14 +333,34 @@ namespace mv.animations
       m.target.appendChild(m.node)
     end function
 
+    function setAnimateFromCurrentValue(value)
+      m.animateFromCurrentValue = value
+      for each animation in m.animations
+        animation.setAnimateFromCurrentValue(value)
+      end for
+    end function
+
+    override function syncStartKeys()
+      for each animation in m.animations
+        m.log.debug("setting animation start values for field ", animation.field)
+        animation.syncStartKeys()
+      end for
+    end function
 
     override function start(resume = false)
       if m.animateFromCurrentValue
-        for each animation in m.animations
-          animation.interpolator.keyValue = [animation.target[animation.field], toValue]
-        end for
+        m.syncStartKeys()
       end if
       super.start(resume)
+    end function
+
+
+    public override function clone()
+      animations = []
+      for each anim in m.animations
+        animations.push(anim.clone())
+      end for
+      return new mv.animations.Parallel(m.target, animations, m.repeat, m.delay)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -380,6 +418,11 @@ namespace mv.animations
     override function isValidValue(value)
       return mc.isPoint(value)
     end function
+
+    public override function clone()
+      return new mv.animations.Scale(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+    end function
+
   end class
 
   class Fade extends mv.animations.AbstractAnimation
@@ -393,6 +436,10 @@ namespace mv.animations
 
     override function isValidValue(value)
       return mc.isNumber(value) and value >= 0 and value <= 1
+    end function
+
+    public override function clone()
+      return new mv.animations.Fade(m.target, m.duration, m.fromValue, m.toValue, m.delay)
     end function
   end class
 
@@ -408,6 +455,11 @@ namespace mv.animations
     override function isValidValue(value)
       return mc.isPoint(value)
     end function
+
+    public override function clone()
+      return new mv.animations.Move(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+    end function
+
   end class
 
   class Size extends mv.animations.AbstractAnimation
@@ -424,6 +476,10 @@ namespace mv.animations
       ])
       m.node = m.pAnim.node
 
+    end function
+
+    public override function clone()
+      return new mv.animations.Size(m.target, m.duration, m.fromValue, m.toValue, m.delay)
     end function
 
     private override function createAnimationNode()
@@ -497,6 +553,10 @@ namespace mv.animations
         m.mAnim
       ])
       m.node = m.pAnim.node
+    end function
+
+    public override function clone()
+      return new mv.animations.KenBurns(m.target, m.duration, m.maxScale, m.delay)
     end function
 
     private override function createAnimationNode()
@@ -618,8 +678,8 @@ namespace mv.animations
 
 
   class FloatValue extends mv.animations.AbstractAnimation
-    function new(target, field, duration, fromValue, toValue)
-      super(target, field, duration, fromValue, toValue, "FloatAnimation")
+    function new(target, field, duration, fromValue, toValue, delay = 0)
+      super(target, field, duration, fromValue, toValue, "FloatAnimation", delay)
     end function
 
     override function createInterpolator()
@@ -629,12 +689,17 @@ namespace mv.animations
     override function isValidValue(value)
       return mc.isNumber(value)
     end function
+
+    public override function clone()
+      return new mv.animations.FloatValue(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+    end function
+
   end class
 
 
   class VectorValue extends mv.animations.AbstractAnimation
-    function new(target, field, duration, fromValue, toValue)
-      super(target, field, duration, fromValue, toValue, "VectorValueAnimation")
+    function new(target, field, duration, fromValue, toValue, delay = 0)
+      super(target, field, duration, fromValue, toValue, "VectorValueAnimation", delay)
     end function
 
     override function createInterpolator()
@@ -644,6 +709,11 @@ namespace mv.animations
     override function isValidValue(value)
       return mc.isNumber(value)
     end function
+
+    public override function clone()
+      return new mv.animations.VectorValue(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+    end function
+
   end class
 
   class Sequence extends mv.animations.AnimationBase
@@ -657,7 +727,7 @@ namespace mv.animations
       animId = mv.animations.getAnimationKeyId()
       m.delay = delay
       'bs:disable-next-line
-      m.node.id = `${m.target.id}_${m.field}_${animId}`
+      m.node.id = `${m.target.id}_${m.sequence}_${animId}`
       m.setRepeat(repeat)
       if animations <> invalid
         m.addAnimations(animations)
@@ -665,13 +735,34 @@ namespace mv.animations
       m.target.appendChild(m.node)
     end function
 
+    function setAnimateFromCurrentValue(value)
+      m.animateFromCurrentValue = value
+      for each animation in m.animations
+        animation.setAnimateFromCurrentValue(value)
+      end for
+    end function
+
+    override function syncStartKeys()
+      for each animation in m.animations
+        m.log.debug("setting animation start values for field ", animation.field)
+        animation.syncStartKeys()
+      end for
+    end function
+
     override function start(resume = false)
       if m.animateFromCurrentValue
-        for each animation in m.animations
-          animation.interpolator.keyValue = [animation.target[animation.field], toValue]
-        end for
+        m.syncStartKeys()
       end if
+
       super.start(resume)
+    end function
+
+    public override function clone()
+      animations = []
+      for each anim in m.animations
+        animations.push(anim.clone())
+      end for
+      return new mv.animations.Sequence(m.target, animations, m.repeat, m.delay)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
