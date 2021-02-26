@@ -218,6 +218,24 @@ namespace mc
     end if
   end function
 
+  function setNodeAAValue(node, field, key, value = invalid)
+    v = node[field]
+    if v = invalid
+      v = {}
+    end if
+    v[key] = value
+    mc.setOrAddNodeField(node, field, v)
+  end function
+
+  function setNodeArrayValue(node, field, index, value = invalid)
+    v = node[field]
+    if v = invalid
+      v = []
+    end if
+    v[index] = value
+    mc.setOrAddNodeField(node, field, v)
+  end function
+
   function setOrAddNodeFields(node, fields)
     for each field in fields
       mc.setOrAddNodeField(node, field, fields[field])
