@@ -48,6 +48,12 @@ namespace mv.cells
     end function
 
     protected function onContentChange(content)
+      if m.top.index = 0
+        'let's store the owning markup grid for this row
+        rowList = m.top.getParent().getParent().getParent()
+        rowList.rowMap@.set(m.top.rowIndex.toStr().trim(), m.top.getParent())
+      end if
+
       if not m.isViewCreated
         m.createView()
       end if
@@ -87,7 +93,6 @@ namespace mv.cells
       end if
 
       if m.isFocused
-        m.owner.currFocusRowItem = percent
         if not m.willChangeFocusReported
           m.onWillLoseFocus(m.owner.direction)
         end if

@@ -1,8 +1,26 @@
-
 function init()
+  m.top.rowMap = createObject("roSGNode", "mc_Map")
+  m.top.observeFieldScoped("itemFocused", "onItemFocusChange")
   m.top.observeFieldScoped("style", "onStyleChange")
+  m.currentRowComponent = invalid
 end function
 
 function onStyleChange()
   m.top.setFields(m.top.style)
+end function'//# sourceMappingURL=./RowList.bs.map
+
+function onItemFocusChange()
+  if m.currentRowComponent <> invalid
+    m.currentRowComponent.unobserveFieldScoped("currFocusColumn")
+  end if
+  m.currentRowComponent = m.top.rowMap@.get(m.top.itemFocused.toStr().trim())
+  if m.currentRowComponent <> invalid
+    m.currentRowComponent.observeFieldScoped("currFocusColumn", "onCurrFocusColumnChange")
+  end if
+end function
+
+function onCurrFocusColumnChange()
+  if m.currentRowComponent <> invalid
+    m.top.currFocusColum = m.currentRowComponent.currFocusColumn
+  end if
 end function
