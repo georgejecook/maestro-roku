@@ -94,6 +94,8 @@ namespace mv.animations
     private observedFraction = 0.5
     private fractionObservers = {}
     private pendingFractionObservers = {}
+    public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
+
 
     function new(target, field, duration, fromValue, toValue, name = "AbstractAnimation", delay = 0)
       super(name, target)
@@ -137,6 +139,13 @@ namespace mv.animations
       end for
       m.interpolator.key = keys
       m.interpolator.keyValue = keyValues
+    end function
+
+    override function start(resume = false)
+      if m.animateFromCurrentValue
+        m.interpolator.keyValue = [m.target[m.field], toValue]
+      end if
+      super.start(resume)
     end function
 
     function setDuration(duration)
@@ -193,12 +202,6 @@ namespace mv.animations
       else
         m.log.error("tried to set invalid fromValue or toValue [", fromValue, ",", toValue, "]")
       end if
-    end function
-
-    override function start()
-      m.pendingFractionObservers = {}
-      m.pendingFractionObservers.append(m.fractionObservers)
-      super.start()
     end function
 
     function jumpToEnd()
@@ -296,8 +299,9 @@ namespace mv.animations
   class Parallel extends mv.animations.AnimationBase
     public animations
     public delay = 0
+    public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
-    function new(target, parallelAnimations = invalid, repeat = false, delay = 0)
+    function new(target, animations = invalid, repeat = false, delay = 0)
       super("ParallelAnimation", target)
       m.node = createObject("roSGNode", "ParallelAnimation")
       animId = mv.animations.getAnimationKeyId()
@@ -305,19 +309,29 @@ namespace mv.animations
       'bs:disable-next-line
       m.node.id = `${m.target.id}_${m.field}_${animId}`
       m.setRepeat(repeat)
-      if parallelAnimations <> invalid
-        m.addAnimations(parallelAnimations)
+      if animations <> invalid
+        m.addAnimations(animations)
       end if
       m.target.appendChild(m.node)
+    end function
+
+
+    override function start(resume = false)
+      if m.animateFromCurrentValue
+        for each animation in m.animations
+          animation.interpolator.keyValue = [animation.target[animation.field], toValue]
+        end for
+      end if
+      super.start(resume)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function addAnimations(parallelAnimations)
+    function addAnimations(animations)
       m.animations = []
-      for each animation in parallelAnimations
+      for each animation in animations
         if animation <> invalid and type(animation.node) = "roSGNode"
           animation.parentAnimation = m.node
           if m.delay <> 0
@@ -530,7 +544,7 @@ namespace mv.animations
     end function
 
     override function jumpToEnd()
-      for each animation in parallelAnimations
+      for each animation in animations
         animation.jumpToEnd()
       end for
     end function
@@ -631,6 +645,79 @@ namespace mv.animations
       return mc.isNumber(value)
     end function
   end class
+
+  class Sequence extends mv.animations.AnimationBase
+    public animations
+    public delay = 0
+    public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
+
+    function new(target, animations = invalid, repeat = false, delay = 0)
+      super("SequenceAnimation", target)
+      m.node = createObject("roSGNode", "SequentialAnimation")
+      animId = mv.animations.getAnimationKeyId()
+      m.delay = delay
+      'bs:disable-next-line
+      m.node.id = `${m.target.id}_${m.field}_${animId}`
+      m.setRepeat(repeat)
+      if animations <> invalid
+        m.addAnimations(animations)
+      end if
+      m.target.appendChild(m.node)
+    end function
+
+    override function start(resume = false)
+      if m.animateFromCurrentValue
+        for each animation in m.animations
+          animation.interpolator.keyValue = [animation.target[animation.field], toValue]
+        end for
+      end if
+      super.start(resume)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function addAnimations(animations)
+      m.animations = []
+      for each animation in animations
+        if animation <> invalid and type(animation.node) = "roSGNode"
+          animation.parentAnimation = m.node
+          if m.delay <> 0
+            animation.setDelay(m.delay)
+          end if
+          m.node.appendChild(animation.node)
+          m.animations.push(animation)
+        end if
+      end for
+    end function
+
+    public override function destroy()
+      for each animation in m.animations
+        animation.destroy()
+      end for
+    end function
+
+    function observeState(callback, scope = invalid)
+      mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
+    end function
+
+    function unobserveState()
+      mc.tasks.cleanNodeObserver(m.node, "state")
+    end function
+
+    function jumpToEnd()
+      for each animation in m.animations
+        animation.jumpToEnd()
+      end for
+    end function
+  end class
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ private utils
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
 
   function getAnimationKeyId()
     if m.global.__manimKey = invalid
