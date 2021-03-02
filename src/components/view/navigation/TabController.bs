@@ -80,7 +80,7 @@ function _createView(menuItemContent)
   childView = createView(menuItemContent)
 
   if childView <> invalid
-    containerView = createObject("roSGNode", "TabChildScreen")
+    containerView = createObject("roSGNode", "mv_TabChildScreen")
     containerView.rootView = childView
     containerView.id = menuItemContent.id
     childView.navController = containerView.navController
@@ -110,10 +110,13 @@ end function
 '  * @returns {BaseScreen} a screen to display in a TabChildScreen
 '  */
 function createView(menuItemContent)
+  view = invalid
 
   if menuItemContent.screenType <> "none"
     view = createObject("roSGNode", menuItemContent.screenType)
-    view.id = menuItemContent.id
+    if view <> invalid
+      view.id = menuItemContent.id
+    end if
   end if
 
   return view
