@@ -62,36 +62,41 @@ namespace mv
         if mc.isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked()
           return true
         end if
+        'bs:disable-next-line
+        if mc.isFunction(m.getLongPressIntervalForKey)
+          'bs:disable-next-line
+          longPressInterval = m.getLongPressIntervalForKey(key)
+          if longPressInterval > 0
+            m.log.info("entering long press for key ", key)
+            m.longPressKey = key
+            'bs:disable-next-line
+            m.toggleLongPressTimer(longPressInterval)
+            return true
+          end if
+        end if
+
         if mc.isFunction(m[`onKeyPress${key}`])
           result = m[`onKeyPress${key}`]()
         end if
-      else
-        result = false
+      else if m.longPressKey <> ""
+        m.toggleLongPressTimer(0)
+        if mc.isFunction(m[`onKeyPress${key}`])
+          result = m[`onKeyPress${key}`]()
+        end if
       end if
 
       if (result = invalid)
         result = false
       end if
 
-      if result and press
-
-        'bs:disable-next-line
-        if mc.isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
-        if longPressInterval > 0
-          m.log.info("entering long press for key ", key)
-          m.longPressKey = key
-          'bs:disable-next-line
-          m.toggleLongPressTimer(longPressInterval)
-        end if
-      else
-        'bs:disable-next-line
-        result = mc.isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
-      end if
-
       'bs:disable-next-line
       if result = false and mc.isFunction(m.isCapturingAnyKeyPress)
         'bs:disable-next-line
         result = m.isCapturingAnyKeyPress(key, press)
+      end if
+
+      if (result = invalid)
+        result = false
       end if
 
       return result
@@ -106,9 +111,10 @@ namespace mv
         m.waitAFrame(m.onLongPressTimerFire, interval)
       else if m.longPressKey <> invalid and m.longPressKey <> ""
         m.log.info("finishing longPress on key ", key)
-        if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
+        'bs:disable-next-line
+        if m.isLongPressStarted and mc.isFunction(m.onLongPressFinish)
           'bs:disable-next-line
-          onLongPressFinish(m.longPressKey)
+          m.onLongPressFinish(m.longPressKey)
         end if
         m.longPressKey = ""
         m.isLongPressStarted = false
@@ -120,15 +126,16 @@ namespace mv
         'bs:disable-next-line
         if mc.isFunction(m.onLongPressUpdate) and not m.onLongPressUpdate(m.longPressKey)
           m.log.info("long press was cancelled by the onLongPressUpdate call")
-          if mc.isFunction(toggleLongPressTimer)
-            m.toggleLongPressTimer(0)
-          end if
+          m.toggleLongPressTimer(0)
         end if
       else
         'bs:disable-next-line
         if mc.isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
           m.log.info("long press was rejected by onLongPressStart call")
           m.toggleLongPressTimer(0)
+          if mc.isFunction(m[`onKeyPress${key}`])
+            result = m[`onKeyPress${key}`]()
+          end if
         else
           m.log.info("long press is accepted : starting for key ", m.longPressKey)
           m.isLongPressStarted = true
