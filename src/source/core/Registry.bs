@@ -1,0 +1,97 @@
+namespace mc
+  class Registry
+
+    '
+    ' Read and deserialize to a native type
+    public function read(sectionName as string, key as string) as dynamic
+      sectionName = lcase(sectionName)
+      key = lcase(key)
+      registry = createObject("roRegistry")
+      section = createObject("roRegistrySection", sectionName)
+
+      if section.exists(key) then
+        return parseJson(section.read(key))
+      else
+        return invalid
+      end if
+    end function
+
+    public function write(sectionName as string, key as string, value as dynamic) as void
+      sectionName = lcase(sectionName)
+      key = lcase(key)
+      registry = createObject("roRegistry")
+      section = createObject("roRegistrySection", sectionName)
+      section.write(key, formatJson(value))
+      section.flush()
+      registry.flush()
+    end function
+
+
+    public function delete(sectionName as string, key as string) as void
+      sectionName = lcase(sectionName)
+      key = lcase(key)
+      registry = createObject("roRegistry")
+      section = createObject("roRegistrySection", sectionName)
+      if section.exists(key) then section.delete(key)
+    end function
+
+    public function readAll() as object
+      registry = createObject("roRegistry")
+      sections = registry.getSectionList()
+      data = {}
+
+      for each sectionName in sections
+        section = createObject("roRegistrySection", sectionName)
+        keys = section.getKeyList()
+        sectionData = {}
+
+        for each k in keys
+          sectionData[k] = parseJson(section.read(k))
+        end for
+        data[sectionName] = sectionData
+      end for
+
+      return data
+    end function
+
+    public function writeAll(data as object) as void
+      registry = createObject("roRegistry")
+
+      if data <> invalid and type(data) = "roAssociativeArray" then
+
+        for each sectionName in data
+          sectionData = data[sectionName]
+          sectionName = lcase(`${sectionName}`)
+          section = createObject("roRegistrySection", sectionName)
+
+          if sectionData <> invalid and type(sectionData) = "roAssociativeArray" then
+
+            for each key in sectionData
+              value = sectionData[key]
+              key = lcase(`${key}`)
+              section.write(key, formatJson(value))
+            end for
+
+          end if
+          section.flush()
+
+        end for
+
+      end if
+
+      registry.flush()
+    end function
+
+
+    '
+    public function deleteAll() as void
+      registry = createObject("roRegistry")
+      sections = registry.getSectionList()
+
+      for each sectionName in sections
+        registry.delete(sectionName)
+      end for
+    end function
+
+  end class
+end namespace
