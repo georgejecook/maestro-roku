@@ -95,10 +95,7 @@ namespace mv.animations
     private delay = 0
     private field = invalid
     public duration = 0.5
-    private isObservingFraction = false
-    private observedFraction = 0.5
-    private fractionObservers = {}
-    private pendingFractionObservers = {}
+    private fractionValueObserver
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
 
@@ -158,8 +155,7 @@ namespace mv.animations
     end function
 
     override function start(resume = false)
-      m.pendingFractionObservers = {}
-      m.pendingFractionObservers.append(m.fractionObservers)
+      m.fractionValueObserver.reset()
       if m.animateFromCurrentValue
         m.syncStartKeys()
       end if
@@ -244,41 +240,10 @@ namespace mv.animations
     end function
 
     function onFraction(fraction, func, scope)
-      if not m.isObservingFraction
-        m.observeFraction(m._onFraction, m)
-        m.isObservingFraction = true
+      if m.fractionValueObserver = invalid
+        m.fractionValueObserver = new mc.tasks.ValueObserver(m.interpolator, "fraction", scope)
       end if
-      m.fractionObservers[`${fraction}`] = { f: fraction, cb: func, scope: scope }
-    end function
-
-    function _onFraction(fraction)
-      if m.pendingFractionObservers.count() > 0
-        for each id in m.pendingFractionObservers
-          observer = m.pendingFractionObservers[id]
-          if fraction >= observer.f
-            m.pendingFractionObservers.delete(id)
-            if mc.isAACompatible(observer.scope)
-              observer.scope.__cb = observer.cb
-              'bs:disable-next-line
-              observer.scope.__cb()
-              observer.scope.delete("__cb")
-            else
-              executeInScope = sub(this, callback)
-                m = this
-                callback()
-              end sub
-              executeInScope(observer.scope, observer.cb)
-            end if
-          end if
-        end for
-      end if
-    end function
-
-    function clearFractionObservers()
-      m.fractionObservers = {}
-      m.pendingFractionObservers = {}
-      m.isObservingFraction = false
-      m.unobserveFraction()
+      m.fractionValueObserver.onValue(fraction, func, ">=")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

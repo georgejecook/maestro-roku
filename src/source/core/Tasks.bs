@@ -95,6 +95,7 @@ namespace mc.tasks
   '  * @returns {boolean} true if set, false otherwise
   '  */
   function observeNodeField(node, fieldName, callback, sendMode = "value", once = false, scope = invalid)
+    targetField = invalid
     if mc.isInvalid(callback)
       if mc.isUndefined(callback)
         m.log.error("callback is not in scope for field", fieldName)
@@ -109,6 +110,8 @@ namespace mc.tasks
         m.log.error("callback member", callback, "does not exist on target scope for field", fieldName)
         return false
       end if
+      targetField = callback
+      callback = invalid
     end if
 
     if mc.isInvalid(node)
@@ -123,27 +126,43 @@ namespace mc.tasks
       scope = m
     end if
 
+    context.targetField = targetField
     context.callback = callback
     context.scope = scope
     context.field = fieldName
     context.sendMode = sendMode
     context.once = once = true
     context.node = node
-    if m.global.__md_task_keys = true
-      if context.instance <> invalid
-        context.key = `${node.id}.${fieldName}->${context.instance.id}.${mc.getFunctionName(callback)}`
-      else
-        context.key = `${node.id}.${fieldName}->m.${mc.getFunctionName(callback)}`
-      end if
-    end if
+    context.key = mc.tasks._getContextKey(node, fieldName, callback, targetField, context.instance)
+
     if node._oid = invalid
       node.addFields({ "_oid": StrI(rnd(2147483647)).trim() })
     end if
+    if scope._oid = invalid
+      scope.addFields({ "_oid": StrI(rnd(2147483647)).trim() })
+    end if
 
-    mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = context
+    contexts = mc.tasks._getScopeContexts()[node._oid + "_" + fieldName]
+    if contexts = invalid
+      contexts = {}
+      mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = contexts
+      node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
+    end if
+    contexts[context.key] = context
+  end function
 
-    node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
+  function _getContextKey(node, fieldName, callback, targetField, instance = invalid)
+    if callback <> invalid
+      cb = mc.getFunctionName(callback)
+    else
+      cb = targetField
+    end if
 
+    if instance <> invalid
+      return `${node.id}.${fieldName}->${context.instance.id}.${cb}`
+    else
+      return `${node.id}.${fieldName}->m.${cb}`
+    end if
   end function
 
   function _getScopeContexts()
@@ -156,9 +175,15 @@ namespace mc.tasks
   function _nodeCallbackBridge(evt)
     node = evt.getROSGNode()
     fieldName = evt.getField()
-    context = mc.getPath(m, "_nodeContexts." + node._oid + "_" + fieldName)
+    contexts = mc.getPath(m, "_nodeContexts." + node._oid + "_" + fieldName)
 
-    if context <> invalid
+    if contexts = invalid
+      m.log.error("contexts not found for node", node._oid)
+      contexts = {}
+    end if
+
+    for each key in contexts
+      context = contexts[key]
       if context.once
         mc.tasks.cleanNodeObserver(node, fieldName)
         if node.removeOnObserve = true and node.getParent() <> invalid
@@ -205,14 +230,42 @@ namespace mc.tasks
       else
         m.log.error("class does not have function for callback", node._callbackName)
       end if
-    else
-      m.log.error("context not found for node", node._oid)
-    end if
+    end for
   end function
 
   function unobserveNodeField(node, fieldName, callback, scope = invalid)
+    targetField = invalid
+    if mc.isInvalid(callback)
+      if mc.isUndefined(callback)
+        m.log.error("callback is not in scope for field", fieldName)
+      else
+        m.log.error("callback is not provided for field", fieldName)
+      end if
+      return false
+    else if mc.isString(callback)
+      targetField = callback
+      callback = invalid
+    end if
+
+    if mc.isInvalid(node)
+      m.log.error("no node provided to unobserve for field", fieldName)
+      return false
+    end if
+
+
+    contexts = mc.tasks._getScopeContexts()[node._oid + "_" + fieldName]
+    if contexts <> invalid
+      key = mc.tasks._getContextKey(node, fieldName, callback, targetField, scope)
+      contexts.delete(key)
+      mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = contexts
+      node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
+    end if
+    contexts[context.key] = context
+
+
     'TODO - we should be ehcking how many callbacks are registered on the bridge
     mc.tasks.cleanNodeObserver(node, fieldName)
+    return true
   end function
 
   function cleanNodeObserver(node, fieldName)
@@ -224,9 +277,12 @@ namespace mc.tasks
 
   function cleanScope()
     contexts = mc.tasks._getScopeContexts()
-    for each key in contexts
-      context = contexts[key]
-      mc.tasks.cleanNodeObserver(context.node, context.fieldName)
+    for each contextKey in contexts
+      context = context[contextKey]
+      for each key in context
+        context = contexts[key]
+        mc.tasks.cleanNodeObserver(context.node, context.fieldName)
+      end for
     end for
     m.["_nodeContexts"] = {}
   end function
@@ -238,4 +294,76 @@ namespace mc.tasks
     end if
   end function
 
+  @strict
+  class ValueObserver
+    private target
+    private pendingComparators = {}
+    private comparators = {}
+
+    function new(node, field, target)
+      m.target = target
+      mc.tasks.observeNodeField(node, field, m.valueCallback, "both", false, m)
+    end function
+
+    function reset(hardReset = false)
+      m.pendingComparators = {}
+      if hardReset
+        m.comparators = {}
+      else
+        m.pendingComparators.append(m.comparators)
+      end if
+    end function
+
+    function destroy()
+      m.reset(true)
+      for each key in m.comparators
+        comparator = m.comparators[key]
+        mc.tasks.unobserveNodeField(node, field, comparator.cb, m.target)
+      end for
+    end function
+
+    function onValue(value, func, comparator = "=", mode = "value")
+      m.comparators[`${value}_${comparator}`] = { v: value, cb: func, c: comparator, mode: mode }
+    end function
+
+    function valueCallback(value, node)
+      if m.pendingComparators.count() > 0
+        for each id in m.pendingComparators
+          observer = m.pendingComparators[id]
+          if (c = "=" and value = observer.v) or (c = ">" and c > observer.v) or (c = ">=" and c >= observer.v) or (c = "<" and c < observer.v) or (c = "<=" and c <= observer.v) or (c = "<>" and c <> observer.v)
+            m.pendingComparators.delete(id)
+            if mc.isAACompatible(m.target)
+              m.target.__cb = observer.cb
+              if mode = "both"
+                'bs:disable-next-line
+                m.target.__cb(value, node)
+              else if mode = "value"
+                'bs:disable-next-line
+                m.target.__cb(value)
+              else
+                'bs:disable-next-line
+                m.target.__cb()
+              end if
+              m.target.delete("__cb")
+            else
+              executeInScope = sub(this, callback, mode)
+                m = this
+                if mode = "both"
+                  'bs:disable-next-line
+                  callback(value, node)
+                else if mode = "value"
+                  'bs:disable-next-line
+                  callback(value)
+                else
+                  'bs:disable-next-line
+                  callback()
+                end if
+              end sub
+              executeInScope(target.scope, observer.cb, observer.mode)
+            end if
+          end if
+        end for
+      end if
+    end function
+  end class
 end namespace
