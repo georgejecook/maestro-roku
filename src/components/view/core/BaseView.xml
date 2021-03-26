@@ -1,49 +1,88 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<component name="mv_BaseView" extends="Group" >
+<?xml version='1.0' encoding='UTF-8'?>
+<component
+    name='mv_BaseView'
+    extends='Group'>
 
   <interface>
     <!-- base of all views -->
-    
-    <field id="name"  type="string" value=""/>
-    <field id="isShown"  type="boolean" value="false"/>
-    <field id="isInitialized"  type="boolean" value="false"/>
-    
+
+    <field
+        id='name'
+        type='string'
+        value='' />
+    <field
+        id='isShown'
+        type='boolean'
+        value='false' />
     <!-- this indicates that our framework initialization,
-      which is distinct from init, has completed -->
-      <field id="m"  type="boolean" value="false"/>
-      <field id="__debugM"  type="boolean" alwaysNotify="true"/>
-      
-      <field
+          which is distinct from init, has completed -->
+    <field
+        id='isInitialized'
+        type='boolean'
+        value='false' />
+    <!-- debugging help -->
+    <field
+        id='m'
+        type='boolean'
+        value='false' />
+    <field
+        id='__debugM'
+        type='boolean'
+        alwaysNotify='true' />
+
+<!-- hooks for ascertaing the parenting of this view -->
+    <field
         id='isDisplayedInDynamicContainer'
         type='boolean'
         value='false' />
 
-      <field
+    <field
         id='isDisplayedInScreenPicker'
         type='boolean'
         value='false' />
 
+    <function name='onAddedToAggregateView' />
+    <function name='onRemovedFromAggregateView' />
+
     <!-- focus support -->
-    <field id="isFocusable" type="boolean" value="true" alwaysNotify="false"/>
-    <field id="isFocused"  type="boolean" value="false" alwaysNotify="true"/>
-    <field id="isChildFocused"  type="boolean" value="false" alwaysNotify="false"/>
-    
-    <field id="enabled" type="boolean" value="true" />
+    <field
+        id='isFocusable'
+        type='boolean'
+        value='true'
+        alwaysNotify='false' />
+    <field
+        id='isFocused'
+        type='boolean'
+        value='false'
+        alwaysNotify='true' />
+    <field
+        id='isChildFocused'
+        type='boolean'
+        value='false'
+        alwaysNotify='false' />
+
+    <field
+        id='enabled'
+        type='boolean'
+        value='true' />
 
     <!-- FOR DEBUGGING PURPOSES -->
-    <field id="__uvid"  type="integer" value="0"/>
+    <field
+        id='__uvid'
+        type='integer'
+        value='0' />
 
     <!-- lifecycle methods -->
     <!-- Views should be initialized by the framework. This is what tells the view
     to get itself ready. A view can use the args of this to do things like initial data setup
     etc, distinct from init, which is handy for runtime non-xml view creation -->
-    <function name = "_initialize" />
+    <function name='_initialize' />
 
     <!-- specialist function to allow external communication with the view model of a component -->
-    <function name = "callVMFunc" />
+    <function name='callVMFunc' />
 
     <!-- allows tunnelling from key proxies -->
-    <function name = "onKeyEvent" />
+    <function name='onKeyEvent' />
 
   </interface>
 

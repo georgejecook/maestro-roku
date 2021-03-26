@@ -142,10 +142,17 @@ function _initialize(args = invalid)
   end if
 end function
 
-function callVMFunc(funcName, p1 = "#M_NONE#", p2 = "#M_NONE#", p3 = "#M_NONE#")
-  return mc.callAAFunc(m.vm, funcName, p1, p2, p3)
+function onAddedToAggregateView(view)
+  if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
+    m.vm.onAddedToAggregateView(view)
+  end if
 end function
 
+function onRemovedFromAggregateView(view)
+  if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
+    m.vm.onRemovedFromAggregateView(view)
+  end if
+end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ focus
@@ -221,6 +228,14 @@ function onLostFocus()
   if m.vm <> invalid and m.vm.onLostFocus <> invalid
     m.vm.onLostFocus()
   end if
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ utils
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function callVMFunc(funcName, p1 = "#M_NONE#", p2 = "#M_NONE#", p3 = "#M_NONE#")
+  return mc.callAAFunc(m.vm, funcName, p1, p2, p3)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
