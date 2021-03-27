@@ -9,13 +9,12 @@ namespace mv
     private styles = {}
     private cachedStyles = {}
 
-    function new(globalNode, top)
-      super("StyleManager", globalNode, top)
+    function new()
+      super("StyleManager")
       m.log = new log.Logger("StyleManager")
       m.setStyleJson(invalid)
     end function
 
-    @nodefunc
     public function setStyleJson(json)
       if mc.isAACompatible(json)
         m.styles = json
@@ -34,8 +33,7 @@ namespace mv
     '  * @param {string} key
     '  * @returns {assocarray} style, marshalled for maestro compatible values
     '  */
-    @nodefunc
-    function getStyle(key) as dynamic
+    public function getStyle(key) as dynamic
       if key = invalid or key.trim() = ""
         return {}
       end if
@@ -55,7 +53,7 @@ namespace mv
     end function
 
 
-    function parseStyle(key)
+    private function parseStyle(key)
       style = mc.getPath(m.styles, key)
 
       if style <> invalid

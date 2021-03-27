@@ -8,44 +8,32 @@ namespace mv.cells
   @node("mv_BaseCell", "Group")
   class BaseCell
     'todo - add code for various events here
-    private top
     private style
     protected isViewCreated = false
     protected isFocused = false
 
-    @field("node")
     @observer("onContentChange")
-    public itemContent
+    public itemContent as mc.types.Node
 
-    @field("integer")
-    public index
+    public index = -1
 
-    @field("integer")
-    public rowIndex
+    public rowIndex = -1
 
-    @field("float")
     @observer("onFocusPercentChange")
-    public focusPercent
+    public focusPercent = 0.0
 
-    @field("boolean")
     @observer("onRowHasFocusChange")
-    public rowHasFocus
+    public rowHasFocus = false
 
-    @field("boolean")
     @observer("onRowListHasFocusChange")
-    public rowListHasFocus
+    public rowListHasFocus = false
 
-    @field("float")
     @observer("onRowFocusChange")
-    public rowFocusPercent
+    public rowFocusPercent = 0.0
 
     private owner
 
     private willChangeFocusReported = false
-
-    function new(globalNode, top)
-      m.top = top
-    end function
 
     protected function onContentChange(content)
       if m.top.index = 0

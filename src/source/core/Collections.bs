@@ -66,7 +66,7 @@ namespace mc.collections
     end function
 
     function transform(item)
-      if (item = invalid) then return invalid
+      if item = invalid then return invalid
       return item.callFunc(m.funcName, m.args)
     end function
   end class
@@ -77,8 +77,8 @@ namespace mc.collections
     end function
 
     function transform(item)
-      if (item = invalid) then return invalid
-      if (item[m.funcName] = invalid) then return invalid
+      if item = invalid then return invalid
+      if item[m.funcName] = invalid then return invalid
       return item[m.funcName]()
     end function
   end class
@@ -89,7 +89,7 @@ namespace mc.collections
     end function
 
     function transform(item)
-      if (item = invalid) then return invalid
+      if item = invalid then return invalid
       return item[m.fieldName]
     end function
   end class
@@ -138,7 +138,7 @@ namespace mc.collections
     end function
 
     function isMatch(item)
-      if (item = invalid) then return false
+      if item = invalid then return false
       return item[m.fieldName] = m.expected
     end function
   end class
@@ -150,8 +150,8 @@ namespace mc.collections
     end function
 
     function isMatch(item)
-      if (item = invalid) then return false
-      if (item[m.funcName] = invalid) then return false
+      if item = invalid then return false
+      if item[m.funcName] = invalid then return false
       compareTo = item[m.funcName]()
       return compareTo = m.expected
     end function
@@ -165,7 +165,7 @@ namespace mc.collections
     end function
 
     function isMatch(item)
-      if (item = invalid) then return false
+      if item = invalid then return false
       compareTo = item.callFunc(m.funcName, m.args)
       return m.expected = compareTo
     end function

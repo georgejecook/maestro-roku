@@ -45,43 +45,42 @@ namespace mx
 
     override function initialize()
       super.initialize()
-      m.log.method("initialize", m.__name)
       m.state = "initialized"
     end function
 
-    override function destroy()
+    protected override function destroy()
       super.destroy()
       m.log.method("destroy")
       m.state = "destroyed"
     end function
 
-    public function onAddedToAggregateView(view)
+    protected function onAddedToAggregateView(view)
     end function
 
-    public function onShow()
+    protected function onShow()
       m.isShown = true
     end function
 
 
-    public function onRemovedFromAggregateView()
+    protected function onRemovedFromAggregateView()
     end function
 
-    public function onHide()
+    protected function onHide()
       m.isShown = false
     end function
 
-    public function onGainedFocus(isSelfFocused)
+    protected function onGainedFocus(isSelfFocused)
       if isSelfFocused
         m.isFocused = true
         m.setFocusId(m.focusId)
       end if
     end function
 
-    public function onLostFocus()
+    protected function onLostFocus()
       m.isFocused = false
     end function
 
-    public function setFocusId(id)
+    protected function setFocusId(id)
       if m.isFocused
         m.setField("focusId", id)
       else
@@ -123,7 +122,7 @@ namespace mx
     '++ KEY HANDLING
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function onKeyEvent(key as string, press as boolean) as boolean
+    private function onKeyEvent(key as string, press as boolean) as boolean
       result = false
       if press
         'bs:disable-next-line
@@ -137,7 +136,7 @@ namespace mx
         result = false
       end if
 
-      if (result = invalid)
+      if result = invalid
         result = false
       end if
 

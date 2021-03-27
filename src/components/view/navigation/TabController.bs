@@ -28,19 +28,10 @@ function changeCurrentItem(item)
   if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
     m.top.currentItem = item
     view = getViewForMenuItemContent(m.top.currentItem, item.screenType <> "DeepLinkingController")
-    if view <> invalid
-      'we want to clear out the view's vis, so the initialize
-      'won't trigger show callbacks prematurely
-      view.visible = false
-      view.isShown = false
-
-      if not view.isInitialized
-        initializeView(view)
-      end if
-      showView(view)
-    else
+    if view = invalid
       m.log.error("no view for item", m.top.currentItem)
     end if
+    transitionToView(view)
   end if
 end function
 

@@ -8,48 +8,48 @@
 '++ nav support
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view)
+function push(view, animated = true)
   navController = getNavController()
 
-  if (navController <> invalid)
-    navController@.push(view)
+  if navController <> invalid
+    navController@.push(view, animated)
   else
     m.log.error("Push failed - there is no navcontroller on ", m.top)
   end if
 end function
 
-function pop() as object
+function pop(animated = true) as object
   navController = getNavController()
 
-  if (navController <> invalid)
-    return navController@.pop()
+  if navController <> invalid
+    return navController@.pop(animated)
   else
     m.log.error("Pop failed - there is no navcontroller on ", m.top)
   end if
 end function
 
-function replaceNavControllerScreen(targetScreen)
+function replaceNavControllerScreen(targetScreen, animated = false)
   navController = getNavController()
 
-  if (navController <> invalid)
-    navController@.replace(targetScreen)
+  if navController <> invalid
+    navController@.replace(targetScreen, animated)
   else
     m.log.error("Pop failed - there is no navcontroller on ", m.top)
   end if
 end function
 
 
-function resetNavControllerToRoot()
+function resetNavControllerToRoot(animated = false)
   m.log.method("resetNavControllerToRoot." + m.top.id)
-  resetNavController(invalid, 0)
+  resetNavController(invalid, 0, animated)
 end function
 
-function resetNavController(newFirstScreen = invalid, endIndex = -1)
+function resetNavController(newFirstScreen = invalid, endIndex = -1, animated = false)
   m.log.method("resetNavController." + m.top.id)
   navController = getNavController()
 
-  if (navController <> invalid)
-    navController@.reset(newFirstScreen, endIndex)
+  if navController <> invalid
+    navController@.reset(newFirstScreen, endIndex, animated)
   else
     m.log.error("Pop failed - there is no navcontroller on ", m.top)
   end if

@@ -133,14 +133,15 @@ namespace mc.tasks
     context.sendMode = sendMode
     context.once = once = true
     context.node = node
-    context.key = mc.tasks._getContextKey(node, fieldName, callback, targetField, context.instance)
 
     if node._oid = invalid
       node.addFields({ "_oid": StrI(rnd(2147483647)).trim() })
     end if
     if scope._oid = invalid
-      scope.addFields({ "_oid": StrI(rnd(2147483647)).trim() })
+      mc.setOrAddNodeField(scope, "_oid", StrI(rnd(2147483647)).trim() )
     end if
+
+    context.key = mc.tasks._getContextKey(node, fieldName, callback, targetField, context.instance)
 
     contexts = mc.tasks._getScopeContexts()[node._oid + "_" + fieldName]
     if contexts = invalid
@@ -159,7 +160,7 @@ namespace mc.tasks
     end if
 
     if instance <> invalid
-      return `${node.id}.${fieldName}->${context.instance.id}.${cb}`
+      return `${node.id}.${fieldName}->${instance._oid}.${cb}`
     else
       return `${node.id}.${fieldName}->m.${cb}`
     end if

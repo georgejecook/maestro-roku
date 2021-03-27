@@ -155,7 +155,10 @@ namespace mv.animations
     end function
 
     override function start(resume = false)
-      m.fractionValueObserver.reset()
+      if m.fractionValueObserver <> invalid
+        m.fractionValueObserver.reset()
+      end if
+
       if m.animateFromCurrentValue
         m.syncStartKeys()
       end if

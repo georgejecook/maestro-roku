@@ -1,0 +1,59 @@
+import "pkg:/source/view/NodeClass.bs"
+import "pkg:/source/view/Animation.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace mv.transitions
+  ' /**
+  '  * @module BaseTransition
+  '  * @description BaseTransition component. extend this to create other transitions
+  '  */
+  @node("mv_FadeTransition", "Group")
+  class FadeTransition extends mv.transitions.BaseTransition
+
+    public color as string
+
+    public size = [1920, 1080]
+
+    public duration = 2
+
+    private fadeRectangle
+    private blackFadeAnim
+
+
+    function new()
+      super("mv_FadeTransition")
+    end function
+
+    protected override function begin()
+      if m.fadeRectangle = invalid
+        m.fadeRectangle = mc.createSGNode("mv_Rectangle", m.owner, "fadeRectangle")
+        m.blackFadeAnim = mv.animations.utils.fadeTo(m.fadeRectangle, 2, 1)
+        m.blackFadeAnim.setKeys([0, 0.5, 1.0], [0.0, 1.0, 0.0])
+      end if
+
+      m.fadeRectangle.size = m.top.size
+      m.fadeRectangle.color = m.top.color
+
+      if m.source <> invalid and not m.source.isSameNode(m.target)
+        m.source.visible = false
+        m.owner.removeChild(m.source)
+      end if
+      m.showView(m.target)
+      m.finish()
+    end function
+
+    private function showView(view)
+      if view <> invalid
+        m.log.method("view is valid. isShown", m.owner.isShown, "view", view.id)
+
+        m.owner.appendChild(view)
+
+        if m.owner.isShown
+          view.visible = true
+        end if
+
+      end if
+    end function
+
+  end class
+end namespace

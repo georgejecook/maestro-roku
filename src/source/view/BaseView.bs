@@ -14,7 +14,6 @@ namespace mv
     @inject("styleManager")
     protected styleManager
 
-    @field("string")
     public state = "none"
 
     protected isFocused = false
@@ -28,8 +27,7 @@ namespace mv
       super(name, globalNode, top)
     end function
 
-    function initialize()
-      m.log.method("initialize", m.name)
+    protected function initialize()
       m.state = "initialized"
     end function
 
@@ -55,7 +53,7 @@ namespace mv
     '++ key support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function onKeyEvent(key as string, press as boolean) as boolean
+    private function onKeyEvent(key as string, press as boolean) as boolean
       result = false
       if press
         'bs:disable-next-line
@@ -147,26 +145,26 @@ namespace mv
     '++ lifecycle stuff
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function destroy()
+    protected function destroy()
       m.log.method("destroy")
       m.state = "destroyed"
     end function
 
-    function onShow()
+    protected function onShow()
       m.isShown = true
     end function
 
-    function onHide()
+    protected function onHide()
       m.isShown = false
     end function
 
-    function onGainedFocus(isSelfFocused)
+    protected function onGainedFocus(isSelfFocused)
       if isSelfFocused
         m.isFocused = true
       end if
     end function
 
-    function onLostFocus()
+    protected function onLostFocus()
       m.isFocused = false
     end function
 

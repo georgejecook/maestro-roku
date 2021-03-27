@@ -6,38 +6,22 @@ end function
 '++ view management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function showView(view)
-  m.log.verbose("showView")
-  children = m.top.getChildren( - 1, 0)
-
-  for each child in children
-    if not child.isSameNode(view)
-      hideView(child)
-    end if
-  end for
-
-  if view <> invalid
-    m.log.method("view is valid. isShown", m.top.isShown, "view", view.id)
-
-    m.top.AppendChild(view)
-    m.top.currentView = view
-
-    if m.top.isShown
-      view.visible = true
-    end if
-
-  end if
-end function
-
 function hideView(view)
   if view <> invalid
     if view.isSameNode(m.top.currentView)
       m.top.currentView = invalid
     end if
     view.visible = false
-    m.top.RemoveChild(view)
+    m.top.removeChild(view)
   end if
 
+end function
+
+function transitionToView(view, animated = true)
+  if m.top.transition = invalid
+    m.top.transition = createObject("roSGNode", "mv_SimpleTransition")
+  end if
+  m.top.transition@.execute(m.top, m.top.currentView, view, animated)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

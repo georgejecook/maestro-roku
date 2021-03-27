@@ -1,0 +1,101 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/view/NodeClass.bs"
+import "pkg:/components/view/mixin/FocusMixin.bs"
+
+namespace mv.transitions
+  ' /**
+  '  * @module BaseTransition
+  '  * @description BaseTransition component. extend this to create other transitions
+  '  */
+  class BaseTransition extends mv.NodeClass
+
+    private top
+    public progress
+    public state = "none"
+
+    protected source
+    protected target
+    protected owner
+
+    function new(name, globalNode, top)
+      super(name, globalNode, top)
+    end function
+
+    public function execute(owner, source, target, animated = true)
+      m.owner = owner
+      m.source = source
+      m.target = target
+      m.top.progress = 0
+      m.top.state = "started"
+
+      if m.target <> invalid
+        m.target@.onAddedToAggregateView(owner)
+        'we want to clear out the view's vis, so the initialize
+        'won't trigger show callbacks prematurely
+        m.target.visible = false
+        m.target.isShown = false
+
+        if not m.target.isInitialized
+          m.initializeView(m.target)
+        end if
+      end if
+
+      m.owner.currentView = m.target
+      if animated
+        m.begin()
+      else
+        m.transitionWithoutAnimation()
+      end if
+    end function
+
+    protected function begin()
+      'override me
+    end function
+
+    protected function finish()
+      m.top.progress = 1
+      m.top.state = "finished"
+
+      if m.source <> invalid
+        m.source@.onRemovedFromAggregateView(m.owner)
+      end if
+
+      if m.target <> invalid
+        'bs:disable-next-line
+        if m.owner.isAutoFocusEnabled and m.owner.isInFocusChain()
+          mv.setFocus(m.target)
+        end if
+      end if
+    end function
+
+    protected function initializeView(view, args = invalid)
+      if view <> invalid
+        view@._initialize(args)
+      else
+        m.log.error("view is invalid!")
+      end if
+    end function
+
+    protected function transitionWithoutAnimation()
+      if m.source <> invalid and not m.source.isSameNode(m.target)
+        m.source.visible = false
+        m.owner.removeChild(m.source)
+      end if
+      if m.target <> invalid
+        m.log.method("m.target is valid. isShown", m.owner.isShown, "m.target", m.target.id)
+
+        m.owner.appendChild(m.target)
+
+        if m.owner.isShown
+          m.target.visible = true
+        end if
+
+      end if
+
+      m.finish()
+    end function
+
+  end class
+end namespace

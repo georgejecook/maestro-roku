@@ -8,63 +8,48 @@ namespace mc.collections
   class Map
 
     private top
-    protected data
+    protected data = {}
 
-    @field("boolean")
     @observer("onDebugChange")
-    public _debug
+    public _debug = false
 
-    @field("assocarray")
-    public __contents
+    public __contents as mc.types.AssocArray
 
-    @field("integer")
     public length = 0
 
-    function new(globalNode, top)
-      m.data = {}
-      m.top = top
-    end function
-
-    @nodefunc
-    function clear()
+    public function clear()
       m.data = {}
       m.top.length = 0
     end function
 
-    @nodefunc
-    function delete(key)
+    public function delete(key)
       m.data.delete(key)
       m.top.length = m.data.count()
     end function
 
-    @nodefunc
-    function set(key, value)
+    public function set(key, value)
       m.data[key] = value
       m.top.length = m.data.count()
     end function
 
-    @nodefunc
-    function append(other)
+    public function append(other)
       m.data[key].append(other)
       m.top.length = m.data.count()
     end function
 
-    @nodefunc
-    function get(key)
+    public function get(key)
       return m.data[key]
     end function
 
-    @nodefunc
-    function doesExist(key)
+    public function doesExist(key)
       return m.data[key] <> invalid
     end function
 
-    @nodefunc
-    function getValues()
+    public function getValues()
       return m.data
     end function
 
-    function onDebugChange(value)
+    private function onDebugChange(value)
       ? "dumping contents"
       m.top.__contents = m.data
     end function

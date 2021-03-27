@@ -91,6 +91,8 @@ function _onShow(args) as void
 
     if m.vm <> invalid and m.vm.onFirstShow <> invalid
       m.vm.onFirstShow()
+    else if m.onFirstShow <> invalid
+      m.onFirstShow()
     end if
 
   end if
@@ -103,6 +105,8 @@ function _onShow(args) as void
 
     if m.vm <> invalid and m.vm.onShow <> invalid
       m.vm.onShow()
+    else if m.onShow <> invalid
+      m.onShow()
     end if
 
   end if
@@ -119,6 +123,9 @@ function _onHide(args)
     if m.vm <> invalid and m.vm.onHide <> invalid
       m.vm.onHide()
     end if
+    if m.onHide <> invalid
+      m.onHide()
+    end if
 
   else
     m.log.warn("onHide called before show: ignoring")
@@ -126,12 +133,11 @@ function _onHide(args)
 end function
 
 function _initialize(args = invalid)
-  m.log.method("initialize")
   if not m.top.isInitialized
     m.top.isInitialized = true
     initialize(args)
-    if m.vm <> invalid
-      m.vm.initialize()
+    if m.initialize <> invalid
+      m.initialize()
     end if
     m.top.observeFieldScoped("visible", "onVisibleChange")
     if m.top.visible and not m.top.isShown
@@ -145,12 +151,16 @@ end function
 function onAddedToAggregateView(view)
   if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
     m.vm.onAddedToAggregateView(view)
+  else if m.onAddedToAggregateView <> invalid
+    m.onAddedToAggregateView(view)
   end if
 end function
 
 function onRemovedFromAggregateView(view)
   if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
     m.vm.onRemovedFromAggregateView(view)
+  else if m.onRemovedFromAggregateView <> invalid
+    m.onRemovedFromAggregateView(view)
   end if
 end function
 
@@ -209,6 +219,8 @@ function onGainedFocus(isSelfFocused)
         'bs:disable-next-line
         mx_onFocusIdChange(m.vm.focusId)
       end if
+    else if m.onGainedFocus <> invalid
+      m.onGainedFocus(isSelfFocused)
     end if
 
   end if
@@ -227,6 +239,8 @@ function onLostFocus()
   end if
   if m.vm <> invalid and m.vm.onLostFocus <> invalid
     m.vm.onLostFocus()
+  else if m.onLostFocus <> invalid
+    m.onLostFocus()
   end if
 end function
 

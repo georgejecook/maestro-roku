@@ -6,13 +6,12 @@ namespace mv
   @node("mv_FontManager", "Node")
   class FontManager extends mv.NodeClass
 
-    @field("assocarray")
     public settings = {}
 
     private cachedFonts = {}
 
-    function new(globalNode, top)
-      super("FontManager", invalid, invalid)
+    function new()
+      super("FontManager")
     end function
 
     ' /**
@@ -24,8 +23,7 @@ namespace mv
     '  * @param {paramType} paramDescription
     '  * @returns {returnType} returnDescription
     '  */
-    @nodefunc
-    function getFontWithKey(key as string) as dynamic
+    public function getFontWithKey(key as string) as dynamic
       font = m.cachedFonts[key]
       if font <> invalid
         return font
@@ -36,12 +34,11 @@ namespace mv
         return m.getfont(parts[0], parts[1].toInt())
       end if
 
-      m.log.warn("could not get font", key, "error", error)
+      ' m.log.warn("could not get font", key, "error", error)
       return invalid
     end function
 
-    @nodefunc
-    function getFont(name as string, size as integer) as dynamic
+    public function getFont(name as string, size as integer) as dynamic
       if name = invalid or name.trim() = ""
         return invalid
       end if
