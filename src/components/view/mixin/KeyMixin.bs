@@ -20,6 +20,7 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
   result = false
   if press
+    ? "key "; key
     'bs:disable-next-line
     if mc.isFunction(isAnyKeyPressLocked) and isAnyKeyPressLocked()
       return true
@@ -81,6 +82,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
   if result = false and m.vm <> invalid
     result = m.vm.onKeyEvent(key, press)
+  end if
+  if result = false and m.onKeyEvent <> invalid
+    result = m.onKeyEvent(key, press)
   end if
 
   return result

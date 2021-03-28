@@ -249,7 +249,11 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function callVMFunc(funcName, p1 = "#M_NONE#", p2 = "#M_NONE#", p3 = "#M_NONE#")
-  return mc.callAAFunc(m.vm, funcName, p1, p2, p3)
+  if m.vm <> invalid
+    return mc.callAAFunc(m.vm, funcName, p1, p2, p3)
+  else
+    return m.callAAFunc(m, funcName, p1, p2, p3)
+  end if
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -14,20 +14,16 @@ namespace mc
     private registry
     private request
 
-    public function nodeRun(args)
-      instance = new AssetBundleTask(args.baseBundleUrl, args.bundleId)
-      return instance.execute()
-    end function
+    private url = ""
 
-    public url = ""
-
-    function new(baseBundleUrl, bundleId)
+    function new()
       m.log = new log.Logger("ImageRequestTask")
-      m.bundleId = bundleId
-      m.baseBundleUrl = baseBundleUrl
     end function
 
-    private function execute()
+    private function execute(args)
+      m.bundleId = args.bundleId
+      m.baseBundleUrl = args.baseBundleUrl
+
       m.registry = new mc.Registry()
       m.request = m.makeRequest()
 

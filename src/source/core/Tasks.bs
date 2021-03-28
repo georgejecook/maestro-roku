@@ -22,9 +22,9 @@ namespace mc.tasks
     return frameTimer
   end function
 
-  function cancelWaitTimer(timer, callback = invalid)
+  function cancelWaitTimer(timer)
     if timer <> invalid
-      mc.tasks.unobserveNodeField(timer, "fire", invalid)
+      mc.tasks.cleanNodeObserver(timer, "fire")
       timer.control = "stop"
       if timer.getParent() <> invalid
         timer.getParent().removeChild(timer)
@@ -111,6 +111,7 @@ namespace mc.tasks
         return false
       end if
       targetField = callback
+      sendMode = "field"
       callback = invalid
     end if
 
@@ -138,7 +139,7 @@ namespace mc.tasks
       node.addFields({ "_oid": StrI(rnd(2147483647)).trim() })
     end if
     if scope._oid = invalid
-      mc.setOrAddNodeField(scope, "_oid", StrI(rnd(2147483647)).trim() )
+      mc.setOrAddNodeField(scope, "_oid", StrI(rnd(2147483647)).trim())
     end if
 
     context.key = mc.tasks._getContextKey(node, fieldName, callback, targetField, context.instance)
@@ -148,6 +149,11 @@ namespace mc.tasks
       contexts = {}
       mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = contexts
       node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
+    else
+      if fieldNAme = "state"
+        ? "wtf"
+        stop
+      end if
     end if
     contexts[context.key] = context
   end function
@@ -191,45 +197,45 @@ namespace mc.tasks
           node.getParent().removeChild(node)
         end if
       end if
-      if context.callback <> invalid
-        if context.sendMode = "field"
-          context.instance[context.callback] = node[fieldName]
-        else
-          executeInScope = sub(this, callback, value, sendMode, node = invalid)
-            m = this
-            if sendMode = "both"
-              callback(value, node)
-            else if sendMode = "node"
-              callback(node)
-            else if sendMode = "none"
-              callback()
-            else
-              callback(value)
-            end if
-          end sub
 
-          if context.instance <> invalid
-            context.instance.__cb = context.callback
-            if context.sendMode = "both"
-              'bs:disable-next-line
-              context.instance.__cb(node[fieldName], context.node)
-            else if context.sendMode = "node"
-              'bs:disable-next-line
-              context.instance.__cb(context.node)
-            else if context.sendMode = "none"
-              'bs:disable-next-line
-              context.instance.__cb()
-            else
-              'bs:disable-next-line
-              context.instance.__cb(node[fieldName])
-            end if
-            context.instance.delete("__cb")
+      if context.sendMode = "field" and context.targetField <> invalid
+        context.instance[context.field] = node[fieldName]
+      else if context.callback <> invalid
+        executeInScope = sub(this, callback, value, sendMode, node = invalid)
+          m = this
+          if sendMode = "both"
+            callback(value, node)
+          else if sendMode = "node"
+            callback(node)
+          else if sendMode = "none"
+            callback()
           else
-            executeInScope(context.scope, context.callback, node[fieldName], context.sendMode, node)
+            callback(value)
           end if
+        end sub
+
+        if context.instance <> invalid
+          context.instance.__cb = context.callback
+          if context.sendMode = "both"
+            'bs:disable-next-line
+            context.instance.__cb(node[fieldName], context.node)
+          else if context.sendMode = "node"
+            'bs:disable-next-line
+            context.instance.__cb(context.node)
+          else if context.sendMode = "none"
+            'bs:disable-next-line
+            context.instance.__cb()
+          else
+            'bs:disable-next-line
+            context.instance.__cb(node[fieldName])
+          end if
+          context.instance.delete("__cb")
+        else
+          executeInScope(context.scope, context.callback, node[fieldName], context.sendMode, node)
         end if
       else
-        m.log.error("class does not have function for callback", node._callbackName)
+        m.log.error("could not identify callback for context: ", context)
+        stop
       end if
     end for
   end function
@@ -253,25 +259,28 @@ namespace mc.tasks
       return false
     end if
 
+    if node._oid = invalid
+      'node was never observed
+      return false
+    end if
 
-    contexts = mc.tasks._getScopeContexts()[node._oid + "_" + fieldName]
+    cKey = node._oid + "_" + fieldName
+    contexts = mc.tasks._getScopeContexts()[cKey]
     if contexts <> invalid
       key = mc.tasks._getContextKey(node, fieldName, callback, targetField, scope)
       contexts.delete(key)
-      mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = contexts
-      node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
+      if contexts.count() = 0
+        mc.tasks.cleanNodeObserver(node, fieldName)
+      else
+      end if
     end if
-    contexts[context.key] = context
 
-
-    'TODO - we should be ehcking how many callbacks are registered on the bridge
-    mc.tasks.cleanNodeObserver(node, fieldName)
     return true
   end function
 
   function cleanNodeObserver(node, fieldName)
     if node <> invalid and fieldName <> invalid and m._nodeContexts <> invalid
-      m._nodeContexts.delete(node.id + "_" + fieldName)
+      m._nodeContexts.delete(node._oid + "_" + fieldName)
       node.unobserveFieldScoped(fieldName)
     end if
   end function
@@ -330,15 +339,15 @@ namespace mc.tasks
     function valueCallback(value, node)
       if m.pendingComparators.count() > 0
         for each id in m.pendingComparators
-          observer = m.pendingComparators[id]
-          if (c = "=" and value = observer.v) or (c = ">" and c > observer.v) or (c = ">=" and c >= observer.v) or (c = "<" and c < observer.v) or (c = "<=" and c <= observer.v) or (c = "<>" and c <> observer.v)
+          o = m.pendingComparators[id]
+          if (o.c = "=" and value = o.v) or (o.c = ">" and value > o.v) or (o.c = ">=" and value >= o.v) or (o.c = "<" and value < o.v) or (o.c = "<=" and value <= o.v) or (o.c = "<>" and value <> o.v)
             m.pendingComparators.delete(id)
             if mc.isAACompatible(m.target)
-              m.target.__cb = observer.cb
-              if mode = "both"
+              m.target.__cb = o.cb
+              if o.mode = "both"
                 'bs:disable-next-line
                 m.target.__cb(value, node)
-              else if mode = "value"
+              else if o.mode = "value"
                 'bs:disable-next-line
                 m.target.__cb(value)
               else
@@ -360,7 +369,7 @@ namespace mc.tasks
                   callback()
                 end if
               end sub
-              executeInScope(target.scope, observer.cb, observer.mode)
+              executeInScope(target.scope, o.cb, o.mode)
             end if
           end if
         end for
