@@ -1,5 +1,4 @@
 namespace tests
-  @nocatch
   @suite("Set tests")
   class SetTests extends tests.BaseTestSuite
 
@@ -34,7 +33,7 @@ namespace tests
       m.assertEqual(m.set@.getValues(), ["a", "b"])
     end function
 
-    @it("deletes")
+    @it("removes")
     function _()
       m.set@.add("c")
       m.assertEqual(m.set.length, 3)
@@ -42,13 +41,13 @@ namespace tests
       m.assertEqual(m.set@.get(1), "b")
       m.assertEqual(m.set@.get(2), "c")
 
-      m.set@.delete(1)
+      m.set@.remove(1)
       m.assertEqual(m.set.length, 2)
       m.assertEqual(m.set@.get(0), "a")
       m.assertEqual(m.set@.get(1), "c")
       m.assertEqual(m.set@.get(2), invalid)
 
-      m.set@.delete(1)
+      m.set@.remove(1)
       m.assertEqual(m.set.length, 1)
       m.assertEqual(m.set@.get(0), "a")
       m.assertEqual(m.set@.get(1), invalid)

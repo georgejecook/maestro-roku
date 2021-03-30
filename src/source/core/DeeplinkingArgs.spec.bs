@@ -1,0 +1,58 @@
+namespace tests
+
+  @suite("DeeplinkingArgsTests")
+  class DeeplinkingArgsTests extends rooibos.BaseTestSuite
+
+    override function beforeEach()
+      super.beforeEach()
+      m.args = createObject("roSGNode", "mc_DeeplinkingArgs")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests configure")
+    '++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("various scenarios")
+    @params(invalid, "", "none")
+    @params({}, "", "none")
+    @params({ contentId: invalid }, "", "none")
+    @params({ contentId: invalid, mediaType: invalid }, "", "none")
+    @params({ contentId: invalid, mediaType: "none" }, "", "none")
+    @params({ contentId: invalid, mediaType: "movie" }, "", "none")
+    @params({ contentId: "", mediaType: "movie" }, "", "none")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: invalid }, "", "none")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "movie" }, "content/movies/12", "movie")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "short-form" }, "content/movies/12", "short-form")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "live" }, "content/movies/12", "live")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "episode" }, "content/movies/12", "episode")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "series" }, "content/movies/12", "series")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "season" }, "content/movies/12", "season")
+    @params({ contentId: "content%2Fmovies%2F12", mediaType: "not-supported" }, "", "none")
+    function _(args, expectedContentId, expectedMediaType)
+      m.args@.configure(args)
+
+      m.assertEqual(m.args.contentId, expectedContentId)
+      m.assertEqual(m.args.mediaType, expectedMediaType)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests getAction")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("various scenarios")
+    @params("none", "none")
+    @params("not-supported", "none")
+    @params("movie", "play")
+    @params("short-form", "play")
+    @params("live", "play")
+    @params("special", "play")
+    @params("episode", "play")
+    @params("season", "display")
+    @params("series", "playAndDisplay")
+    function _(mediaType, expectedAction)
+      m.args.mediaType = mediaType
+
+      m.assertEqual(m.args@.getAction(invalid), expectedAction)
+    end function
+  end class
+end namespace

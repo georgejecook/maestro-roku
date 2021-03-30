@@ -34,7 +34,7 @@ namespace tests
       m.assertEqual(m.map@.getValues(), { "a": 1, "b": 2 })
     end function
 
-    @it("deletes")
+    @it("removes")
     function _()
       m.map@.set("c", 3)
       m.assertEqual(m.map.length, 3)
@@ -42,19 +42,19 @@ namespace tests
       m.assertEqual(m.map@.get("b"), 2)
       m.assertEqual(m.map@.get("c"), 3)
 
-      m.map@.delete("b")
+      m.map@.remove("b")
       m.assertEqual(m.map.length, 2)
       m.assertEqual(m.map@.get("a"), 1)
       m.assertEqual(m.map@.get("b"), invalid)
       m.assertEqual(m.map@.get("c"), 3)
 
-      m.map@.delete("a")
+      m.map@.remove("a")
       m.assertEqual(m.map.length, 1)
       m.assertEqual(m.map@.get("a"), invalid)
       m.assertEqual(m.map@.get("b"), invalid)
       m.assertEqual(m.map@.get("c"), 3)
 
-      m.map@.delete("c")
+      m.map@.remove("c")
       m.assertEqual(m.map.length, 0)
       m.assertEqual(m.map@.getValues(), {})
 

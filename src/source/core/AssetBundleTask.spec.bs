@@ -7,18 +7,20 @@ namespace tests
     private task
     override function beforeEach()
       super.beforeEach()
-      url = "http://192.168.1.143:8001"
-      m.task = new mc.AssetBundleTask(url, "bundle")
+      m.task = new mc.AssetBundleTask()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("execute")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @nocatch
     @it("tests execute")
     function _()
-      m.task.execute()
+      args = {
+        id: "http://192.168.1.143:8001"
+        url: "bundle"
+      }
+      m.task.execute(args)
     end function
 
   end class

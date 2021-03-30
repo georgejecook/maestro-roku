@@ -1,0 +1,74 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+
+namespace mc
+
+  @strict
+  @node("mc_DeeplinkingArgs", "Node")
+  class Deeplinkingargs
+    '(none|movie|short-form|live|special|episode|series|season)
+    public mediaType = "none"
+    public contentId = ""
+    private log = new log.Logger("DeeplinkingArgs")
+    'updates the args with the passed in AA, and updates the version count
+
+    'returns the required action to fulfil the current deeplinking
+    '(none|play|display)
+
+
+
+    function configure(args)
+      m.top.contentId = ""
+      m.top.mediaType = "none"
+      m.log.info("configuring with args", args)
+
+      supportedTypes = {
+        "season": true
+        "movie": true
+        "short-form": true
+        "live": true
+        "special": true
+        "episode": true
+        "series": true
+      }
+
+      if args <> invalid and args.mediaType <> invalid and args.mediaType.trim() <> "" and args.contentId <> invalid and args.contentId.trim() <> "" and supportedTypes[args.mediaType] = true
+        m.top.contentId = args.contentId.DecodeUriComponent()
+        m.top.mediaType = args.mediaType
+      end if
+    end function
+
+    function getAction(args = invalid)
+      m.log.info("getAction mediaType", m.top.mediaType)
+
+      action = "none"
+
+      displayActions = {
+        "season": true
+      }
+
+      playActions = {
+        "movie": true
+        "short-form": true
+        "live": true
+        "special": true
+        "episode": true
+      }
+
+      playAndDisplayActions = {
+        "series": true
+      }
+
+      if playAndDisplayActions[m.top.mediaType.trim()] = true
+        action = "playAndDisplay"
+      else if displayActions[m.top.mediaType.trim()] = true
+        action = "display"
+      else if playActions[m.top.mediaType.trim()] = true
+        action = "play"
+      end if
+
+      m.log.info("results in action", action)
+
+      return action
+    end function
+  end class
+end namespace
