@@ -3,7 +3,7 @@ import "pkg:/source/core/Utils.bs"
 
 namespace mv.animations.utils
   function fadeTo(target, duration, toValue, start = true, delay = 0)
-    anim = new mv.animations.Fade(target, duration, target.opacity, toValue, delay = 0)
+    anim = new mv.animations.Fade(target, duration, target.opacity, toValue, delay)
     if start
       anim.start()
     end if
@@ -11,7 +11,7 @@ namespace mv.animations.utils
   end function
 
   function scaleTo(target, duration, toValue, start = true, delay = 0)
-    anim = new mv.animations.Scale(target, duration, target.scale, toValue, delay = 0)
+    anim = new mv.animations.Scale(target, duration, target.scale, toValue, delay)
     if start
       anim.start()
     end if
@@ -110,8 +110,8 @@ namespace mv.animations
       m.fromValue = fromValue
       m.toValue = toValue
       m.field = field
-      m.delay = delay
       m.createAnimationNode()
+      m.setDelay(delay)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -166,12 +166,17 @@ namespace mv.animations
     end function
 
     function setDuration(duration)
-      m.node.duration = duration
       m.duration = duration
+      if m.node <> invalid
+        m.node.duration = duration
+      end if
     end function
 
     function setDelay(delay)
-      m.node.delay = delay
+      m.delay = delay
+      if m.node <> invalid
+        m.node.delay = delay
+      end if
     end function
 
     function animateTo(toValue, duration = invalid)
@@ -259,9 +264,9 @@ namespace mv.animations
       'bs:disable-next-line
       m.node.id = `${m.target.id}_${m.field}_${animId}`
       m.node.duration = m.duration
+      m.node.delay = m.delay
       m.node.easeFunction = m.easeFunction
       m.node.repeat = m.repeat
-      m.node.delay = m.delay
       m.target.appendChild(m.node)
       m.createInterpolator()
       m.node.appendChild(m.interpolator)
@@ -291,7 +296,7 @@ namespace mv.animations
       super("ParallelAnimation", target)
       m.node = createObject("roSGNode", "ParallelAnimation")
       animId = mv.animations.getAnimationKeyId()
-      m.delay = delay
+      m.node.delay = delay
       'bs:disable-next-line
       m.node.id = `${m.target.id}_${m.parallel}_${animId}`
       m.setRepeat(repeat)
@@ -478,8 +483,11 @@ namespace mv.animations
     end function
 
     override function setDelay(delay)
-      m.wAnim.setDelay(delay)
-      m.hAnim.setDelay(delay)
+      m.delay = delay
+      if m.wAnim <> invalid
+        m.wAnim.setDelay(delay)
+        m.hAnim.setDelay(delay)
+      end if
     end function
 
     override function animateTo(toValue, duration = invalid)
@@ -546,8 +554,11 @@ namespace mv.animations
     end function
 
     override function setDelay(delay)
-      m.sAnim.setDelay(delay)
-      m.mAnim.setDelay(delay)
+      m.delay = delay
+      if m.sAnim <> invalid
+        m.sAnim.setDelay(delay)
+        m.mAnim.setDelay(delay)
+      end if
     end function
 
     override function animateTo(toValue, duration = invalid)
@@ -693,7 +704,7 @@ namespace mv.animations
       super("SequenceAnimation", target)
       m.node = createObject("roSGNode", "SequentialAnimation")
       animId = mv.animations.getAnimationKeyId()
-      m.delay = delay
+      m.setDelay(delay)
       'bs:disable-next-line
       m.node.id = `${m.target.id}_${m.sequence}_${animId}`
       m.setRepeat(repeat)
