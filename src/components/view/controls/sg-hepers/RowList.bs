@@ -2,6 +2,7 @@ function init()
   m.top.rowMap = createObject("roSGNode", "mc_Map")
   m.top.observeFieldScoped("itemFocused", "onItemFocusChange")
   m.top.observeFieldScoped("style", "onStyleChange")
+  m.top.observeFieldScoped("animateToRowItem", "onAnimateToRowItem")
   m.currentRowComponent = invalid
 end function
 
@@ -9,11 +10,18 @@ function onStyleChange()
   m.top.setFields(m.top.style)
 end function
 
+function onAnimateToRowItem()
+  if m.currentRowComponent <> invalid
+    m.currentRowComponent.animateToItem = m.top.animateToRowItem
+  end if
+end function
+
 function onItemFocusChange()
   if m.currentRowComponent <> invalid
     m.currentRowComponent.unobserveFieldScoped("currFocusColumn")
   end if
   m.currentRowComponent = m.top.rowMap@.get(m.top.itemFocused.toStr().trim())
+  m.top.currentRowComponent = m.currentRowComponent
   if m.currentRowComponent <> invalid
     m.currentRowComponent.observeFieldScoped("currFocusColumn", "onCurrFocusColumnChange")
   end if
