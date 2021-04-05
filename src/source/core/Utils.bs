@@ -202,6 +202,51 @@ namespace mc
     end if
   end function
 
+  ' /**
+  '  * @member setPath
+  '  * @memberof module:Utils
+  '  * @instance
+  '  * @function
+  '  * @description get's content field from array. This variation has a slower implementation that supports array lookup
+  '  * @param {assocarray} content - node/aa to look up on
+  '  * @param {string} field - path to field, with "items.2.path.syntax",
+  '  * @returns {any} value if foud, or default value
+  '  */
+  function setPath(content, field, value = invalid)
+    part = invalid
+
+    if field <> invalid
+      parts = field.split(".")
+      numParts = parts.count() -1
+      i = 0
+
+      part = content
+      while i < numParts and part <> invalid
+        'TODO find better way of doing this
+        if parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
+          if mc.isArray(part)
+            part = part[parts[i].toInt()]
+          else if type(part) = "roSGNode"
+            part = part.getChild(parts[i].toInt())
+          else
+            part = invalid
+          end if
+        else
+          if mc.isAACompatible(part)
+            part = part[parts[i]]
+          else
+            part = invalid
+          end if
+        end if
+        i++
+      end while
+    end if
+
+    if part <> invalid and i = numParts
+      part[parts[i]] = value
+    end if
+  end function
+
   function setOrAddNodeField(node, field, value = invalid)
     if type(node) = "roSGNode"
       if node.doesExist(field)

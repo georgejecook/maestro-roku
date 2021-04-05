@@ -1,59 +1,112 @@
 namespace tests
-  @suite("Set tests")
-  class SetTests extends tests.BaseTestSuite
-
-    private set
+  @only
+  @suite("Utils Tests")
+  class UtilsTests extends tests.BaseTestSuite
 
     override function setup()
       super.setup()
-      m.set = createObject("roSGNode", "mc_Set")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("basic scenarios")
+    @describe("getPath")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("addes")
-    function _()
-      m.set@.add("a")
-      m.assertEqual(m.set.length, 1)
-      m.assertEqual(m.set@.get(0), "a")
+    @it("gets values that are present")
+    @params("v", 1)
+    @params("b.v", 2)
+    @params("b.c.v", 3)
+    function _(path, expected)
+      a = {
+        v: 1
+        b: {
+          v: 2
+          c: {
+            v: 3
+          }
+
+        }
+      }
+      m.assertEqual(mc.getPath(a, path), expected)
+
     end function
 
-    @it("gets")
-    function _()
-      m.set@.add("b")
-      m.assertEqual(m.set.length, 2)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), "b")
+    @it("gets default values")
+    @params("v2")
+    @params("b.v2")
+    @params("b.c.v2")
+    function _(path)
+      a = {
+        v: 1
+        b: {
+          v: 2
+          c: {
+            v: 3
+          }
+
+        }
+      }
+      m.assertEqual(mc.getPath(a, path, "default"), "default")
+
     end function
 
-    @it("gets values")
-    function _()
-      m.assertEqual(m.set@.getValues(), ["a", "b"])
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setPath")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets values for paths that are present")
+    @params("v", 1)
+    @params("b.v", 2)
+    @params("b.c.v", 3)
+    function _(path, value)
+      a = {
+        b: {
+          c: {
+          }
+        }
+      }
+      mc.setPath(a, path, value)
+      m.assertEqual(mc.getPath(a, path), value)
     end function
 
-    @it("removes")
-    function _()
-      m.set@.add("c")
-      m.assertEqual(m.set.length, 3)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), "b")
-      m.assertEqual(m.set@.get(2), "c")
-
-      m.set@.remove(1)
-      m.assertEqual(m.set.length, 2)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), "c")
-      m.assertEqual(m.set@.get(2), invalid)
-
-      m.set@.remove(1)
-      m.assertEqual(m.set.length, 1)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), invalid)
-      m.assertEqual(m.set@.get(2), invalid)
+    @it("sets values with no dotted path")
+    @params("v", 1)
+    @params("v2", 2)
+    @params("v3", 3)
+    function _(path, value)
+      a = {
+        b: {
+          c: {
+          }
+        }
+      }
+      mc.setPath(a, path, value)
+      m.assertEqual(mc.getPath(a, path), value)
     end function
 
+    @it("sets values when not invalid")
+    @params("v", 1)
+    @params("v2", 2)
+    @params("v3", 3)
+    function _(path, value)
+      a = invalid
+      mc.setPath(a, path, value)
+      m.assertTrue(true, "should not have crashed")
+    end function
+
+    @it("does not fail when chain is invalid")
+    @params("notthere.v", 1)
+    @params("b.noththere.v", 2)
+    @params("b.c.notthere.v", 3)
+    function _(path, value)
+      a = {
+        b: {
+          c: {
+          }
+        }
+      }
+      mc.setPath(a, path, value)
+      m.assertInvalid(mc.getPath(a, path))
+    end function
 
   end class
 end namespace
