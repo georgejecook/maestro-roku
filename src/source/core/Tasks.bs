@@ -96,6 +96,7 @@ namespace mc.tasks
   '  */
   function observeNodeField(node, fieldName, callback, sendMode = "value", once = false, scope = invalid)
     targetField = invalid
+    context = {}
     if mc.isInvalid(callback)
       if mc.isUndefined(callback)
         m.log.error("callback is not in scope for field", fieldName)
@@ -103,17 +104,17 @@ namespace mc.tasks
         m.log.error("callback is not provided for field", fieldName)
       end if
     else if mc.isString(callback)
+      context.dottedSet = callback.instr(".") <> -1
       if scope = invalid
         m.log.error("can't use callback for member", callback, "as member, when no scope is provided for field", fieldName)
         return false
-      else if not scope.doesExist(callback)
+      else if not context.dottedSet and not scope.doesExist(callback)
         m.log.error("callback member", callback, "does not exist on target scope for field", fieldName)
         return false
       end if
       targetField = callback
       sendMode = "field"
       callback = invalid
-      context.dottedSet = targetField.instr(".")
     end if
 
     if mc.isInvalid(node)
@@ -121,7 +122,6 @@ namespace mc.tasks
       return false
     end if
 
-    context = {}
     if scope <> invalid
       context.instance = scope
     else
@@ -201,7 +201,7 @@ namespace mc.tasks
 
       if context.sendMode = "field" and context.targetField <> invalid
         if context.dottedSet
-        mc.setPath(context.instance, context.field, node[fieldName])
+          mc.setPath(context.instance, context.targetField, node[fieldName])
         else
           context.instance[context.field] = node[fieldName]
         end if
