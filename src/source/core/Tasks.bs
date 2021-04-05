@@ -113,6 +113,7 @@ namespace mc.tasks
       targetField = callback
       sendMode = "field"
       callback = invalid
+      context.dottedSet = targetField.instr(".")
     end if
 
     if mc.isInvalid(node)
@@ -199,7 +200,11 @@ namespace mc.tasks
       end if
 
       if context.sendMode = "field" and context.targetField <> invalid
+        if context.dottedSet
         mc.setPath(context.instance, context.field, node[fieldName])
+        else
+          context.instance[context.field] = node[fieldName]
+        end if
       else if context.callback <> invalid
         executeInScope = sub(this, callback, value, sendMode, node = invalid)
           m = this
