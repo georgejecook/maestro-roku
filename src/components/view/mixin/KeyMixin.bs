@@ -20,9 +20,12 @@ end function
 function onKeyEvent(key as string, press as boolean) as boolean
   result = false
   if press
-    ? "key "; key
     'bs:disable-next-line
-    if mc.isFunction(isAnyKeyPressLocked) and isAnyKeyPressLocked()
+    if mc.isFunction(isAnyKeyPressLocked) and isAnyKeyPressLocked(key)
+      return true
+    else if mc_isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key) then
+      return true
+    else if m.vm <> invalid and mc_isFunction(m.vm.isAnyKeyPressLocked) and m.vm.isAnyKeyPressLocked(key) then
       return true
     else if m.isKeyPressLocked
       m.log.warn("All key presses are locked, due to isKeyPressLocked flag on ", m.top.id)
