@@ -1,59 +1,60 @@
+
 namespace tests
-  @suite("Set tests")
-  class SetTests extends tests.BaseTestSuite
+@suite("Set tests")
+class SetTests extends tests.BaseTestSuite
 
-    private set
+  private set
 
-    override function setup()
-      super.setup()
-      m.set = createObject("roSGNode", "mc_Set")
-    end function
+  override function setup()
+    super.setup()
+    m.set = createObject("roSGNode", "mc_Set")
+  end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("basic scenarios")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  @describe("basic scenarios")
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("addes")
-    function _()
-      m.set@.add("a")
-      m.assertEqual(m.set.length, 1)
-      m.assertEqual(m.set@.get(0), "a")
-    end function
+  @it("addes")
+  function _()
+    m.set@.add("a")
+    m.assertEqual(m.set.length, 1)
+    m.assertEqual(m.set@.get(0), "a")
+  end function
 
-    @it("gets")
-    function _()
-      m.set@.add("b")
-      m.assertEqual(m.set.length, 2)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), "b")
-    end function
+  @it("gets")
+  function _()
+    m.set@.add("b")
+    m.assertEqual(m.set.length, 2)
+    m.assertEqual(m.set@.get(0), "a")
+    m.assertEqual(m.set@.get(1), "b")
+  end function
 
-    @it("gets values")
-    function _()
-      m.assertEqual(m.set@.getValues(), ["a", "b"])
-    end function
+  @it("gets values")
+  function _()
+    m.assertEqual(m.set@.getValues(), ["a", "b"])
+  end function
 
-    @it("removes")
-    function _()
-      m.set@.add("c")
-      m.assertEqual(m.set.length, 3)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), "b")
-      m.assertEqual(m.set@.get(2), "c")
+  @it("removes")
+  function _()
+    m.set@.add("c")
+    m.assertEqual(m.set.length, 3)
+    m.assertEqual(m.set@.get(0), "a")
+    m.assertEqual(m.set@.get(1), "b")
+    m.assertEqual(m.set@.get(2), "c")
 
-      m.set@.remove(1)
-      m.assertEqual(m.set.length, 2)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), "c")
-      m.assertEqual(m.set@.get(2), invalid)
+    m.set@.remove(1)
+    m.assertEqual(m.set.length, 2)
+    m.assertEqual(m.set@.get(0), "a")
+    m.assertEqual(m.set@.get(1), "c")
+    m.assertEqual(m.set@.get(2), invalid)
 
-      m.set@.remove(1)
-      m.assertEqual(m.set.length, 1)
-      m.assertEqual(m.set@.get(0), "a")
-      m.assertEqual(m.set@.get(1), invalid)
-      m.assertEqual(m.set@.get(2), invalid)
-    end function
+    m.set@.remove(1)
+    m.assertEqual(m.set.length, 1)
+    m.assertEqual(m.set@.get(0), "a")
+    m.assertEqual(m.set@.get(1), invalid)
+    m.assertEqual(m.set@.get(2), invalid)
+  end function
 
 
-  end class
+end class
 end namespace
