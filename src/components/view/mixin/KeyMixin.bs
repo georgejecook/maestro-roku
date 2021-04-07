@@ -60,9 +60,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
       'bs:disable-next-line
       if mc.isFunction(onKeyPressReplay) then result = onKeyPressReplay() else result = false
     end if
-  else if m.longPressKey <> ""
-    toggleLongPressTimer(0)
-    result = true
+  ' else if m.longPressKey <> ""
+  '   toggleLongPressTimer(0)
+  '   result = true
   end if
 
   if result = invalid
@@ -106,7 +106,7 @@ function toggleLongPressTimer(interval)
     m.longPressTimer.observeFieldScoped("fire", "onLongPressTimerFire")
     m.longPressTimer.control = "start"
   else if m.longPressKey <> ""
-    m.log.info("finishing longPress on key ", key)
+    m.log.info("finishing longPress on key ", m.longPressKey)
     if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
       'bs:disable-next-line
       onLongPressFinish(m.longPressKey)
