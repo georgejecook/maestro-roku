@@ -145,15 +145,30 @@ end function
 function getParents(node)
   parent = node.getParent()
   parents = []
-  while (parent <> invalid)
+  parentOids = {}
+  maxDepth = 20
+  i = 0
+  while (parent <> invalid and i < maxDepth)
 
     if parent.subType() = "ModelLocator"
       m.log.warn("trying to focus on a view that is not yet on the view hierarchy")
       return []
     end if
+    if parent._oid <> invalid
+      if parentOids[parent._oid] <> invalid
+        m.log.warn("for some reason this parent hiearchy was looping to infinity!")
+        exit while
+      end if
+      parentOids[parent._oid] = true
+    end if
     parents.push(parent)
     parent = parent.getParent()
+    i++
   end while
+
+  if i = maxDepth
+    m.log.error("bailed on getParents after exceeding maxDepth", maxDepth)
+  end if
 
   return parents
 end function
