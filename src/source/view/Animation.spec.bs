@@ -93,10 +93,10 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("sets correct speed for float")
-    @params(0, 1, 10, 100)
-    @params(0.25, 1, 10, 75)
-    @params(0.5, 1, 10, 50)
-    @params(0.75, 1, 10, 25)
+    @params(0, 1, 10, 1)
+    @params(0.25, 1, 10, 0.75)
+    @params(0.5, 1, 10, 0.5)
+    @params(0.75, 1, 10, 0.25)
     function _(currentValue, toValue, stepSpeed, expectedDuration)
       target = createObject("roSGNode", "Group")
       target.id = "t1"
@@ -105,6 +105,28 @@ namespace tests
       fa.animateToWithSpeed(toValue, stepSpeed, "float")
       m.assertEqual(fa.fromValue * 1.0, currentValue * 1.0)
       m.assertEqual(fa.toValue * 1.0, toValue * 1.0)
+      m.assertEqual(fa.duration * 1.0, expectedDuration * 1.0)
+    end function
+
+    @it("sets correct speed for pixel distances")
+    @params([0, 0], [100, 0], 0.1, 0.1)
+    @params([0, 0], [200, 0], 0.1, 0.2)
+    @params([0, 0], [300, 0], 0.1, 0.3)
+    @params([0, 0], [-300, 0], 0.1, 0.3)
+    @params([0, 0], [100, 0], 0.5, 0.5)
+    @params([0, 0], [200, 0], 0.5, 1.0)
+    @params([0, 0], [300, 0], 0.5, 1.5)
+    @params([0, 0], [-300, 0], 0.5, 1.5)
+    @params([0, 0], [0, 500], 0.5, 2.5)
+    @params([0, 500], [0, 500], 0.5, 0)
+    function _(currentValue, toValue, stepSpeed, expectedDuration)
+      target = createObject("roSGNode", "Group")
+      target.id = "t1"
+      fa = new mv.animations.Move(target, 2.5, [0, 0], [100, 0])
+      target.translation = currentValue
+      fa.animateToWithSpeed(toValue, stepSpeed, "pixel")
+      m.assertEqual(fa.fromValue[0] * 1.0, currentValue[0] * 1.0)
+      m.assertEqual(fa.toValue[0] * 1.0, toValue[0] * 1.0)
       m.assertEqual(fa.duration * 1.0, expectedDuration * 1.0)
     end function
 

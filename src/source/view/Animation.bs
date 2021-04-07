@@ -206,12 +206,15 @@ namespace mv.animations
     '  * @description estimates how much time is required to complete the animation given the current delta particularly useful when having to switch destination on the fly.
     '  * @param {any} toValue - the final value
     '  * @param {float} stepSpeed - how long the animation would normally take
-    '  * @param {string} stepUnit - "pixel" (30 pixels), "float", 1
+    '  * @param {string} stepUnit - "pixel" (100 pixels), "float", 0.1
     '  */
     function animateToWithSpeed(toValue, stepSpeed, stepUnit = "pixel")
-      stepSize = stepUnit = "pixel" ? 30 : 0.1
       delta = mv.animations.utils.getDelta(m.target[m.field], toValue)
-      steps = delta / stepSize
+      if stepUnit = "pixel"
+        steps = delta / 100
+      else
+        steps = delta * 0.1
+      end if
       m.animateTo(toValue, steps * stepSpeed)
     end function
 
