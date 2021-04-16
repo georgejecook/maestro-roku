@@ -786,7 +786,84 @@ namespace mv.animations
     end function
   end class
 
+  class SimpleKenBurns extends mv.animations.AbstractAnimation
+    private sAnim
+    private mAnim
+    private scale = [1, 1]
+    private movement = [0, 0]
 
+    function new(target, duration, scale, movement, delay = 0)
+      super(target, "scale", duration, invalid, invalid, "SimpleKenBurnsAnimation", delay)
+      m.scale = [scale, scale]
+      m.movement = [target.width * movement[0], target.height * movement[1]]
+      m.sAnim = mv.animations.utils.scaleTo(target, duration, m.scale, false, delay)
+      m.sAnim.easeFunction = "inQuad"
+      m.mAnim = mv.animations.utils.moveTo(target, duration, m.movement, false, delay)
+      m.mAnim.easeFunction = "inQuad"
+      m.pAnim = new mv.animations.Parallel(target, [
+        m.sAnim,
+        m.mAnim
+      ])
+      m.node = m.pAnim.node
+    end function
+
+    public override function clone()
+      return new mv.animations.SimpleKenBurns(m.target, m.duration, m.scale, m.movement, m.delay)
+    end function
+
+    private override function createAnimationNode()
+    end function
+
+    override function setEaseFunction(easeFunction)
+      m.easeFunction = easeFunction
+      m.sAnim.setEaseFunction(easeFunction)
+      m.mAnim.setEaseFunction(easeFunction)
+    end function
+
+    override function setKeys(keys, keyValues)
+    end function
+
+    override function setDuration(duration)
+      m.sAnim.setDuration(duration)
+      m.mAnim.setDuration(duration)
+      m.duration = duration
+    end function
+
+    override function setDelay(delay)
+      m.delay = delay
+      if m.sAnim <> invalid
+        m.sAnim.setDelay(delay)
+        m.mAnim.setDelay(delay)
+      end if
+    end function
+
+    override function animateTo(toValue, duration = invalid)
+      m.log.error("not supported")
+    end function
+
+    override function animateToWithSpeed(toValue, stepSpeed, stepUnit = "pixel")
+      m.log.error("not supported")
+    end function
+
+    override function setFromToValue(fromValue, toValue)
+      m.log.error("not supported")
+    end function
+
+    override function observeFraction(callback, scope = invalid)
+      m.sAnim.observeFraction(callback, scope)
+    end function
+
+    override function unobserveFraction()
+      m.sAnim.unobserveFraction()
+    end function
+
+    override function jumpToEnd()
+      for each animation in animations
+        animation.jumpToEnd()
+      end for
+    end function
+
+  end class
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ private utils
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
