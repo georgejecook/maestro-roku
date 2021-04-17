@@ -1,6 +1,6 @@
 {
     "name": "maestro-roku",
-    "version": "0.5.0",
+    "version": "0.6.0",
     "description": "A development platform for building roku channels in brighterscript",
     "directories": {
         "doc": "docs"
@@ -16,6 +16,7 @@
         "log": "npm:roku-log@^0.4.1"
     },
     "devDependencies": {
+        "auto-changelog": "^2.2.1",
         "fs-extra": "^7.0.1",
         "maestro-roku-bsc-plugin": "file:../maestro-roku-bsc-plugin",
         "rimraf": "^3.0.2",
@@ -52,12 +53,19 @@
         "packageRootDir": "dist",
         "prefixMatching": "expanded"
     },
+    "auto-changelog": {
+        "template": "keepachangelog",
+        "unreleased": true,
+        "commitLimit": false,
+        "tag-pattern": ".+"
+    },
     "scripts": {
         "local": "ts-node scripts/install-local.js",
         "remote": "ts-node scripts/install-npm.js",
         "build": "node scripts/run.js && ts-node scripts/cleanup-build.js",
         "build-remote": "npm run remote && npm run build",
         "build-local": "npm run local && npm run build",
-        "build-test": "node scripts/run-test.js"
+        "build-test": "node scripts/run-test.js",
+        "changelog": "npx auto-changelog"
     }
 }
