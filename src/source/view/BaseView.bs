@@ -20,6 +20,7 @@ namespace mv
     protected isShown = false
     protected isLongPressStarted = false
     protected longPressKey = ""
+    protected longPressTimer
 
     private vm = invalid
 
@@ -77,10 +78,12 @@ namespace mv
           result = m[`onKeyPress${key}`]()
         end if
       else if m.longPressKey <> ""
+        wasStarted = m.isLongPressStarted
         m.toggleLongPressTimer(0)
-        if mc.isFunction(m[`onKeyPress${key}`])
+        if not wasStarted and mc.isFunction(m[`onKeyPress${key}`])
           result = m[`onKeyPress${key}`]()
         end if
+        return true
       end if
 
       if (result = invalid)
@@ -105,9 +108,11 @@ namespace mv
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function toggleLongPressTimer(interval)
+      m.cancelWaitTimer(m.longPressTimer)
+      m.longPressTimer = invalid
       if interval > 0
-        m.waitAFrame(m.onLongPressTimerFire, interval)
-      else if m.longPressKey <> invalid and m.longPressKey <> ""
+        m.longPressTimer = m.waitAFrame(m.onLongPressTimerFire, interval)
+      else if m.longPressKey <> ""
         m.log.info("finishing longPress on key ", key)
         'bs:disable-next-line
         if m.isLongPressStarted and mc.isFunction(m.onLongPressFinish)
