@@ -39,7 +39,9 @@ namespace mv.cells
       if m.top.index = 0
         'let's store the owning markup grid for this row
         rowList = m.top.getParent().getParent().getParent()
-        rowList.rowMap@.set(m.top.rowIndex.toStr().trim(), m.top.getParent())
+        if rowList <> invalid and rowList.rowMap <> invalid
+          rowList.rowMap@.set(m.top.rowIndex.toStr().trim(), m.top.getParent())
+        end if
       end if
 
       if not m.isViewCreated
