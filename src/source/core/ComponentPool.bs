@@ -1,0 +1,137 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+
+namespace mc
+
+' /**
+'  * @module ComponentPool
+'  * @description all purpose component pool that can store any kind of components for reuse
+'  */
+  @strict
+  @node("mc_ComponentPool", "Group")
+  class ComponentPool
+
+    @observeField("onDebugMChange")
+    @alwaysnotify
+    public _debugM = false
+    public __m = {}
+    public isCreateMoreEnabled = true
+    public numerOfComponentsToCreateWhenDry = 30
+    public numberOfComponentsInuse = 0
+    public numberOfComponents = false
+
+    private poolsByComponentType = {}
+    private log
+
+    function new()
+      m.log = new log.Logger("ComponentPool")
+      m.reset()
+    end function
+
+    private function onDebugMChange()
+      m.__m = m
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function reset()
+      m.log.info("reset")
+      m.poolsByComponentType = {}
+      m.top.numberOfComponents = 0
+      m.top.numberOfComponentsInuse = 0
+    end function
+
+    function getComponentPool(componentType)
+      pool = m.poolsByComponentType[componentType]
+      if pool = invalid
+        pool = { usedComponentsById: {}
+          allComponents: []
+          freeComponentsById: {}
+          numberOfComponentsInPool: 0
+        }
+        m.poolsByComponentType[componentType] = pool
+      end if
+      return pool
+    end function
+
+    function prebakeComponents(number)
+      m.log.info("adding ", number, componentType, "components")
+      pool = m.getComponentPool(componentType)
+
+      for i = 0 to number
+        component = createObject("roSGNode", componentType)
+        if component <> invalid
+          component.id = str(pool.numberOfComponentsInPool).trim()
+          pool.numberOfComponentsInPool++
+          pool.freeComponentsById[component.id] = component
+          pool.allComponents.push(component)
+          m.top.numberOfComponents++
+        else
+          m.log.error("error creating component with type", componentType)
+        end if
+      end for
+      ' ? "finished making components"
+    end function
+
+    function getComponent(componentType = invalid)
+      ? "asked for component of "; componentType
+
+      pool = m.getComponentPool(componentType)
+
+      if pool.freeComponentsById.count() = 0
+        m.log.warn("ran out of components getting type :", componentType)
+
+        if m.top.isCreateMoreEnabled
+          m.log.warn("creating", m.top.numerOfComponentsToCreateWhenDry, "more", componentType, "components")
+          for i = 0 to m.top.numerOfComponentsToCreateWhenDry
+            component = m.createComponent(componentType)
+            pool.freeComponentsById[component.id] = component
+            pool.numberOfComponentsInPool++
+            pool.allComponents.push(component)
+          end for
+          m.top.numberOfComponents += m.top.numerOfComponentsToCreateWhenDry
+        else
+          return invalid
+        end if
+      end if
+
+      for each id in pool.freeComponentsById
+        exit for
+      end for
+
+      component = pool.freeComponentsById[id]
+      pool.freeComponentsById.delete(id)
+      pool.usedComponentsById[id] = component
+      m.top.numberOfComponentsInuse++
+      ' ? "returning component with id"; id
+      return component
+    end function
+
+    function releaseComponent(component)
+      if component <> invalid
+        ' ? "releasing component "; component.id
+        pool = m.getComponentPool(component.subType())
+        pool.usedComponentsById.delete(component.id)
+        component.getParent().removeChild(component)
+        pool.freeComponentsById[component.id] = component
+        m.top.numberOfComponentsInuse--
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function createComponent(componentType)
+      pool = m.getComponentPool(componentType)
+      component = createObject("roSGNode", componentType)
+      component.id = str(pool.numberOfComponentsInPool).trim()
+      pool.allComponents.push(component)
+      pool.freeComponentsById[component.id] = component
+      return component
+    end function
+
+  end class
+end namespace
