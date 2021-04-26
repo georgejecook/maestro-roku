@@ -9,6 +9,7 @@ namespace mv
     public settings = {}
 
     private cachedFonts = {}
+    private fontLabel = createObject("roSGNode", "Label")
 
     function new()
       super("FontManager")
@@ -38,7 +39,7 @@ namespace mv
       return invalid
     end function
 
-    public function getFont(name as string, size as integer) as dynamic
+    public function getFont(name as string, size as integer = -1) as dynamic
       if name = invalid or name.trim() = ""
         return invalid
       end if
@@ -51,11 +52,14 @@ namespace mv
           font.uri = "pkg:" + "/fonts/" + name
         else
           'it's a system font
-          font.uri = "font:" + name + "SystemFont"
+          m.fontLabel.font = "font:" + name + "SystemFont"
+          font = m.fontLabel.font
         end if
-        font.size = size
 
         if font <> invalid
+          if size <> -1
+            font.size = size
+          end if
           m.cachedFonts[key] = font
         end if
       end if
