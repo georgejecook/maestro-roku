@@ -9,6 +9,10 @@ namespace screens
     public isAutoCreateTimerActive = false
     public currentTitle = "none"
     public hasItems = false
+    public statusText = ""
+
+    @inject("appController")
+    private appController
 
     public function new()
       super("todoScreenVM")
@@ -16,7 +20,7 @@ namespace screens
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Public api
+    '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function addTodo()
@@ -52,6 +56,13 @@ namespace screens
       else
         m.currentTitle = "none"
       end if
+    end function
+
+    public function onSelectItem(index)
+      m.log.info("selected item ", index)
+      m.statusText = `selected ${index}`
+      m.setInstance("selectedItem", m.items.getChild(index))
+      m.push(m.createSGNode("ItemScreen"))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -96,6 +107,17 @@ namespace screens
 
       return false
     end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function onShow()
+      super.onShow()
+      m.appController@.toggleTabMenuVisible(true)
+    end function
+
 
   end class
 end namespace

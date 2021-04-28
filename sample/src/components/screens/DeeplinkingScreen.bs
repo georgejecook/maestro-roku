@@ -1,5 +1,3 @@
-import "pkg:/source/mixin/AppServices.bs"
-
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Initialization
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -7,6 +5,7 @@ import "pkg:/source/mixin/AppServices.bs"
 function init()
   m.log.method("init")
   m.initializeView(m.top.navController)
+  m.appController = mioc.getInstance("appController")
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -26,14 +25,14 @@ function applyDeeplinking()
   end if
 
   if deeplinkingData.action = "play"
-    AppServices.playSelection(deeplinkingData.selection)
+    m.appController@.playSelection(deeplinkingData.selection)
   end if
 
   if isGridPresent or deeplinkingData.action = "play"
     mv_setFocus(m.top.navController)
   else
     m.log.info("No Grid present, and no played content, so we will not enter deep linking")
-    AppServices.exitFromDeepLinking()
+    m.appController@.exitFromDeepLinking()
   end if
 end function
 
@@ -46,7 +45,7 @@ function onKeyPressBack() as boolean
   pop()
   mv_setFocus(m.top.navController)
   if m.top.navController.numberOfViews = 0
-    AppServices.exitFromDeepLinking()
+    m.appController@.exitFromDeepLinking()
   end if
   return m.top.navController.numberOfViews > 0
 end function
