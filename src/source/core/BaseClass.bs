@@ -7,10 +7,25 @@ namespace mc
 
     protected name
     protected log
+    protected state = "none"
 
     protected function new(name)
       m.log = new log.Logger(name)
       m.name = name
+    end function
+
+    private function _initialize()
+      m.state = "initialized"
+      m.initialize()
+      'bs:disable-next-line
+      if m.isWiringObserversOnInit = true
+        'bs:disable-next-line
+        m_wireUpObservers()
+      end if
+    end function
+
+    protected function initialize()
+      'override me
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
