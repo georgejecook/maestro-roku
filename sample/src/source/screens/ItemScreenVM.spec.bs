@@ -1,0 +1,57 @@
+namespace tests
+  @nocatch
+  @suite("ItemScreenVM tests")
+  class ItemScreenVMTests extends tests.BaseTestSuite
+
+    private vm
+    private item
+    private appController
+
+    override function beforeEach()
+      super.beforeEach()
+      m.appController = { "id": "appController" }
+      mioc.setInstance("appController", m.appController)
+      m.item = {
+        "id": "item"
+        "title": "item1"
+      }
+      mioc.setInstance("selectedItem", m.item)
+      m.vm = new screens.ItemScreenVM()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("initialize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets item text")
+    function _()
+      m.vm.initialize()
+      m.assertEqual(m.vm.itemText, "according to ioc, the item is item1")
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onKeyPressBack")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("pops the screen")
+    function _()
+      m.expectOnce(m.vm, "pop", [])
+
+      m.vm.onKeyPressBack()
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onShow")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("hides the menu when showing")
+    function _()
+      m.expectOnce(m.vm.appController, "callFunc", ["toggleTabMenuVisible", false])
+      m.vm.onShow()
+    end function
+
+
+  end class
+end namespace
