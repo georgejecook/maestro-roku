@@ -1,0 +1,21 @@
+import "pkg:/source/screens/TodoScreenVM.bs"
+import "pkg:/source/roku_modules/maestro/mx/VMTransformFunctions.brs"
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Lifecycle methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function initialize(args)
+  m.vm = new screens.TodoScreenVM()
+  m.vm.initialize()
+  mx.initializeBindings()
+end function
+
+'example to show how custom transform functions works, this is very contrived
+function getFocusTitle(value)
+  if value <> invalid
+    return "Focused Item " + value.title
+  else
+    return "No item is selected"
+  end if
+end function

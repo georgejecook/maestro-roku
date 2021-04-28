@@ -1,0 +1,38 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component
+    name='MainScene'
+    extends='Scene'>
+  <!-- Application's one and only scene - responsbile for loading all initial data/doing all initial tasks
+  generally, a queue of commands, which will then result in displaying the app's AppController
+  which is the screen that controls the apps main navigation and interactions
+  -->
+  <interface>
+    <!-- pointers to interesting objects -->
+    <field
+        id='rLog'
+        type='node' />
+    <field
+        id='isLaunchCompleteBeaconFired'
+        type='boolean' />
+    <field
+        id='appController'
+        type='node' />
+
+    <!-- call this when you are ready to go! -->
+    <function name='begin' />
+    <function name='signalAppLaunchComplete' />
+    <field
+        id='closeChannel'
+        type='boolean'
+        alwaysNotify='true' />
+  </interface>
+  <children>
+    <mv_Poster
+        id='loadingPoster'
+        uri='pkg:/images/$$RES$$/background.jpg'
+        loadSync='true'
+        width='1920'
+        height='1080' />
+
+  </children>
+</component>

@@ -1,0 +1,100 @@
+{
+  "name": "maestro-roku-sample",
+  "version": "0.1.0",
+  "description": "Sample application demonstrating use of maestro-roku",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "dependencies": {
+    "bslib": "npm:@rokucommunity/bslib@^0.1.1",
+    "log": "npm:roku-log@^0.4.1",
+    "maestro": "file:/home/george/hope/open-source/maestro/maestro-roku"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.3",
+    "@types/chai-subset": "^1.3.1",
+    "@types/fs-extra": "^5.0.4",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.7.8",
+    "@types/sinon": "^7.0.13",
+    "@typescript-eslint/eslint-plugin": "^4.14.1",
+    "@typescript-eslint/parser": "^4.14.1",
+    "adm-zip": "^0.4.13",
+    "brighterscript": "^0.37.4",
+    "chai": "^4.2.0",
+    "chai-subset": "^1.6.0",
+    "commander": "^3.0.2",
+    "debug": "^4.1.1",
+    "del": "^3.0.0",
+    "docdash": "^0.4.0",
+    "dotenv": "4.0.0",
+    "eslint": "^7.18.0",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-plugin-github": "^4.1.1",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-no-only-tests": "^2.4.0",
+    "fs-extra": "^8.1.0",
+    "glob": "^7.1.2",
+    "ink-docstrap": "1.3.0",
+    "jsdoc": "3.5.5",
+    "maestro-roku-bsc-plugin": "file:/home/george/hope/open-source/maestro/maestro-roku-bsc-plugin",
+    "minami": "^1.2.3",
+    "minimatch": "^3.0.4",
+    "mocha": "^5.2.0",
+    "request": "~2.81.0",
+    "request-promise": "^4.2.4",
+    "rimraf": "^2.7.1",
+    "roku-deploy": "^2.6.1",
+    "roku-log-bsc-plugin": "^0.2.2",
+    "rooibos-roku": "^4.2.1",
+    "ropm": "^0.9.0",
+    "scenegraph-schema": "^0.2.1",
+    "sinon": "^7.5.0",
+    "stringify-object": "^3.3.0",
+    "telnet-client": "^1.0.5",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7",
+    "util-promisifyall": "^1.0.6",
+    "vinyl-paths": "^2.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgejecook/maestro-roku.git"
+  },
+  "keywords": [
+    "brightscript",
+    "mvvm",
+    "framework",
+    "fun"
+  ],
+  "author": "George Cook",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/georgejecook/maestro-roku/issues"
+  },
+  "homepage": "https://github.com/georgejecook/maestro-roku#readme",
+  "ts-node": {
+    "transpileOnly": true,
+    "compileOptions": {
+      "incremental": true,
+      "allowJs": false
+    }
+  },
+  "ropm": {
+    "rootDir": "src",
+    "packageRootDir": "dist",
+    "noprefix": [
+      "maestro"
+    ]
+  },
+  "scripts": {
+    "update-schema": "npm run build && cd build && npx scenegraph-schema -o ../.vscode/project.xsd",
+    "ropm": "ropm copy && ts-node scripts/fix-ropm-issues.js",
+    "local": "ts-node scripts/install-local.js",
+    "remote": "ts-node scripts/install-npm.js",
+    "build": "node scripts/run prod",
+    "build-dev": "node scripts/run.js dev",
+    "build-test": "node scripts/run.js test"
+  }
+}

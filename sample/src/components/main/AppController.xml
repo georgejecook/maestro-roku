@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<component
+    name='AppController'
+    extends='mv_BaseView'
+    vm='main.AppControllerVM'>
+  <interface>
+
+    <!-- Global app services -->
+    <function name='exitFromDeepLinking' />
+
+    <!-- call this when wanting to enter deep linking, if for example
+    from live deeplinking roInputEvent -->
+    <function name='processDeeplinkingArgs' />
+
+    <function name='playSelection' />
+    <function name='toggleVideoPlayerVisible' />
+  </interface>
+
+  <children>
+    <!-- Main Menu -->
+    <LayoutGroup
+        id='topNav'
+        layoutDirection='horizontal'
+        horizAlignment='right'
+        translation='[1080,50]'>
+      <NavMenu
+          id='tabMenu'
+          setItems='{{menuItems:eager}}'
+          visible='{{isMenuVisible:eager}}'
+          currentItem='{(onTabItemChange(value))}' />
+    </LayoutGroup>
+
+    <!-- Nav item registry -->
+    <mv_TabController
+        id='tabController'
+        changeCurrentItem='{{currentItem:eager}}' />
+  </children>
+
+</component>

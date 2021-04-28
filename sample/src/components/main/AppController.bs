@@ -1,0 +1,34 @@
+import "pkg:/source/main/AppControllerVM.bs"
+import "pkg:/source/roku_modules/maestro/mx/VMTransformFunctions.brs"
+
+function Init()
+  mv.initializeFocusManager(m.global)
+  m.tabController@._initialize({})
+  m.tabMenu@._initialize({})
+end function
+
+function initialize(args)
+  m.vm = new main.AppControllerVM()
+  m.vm.initialize()
+  mx.initializeBindings()
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ app services
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function exitFromDeepLinking(args = invalid)
+  return m.vm.exitFromDeepLinking(args)
+end function
+
+function processDeeplinkingArgs(args)
+  return m.vm.processDeeplinkingArgs(args)
+end function
+
+function playSelection(selection)
+  return m.vm.playSelection(selection)
+end function
+
+function toggleVideoPlayerVisible(isVisible)
+  return m.vm.toggleVideoPlayerVisible(isVisible)
+end function

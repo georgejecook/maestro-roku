@@ -1,0 +1,27 @@
+function initialize(args)
+  m.debugLabel.text = `playing video ${m.top.selection.currentItem.title}`
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Key Handling
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function isCapturingAnyKeyPress(key, press) as boolean
+  return true
+end function
+
+function onKeyPressBack() as boolean
+  m.modelLocator.appController@.toggleVideoPlayerVisible(false)
+  return true
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ lifeCycle
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+function onGainedFocus(isSelfFocused) as void
+  if isSelfFocused
+    mv.setFocus(m.focusTrap)
+  end if
+end function

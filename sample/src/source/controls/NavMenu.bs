@@ -1,0 +1,185 @@
+import "pkg:/source/roku_modules/maestro/view/BaseView.brs"
+
+namespace controls
+
+  @node("NavMenu", "mv_BaseView")
+  class NavMenu extends mv.BaseView
+    @observer("onCurrentItemChange")
+    public currentItem as mc.types.node
+    public items = []
+    public isAutoFocusingOnSet = false
+    public supportOptionPressWhenFocused = false
+
+    'views
+    private container
+
+    'state
+    private navItemsById = {}
+    private currentMenuItem
+    private preOptionsItem
+    private optionsItem
+    private didOptionsKeypressComeFromMenu = false
+
+    function new()
+      super("NavMenu")
+    end function
+
+    override function initialize()
+      super.initialize()
+      m.createViews()
+    end function
+
+    private function createViews()
+      m.container = m.createSGNode("mv_LayoutGroup", m.top, "container", {
+        layoutDirection: "horizontal"
+        horizAlignment: "right"
+        vertAlignment: "center"
+        itemSpacings: [30]
+      })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ observers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onCurrentItemChange(value) as void
+      m.log.info("onCurrentItemChange", value.name)
+      if value = invalid
+        m.log.warn("got invalid value")
+        return
+      end if
+
+      if not value.isOptionsItem = true
+        m.log.info("setting preoptions to ", value.name)
+        m.preOptionsItem = value
+      end if
+
+      for each menuItem in m.container.getChildren(-1, 0)
+        isFocusedItem = menuItem.item.isSameNode(m.currentItem)
+        if isFocusedItem
+          m.currentMenuItem = menuItem
+        end if
+        menuItem.item.isFocused = isFocusedItem
+      end for
+
+      m.didOptionsKeypressComeFromMenu = false
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function setItems(items)
+      m.items = items
+      m.container.removeChildren(m.container.getChildren(-1, 0))
+      for each item in items
+        menuItem = m.createSGNode("NavMenuItem", m.container, item.id, {
+          item: item
+        })
+        if item.isOptionsItem
+          m.optionsItem = item
+        end if
+      end for
+
+      if m.isAutoFocusingOnSet
+        if items.count() > 0
+          m.currentItem = items[0]
+        else
+          m.currentItem = invalid
+        end if
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ item selection
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function selectItem(delta)
+      if m.items.count() = 0
+        return invalid
+      end if
+
+      currentIndex = m.getIndexOfItem(m.currentItem)
+      currentIndex += delta
+
+      if currentIndex > m.items.count() - 1
+        currentIndex = m.items.count() - 1
+      else if currentIndex < 0
+        currentIndex = 0
+      end if
+      m.currentItem = m.items[currentIndex]
+    end function
+
+    private function getIndexOfItem(item)
+      if item = invalid and m.items.count() > 0
+        return 0
+      end if
+
+      for index = m.items.count() - 1 to 0 step -1
+        if (m.items[index].isSameNode(item))
+          return index
+        end if
+      end for
+      return -1
+    end function
+
+    private function restorePreOptionFocus()
+      if m.preOptionsItem <> invalid
+        m.currentItem = m.preOptionsItem
+      end if
+    end function
+    private function updateItemFocus()
+      for each item in m.container.getChildren(-1, 0)
+        item.isParentInFocus = m.isFocused
+      end for
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ key presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function isCapturingAnyKeyPress(key, press) as boolean
+      return key <> "back" and key <> "down"
+    end function
+
+    private function onKeyPressLeft() as boolean
+      m.selectItem(-1)
+      return true
+    end function
+
+    private function onKeyPressRight() as boolean
+      m.selectItem(1)
+      return true
+    end function
+
+    private function onKeyPressOptions() as boolean
+      if m.supportOptionPressWhenFocused
+        if m.currentItem.isOptionsItem
+          m.restorePreOptionFocus()
+        else
+          m.currentItem = m.optionsItem
+          m.didOptionsKeypressComeFromMenu = true
+        end if
+      else if m.currentItem.isOptionsItem
+        m.restorePreOptionFocus()
+      end if
+      return true
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function onGainedFocus(isSelfFocused)
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.updateItemFocus()
+      end if
+    end function
+
+    override function onLostFocus()
+      super.onLostFocus()
+      m.updateItemFocus()
+    end function
+  end class
+end namespace
