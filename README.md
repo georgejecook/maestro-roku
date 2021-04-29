@@ -1,15 +1,11 @@
-<p align="center">
-  <img src="docs/maestroLogo.png" alt="Maestro for roku" />
-</p>
-<h3 align="center">
-A development platform for building roku channels in brighterscript.
-</h3>
+# maestro-roku
+
+## A development platform for building roku channels in brighterscript.
 
 
-[![Build Status](https://travis-ci.org/georgejecook/maestro-roku.svg?branch=master)](https://travis-ci.org/georgejecook/maestro-roku)
+[![build](https://img.shields.io/github/workflow/status/georgejecook/maestro-roku/build.svg?logo=github)](https://github.com/georgejecook/maestro-roku/actions?query=workflow%3Abuild)
 [![GitHub](https://img.shields.io/github/release/georgejecook/maestro-roku.svg?style=flat-square)](https://github.com/georgejecook/maestro-roku/releases)
-
-# maestro for roku
+[![NPM Version](https://badge.fury.io/js/maestro-roku.svg?style=flat)](https://npmjs.org/package/maestro-roku)
 
 ## Sample app
 
@@ -24,8 +20,6 @@ A development platform for building roku channels in brighterscript.
 ## Why maestro?
 
 ### Maestro Makes roku development easier, especially for experienced software engineers from other platforms:
-
-Roku develpoment can be challenging, and is steepd in nuance that makes it really hard for a developer with less than 6 months to be productive. Usually by that time, they've made an unmitigated mess of everything and are stuck with diminishing velocity and a cpl years worth of misery before a sudden roku change renders their architecture void, and they are forced to start again.
 
 I believe that experienced developers from android, ios, c#, web, node, etc, should be able to be productive on a roku app in no more than a week, just as they would on any other platform. So I wrote maestro to make that possible.
 
