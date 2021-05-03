@@ -1,5 +1,5 @@
 ---
-priority: 1002
+priority: 4
 title: Overview
 ---
 # Maestro components

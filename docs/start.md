@@ -1,5 +1,5 @@
 ---
-priority: 1001
+priority: 1
 title: Getting started
 ---
 # Get started
