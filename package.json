@@ -70,6 +70,7 @@
         "build-test": "node scripts/run-test.js",
         "changelog": "npx auto-changelog",
         "build-docs": "statigen -s docs -o .tmp/docs",
+        "publish-docs": "npm run build-docs && git checkout docspub && rm -rf docs && cp -r .tmp/docs . && git add --all && git commit -m 'docs update' && git push -f && git checkout master",
         "watch-docs": "npm run build-docs -- --watch"
     }
 }
