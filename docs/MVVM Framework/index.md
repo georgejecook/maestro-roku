@@ -1,6 +1,6 @@
 ---
 priority: 0
-title: Overview
+title: MVVM Framework
 ---
 # Overview
 

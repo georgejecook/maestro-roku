@@ -7,13 +7,13 @@ title: Justification
 There are many factors affecting the decision to adopt a technology, such as:
 
  - Suitability for the project
- - Alignment with resource skillsets
+ - Alignment with resource skill-sets
  - Ease of adoption
  - Support
  - Documentation
  - Maturity
  - Control
- - Traning requirements
+ - Training requirements
  - Back out/Long term maintenance,
  - etc
 
@@ -21,7 +21,7 @@ This document aims to assist with deciding if maestro is suitable for your roku 
 
 ## Production suitability
 
-The base view, and mvvm framework of maestro, as well as core util functionality have been used for more than 2 years, in [redacted:waiting approval] and [redacted:waiting approval], with many millions of installs on the roku channel store, between them. In both cases, crashes and user issues dropped dramatically as a result of maestro's adoption.
+The base view, and mvvm framework of maestro, as well as core util functionality have been used for more than 2 years, in applicaster's and smithsonian's roku apps with many millions of installs on the roku channel store, between them. In both cases, crashes and user issues dropped dramatically as a result of maestro's adoption.
 
 ## Comparison of features:
 
@@ -33,10 +33,10 @@ The following spreadsheet compares features between various open source roku tec
 
 Maestro utilizes several modern roku technologies:
 
- - ropm
- - brighterscript
+ - [ropm](https://github.com/rokucommunity/ropm)
+ - [brighterscript](https://github.com/rokucommunity/brighterscript)
  - maestro-roku (this repo)
- - maestro-list (optional list component)
+ - [maestro-list](https://github.com/georgejecook/maestro-roku-list) (optional list component)
 
 To help evaluate each of these technologies, the following swot analysis are provided:
 
@@ -56,9 +56,9 @@ To help evaluate each of these technologies, the following swot analysis are pro
 
 ### The risk of not using brighterscript and maestro
 
-One of the express goals of maestro is to deomcratize roku development. It is beneficial to have developers from other technologies come and be fruitful on the roku platform as this leads to cross polination of processes, patterns and ideas, etc
+One of the express goals of maestro is to democratize roku development. It is beneficial to have developers from other technologies come and be fruitful on the roku platform as this leads to cross pollination of processes, patterns and ideas, etc
 
-This is because roku develpoment is wrought with difficluties that require months of experience and hard-won knowledge to achieve velocity, and roku documentation and archictecture is rarely discussed or shared. Therefore developers can easily create a mess and end up with architectures thare unmaintainable and have diminishing velocity.
+This is because roku development is wrought with difficulties that require months of experience and hard-won knowledge to achieve velocity, and roku documentation and architecture is rarely discussed or shared. Therefore developers can easily create a mess and end up with architectures that are unmaintainable and have diminishing velocity.
 
 ### How maestro mitigates these risks.
 
@@ -69,8 +69,8 @@ Maestro and brighterscript are actually very small technologies; but the feature
  - Aggregate view containers (TabController, NavController, etc)
  - IOC
  - MVVM bindings
- - Classes, inheritence
- - Namespacing and functions that are not prone to naming collisions
+ - Classes, inheritance
+ - Name-spacing and functions that are not prone to naming collisions
 
 By using these technologies, developers have access to these features (and many others), allowing them to focus on the UI and features they need to build, as opposed to nuances of roku dev.
 

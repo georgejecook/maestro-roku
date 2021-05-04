@@ -3,7 +3,7 @@ priority: 10
 title: Mixins
 ---
 # mixins
-Maestro mixes in some behaviour into base viewas, as follows:
+Maestro mixes in some behavior into BaseView as, as follows:
 
 ## FocusMixin
 
@@ -55,9 +55,11 @@ If you do not extend BaseScreen, and want focus callbacks, then:
 
 The key mixin provides:
 
- - simple overridable functions to handle keypresses
- - ability to lock keypresses
- - ability to filter keypresses
+ - simple override-able functions to handle key-presses
+ - ability to lock key-presses
+ - ability to filter key-presses
  - long press support
 
-### docs TBD!
+
+
+### more key docs TBD

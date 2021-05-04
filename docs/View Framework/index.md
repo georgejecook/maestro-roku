@@ -1,8 +1,8 @@
 ---
 priority: 0
-title: Overview
+title: View Framework
 ---
-## View framework
+## Overview
 
 The View framework allows us to generate Roku screens and components, which have a known lifecycle. If you've done much Roku dev, you know how little of a framework exists for reasoning about a view's lifecycle events, such as being shown, getting focus, keys, etc. The Base view classes allow us to simply override abstract functions to seamlessly get lifecycle hooks for:
 
