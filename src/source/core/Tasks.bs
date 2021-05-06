@@ -170,7 +170,7 @@ namespace mc.tasks
 
   function _getScopeContexts()
     if m._nodeContexts = invalid
-      m.["_nodeContexts"] = {}
+      m._nodeContexts = {}
     end if
     return m._nodeContexts
   end function
@@ -288,13 +288,13 @@ namespace mc.tasks
   function cleanScope()
     contexts = mc.tasks._getScopeContexts()
     for each contextKey in contexts
-      context = context[contextKey]
+      context = contexts[contextKey]
       for each key in context
-        context = contexts[key]
-        mc.tasks.cleanNodeObserver(context.node, context.fieldName)
+        c = context[key]
+        mc.tasks.cleanNodeObserver(c.node, c.fieldName)
       end for
     end for
-    m.["_nodeContexts"] = {}
+    m._nodeContexts = {}
   end function
 
   function cancelTask(task)
