@@ -165,7 +165,7 @@ namespace mc
   '  * @param {string} field - path to field, with "items.2.path.syntax",
   '  * @returns {any} value if foud, or default value
   '  */
-  function getPath(content, field, default = invalid)
+  function getPath(content, field, default = invalid, disableIndexing = false)
     part = invalid
 
     if field <> invalid
@@ -176,7 +176,7 @@ namespace mc
       part = content
       while i < numParts and part <> invalid
         'TODO find better way of doing this
-        if parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
+        if not disableIndexing and (parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i]))
           if mc.isArray(part)
             part = part[parts[i].toInt()]
           else if type(part) = "roSGNode"
@@ -217,7 +217,7 @@ namespace mc
 
     if field <> invalid
       parts = field.split(".")
-      numParts = parts.count() -1
+      numParts = parts.count() - 1
       i = 0
 
       part = content
