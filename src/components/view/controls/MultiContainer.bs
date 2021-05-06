@@ -8,7 +8,7 @@ function init()
   m.top.observeFieldScoped("children", "onChildrenChange")
   m.top.observeFieldScoped("needsRecalculating", "onNeedsRecalcuatingChange")
   m.top.observeFieldScoped("yOffsets", "onIndexChange")
-  m.updateTimer.observeFieldScoped("fire", "onNeedsRecalcuatingChange")
+  m.container_updateTimer.observeFieldScoped("fire", "onNeedsRecalcuatingChange")
   m.previousCurrFocusRow = 1
   m.isFloatingFocusOffsetApplied = false
   m.rowListFloatingFocusPositionOffset = 0
@@ -30,7 +30,7 @@ end function
 function updateChildren(newChildren = invalid)
   children = []
   backgroundChildren = []
-  m.updateTimer.control = "stop"
+  m.container_updateTimer.control = "stop"
 
   if newChildren = invalid
     newChildren = m.top.getChildren(-1, 0)
@@ -50,12 +50,12 @@ function updateChildren(newChildren = invalid)
     end if
   end for
 
-  m.backgroundGroup.appendChildren(backgroundChildren)
-  m.layoutGroup.appendChildren(children)
+  m.container_backgroundGroup.appendChildren(backgroundChildren)
+  m.container_layoutGroup.appendChildren(children)
   m.top.numChildren = children.count()
   m.top.index = 0
   onNeedsRecalcuatingChange()
-  m.updateTimer.control = "start"
+  m.container_updateTimer.control = "start"
 end function
 
 function onHeroOffsetChildCurrFocusRowChange(event)
@@ -114,7 +114,7 @@ end function
 
 
 function setClippingRectangle()
-  child = m.layoutGroup.getChild(m.top.index)
+  child = m.container_layoutGroup.getChild(m.top.index)
   clippingOffsets = invalid
   if child <> invalid
     clippingOffsets = child.containerClippingOffsets
@@ -128,8 +128,8 @@ function setClippingRectangle()
 end function
 
 function onChildrenChange()
-  m.layoutGroup.removeChildren(m.layoutGroup.getChildren(-1, 0))
-  m.backgroundGroup.removeChildren(m.backgroundGroup.getChildren(-1, 0))
+  m.container_layoutGroup.removeChildren(m.container_layoutGroup.getChildren(-1, 0))
+  m.container_backgroundGroup.removeChildren(m.container_backgroundGroup.getChildren(-1, 0))
   updateChildren(m.top.children)
   onIndexChange()
   onSizeChange()
@@ -137,7 +137,7 @@ end function
 
 function onIndexChange()
   m.log.method("onIndexChange", m.top.index, "isAnimated", m.top.isAnimated)
-  child = m.layoutGroup.getChild(m.top.index)
+  child = m.container_layoutGroup.getChild(m.top.index)
 
   if child = invalid
     m.log.warn("tried to set index before the children were created")
@@ -164,7 +164,7 @@ end function
 
 function moveToCurrentIndex(forceNoAnimation = false)
   newY = getYOfIndex(m.top.index)
-  if newY < m.layoutGroup.translation[1]
+  if newY < m.container_layoutGroup.translation[1]
     m.animationDirection = 1
   else
     m.animationDirection = -1
@@ -178,21 +178,21 @@ end function
 
 function moveContentTo(previousY, newY, forceNoAnimation = false)
   if m.top.isAnimated and not forceNoAnimation
-    if m.animation.state = "running"
-      m.animation.control = "pause"
+    if m.container_animation.state = "running"
+      m.container_animation.control = "pause"
     end if
 
-    m.interpolator.keyValue = [[0, m.previousY], [0, newY]]
+    m.container_interpolator.keyValue = [[0, m.previousY], [0, newY]]
 
-    if m.animation.control = "pause"
-      m.animation.control = "start"
+    if m.container_animation.control = "pause"
+      m.container_animation.control = "start"
     else
-      m.animation.control = "resume"
+      m.container_animation.control = "resume"
     end if
 
   else
     ' m.log.info("moving with no animation")
-    m.layoutGroup.translation = [0, newY]
+    m.container_layoutGroup.translation = [0, newY]
   end if
 
 end function
@@ -201,7 +201,7 @@ function getYOfIndex(index)
   y = 0
   currentOffset = 0
   ' m.log.verbose("index", index)
-  child = m.layoutGroup.getchild(index)
+  child = m.container_layoutGroup.getchild(index)
 
   if child <> invalid and child.heroControl <> invalid and child.isHeroOffsetApplied
     ' m.log.verbose("child is hero with offset applied")
@@ -223,7 +223,7 @@ function getYOfIndex(index)
   for i = 0 to index - 1
     ' m.log.verbose(">>> ", index, " currentOffset ", currentOffset)
 
-    child = m.layoutGroup.getChild(i)
+    child = m.container_layoutGroup.getChild(i)
 
     if child <> invalid
       ' m.log.verbose(" child height si ", child.boundingRect().height)
@@ -243,7 +243,7 @@ function onNeedsRecalcuatingChange()
   heroControl = invalid
   m.rowListFloatingFocusPositionOffset = 0
 
-  for each child in m.layoutGroup.getChildren(-1, 0)
+  for each child in m.container_layoutGroup.getChildren(-1, 0)
     'TODO observe the bounds.. not gonna be fun.. :(
     child.translation = [0, y]
     y += child.boundingRect().height
@@ -270,7 +270,7 @@ function onGainedFocus(isSelfFocused)
 
   if isSelfFocused
     ' onIndexChange()
-    child = m.layoutGroup.getChild(m.top.index)
+    child = m.container_layoutGroup.getChild(m.top.index)
     if child <> invalid
       'another ropm miss here. :(
       'bs:disable-next-line
