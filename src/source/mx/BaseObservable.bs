@@ -309,8 +309,9 @@ namespace mx
               bindingValue = value
             end if
 
-
-            if node.doesExist(binding[2])
+            if binding[2] = "fields"
+              node.setFields(bindingValue)
+            else if node.doesExist(binding[2])
               node[binding[2]] = bindingValue
             else
               'attempt to call func
