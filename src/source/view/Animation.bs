@@ -275,11 +275,11 @@ namespace mv.animations
       m.node.appendChild(m.interpolator)
     end function
 
-    private function createInterpolator()
-      m.log.error("createAnimationNode must be implemented")
+    protected function createInterpolator()
+      m.log.error("createInterpolator must be implemented")
     end function
 
-    function _createInterpolator(interpolatorType)
+    protected function _createInterpolator(interpolatorType)
       m.interpolator = createObject("roSGNode", interpolatorType)
       animId = mv.animations.getAnimationKeyId()
       'bs:disable-next-line
@@ -387,7 +387,7 @@ namespace mv.animations
       super(target, "scale", duration, fromValue, toValue, "ScaleAnimation", delay)
     end function
 
-    override function createInterpolator()
+    protected override function createInterpolator()
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
@@ -406,7 +406,7 @@ namespace mv.animations
       super(target, "opacity", duration, fromValue, toValue, "FadeAnimation", delay)
     end function
 
-    override function createInterpolator()
+    protected override function createInterpolator()
       m._createInterpolator("FloatFieldInterpolator")
     end function
 
@@ -424,7 +424,7 @@ namespace mv.animations
       super(target, "translation", duration, fromValue, toValue, "MoveAnimation", delay)
     end function
 
-    override function createInterpolator()
+    protected override function createInterpolator()
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
@@ -664,7 +664,7 @@ namespace mv.animations
       super(target, field, duration, fromValue, toValue, "FloatAnimation", delay)
     end function
 
-    override function createInterpolator()
+    protected override function createInterpolator()
       m._createInterpolator("FloatFieldInterpolator")
     end function
 
@@ -684,7 +684,7 @@ namespace mv.animations
       super(target, field, duration, fromValue, toValue, "VectorValueAnimation", delay)
     end function
 
-    override function createInterpolator()
+    protected override function createInterpolator()
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 

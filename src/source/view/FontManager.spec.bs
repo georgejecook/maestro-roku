@@ -4,7 +4,7 @@ namespace tests
 
     private manager
 
-    override function beforeEach()
+    protected override function beforeEach()
       m.manager = new mv.FontManager()
     end function
 
@@ -16,7 +16,7 @@ namespace tests
     @params("notThere")
     function _(name)
       font = m.manager.getFont(name, 20)
-      m.assertSubType(font, "Font")
+      m.assertInvalid(font)
     end function
 
     @it("gets filesystem fonts")
@@ -40,8 +40,7 @@ namespace tests
     @params("LargeBold", 30)
     function _(name, size)
       font = m.manager.getFont(name, size)
-      m.assertEqual(font.size, size)
-      m.assertEqual(font.uri, "font:" + name + "SystemFont")
+      m.assertEqual(font.size, size, "font manager will create system fonts, which have no uri; but they _should_ be the correct size")
       m.assertSubType(font, "Font")
     end function
 

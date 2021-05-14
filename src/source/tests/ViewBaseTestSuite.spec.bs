@@ -7,18 +7,18 @@ namespace mv.tests
     private styleManager
     private log
 
-    override function setup()
+    protected override function setup()
       tests.setUpMScope()
       m.log = new log.Logger(m.name)
     end function
 
-    override function beforeEach()
+    protected override function beforeEach()
       mioc.createContainer()
       m.styleManager = createObject("roSGNode", "mv_StyleManager")
       mioc.setInstance("styleManager", m.styleManager)
     end function
 
-    override function afterEach()
+    protected override function afterEach()
       mioc.reset()
       mioc.clearClassInstances()
     end function
