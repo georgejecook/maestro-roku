@@ -201,19 +201,6 @@ namespace mc.tasks
           context.instance[context.targetField] = node[fieldName]
         end if
       else if context.callback <> invalid
-        executeInScope = sub(this, callback, value, sendMode, node = invalid)
-          m = this
-          if sendMode = "both"
-            callback(value, node)
-          else if sendMode = "node"
-            callback(node)
-          else if sendMode = "none"
-            callback()
-          else
-            callback(value)
-          end if
-        end sub
-
         if context.instance <> invalid
           context.instance.__cb = context.callback
           if context.sendMode = "both"
@@ -231,6 +218,19 @@ namespace mc.tasks
           end if
           context.instance.delete("__cb")
         else
+          executeInScope = sub(this, callback, value, sendMode, node = invalid)
+            m = this
+            if sendMode = "both"
+              callback(value, node)
+            else if sendMode = "node"
+              callback(node)
+            else if sendMode = "none"
+              callback()
+            else
+              callback(value)
+            end if
+          end sub
+
           executeInScope(context.scope, context.callback, node[fieldName], context.sendMode, node)
         end if
       else
