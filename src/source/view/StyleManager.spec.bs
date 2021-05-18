@@ -1,4 +1,5 @@
 namespace tests
+  @only
   @suite("StyleManager tests")
   class StyleManagerTests extends mv.tests.BaseTestSuite
 
@@ -87,5 +88,114 @@ namespace tests
       m.assertEqual(m.manager.getStyle("comp1"), m.testData.comp1)
       m.assertEqual(m.manager.getStyle("comp2"), m.testData.comp2)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("nested styles")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @beforeEach
+    function nestedStyles_beforeEach()
+      m.testData = {
+        "colors": {
+          "primary": "cp"
+          "primary-focused": "cpf"
+          "secondary": "cs"
+        }
+        "text": {
+          "primary": {
+            "fontKey": "fkp"
+            "color": "~colors.primary"
+          }
+          "primary-focused": {
+            "fontKey": "fkpf"
+            "color": "~colors.primary-focused"
+          }
+          "secondary": {
+            "fontKey": "fks"
+            "color": "~colors.secondary"
+          }
+          "secondary-focused": {
+            "fontKey": "fksf"
+            "color": "~colors.secondary-focused"
+          }
+          "broken-nested": {
+            "fontKey": "fkbn"
+            "color": "~colors.not-there"
+          }
+        }
+        "comp1": {
+          "textStyle": "~text.primary"
+          "highlightedTextStyle": "~text.primary-focused"
+          "translation": [100, 100]
+        }
+        "comp2": {
+          "textStyle": "~text.primary"
+          "highlightedTextStyle": "~text.primary-focused"
+          "subtitleTextStyle": "~text.secondary"
+          "translation": [100, 100]
+        }
+        "comp3": {
+          "textStyle": "~text.broken"
+          "highlightedTextStyle": "~broken.primary"
+          "subtitleTextStyle": "~text.broken-nested"
+          "translation": [100, 100]
+        }
+      }
+
+
+      m.nodeGlobal = new rooibos.utils.MockNode()
+      m.nodeTop = new rooibos.utils.MockNode()
+      m.manager = new mv.StyleManager()
+      m.manager.setStyleJson(m.testData)
+    end function
+
+    @it("composes nested styles together")
+    function _()
+      comp1Style = m.manager.getStyle("comp1")
+      m.assertEqual(comp1Style, {
+        translation: [100, 100]
+        textStyle: {
+          "fontKey": "fkp"
+          "color": "cp"
+        }
+        highlightedTextStyle: {
+          "fontKey": "fkpf"
+          "color": "cpf"
+        }
+      })
+
+      comp2Style = m.manager.getStyle("comp2")
+      m.assertEqual(comp2Style, {
+        translation: [100, 100]
+        textStyle: {
+          "fontKey": "fkp"
+          "color": "cp"
+        }
+        highlightedTextStyle: {
+          "fontKey": "fkpf"
+          "color": "cpf"
+        }
+        subtitleTextStyle: {
+          "fontKey": "fks"
+          "color": "cs"
+        }
+      })
+
+    end function
+
+    @it("logs warning when nested styles are missing - but leaves key intact")
+    function _()
+      comp3Style = m.manager.getStyle("comp3")
+      m.assertEqual(comp3Style, {
+        "highlightedTextStyle": "~broken.primary"
+        "subtitleTextStyle": {
+          "color": "~colors.not-there"
+          "fontKey": "fkbn"
+        }
+        "textStyle": "~text.broken"
+        "translation": [100, 100]
+      })
+    end function
+
   end class
 end namespace

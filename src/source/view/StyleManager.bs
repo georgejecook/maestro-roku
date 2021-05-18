@@ -31,9 +31,9 @@ namespace mv
     '  * @function
     '  * @description get's a maestro compliant style
     '  * @param {string} key
-    '  * @returns {assocarray} style, marshalled for maestro compatible values
+    '  * @returns {assocarray} style, marshalled for maestro compatible values, if a key is an assocarray with
     '  */
-    public function getStyle(key) as dynamic
+    public function getStyle(key, isNested = false) as dynamic
       if key = invalid or key.trim() = ""
         return {}
       end if
@@ -44,6 +44,8 @@ namespace mv
         style = m.parseStyle(key)
         if style <> invalid
           m.cachedStyles[key] = style
+        else if isNested
+          return invalid
         else
           style = {}
         end if
@@ -52,15 +54,33 @@ namespace mv
       return style
     end function
 
-
     private function parseStyle(key)
       style = mc.getPath(m.styles, key)
 
       if style <> invalid
-        'TODO parse the various components of the style here.
-        'in future could even register plugins for this purpose.
+        m.resolveNestedStyles(style)
       end if
       return style
+    end function
+
+    private function resolveNestedStyles(style)
+      if mc.isArray(style) or mc.isAACompatible(style)
+        for each key in style
+          value = style[key]
+          if mc.isString(value) and len(value) > 1 and left(value, 1) = "~"
+            nestedKey = right(value, len(value) - 1)
+            nestedStyle = m.getStyle(nestedKey, true)
+            if nestedStyle = invalid
+              m.log.warn("Could not find nested style with key", nestedKey)
+              'leave the value as is - it _might_ not have been a nested style
+              nestedStyle = value
+            end if
+            style[key] = nestedStyle
+          else if mc.isArray(value) or mc.isAACompatible(value)
+            m.resolveNestedStyles(value)
+          end if
+        end for
+      end if
     end function
   end class
 end namespace
