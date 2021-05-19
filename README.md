@@ -24,4 +24,4 @@ Maestro is built to:
 
 ## Docs
 
-Maestro-roku docs are wip, and can be found [here](https://georgejecook.github.io/maestro-roku/index.html)
+Maestro-roku docs can be found [here](https://georgejecook.github.io/maestro-roku/index.html)
