@@ -67,13 +67,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../Debugging">Debugging</a>
+                            <a class="name entry" href="">Debugging</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Debugging/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -223,13 +223,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">View Framework</a>
+                            <a class="name entry" href="../View Framework">View Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../View Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -237,7 +237,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-screen.html">BaseScreen</a>
+                    <a class="entry" href="../View Framework/base-screen.html">BaseScreen</a>
                 
             
                             </div>
@@ -245,7 +245,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-view.html">BaseView</a>
+                    <a class="entry" href="../View Framework/base-view.html">BaseView</a>
                 
             
                             </div>
@@ -253,7 +253,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="aggregate-views.html">Aggregate Views</a>
+                    <a class="entry" href="../View Framework/aggregate-views.html">Aggregate Views</a>
                 
             
                             </div>
@@ -261,7 +261,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="view-transitions.html">View Transitions</a>
+                    <a class="entry" href="../View Framework/view-transitions.html">View Transitions</a>
                 
             
                             </div>
@@ -269,7 +269,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="component-lifecycle.html">Component lifecycle</a>
+                    <a class="entry" href="../View Framework/component-lifecycle.html">Component lifecycle</a>
                 
             
                             </div>
@@ -277,7 +277,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="mixins.html">Mixins</a>
+                    <a class="entry" href="../View Framework/mixins.html">Mixins</a>
                 
             
                             </div>
@@ -325,17 +325,26 @@
 
         </div>
         <div id="content">
-            <a href="#overview"><h2 id="overview">Overview</h2></a><p>The View framework allows us to generate Roku screens and components, which have a known lifecycle. If you&#39;ve done much Roku dev, you know how little of a framework exists for reasoning about a view&#39;s lifecycle events, such as being shown, getting focus, keys, etc. The Base view classes allow us to simply override abstract functions to seamlessly get lifecycle hooks for:</p>
-<ul>
-<li>instantiation and destruction</li>
-<li>adding to and removal from container views</li>
-<li>showing and hiding</li>
-<li>key presses</li>
-<li>focusing of views, or their children</li>
+            <a href="#overview"><h1 id="overview">Overview</h1></a><a href="#general-debugging-tips"><h2 id="general-debugging-tips">General debugging tips</h2></a><a href="#use-rale"><h3 id="use-rale">Use RALE</h3></a><ul>
+<li>Any view subclass, node class, and many other maestro views have a <code>__debug</code> flag, which when checked will <em>dump m, and vm onto the node</em>. This makes it easy to debug:<ul>
+<li>Properties that are not visible on the node (e.g. in m)</li>
+<li>The current state of the vm</li>
+<li>Bindings and observables that are set up</li>
 </ul>
-<p>In addition the view framework contains many base classes that can be used</p>
-<a href="#mixins"><h2 id="mixins">Mixins</h2></a><p>Maestro makes use of many different mixin classes, which handle different aspects of view management (e.g. utils, focus, key handling), and then bundles these together in base classes (views and screens).</p>
-<p>Aggregate views for tab (i.e. iOS style TabController navigation) and stack (i.e. iOS style NavController navigation) are provided</p>
+</li>
+<li>The mioc container is stored on the <code>MaineScene</code> in the <code>__mioc</code> field</li>
+</ul>
+<a href="#debugging-generated-code"><h3 id="debugging-generated-code">Debugging generated code</h3></a><ul>
+<li>Generated code is stored in <code>maestro/components/generated</code></li>
+<li>If you want to delve into the generated code for whatever reason, bare in mind that, it is easy to simply open your build folder in vscode, then check the file, bearing in mind:<ul>
+<li>Maestro generates brs and xml files for NodeClasses and Tasks</li>
+<li>Maestro generates a codebehind file (.brs) for an xml file, with a vm, if there was no codebehind</li>
+<li>Maestro injects code into codebehind files (generated, or not), to wire up bindings</li>
+<li>Maestro injects code into non-vm codebhind file, to create variables for all nodes with ids</li>
+<li>Maestro removes any xml values from nodes that contained binding information</li>
+</ul>
+</li>
+</ul>
             <div id="footer">
             </div>
         </div>

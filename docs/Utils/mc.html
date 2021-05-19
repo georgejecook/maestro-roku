@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        Overview
+        mc (maestro core utils)
     </title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@10.7.2/styles/github.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
@@ -186,13 +186,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../Utils">Utils</a>
+                            <a class="name entry" href="">Utils</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Utils/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -200,7 +200,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Utils/mc.html">mc (maestro core utils)</a>
+                    <a class="entry" href="mc.html">mc (maestro core utils)</a>
                 
             
                             </div>
@@ -208,7 +208,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Utils/mc.tasks.html">mc.tasks (maestro task utils)</a>
+                    <a class="entry" href="mc.tasks.html">mc.tasks (maestro task utils)</a>
                 
             
                             </div>
@@ -223,13 +223,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">View Framework</a>
+                            <a class="name entry" href="../View Framework">View Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../View Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -237,7 +237,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-screen.html">BaseScreen</a>
+                    <a class="entry" href="../View Framework/base-screen.html">BaseScreen</a>
                 
             
                             </div>
@@ -245,7 +245,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-view.html">BaseView</a>
+                    <a class="entry" href="../View Framework/base-view.html">BaseView</a>
                 
             
                             </div>
@@ -253,7 +253,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="aggregate-views.html">Aggregate Views</a>
+                    <a class="entry" href="../View Framework/aggregate-views.html">Aggregate Views</a>
                 
             
                             </div>
@@ -261,7 +261,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="view-transitions.html">View Transitions</a>
+                    <a class="entry" href="../View Framework/view-transitions.html">View Transitions</a>
                 
             
                             </div>
@@ -269,7 +269,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="component-lifecycle.html">Component lifecycle</a>
+                    <a class="entry" href="../View Framework/component-lifecycle.html">Component lifecycle</a>
                 
             
                             </div>
@@ -277,7 +277,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="mixins.html">Mixins</a>
+                    <a class="entry" href="../View Framework/mixins.html">Mixins</a>
                 
             
                             </div>
@@ -325,17 +325,58 @@
 
         </div>
         <div id="content">
-            <a href="#overview"><h2 id="overview">Overview</h2></a><p>The View framework allows us to generate Roku screens and components, which have a known lifecycle. If you&#39;ve done much Roku dev, you know how little of a framework exists for reasoning about a view&#39;s lifecycle events, such as being shown, getting focus, keys, etc. The Base view classes allow us to simply override abstract functions to seamlessly get lifecycle hooks for:</p>
-<ul>
-<li>instantiation and destruction</li>
-<li>adding to and removal from container views</li>
-<li>showing and hiding</li>
-<li>key presses</li>
-<li>focusing of views, or their children</li>
+            <a href="#checking-types"><h2 id="checking-types">Checking types</h2></a><ul>
+<li><code>isUndefined(value)</code></li>
+<li><code>isInvalid(value)</code></li>
+<li><code>isArray(value)</code></li>
+<li><code>isAACompatible(value)</code></li>
+<li><code>isString(value)</code></li>
+<li><code>isBoolean(value)</code></li>
+<li><code>isFunction(value)</code></li>
+<li><code>isInteger(value)</code></li>
+<li><code>isNumber(value)</code></li>
+<li><code>isFloat(value)</code></li>
+<li><code>isPoint(value)</code></li>
 </ul>
-<p>In addition the view framework contains many base classes that can be used</p>
-<a href="#mixins"><h2 id="mixins">Mixins</h2></a><p>Maestro makes use of many different mixin classes, which handle different aspects of view management (e.g. utils, focus, key handling), and then bundles these together in base classes (views and screens).</p>
-<p>Aggregate views for tab (i.e. iOS style TabController navigation) and stack (i.e. iOS style NavController navigation) are provided</p>
+<a href="#equality"><h2 id="equality">Equality</h2></a><ul>
+<li><code>isPointEqual(value, otherValue)</code></li>
+</ul>
+<a href="#debugging"><h2 id="debugging">Debugging</h2></a><ul>
+<li><code>dv(view)</code> - for debugging. Returns a view&#39;s type and id</li>
+</ul>
+<a href="#function-invocation"><h2 id="function-invocation">Function invocation</h2></a><ul>
+<li><code>callAAFunc(target, funcName, p1 = &quot;#M_NONE#&quot;, p2 = &quot;#M_NONE#&quot;, p3 = &quot;#M_NONE#&quot;)</code> - invokes the aa function funcName on target</li>
+<li><code>apply(func, args = [], target = invalid), func)</code> - similar to js apply</li>
+</ul>
+<a href="#object-utilities"><h2 id="object-utilities">Object utilities</h2></a><ul>
+<li><code>getPath(content, field, default = invalid, disableIndexing = false)</code> - safely gets the value from an object, at the given path</li>
+<li><code>setPath(content, field, value = invalid)</code> - safely sets a value on object, at the given path</li>
+<li><code>removeDuplicateKeys(aa = invalid, otherAA = invalid)</code></li>
+<li><code>setOrAddNodeField(node, field, value = invalid)</code></li>
+<li><code>setNodeAAValue(node, field, key, value = invalid)</code></li>
+<li><code>setNodeArrayValue(node, field, index, value = invalid)</code></li>
+<li><code>setOrAddNodeFields(node, fields)</code></li>
+<li><code>getChildAtDepth(node, depth)</code></li>
+<li><code>createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, isCallingInitialize = true)</code> - create an <code>roSGNode</code> subclass of nodeType. Will automatically call initialize, and set the args</li>
+<li><code>createNode(nodeType)</code> - create any type of roku node</li>
+<li><code>getFunctionName(value)</code></li>
+</ul>
+<a href="#conversions"><h2 id="conversions">Conversions</h2></a><ul>
+<li><code>strToBool(s)</code></li>
+<li><code>strToInt(s)</code></li>
+<li><code>strToLong(value)</code></li>
+</ul>
+<a href="#general"><h2 id="general">General</h2></a><ul>
+<li><code>getIndexOfItem(parent, item)</code></li>
+<li><code>toggleObserver(target, field, callbackName = invalid)</code></li>
+<li><code>clamp(number, low, high, wrap = false)</code></li>
+</ul>
+<a href="#access-utils"><h2 id="access-utils">Access utils</h2></a><ul>
+<li><code>getMField(fieldName)</code> - get a field on the top node&#39;s m - useful for vm classes</li>
+<li><code>getGlobal()</code> - get global on the top node&#39;s m - useful for vm classes</li>
+<li><code>getTop()</code> - get top on this node - useful for vm classes</li>
+<li><code>getScene()</code> - get scene on this node - useful for vm classes</li>
+</ul>
             <div id="footer">
             </div>
         </div>

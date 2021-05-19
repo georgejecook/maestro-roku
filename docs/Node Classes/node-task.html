@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        Overview
+        Node tasks
     </title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@10.7.2/styles/github.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
@@ -125,13 +125,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../Node Classes">Node Classes</a>
+                            <a class="name entry" href="">Node Classes</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -139,7 +139,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/testing.html">Testing</a>
+                    <a class="entry" href="testing.html">Testing</a>
                 
             
                             </div>
@@ -147,7 +147,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/config.html">Config</a>
+                    <a class="entry" href="config.html">Config</a>
                 
             
                             </div>
@@ -155,7 +155,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/how-to-write.html">How to write</a>
+                    <a class="entry" href="how-to-write.html">How to write</a>
                 
             
                             </div>
@@ -163,7 +163,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/implemenation.html">Implementation details</a>
+                    <a class="entry" href="implemenation.html">Implementation details</a>
                 
             
                             </div>
@@ -171,7 +171,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/node-task.html">Node tasks</a>
+                    <a class="entry" href="node-task.html">Node tasks</a>
                 
             
                             </div>
@@ -223,13 +223,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">View Framework</a>
+                            <a class="name entry" href="../View Framework">View Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../View Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -237,7 +237,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-screen.html">BaseScreen</a>
+                    <a class="entry" href="../View Framework/base-screen.html">BaseScreen</a>
                 
             
                             </div>
@@ -245,7 +245,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-view.html">BaseView</a>
+                    <a class="entry" href="../View Framework/base-view.html">BaseView</a>
                 
             
                             </div>
@@ -253,7 +253,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="aggregate-views.html">Aggregate Views</a>
+                    <a class="entry" href="../View Framework/aggregate-views.html">Aggregate Views</a>
                 
             
                             </div>
@@ -261,7 +261,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="view-transitions.html">View Transitions</a>
+                    <a class="entry" href="../View Framework/view-transitions.html">View Transitions</a>
                 
             
                             </div>
@@ -269,7 +269,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="component-lifecycle.html">Component lifecycle</a>
+                    <a class="entry" href="../View Framework/component-lifecycle.html">Component lifecycle</a>
                 
             
                             </div>
@@ -277,7 +277,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="mixins.html">Mixins</a>
+                    <a class="entry" href="../View Framework/mixins.html">Mixins</a>
                 
             
                             </div>
@@ -325,17 +325,51 @@
 
         </div>
         <div id="content">
-            <a href="#overview"><h2 id="overview">Overview</h2></a><p>The View framework allows us to generate Roku screens and components, which have a known lifecycle. If you&#39;ve done much Roku dev, you know how little of a framework exists for reasoning about a view&#39;s lifecycle events, such as being shown, getting focus, keys, etc. The Base view classes allow us to simply override abstract functions to seamlessly get lifecycle hooks for:</p>
-<ul>
-<li>instantiation and destruction</li>
-<li>adding to and removal from container views</li>
-<li>showing and hiding</li>
-<li>key presses</li>
-<li>focusing of views, or their children</li>
+            <a href="#node-tasks"><h1 id="node-tasks">Node tasks</h1></a><p>NodeTasks allow you to write a task by simply creating a class, and implementing an <code>execute</code> function. This saves developers having to worry about roku node implementation details.</p>
+<a href="#implementation"><h2 id="implementation">Implementation</h2></a><ul>
+<li>Create a bs class</li>
+<li>Add a <code>@task</code> annotation, which takes 2 args:<ol>
+<li>Generated task name</li>
+<li>Extended task name</li>
+</ol>
+</li>
+<li>The execute method will receive one param, an associative array (args), which contains the args, as set on the task by the task invoker.</li>
+<li>It is recommended that the execute method returns an associative array with <em>at least</em> : <code>{isOK:boolean, data:any}</code></li>
 </ul>
-<p>In addition the view framework contains many base classes that can be used</p>
-<a href="#mixins"><h2 id="mixins">Mixins</h2></a><p>Maestro makes use of many different mixin classes, which handle different aspects of view management (e.g. utils, focus, key handling), and then bundles these together in base classes (views and screens).</p>
-<p>Aggregate views for tab (i.e. iOS style TabController navigation) and stack (i.e. iOS style NavController navigation) are provided</p>
+<a href="#example"><h1 id="example">Example</h1></a><pre><code>import &quot;pkg:/source/core/Request.bs&quot;
+import &quot;pkg:/source/roku_modules/log/LogMixin.brs&quot;
+import &quot;pkg:/source/core/Utils.bs&quot;
+import &quot;pkg:/source/core/Registry.bs&quot;
+import &quot;pkg:/source/core/AssetBundle.bs&quot;
+
+namespace mc
+  @strict
+  @task(&quot;mc_AssetBundleTask&quot;, &quot;Task&quot;)
+  class AssetBundleTask
+    private log
+    private baseBundleUrl
+    private bundleId
+    private registry
+    private request
+
+    private url = &quot;&quot;
+
+    function new()
+      m.log = new log.Logger(&quot;ImageRequestTask&quot;)
+    end function
+
+    private function execute(args)
+      m.bundleId = args.bundleId
+      m.baseBundleUrl = args.baseBundleUrl
+
+      m.registry = new mc.Registry()
+      m.request = m.makeRequest()
+      ...
+      return {
+        isOK: true
+        data: data
+      }
+</code></pre>
             <div id="footer">
             </div>
         </div>

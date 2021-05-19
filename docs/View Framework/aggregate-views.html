@@ -67,13 +67,34 @@
                 
                     <div class="folder">
                         
+                            <a class="name entry" href="../Debugging">Debugging</a>
+                        
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Debugging/index.html">Overview</a>
+                
+            
+                            </div>
+                        
+                    </div>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <div class="folder">
+                        
                             <a class="name entry" href="../MVVM Framework">MVVM Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../MVVM Framework/index.html">MVVM Framework</a>
+                    <a class="entry" href="../MVVM Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -104,13 +125,111 @@
                 
                     <div class="folder">
                         
+                            <a class="name entry" href="../Node Classes">Node Classes</a>
+                        
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Node Classes/index.html">Overview</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Node Classes/testing.html">Testing</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Node Classes/config.html">Config</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Node Classes/how-to-write.html">How to write</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Node Classes/implemenation.html">Implementation details</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Node Classes/node-task.html">Node tasks</a>
+                
+            
+                            </div>
+                        
+                    </div>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <div class="folder">
+                        
+                            <a class="name entry" href="../Utils">Utils</a>
+                        
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Utils/index.html">Overview</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Utils/mc.html">mc (maestro core utils)</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../Utils/mc.tasks.html">mc.tasks (maestro task utils)</a>
+                
+            
+                            </div>
+                        
+                    </div>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <div class="folder">
+                        
                             <a class="name entry" href="">View Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">View Framework</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -135,6 +254,14 @@
                                 
                 
                     <a class="entry" href="aggregate-views.html">Aggregate Views</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="view-transitions.html">View Transitions</a>
                 
             
                             </div>
@@ -179,14 +306,6 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../node-classes.html">Node classes</a>
-                
-            
-                            </div>
-                        
-                            <div class="children">
-                                
-                
                     <a class="entry" href="../core-framework.html">Core framework</a>
                 
             
@@ -206,30 +325,49 @@
 
         </div>
         <div id="content">
-            <a href="#baseaggregateview"><h3 id="baseaggregateview">BaseAggregateView</h3></a><p>A special BaseScreen subclass, which manages showing, or hiding views. The <code>currentView</code> property informs which view is currently active (i.e. the selected tab, or current view on top of a NavController)</p>
+            <a href="#overview"><h1 id="overview">Overview</h1></a><p>Sadly, roku SceneGraph has a very limited view architecture. If you come from iOS, Android, or angular, you may be wondering how to know if a view/screen:</p>
+<ul>
+<li>Was first shown</li>
+<li>Shown</li>
+<li>Hidden</li>
+<li>Added to another aggregate container</li>
+<li>Removed from an aggregate container</li>
+<li>Got focus</li>
+<li>Had a child receive focus</li>
+<li>Lost focus</li>
+</ul>
+<p>In addition to affording these lifecycle events, maestro also provides familiar <em>aggregate views</em>, to allow composing screens together.</p>
+<a href="#baseaggregateview"><h2 id="baseaggregateview">BaseAggregateView</h2></a><p>A special BaseScreen subclass, which manages showing, or hiding views. The <code>currentView</code> property informs which view is currently active (i.e. the selected tab, or current view on top of a NavController)</p>
 <p>Only one screen is ever visible at a time. A screen&#39;s lifecycle methods for focus and visibility will all be managed and can be relied upon for ascertaining the proper state of the screen.</p>
-<a href="#tabcontroller"><h3 id="tabcontroller">TabController</h3></a><p>BaseAggregateView subclass which allows you to switch various views. The tabController will display a screen which corresponds to the currently selected item. The screen is created lazily, unless it was specified using <code>addExistingView</code></p>
-<a href="#tabcontroller-fields"><h4 id="tabcontroller-fields">TabController fields</h4></a><ul>
+<a href="#tabcontroller"><h2 id="tabcontroller">TabController</h2></a><p>BaseAggregateView subclass which allows you to switch various views. The tabController will display a screen which corresponds to the currently selected item. The screen is created lazily, unless it was specified using <code>addExistingView</code></p>
+<a href="#tabcontroller-fields"><h3 id="tabcontroller-fields">TabController fields</h3></a><ul>
 <li><code>menuItems</code> array of items, which are used to create child screens. The menuItem must have an id, which matches the view passed in with <code>addExistingView</code>, or have it&#39;s screenType set to the valid type of a <code>BaseScreen</code> subclass</li>
 <li><code>currentItem</code> <em>readOnly</em> the currently selected menuItem</li>
 </ul>
-<a href="#tabcontroller-functions"><h4 id="tabcontroller-functions">TabController functions</h4></a><ul>
+<a href="#tabcontroller-functions"><h3 id="tabcontroller-functions">TabController functions</h3></a><ul>
 <li><code>addExistingView</code> - will register the passed in view to be displayed when a menu item with the same id is set as the <code>currentItem</code></li>
 <li><code>getViewForMenuItemContent</code></li>
 <li><code>changeCurrentItem</code> - will set the <code>currentItem</code></li>
 </ul>
-<a href="#navcontroller"><h3 id="navcontroller">NavController</h3></a><p>NavController controls a stack of views stacked one up on the other. When a BaseScreen is added to a NavController it&#39;s <code>navController</code> field is set to the navController. In addition the lifecycle methods <code>onAddedToAggregateView</code> and <code>onRemovedFromAggregateView</code> are invoked in accordance with <code>pop</code>, <code>push</code> and <code>reset</code></p>
-<a href="#navcontroller-fields"><h4 id="navcontroller-fields">NavController fields</h4></a><ul>
+<a href="#navcontroller"><h2 id="navcontroller">NavController</h2></a><p>NavController controls a stack of views stacked one up on the other. When a BaseScreen is added to a NavController it&#39;s <code>navController</code> field is set to the navController. In addition the lifecycle methods <code>onAddedToAggregateView</code> and <code>onRemovedFromAggregateView</code> are invoked in accordance with <code>pop</code>, <code>push</code> and <code>reset</code></p>
+<a href="#navcontroller-fields"><h3 id="navcontroller-fields">NavController fields</h3></a><ul>
 <li><code>numberOfViews</code> <em>readonly</em> number of Views on the stack</li>
 <li><code>isLastViewPopped</code> <em>readonly</em> true, if the last view is popped, can be observed</li>
 <li><code>isAutoFocusEnabled</code> if true then pushed views receive focus</li>
 </ul>
-<a href="#navcontroller-functions"><h3 id="navcontroller-functions">NavController functions</h3></a><ul>
+<a href="#navcontroller-functions"><h2 id="navcontroller-functions">NavController functions</h2></a><ul>
 <li><code>push</code> - pushes the passed in view onto the stack, and initializes it</li>
 <li><code>pop</code> - pops current view from the stack</li>
 <li><code>reset</code> - resets the stack</li>
 <li><code>resetToIndex</code> - resets the stack to the desired index</li>
 </ul>
+<a href="#dynamiccontainer"><h2 id="dynamiccontainer">DynamicContainer</h2></a><p>DynamicContainer is analogue to iOS&#39;s container view. It affords the embedding of screens, within screens. This is useful for:</p>
+<ul>
+<li>Tab switchers</li>
+<li>Sub views (e.g. placing a <em>faux</em> dialog on top of a screen)</li>
+<li>Embedding a forgot password screen inside of another screen</li>
+</ul>
+<p>It has one method <code>SetNextView</code>, which will set the current view on the container. Note, you can bind directly to this, in mvvm bindings, as maestro knows how to call node functions.</p>
             <div id="footer">
             </div>
         </div>

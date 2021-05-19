@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        Overview
+        Testing
     </title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@10.7.2/styles/github.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
@@ -125,13 +125,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../Node Classes">Node Classes</a>
+                            <a class="name entry" href="">Node Classes</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -139,7 +139,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/testing.html">Testing</a>
+                    <a class="entry" href="testing.html">Testing</a>
                 
             
                             </div>
@@ -147,7 +147,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/config.html">Config</a>
+                    <a class="entry" href="config.html">Config</a>
                 
             
                             </div>
@@ -155,7 +155,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/how-to-write.html">How to write</a>
+                    <a class="entry" href="how-to-write.html">How to write</a>
                 
             
                             </div>
@@ -163,7 +163,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/implemenation.html">Implementation details</a>
+                    <a class="entry" href="implemenation.html">Implementation details</a>
                 
             
                             </div>
@@ -171,7 +171,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Node Classes/node-task.html">Node tasks</a>
+                    <a class="entry" href="node-task.html">Node tasks</a>
                 
             
                             </div>
@@ -223,13 +223,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">View Framework</a>
+                            <a class="name entry" href="../View Framework">View Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../View Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -237,7 +237,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-screen.html">BaseScreen</a>
+                    <a class="entry" href="../View Framework/base-screen.html">BaseScreen</a>
                 
             
                             </div>
@@ -245,7 +245,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-view.html">BaseView</a>
+                    <a class="entry" href="../View Framework/base-view.html">BaseView</a>
                 
             
                             </div>
@@ -253,7 +253,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="aggregate-views.html">Aggregate Views</a>
+                    <a class="entry" href="../View Framework/aggregate-views.html">Aggregate Views</a>
                 
             
                             </div>
@@ -261,7 +261,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="view-transitions.html">View Transitions</a>
+                    <a class="entry" href="../View Framework/view-transitions.html">View Transitions</a>
                 
             
                             </div>
@@ -269,7 +269,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="component-lifecycle.html">Component lifecycle</a>
+                    <a class="entry" href="../View Framework/component-lifecycle.html">Component lifecycle</a>
                 
             
                             </div>
@@ -277,7 +277,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="mixins.html">Mixins</a>
+                    <a class="entry" href="../View Framework/mixins.html">Mixins</a>
                 
             
                             </div>
@@ -325,17 +325,49 @@
 
         </div>
         <div id="content">
-            <a href="#overview"><h2 id="overview">Overview</h2></a><p>The View framework allows us to generate Roku screens and components, which have a known lifecycle. If you&#39;ve done much Roku dev, you know how little of a framework exists for reasoning about a view&#39;s lifecycle events, such as being shown, getting focus, keys, etc. The Base view classes allow us to simply override abstract functions to seamlessly get lifecycle hooks for:</p>
-<ul>
-<li>instantiation and destruction</li>
-<li>adding to and removal from container views</li>
-<li>showing and hiding</li>
-<li>key presses</li>
-<li>focusing of views, or their children</li>
-</ul>
-<p>In addition the view framework contains many base classes that can be used</p>
-<a href="#mixins"><h2 id="mixins">Mixins</h2></a><p>Maestro makes use of many different mixin classes, which handle different aspects of view management (e.g. utils, focus, key handling), and then bundles these together in base classes (views and screens).</p>
-<p>Aggregate views for tab (i.e. iOS style TabController navigation) and stack (i.e. iOS style NavController navigation) are provided</p>
+            <a href="#testing-recommendations"><h1 id="testing-recommendations">Testing recommendations</h1></a><p>Nodeclass generated code injects the top and global vars into the class, and appends them to m. Because of this, there will be scenarios where your unit tests will also need to inject a top and m.</p>
+<p>In nearly all cases, you can use a mock m and top node. However, sometimes you may want to use a real node. In that case, it is recommended that you use the <em>generated</em> node to inject. This is a rare testing scenario however, likely only for nodeclasses, like certain views (i.e. controls/inputs/etc), which generate their children in the nodeclass&#39;s <code>new</code> method, as opposed <code>initialize</code>, which is easier to stub.</p>
+<a href="#creating-node-classes-for-unit-tests"><h2 id="creating-node-classes-for-unit-tests">Creating node classes for unit tests</h2></a><p>The following examples assume you are using rooibos 4.3.0 or later</p>
+<a href="#general-case"><h3 id="general-case">General case</h3></a><p>In most cases you can simply do something like this:</p>
+<pre><code>namespace tests
+  @suite(&quot;Control tests&quot;)
+  class ControlTests extends tests.BaseTestSuite
+
+    private control
+    protected override function beforeEach()
+      super.beforeEach()
+      nodeTop = new rooibos.utils.MockNode(&quot;top&quot;)
+      nodeTop.styleKey = &quot;TextInput&quot;
+
+      &#39; bs:disable-next-line
+      m.control = m.createNodeClass(myOrg.controls.Control, true, nodeTop, m.global)
+    end function
+</code></pre>
+<a href="#testing-new-function"><h3 id="testing-new-function">Testing <code>new</code> function</h3></a><p>In the case where you need to test the new function, you can put something like this in your <code>myOrg.tests.BaseTestSuite</code></p>
+<pre><code>    protected function createNodeClass(clazz, useClassAsTop = true, nodeTop = new rooibos.utils.MockNode(&quot;top&quot;), nodeGlobal = new rooibos.utils.MockNode(&quot;top&quot;))
+      instance = tests_maestro_nodeClassUtils_createNodeClass(clazz, nodeTop, nodeGlobal)
+      if instance &lt;&gt; invalid and useClassAsTop
+        &#39;note - we use the clazz itself as TOP, so that we don&#39;t have to write tests that do
+        &#39;thing.top.value, thing.top.value2, etc all over the place
+        instance.append(nodeTop)
+        instance.top = instance
+      end if
+      return instance
+    end function
+</code></pre>
+<p>Then, in your tests (which extend <code>myOrg.tests.BaseTestSuite</code>), you will have a test like this:</p>
+<pre><code>    &#39;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe(&quot;constructor&quot;)
+    &#39;+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it(&quot;creates necessary views&quot;)
+    function _()
+      &#39;note how this test uses a real node to ensure child creation
+      m.control = m.createNodeClass(myOrg.controls.Control, false, createObject(&quot;roSGNode&quot;, &quot;myOrg_Control&quot;), m.global)
+      m.assertSubType(m.control.backgroundPoster, &quot;mv_Poster&quot;)
+      m.assertSubType(m.control.label, &quot;mv_Label&quot;)
+    end function
+</code></pre>
             <div id="footer">
             </div>
         </div>

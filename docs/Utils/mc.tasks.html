@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        Overview
+        mc.tasks (maestro task utils)
     </title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@10.7.2/styles/github.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
@@ -186,13 +186,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../Utils">Utils</a>
+                            <a class="name entry" href="">Utils</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Utils/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -200,7 +200,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Utils/mc.html">mc (maestro core utils)</a>
+                    <a class="entry" href="mc.html">mc (maestro core utils)</a>
                 
             
                             </div>
@@ -208,7 +208,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../Utils/mc.tasks.html">mc.tasks (maestro task utils)</a>
+                    <a class="entry" href="mc.tasks.html">mc.tasks (maestro task utils)</a>
                 
             
                             </div>
@@ -223,13 +223,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">View Framework</a>
+                            <a class="name entry" href="../View Framework">View Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../View Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -237,7 +237,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-screen.html">BaseScreen</a>
+                    <a class="entry" href="../View Framework/base-screen.html">BaseScreen</a>
                 
             
                             </div>
@@ -245,7 +245,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="base-view.html">BaseView</a>
+                    <a class="entry" href="../View Framework/base-view.html">BaseView</a>
                 
             
                             </div>
@@ -253,7 +253,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="aggregate-views.html">Aggregate Views</a>
+                    <a class="entry" href="../View Framework/aggregate-views.html">Aggregate Views</a>
                 
             
                             </div>
@@ -261,7 +261,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="view-transitions.html">View Transitions</a>
+                    <a class="entry" href="../View Framework/view-transitions.html">View Transitions</a>
                 
             
                             </div>
@@ -269,7 +269,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="component-lifecycle.html">Component lifecycle</a>
+                    <a class="entry" href="../View Framework/component-lifecycle.html">Component lifecycle</a>
                 
             
                             </div>
@@ -277,7 +277,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="mixins.html">Mixins</a>
+                    <a class="entry" href="../View Framework/mixins.html">Mixins</a>
                 
             
                             </div>
@@ -325,17 +325,45 @@
 
         </div>
         <div id="content">
-            <a href="#overview"><h2 id="overview">Overview</h2></a><p>The View framework allows us to generate Roku screens and components, which have a known lifecycle. If you&#39;ve done much Roku dev, you know how little of a framework exists for reasoning about a view&#39;s lifecycle events, such as being shown, getting focus, keys, etc. The Base view classes allow us to simply override abstract functions to seamlessly get lifecycle hooks for:</p>
-<ul>
-<li>instantiation and destruction</li>
-<li>adding to and removal from container views</li>
-<li>showing and hiding</li>
-<li>key presses</li>
-<li>focusing of views, or their children</li>
+            <a href="#overview"><h1 id="overview">Overview</h1></a><p>To save on boilerplate code, and improve navigatability in the ide, maestro provides wrappers that allow for easy creation of observers, which take function pointers, instead of strings, and will automatically call back with the node, value, node and value, or nothing, depending the <code>sendMode</code></p>
+<a href="#delaying-execution"><h3 id="delaying-execution">Delaying execution</h3></a><ul>
+<li><code>waitAFrame(callback, duration = 0.01, sendMode = &quot;none&quot;, scope = invalid)</code> - returns a wait timer, and will invoke callback when the timer completes</li>
+<li><code>cancelWaitTimer(timer)</code> - cancel a previously set wait timer</li>
 </ul>
-<p>In addition the view framework contains many base classes that can be used</p>
-<a href="#mixins"><h2 id="mixins">Mixins</h2></a><p>Maestro makes use of many different mixin classes, which handle different aspects of view management (e.g. utils, focus, key handling), and then bundles these together in base classes (views and screens).</p>
-<p>Aggregate views for tab (i.e. iOS style TabController navigation) and stack (i.e. iOS style NavController navigation) are provided</p>
+<a href="#tasks"><h2 id="tasks">Tasks</h2></a><ul>
+<li><code>createTask(taskType, fields, callback = invalid, isRunning = true, sendMode = &quot;value&quot;, scope = invalid, fieldName = &quot;output&quot;)</code> - create a task, set the fields, run and wire up the callback</li>
+<li><code>cancelTask(task)</code> - cancel a task created with <code>createTask</code></li>
+</ul>
+<a href="#observers"><h2 id="observers">Observers</h2></a><ul>
+<li><code>observeNodeField(node, fieldName, callback, sendMode = &quot;value&quot;, once = false, scope = invalid)</code> - observes the field, and wires up the callback</li>
+<li><code>unobserveNodeField(node, fieldName, callback, scope = invalid)</code> - unobserve an observed field</li>
+<li><code>cleanNodeObserver(node, fieldName)</code> - clean node observes</li>
+<li><code>cleanScope()</code> - clean the entire scope (used internally)</li>
+</ul>
+<a href="#value-observing"><h2 id="value-observing">Value Observing</h2></a><p>Many times we want to observe a specific value on an observer, to achieve this we use the <code>ValueObserver</code> utility class. This class allows us to execute code, when a certain value comparator condition is met. A value comparator can be:</p>
+<ul>
+<li><code>=</code> value is the same</li>
+<li><code>&gt;</code> value is greater</li>
+<li><code>&gt;=</code> value is greater or equal</li>
+<li><code>&lt;</code> value is less</li>
+<li><code>&lt;=</code> value is less or equal</li>
+<li><code>&lt;&gt;</code> value is not equal</li>
+</ul>
+<p>The ValueObserver takes a constructor of:</p>
+<ul>
+<li>target - node to observe</li>
+<li>fieldName</li>
+<li>scope - the m of whatever functions will be called on</li>
+</ul>
+<p>To add observers, invoke <code>onValue</code>, with the target value, callback function and comparator:</p>
+<p>e.g.</p>
+<pre><code>    function onFraction(fraction, func, scope)
+      if m.fractionValueObserver = invalid
+        m.fractionValueObserver = new mc.tasks.ValueObserver(m.interpolator, &quot;fraction&quot;, scope)
+      end if
+      m.fractionValueObserver.onValue(fraction, func, &quot;&gt;=&quot;)
+    end function
+</code></pre>
             <div id="footer">
             </div>
         </div>
