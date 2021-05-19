@@ -335,7 +335,7 @@ namespace mc
     return -1
   end function
 
-  function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, isCalligInitialize = true)
+  function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, isCallingInitialize = true)
     if parent <> invalid
       node = parent.createChild(nodeType)
     else
@@ -353,7 +353,7 @@ namespace mc
         node.setFields(args)
       end if
 
-      if isCalligInitialize and node.isInitialized <> invalid
+      if isCallingInitialize and node.isInitialized <> invalid
         node@._initialize()
       end if
     end if
