@@ -20,13 +20,13 @@ try {
     fs.writeFileSync(path.join(distDir, 'components', file), text);
   });
 
-  fs.rmdirSync('dist/components/maestro', { recursive: true });
+  fs.rmSync('dist/components/maestro', { recursive: true, force: true });
 } catch (e) {
 
 }
 try {
 
-  fs.rmdirSync('dist/source/maestro', { recursive: true });
+  fs.rmSync('dist/source/maestro', { recursive: true, force: true });
 } catch (e) {
 
 }
