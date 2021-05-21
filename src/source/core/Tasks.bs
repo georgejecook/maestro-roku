@@ -4,7 +4,7 @@ import "pkg:/source/core/Utils.bs"
 
 namespace mc.tasks
 
-  function waitAFrame(callback, duration = 0.01, sendMode = "none", scope = invalid)
+  function waitAFrame(callback, duration = 0.01, sendMode = "none", scope = invalid, parent = invalid)
     callbackName = mc.getFunctionName(callback)
     if callbackName = invalid
       m.log.error("function ", callback, "does not exist, or is not in scope")
@@ -14,7 +14,12 @@ namespace mc.tasks
     if m.log <> invalid
       m.log.info("waiting", duration, "before invoking", callbackName)
     end if
-    frameTimer = mc.createSGNode("Timer", m.top.getScene(), "frameTimer")
+
+    if parent = invalid
+      parent = m.top.getScene()
+    end if
+
+    frameTimer = mc.createSGNode("Timer", parent, "frameTimer")
     frameTimer.duration = duration
     mc.tasks.observeNodeField(frameTimer, "fire", callback, sendMode, true, scope)
     mc.setOrAddNodeField(frameTimer, "removeOnObserve", true)
@@ -302,6 +307,10 @@ namespace mc.tasks
       task.control = "stop"
     end if
   end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ ValueObserver class
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   @strict
   class ValueObserver
