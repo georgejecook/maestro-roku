@@ -52,3 +52,33 @@ e.g.
       m.fractionValueObserver.onValue(fraction, func, ">=")
     end function
 ````
+
+## Delayed tasks
+
+As a convenience, you can create a `DelayedTaskManager` which makes it trivial to do things like schedule a refresh token task.
+
+Use the functions
+
+- `scheduleDelayedTask(nodeType, id, delay, fields, resultField = "output")` - schedule a task to execute after delay seconds
+- `cancelDelayedTaskWithId(id)` - cancel a previously scheduled task
+
+###
+
+Example use:
+
+In your ioc setup:
+```
+      delayedTaskManager = m.createSGNode("mc_delayedTaskManager", invalid, "delayedTaskManager")
+      m.setInstance("delayedTaskManager", delayedTaskManager)
+```
+
+Then, when scheduling refreshing an auth token, with an `AuthTask`, something like:
+
+```
+    @inject("delayedTaskManager")
+    private delayedTaskManager as mc.types.node
+
+    protected function setRefreshTimer()
+      delayedTaskManager@.scheduleDelayedTask("AuthTask", "refreshTask", 300, { "command": "refresh" })
+    end function
+```
