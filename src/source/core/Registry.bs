@@ -1,6 +1,9 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+
 namespace mc
   class Registry
 
+    private log = new log.Logger("Registry")
     '
     ' Read and deserialize to a native type
     public function read(sectionName as string, key as string) as dynamic
@@ -91,6 +94,49 @@ namespace mc
       for each sectionName in sections
         registry.delete(sectionName)
       end for
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ serializable object support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function readSerializable(section, key, serializable as object)
+      if m.isSerializable(serializable)
+        if type(serializable) = "roSGNode"
+          data = serializable@.serialize()
+        else
+          'bs:disable-next-line
+          data = serializable.serialize()
+        end if
+      else
+        m.log.warn("asked to serialize non-serializebale object")
+      end if
+    end function
+
+    function writeSeserialize(section, key, serializable as object)
+      if m.isSerializable(serializable)
+        data = m.read(section, key)
+        if type(serializable) = "roSGNode"
+          serializable@.deserialize(data)
+        else
+          'bs:disable-next-line
+          serializable.deserialize(data)
+        end if
+      else
+        m.log.warn("asked to serialize non-serializebale object")
+      end if
+
+    end function
+
+    private function isSerializable(item as object)
+      if mc.isAACompatible(item)
+        if type(item) = "roSGNode"
+          'we can't tell if a node has a certain function, so we have to guess
+          return true
+        else
+          return item.serialize <> invalid and item.deserialize <> invalid
+        end if
+      end if
     end function
 
   end class
