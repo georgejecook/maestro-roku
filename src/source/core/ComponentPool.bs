@@ -16,9 +16,9 @@ namespace mc
     public _debugM = false
     public __m = {}
     public isCreateMoreEnabled = true
-    public numerOfComponentsToCreateWhenDry = 30
-    public numberOfComponentsInuse = 0
-    public numberOfComponents = false
+    public numberOfComponentsToCreateWhenDry = 30
+    public numberOfComponentsInUse = 0
+    public numberOfComponents = 0
 
     private poolsByComponentType = {}
     private log
@@ -40,7 +40,7 @@ namespace mc
       m.log.info("reset")
       m.poolsByComponentType = {}
       m.top.numberOfComponents = 0
-      m.top.numberOfComponentsInuse = 0
+      m.top.numberOfComponentsInUse = 0
     end function
 
     function getComponentPool(componentType)
@@ -84,14 +84,14 @@ namespace mc
         m.log.warn("ran out of components getting type :", componentType)
 
         if m.top.isCreateMoreEnabled
-          m.log.warn("creating", m.top.numerOfComponentsToCreateWhenDry, "more", componentType, "components")
-          for i = 0 to m.top.numerOfComponentsToCreateWhenDry
+          m.log.warn("creating", m.top.numberOfComponentsToCreateWhenDry, "more", componentType, "components")
+          for i = 0 to m.top.numberOfComponentsToCreateWhenDry
             component = m.createComponent(componentType)
             pool.freeComponentsById[component.id] = component
             pool.numberOfComponentsInPool++
             pool.allComponents.push(component)
           end for
-          m.top.numberOfComponents += m.top.numerOfComponentsToCreateWhenDry
+          m.top.numberOfComponents += m.top.numberOfComponentsToCreateWhenDry
         else
           return invalid
         end if
@@ -104,7 +104,7 @@ namespace mc
       component = pool.freeComponentsById[id]
       pool.freeComponentsById.delete(id)
       pool.usedComponentsById[id] = component
-      m.top.numberOfComponentsInuse++
+      m.top.numberOfComponentsInUse++
       ' ? "returning component with id"; id
       return component
     end function
@@ -116,7 +116,7 @@ namespace mc
         pool.usedComponentsById.delete(component.id)
         component.getParent().removeChild(component)
         pool.freeComponentsById[component.id] = component
-        m.top.numberOfComponentsInuse--
+        m.top.numberOfComponentsInUse--
       end if
     end function
 
