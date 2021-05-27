@@ -20,7 +20,7 @@ namespace mc
       m.log = new log.Logger("ImageRequestTask")
     end function
 
-    private function execute(args)
+    private function execute(args as mc.types.assocarray)
       m.bundleId = args.bundleId
       m.baseBundleUrl = args.baseBundleUrl
 
@@ -39,7 +39,7 @@ namespace mc
       end if
       currentBundle = new mc.AssetBundle(bundleJson)
 
-      m.log.info("current asset bundle version is ", version)
+      m.log.info("current asset bundle version is ", bundleJson.version)
 
       '2. load the latest asset bundle
       latestBundle = m.loadLatestAssetBundle()
@@ -84,7 +84,7 @@ namespace mc
       return new mc.AssetBundle(data)
     end function
 
-    private function loadAssetBundleData()
+    private function loadAssetBundleData() as mc.types.assocarray
       url = `${m.baseBundleUrl}/${m.bundleId}-data.json`
       m.log.info("loading bundle info from url", url)
       result = m.request.get(url)

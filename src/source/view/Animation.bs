@@ -2,7 +2,7 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
 
 namespace mv.animations.utils
-  function fadeTo(target, duration, toValue, start = true, delay = 0)
+  function fadeTo(target as mc.types.node, duration as float, toValue as float, start = true as boolean, delay = 0 as float) as mv.animations.Fade
     anim = new mv.animations.Fade(target, duration, target.opacity, toValue, delay)
     if start
       anim.start()
@@ -10,7 +10,7 @@ namespace mv.animations.utils
     return anim
   end function
 
-  function scaleTo(target, duration, toValue, start = true, delay = 0)
+  function scaleTo(target as mc.types.node, duration as float, toValue as float, start = true as boolean, delay = 0 as float) as mv.animations.Scale
     anim = new mv.animations.Scale(target, duration, target.scale, toValue, delay)
     if start
       anim.start()
@@ -18,7 +18,7 @@ namespace mv.animations.utils
     return anim
   end function
 
-  function moveTo(target, duration, toValue, start = true, delay = 0)
+  function moveTo(target as mc.types.node, duration as float, toValue as float, start = true as boolean, delay = 0 as float) as mv.animations.Move
     anim = new mv.animations.Move(target, duration, target.translation, toValue, delay)
     if start
       anim.start()
@@ -26,7 +26,7 @@ namespace mv.animations.utils
     return anim
   end function
 
-  function getDelta(fromValue, toValue)
+  function getDelta(fromValue as dynamic, toValue as dynamic) as dynamic
     if mc.isPoint(fromValue) and mc.isPoint(toValue)
       return abs((fromValue[0] + fromValue [1]) - (toValue[0] + toValue[1]))
     else if mc.isNumber(fromValue) and mc.isNumber(toValue)
@@ -43,7 +43,7 @@ namespace mv.animations
     public repeat
     private parentAnimation
 
-    function new(name, target)
+    function new(name as string, target as mc.types.node)
       m.log = new log.Logger(name)
       if target = invalid or target.id = invalid or target.id = ""
         m.log.error("target must be a valid node with an id")
@@ -51,12 +51,12 @@ namespace mv.animations
       m.target = target
     end function
 
-    function setControl(control)
+    function setControl(control as string)
       m.control = control
       m.node.control = control
     end function
 
-    function start(resume = false)
+    function start(resume = false as boolean)
       m.setControl(resume ? "resume" : "start")
     end function
 
@@ -64,11 +64,11 @@ namespace mv.animations
       m.setControl("pause")
     end function
 
-    function stop(finish = false)
+    function stop(finish = false as boolean)
       m.setControl(finish ? "finish": "stop")
     end function
 
-    function setRepeat(repeat)
+    function setRepeat(repeat as boolean)
       m.repeat = repeat
       m.node.repeat = repeat
     end function
@@ -99,7 +99,7 @@ namespace mv.animations
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
 
-    function new(target, field, duration, fromValue, toValue, name = "AbstractAnimation", delay = 0)
+    function new(target as mc.types.node, field as string, duration as float, fromValue as dynamic, toValue as dynamic, name = "AbstractAnimation" as string, delay = 0 as float)
       super(name, target)
       if target = invalid or target.id = invalid or target.id = ""
         m.log.error("target must be a valid node with an id")
@@ -118,16 +118,16 @@ namespace mv.animations
     '++ public api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function setEaseFunction(easeFunction)
+    function setEaseFunction(easeFunction as dynamic)
       m.easeFunction = easeFunction
       m.node.easeFunction = easeFunction
     end function
 
-    function setAnimateFromCurrentValue(value)
+    function setAnimateFromCurrentValue(value as dynamic)
       m.animateFromCurrentValue = value
     end function
 
-    function setKeys(keys, keyValues)
+    function setKeys(keys as mc.types.array, keyValues as mc.types.array)
       if not mc.isArray(keys)
         m.log.error("received invalid keys", keys)
       end if
@@ -154,7 +154,7 @@ namespace mv.animations
       end if
     end function
 
-    override function start(resume = false)
+    override function start(resume = false as boolean)
       if m.fractionValueObserver <> invalid
         m.fractionValueObserver.reset()
       end if
@@ -165,21 +165,21 @@ namespace mv.animations
       super.start(resume)
     end function
 
-    function setDuration(duration)
+    function setDuration(duration as float)
       m.duration = duration
       if m.node <> invalid
         m.node.duration = duration
       end if
     end function
 
-    function setDelay(delay)
+    function setDelay(delay as float)
       m.delay = delay
       if m.node <> invalid
         m.node.delay = delay
       end if
     end function
 
-    function animateTo(toValue, duration = invalid)
+    function animateTo(toValue as dynamic, duration = invalid as float)
 
       if m.node.control = "start" or m.node.control = "resume"
         wasPlaying = true
@@ -208,7 +208,7 @@ namespace mv.animations
     '  * @param {float} stepSpeed - how long the animation would normally take
     '  * @param {string} stepUnit - "pixel" (100 pixels), "float", 0.1
     '  */
-    function animateToWithSpeed(toValue, stepSpeed, stepUnit = "pixel")
+    function animateToWithSpeed(toValue as dynamic, stepSpeed as float, stepUnit = "pixel" as string)
       delta = mv.animations.utils.getDelta(m.target[m.field], toValue)
       if stepUnit = "pixel"
         steps = delta / 100
@@ -218,7 +218,7 @@ namespace mv.animations
       m.animateTo(toValue, steps * stepSpeed)
     end function
 
-    function setFromToValue(fromValue, toValue)
+    function setFromToValue(fromValue as dynamic, toValue as dynamic)
       if m.isValidValue(toValue) and m.isValidValue(fromValue)
         m.fromValue = fromValue
         m.toValue = toValue
@@ -234,11 +234,11 @@ namespace mv.animations
       m.target[m.field] = m.toValue
     end function
 
-    function observeFraction(callback, scope = invalid)
+    function observeFraction(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.interpolator, "fraction", callback, "value", false, scope)
     end function
 
-    function observeState(callback, scope = invalid)
+    function observeState(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
     end function
 
@@ -250,7 +250,7 @@ namespace mv.animations
       mc.tasks.cleanNodeObserver(m.node, "state")
     end function
 
-    function onFraction(fraction, func, scope)
+    function onFraction(fraction as float, func as function, scope as dynamic)
       if m.fractionValueObserver = invalid
         m.fractionValueObserver = new mc.tasks.ValueObserver(m.interpolator, "fraction", scope)
       end if
@@ -279,7 +279,7 @@ namespace mv.animations
       m.log.error("createInterpolator must be implemented")
     end function
 
-    protected function _createInterpolator(interpolatorType)
+    protected function _createInterpolator(interpolatorType as string)
       m.interpolator = createObject("roSGNode", interpolatorType)
       animId = mv.animations.getAnimationKeyId()
       'bs:disable-next-line
@@ -295,7 +295,7 @@ namespace mv.animations
     public delay = 0
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
-    function new(target, animations = invalid, repeat = false, delay = 0)
+    function new(target as mc.types.node, animations = invalid as mc.types.array, repeat = false as boolean, delay = 0 as float)
       super("ParallelAnimation", target)
       m.node = createObject("roSGNode", "ParallelAnimation")
       animId = mv.animations.getAnimationKeyId()
@@ -309,7 +309,7 @@ namespace mv.animations
       m.target.appendChild(m.node)
     end function
 
-    function setAnimateFromCurrentValue(value)
+    function setAnimateFromCurrentValue(value as dynamic)
       m.animateFromCurrentValue = value
       for each animation in m.animations
         animation.setAnimateFromCurrentValue(value)
@@ -323,7 +323,7 @@ namespace mv.animations
       end for
     end function
 
-    override function start(resume = false)
+    override function start(resume = false as boolean)
       if m.animateFromCurrentValue
         m.syncStartKeys()
       end if
@@ -343,7 +343,7 @@ namespace mv.animations
     '++ public api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function addAnimations(animations)
+    function addAnimations(animations as mc.types.array)
       m.animations = []
       for each animation in animations
         if animation <> invalid and type(animation.node) = "roSGNode"
@@ -363,7 +363,7 @@ namespace mv.animations
       end for
     end function
 
-    function observeState(callback, scope = invalid)
+    function observeState(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
     end function
 
@@ -383,7 +383,7 @@ namespace mv.animations
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   class Scale extends mv.animations.AbstractAnimation
-    function new(target, duration, fromValue, toValue, delay = 0)
+    function new(target as mc.types.node, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float)
       super(target, "scale", duration, fromValue, toValue, "ScaleAnimation", delay)
     end function
 
@@ -391,7 +391,7 @@ namespace mv.animations
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
-    override function isValidValue(value)
+    override function isValidValue(value as mc.types.array) as boolean
       return mc.isPoint(value)
     end function
 
@@ -402,7 +402,7 @@ namespace mv.animations
   end class
 
   class Fade extends mv.animations.AbstractAnimation
-    function new(target, duration, fromValue, toValue, delay = 0)
+    function new(target as mc.types.node, duration as float, fromValue as float, toValue as float, delay = 0 as float)
       super(target, "opacity", duration, fromValue, toValue, "FadeAnimation", delay)
     end function
 
@@ -410,7 +410,7 @@ namespace mv.animations
       m._createInterpolator("FloatFieldInterpolator")
     end function
 
-    override function isValidValue(value)
+    override function isValidValue(value as float) as boolean
       return mc.isNumber(value) and value >= 0 and value <= 1
     end function
 
@@ -420,7 +420,7 @@ namespace mv.animations
   end class
 
   class Move extends mv.animations.AbstractAnimation
-    function new(target, duration, fromValue, toValue, delay = 0)
+    function new(target as mc.types.node, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float)
       super(target, "translation", duration, fromValue, toValue, "MoveAnimation", delay)
     end function
 
@@ -428,7 +428,7 @@ namespace mv.animations
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
-    override function isValidValue(value)
+    override function isValidValue(value as mc.types.array) as boolean
       return mc.isPoint(value)
     end function
 
@@ -442,7 +442,7 @@ namespace mv.animations
     private wAnim
     private hAnim
 
-    function new(target, duration, fromValue, toValue, delay = 0)
+    function new(target as mc.types.node, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float)
       super(target, "size", duration, fromValue, toValue, "SizeAnimation", delay)
       m.wAnim = new mv.animations.FloatValue(target, "width", duration, fromValue[0], toValue[0])
       m.hAnim = new mv.animations.FloatValue(target, "height", duration, fromValue[1], toValue[1])
@@ -461,13 +461,13 @@ namespace mv.animations
     private override function createAnimationNode()
     end function
 
-    override function setEaseFunction(easeFunction)
+    override function setEaseFunction(easeFunction as dynamic)
       m.easeFunction = easeFunction
       m.wAnim.setEaseFunction(easeFunction)
       m.hAnim.setEaseFunction(easeFunction)
     end function
 
-    override function setKeys(keys, keyValues)
+    override function setKeys(keys as mc.types.array, keyValues as mc.types.array)
       wKeys = []
       hKeys = []
       for each keyValue in keyValues
@@ -479,13 +479,17 @@ namespace mv.animations
 
     end function
 
-    override function setDuration(duration)
+    override function setDuration(duration as float)
       m.wAnim.setDuration(duration)
       m.hAnim.setDuration(duration)
       m.duration = duration
     end function
 
-    override function setDelay(delay)
+    override function isValidValue(value as mc.types.array) as boolean
+      return mc.isPoint(value)
+    end function
+
+    override function setDelay(delay as float)
       m.delay = delay
       if m.wAnim <> invalid
         m.wAnim.setDelay(delay)
@@ -493,22 +497,22 @@ namespace mv.animations
       end if
     end function
 
-    override function animateTo(toValue, duration = invalid)
+    override function animateTo(toValue as dynamic, duration = invalid as float)
       m.wAnim.animateTo(toValue[0], duration)
       m.hAnim.animateTo(toValue[1], duration)
     end function
 
-    override function animateToWithSpeed(toValue, stepSpeed, stepUnit = "pixel")
+    override function animateToWithSpeed(toValue as dynamic, stepSpeed as float, stepUnit = "pixel" as string)
       m.wAnim.animateToWithSpeed(toValue[0], stepSpeed, stepUnit)
       m.hAnim.animateToWithSpeed(toValue[1], stepSpeed, stepUnit)
     end function
 
-    override function setFromToValue(fromValue, toValue)
+    override function setFromToValue(fromValue as dynamic, toValue as dynamic)
       m.wAnim.setFromToValue(fromValue[0], toValue[1])
       m.hAnim.setFromToValue(fromValue[0], toValue[1])
     end function
 
-    override function observeFraction(callback, scope = invalid)
+    override function observeFraction(callback as function, scope = invalid as dynamic)
       m.wAnim.observeFraction(callback, scope)
     end function
 
@@ -522,7 +526,7 @@ namespace mv.animations
     private mAnim
     private maxScale
 
-    function new(target, duration, maxScale, delay = 0)
+    function new(target as mc.types.node, duration as float, maxScale as float, delay = 0 as float)
       super(target, "size", duration, invalid, invalid, "SizeAnimation", delay)
       m.maxScale = maxScale
       m.sAnim = mv.animations.utils.scaleTo(target, duration, target.scale, false, delay)
@@ -541,22 +545,22 @@ namespace mv.animations
     private override function createAnimationNode()
     end function
 
-    override function setEaseFunction(easeFunction)
+    override function setEaseFunction(easeFunction as dynamic)
       m.easeFunction = easeFunction
       m.sAnim.setEaseFunction(easeFunction)
       m.mAnim.setEaseFunction(easeFunction)
     end function
 
-    override function setKeys(keys, keyValues)
+    override function setKeys(keys as mc.types.array, keyValues as mc.types.array)
     end function
 
-    override function setDuration(duration)
+    override function setDuration(duration as float)
       m.sAnim.setDuration(duration)
       m.mAnim.setDuration(duration)
       m.duration = duration
     end function
 
-    override function setDelay(delay)
+    override function setDelay(delay as float)
       m.delay = delay
       if m.sAnim <> invalid
         m.sAnim.setDelay(delay)
@@ -564,20 +568,20 @@ namespace mv.animations
       end if
     end function
 
-    override function animateTo(toValue, duration = invalid)
+    override function animateTo(toValue as dynamic, duration = invalid as float)
       m.sAnim.animateTo(toValue[0], duration)
       m.mAnim.animateTo(toValue[1], duration)
     end function
 
-    override function animateToWithSpeed(toValue, stepSpeed, stepUnit = "pixel")
+    override function animateToWithSpeed(toValue as dynamic, stepSpeed as float, stepUnit = "pixel" as string)
       m.sAnim.animateToWithSpeed(toValue[0], stepSpeed, stepUnit)
       m.mAnim.animateToWithSpeed(toValue[1], stepSpeed, stepUnit)
     end function
 
-    override function setFromToValue(fromValue, toValue)
+    override function setFromToValue(fromValue as dynamic, toValue as dynamic)
     end function
 
-    override function observeFraction(callback, scope = invalid)
+    override function observeFraction(callback as function, scope = invalid as dynamic)
       m.sAnim.observeFraction(callback, scope)
     end function
 
@@ -586,16 +590,16 @@ namespace mv.animations
     end function
 
     override function jumpToEnd()
-      for each animation in animations
+      for each animation in m.animations
         animation.jumpToEnd()
       end for
     end function
 
-    function ceil(number)
+    function ceil(number as float) as integer
       return - int(- number)
     end function
 
-    function floor(number)
+    function floor(number as float) as integer
       return int(number)
     end function
 
@@ -644,9 +648,6 @@ namespace mv.animations
       sh = h - w * endScale
       xAmount = (rnd(sw) - sw / 2) * 0.25
       yAmount = (rnd(sh) - sh / 2) * 0.25
-      'Pick the first corner. Remove it from the array
-      choice = m.floor(rnd(3))
-      sCorner = corners[choice]
 
       toPos = [
         eCorner.x * xAmount
@@ -660,7 +661,7 @@ namespace mv.animations
 
 
   class FloatValue extends mv.animations.AbstractAnimation
-    function new(target, field, duration, fromValue, toValue, delay = 0)
+    function new(target as mc.types.node, field as string, duration as float, fromValue as float, toValue as float, delay = 0 as float)
       super(target, field, duration, fromValue, toValue, "FloatAnimation", delay)
     end function
 
@@ -668,7 +669,7 @@ namespace mv.animations
       m._createInterpolator("FloatFieldInterpolator")
     end function
 
-    override function isValidValue(value)
+    override function isValidValue(value as float) as boolean
       return mc.isNumber(value)
     end function
 
@@ -680,7 +681,7 @@ namespace mv.animations
 
 
   class VectorValue extends mv.animations.AbstractAnimation
-    function new(target, field, duration, fromValue, toValue, delay = 0)
+    function new(target as mc.types.node, field as string, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float)
       super(target, field, duration, fromValue, toValue, "VectorValueAnimation", delay)
     end function
 
@@ -688,8 +689,8 @@ namespace mv.animations
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
-    override function isValidValue(value)
-      return mc.isNumber(value)
+    override function isValidValue(value as mc.types.array) as boolean
+      return mc.isPoint(value)
     end function
 
     public override function clone()
@@ -703,7 +704,7 @@ namespace mv.animations
     public delay = 0
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
-    function new(target, animations = invalid, repeat = false, delay = 0)
+    function new(target as mc.types.node, animations = invalid as mc.types.array, repeat = false as boolean, delay = 0 as float)
       super("SequenceAnimation", target)
       m.node = createObject("roSGNode", "SequentialAnimation")
       animId = mv.animations.getAnimationKeyId()
@@ -717,7 +718,7 @@ namespace mv.animations
       m.target.appendChild(m.node)
     end function
 
-    function setAnimateFromCurrentValue(value)
+    function setAnimateFromCurrentValue(value as dynamic)
       m.animateFromCurrentValue = value
       for each animation in m.animations
         animation.setAnimateFromCurrentValue(value)
@@ -731,7 +732,7 @@ namespace mv.animations
       end for
     end function
 
-    override function start(resume = false)
+    override function start(resume = false as boolean)
       if m.animateFromCurrentValue
         m.syncStartKeys()
       end if
@@ -751,7 +752,7 @@ namespace mv.animations
     '++ public api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function addAnimations(animations)
+    function addAnimations(animations as mc.types.array)
       m.animations = []
       for each animation in animations
         if animation <> invalid and type(animation.node) = "roSGNode"
@@ -771,7 +772,7 @@ namespace mv.animations
       end for
     end function
 
-    function observeState(callback, scope = invalid)
+    function observeState(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
     end function
 
@@ -792,7 +793,7 @@ namespace mv.animations
     private scale = [1, 1]
     private movement = [0, 0]
 
-    function new(target, duration, scale, movement, delay = 0)
+    function new(target as mc.types.node, duration as float, scale as mc.types.array, movement as mc.types.array, delay = 0 as float)
       super(target, "scale", duration, invalid, invalid, "SimpleKenBurnsAnimation", delay)
       m.scale = [scale, scale]
       m.movement = [target.width * movement[0], target.height * movement[1]]
@@ -814,22 +815,22 @@ namespace mv.animations
     private override function createAnimationNode()
     end function
 
-    override function setEaseFunction(easeFunction)
+    override function setEaseFunction(easeFunction as dynamic)
       m.easeFunction = easeFunction
       m.sAnim.setEaseFunction(easeFunction)
       m.mAnim.setEaseFunction(easeFunction)
     end function
 
-    override function setKeys(keys, keyValues)
+    override function setKeys(keys as mc.types.array, keyValues as mc.types.array)
     end function
 
-    override function setDuration(duration)
+    override function setDuration(duration as float)
       m.sAnim.setDuration(duration)
       m.mAnim.setDuration(duration)
       m.duration = duration
     end function
 
-    override function setDelay(delay)
+    override function setDelay(delay as float)
       m.delay = delay
       if m.sAnim <> invalid
         m.sAnim.setDelay(delay)
@@ -837,19 +838,19 @@ namespace mv.animations
       end if
     end function
 
-    override function animateTo(toValue, duration = invalid)
+    override function animateTo(toValue as dynamic, duration = invalid as float)
       m.log.error("not supported")
     end function
 
-    override function animateToWithSpeed(toValue, stepSpeed, stepUnit = "pixel")
+    override function animateToWithSpeed(toValue as dynamic, stepSpeed as float, stepUnit = "pixel" as string)
       m.log.error("not supported")
     end function
 
-    override function setFromToValue(fromValue, toValue)
+    override function setFromToValue(fromValue as dynamic, toValue as dynamic)
       m.log.error("not supported")
     end function
 
-    override function observeFraction(callback, scope = invalid)
+    override function observeFraction(callback as function, scope = invalid as dynamic)
       m.sAnim.observeFraction(callback, scope)
     end function
 
@@ -858,7 +859,7 @@ namespace mv.animations
     end function
 
     override function jumpToEnd()
-      for each animation in animations
+      for each animation in m.animations
         animation.jumpToEnd()
       end for
     end function
@@ -870,10 +871,10 @@ namespace mv.animations
 
 
   function getAnimationKeyId()
-    if m.global.__manimKey = invalid
-      m.global.addFields({ __manimKey: 0 })
+    if m.global.__m_animKey = invalid
+      m.global.addFields({ __m_animKey: 0 })
     end if
-    m.global.__manimKey++
-    return m.global.__manimKey
+    m.global.__m_animKey++
+    return m.global.__m_animKey
   end function
 end namespace

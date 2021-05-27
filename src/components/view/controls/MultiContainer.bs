@@ -1,4 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Types-Polyfill.bs"
 
 function init()
   m.previousY = 0
@@ -6,9 +7,9 @@ function init()
   m.top.observeFieldScoped("index", "onIndexChange")
   m.top.observeFieldScoped("size", "onSizeChange")
   m.top.observeFieldScoped("children", "onChildrenChange")
-  m.top.observeFieldScoped("needsRecalculating", "onNeedsRecalcuatingChange")
+  m.top.observeFieldScoped("needsRecalculating", "onNeedsRecalculatingChange")
   m.top.observeFieldScoped("yOffsets", "onIndexChange")
-  m.container_updateTimer.observeFieldScoped("fire", "onNeedsRecalcuatingChange")
+  m.container_updateTimer.observeFieldScoped("fire", "onNeedsRecalculatingChange")
   m.previousCurrFocusRow = 1
   m.isFloatingFocusOffsetApplied = false
   m.rowListFloatingFocusPositionOffset = 0
@@ -23,11 +24,11 @@ function init()
   onSizeChange()
 end function
 
-function initialize(args)
+function initialize(args as mc.types.assocarray)
   updateChildren()
 end function
 
-function updateChildren(newChildren = invalid)
+function updateChildren(newChildren = invalid as mc.types.array)
   children = []
   backgroundChildren = []
   m.container_updateTimer.control = "stop"
@@ -54,14 +55,14 @@ function updateChildren(newChildren = invalid)
   m.container_layoutGroup.appendChildren(children)
   m.top.numChildren = children.count()
   m.top.index = 0
-  onNeedsRecalcuatingChange()
+  onNeedsRecalculatingChange()
   m.container_updateTimer.control = "start"
 end function
 
-function onHeroOffsetChildCurrFocusRowChange(event)
+function onHeroOffsetChildCurrFocusRowChange(event as object)
   'change override offset back to 0
   currFocusRow = event.getData()
-  node = event.getroSGNode()
+  node = event.getRoSGNode()
   delta = currFocusRow - m.previousCurrFocusRow
   m.previousCurrFocusRow = currFocusRow
 
@@ -94,7 +95,7 @@ function onHeroOffsetChildCurrFocusRowChange(event)
   end if
 end function
 
-function fixRowListPosition(rowlist, direction, currFocusRow)
+function fixRowListPosition(rowlist as mc.types.node, direction as integer, currFocusRow as mc.types.node)
   if m.rowListFloatingFocusPositionOffset <> 0 and direction = 1 and not m.isFloatingFocusOffsetApplied and currFocusRow > 1.5 and currFocusRow < 2.5
     ' ? "applying fix"
     m.isFloatingFocusOffsetApplied = true
@@ -135,13 +136,13 @@ function onChildrenChange()
   onSizeChange()
 end function
 
-function onIndexChange()
+function onIndexChange() as void
   m.log.method("onIndexChange", m.top.index, "isAnimated", m.top.isAnimated)
   child = m.container_layoutGroup.getChild(m.top.index)
 
   if child = invalid
     m.log.warn("tried to set index before the children were created")
-    return invalid
+    return
   end if
 
   setClippingRectangle()
@@ -162,7 +163,7 @@ function onIndexChange()
 
 end function
 
-function moveToCurrentIndex(forceNoAnimation = false)
+function moveToCurrentIndex(forceNoAnimation = false as boolean)
   newY = getYOfIndex(m.top.index)
   if newY < m.container_layoutGroup.translation[1]
     m.animationDirection = 1
@@ -176,7 +177,7 @@ function moveToCurrentIndex(forceNoAnimation = false)
   m.previousY = newY
 end function
 
-function moveContentTo(previousY, newY, forceNoAnimation = false)
+function moveContentTo(previousY as integer, newY as integer, forceNoAnimation = false as boolean)
   if m.top.isAnimated and not forceNoAnimation
     if m.container_animation.state = "running"
       m.container_animation.control = "pause"
@@ -197,7 +198,7 @@ function moveContentTo(previousY, newY, forceNoAnimation = false)
 
 end function
 
-function getYOfIndex(index)
+function getYOfIndex(index as integer)
   y = 0
   currentOffset = 0
   ' m.log.verbose("index", index)
@@ -237,8 +238,8 @@ function getYOfIndex(index)
   return - y
 end function
 
-function onNeedsRecalcuatingChange()
-  m.log.info("onNeedsRecalcuatingChange - recalcuating _multiContainer")
+function onNeedsRecalculatingChange()
+  m.log.info("onNeedsRecalculatingChange - recalculating _multiContainer")
   y = 0
   heroControl = invalid
   m.rowListFloatingFocusPositionOffset = 0
@@ -265,7 +266,7 @@ function onNeedsRecalcuatingChange()
 
 end function
 
-function onGainedFocus(isSelfFocused)
+function onGainedFocus(isSelfFocused as boolean)
   ' m.log.method("onGainedFocus", isSelfFocused)
 
   if isSelfFocused

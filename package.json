@@ -1,76 +1,74 @@
 {
-    "name": "maestro-roku",
-    "version": "0.11.3",
-    "description": "A development platform for building roku channels in brighterscript",
-    "directories": {
-        "doc": "docs"
-    },
-    "files": [
-        "dist/**/!(manifest)*",
-        "!dist/components/maestro",
-        "!roku_modules",
-        "dist/**/!(*.spec.)*"
-    ],
-    "dependencies": {
-        "bslib": "npm:@rokucommunity/bslib@^0.1.1",
-        "log": "npm:roku-log@^0.4.1"
-    },
-    "devDependencies": {
-        "auto-changelog": "^2.2.1",
-        "brighterscript": "^0.39.0",
-        "fs-extra": "^7.0.1",
-        "maestro-roku-bsc-plugin": "^0.9.3",
-        "rimraf": "^3.0.2",
-        "roku-log-bsc-plugin": "^0.3.0",
-        "rooibos-roku": "^4.3.0",
-        "ropm": "^0.9.1",
-        "statigen": "^0.3.0",
-        "typescript": "^4.1.3"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/georgejecook/maestro-roku.git"
-    },
-    "keywords": [
-        "ropm",
-        "brightscript",
-        "mvvm",
-        "framework",
-        "fun"
-    ],
-    "author": "George Cook",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/georgejecook/maestro-roku/issues"
-    },
-    "homepage": "https://github.com/georgejecook/maestro-roku#readme",
-    "ts-node": {
-        "transpileOnly": true,
-        "compileOptions": {
-            "incremental": true,
-            "allowJs": false
-        }
-    },
-    "ropm": {
-        "rootDir": "src",
-        "packageRootDir": "dist",
-        "prefixMatching": "expanded"
-    },
-    "auto-changelog": {
-        "template": "keepachangelog",
-        "commitLimit": false,
-        "tag-pattern": ".+"
-    },
-    "scripts": {
-        "local": "ts-node scripts/install-local.js",
-        "remote": "ts-node scripts/install-npm.js",
-        "build": "node scripts/run.js && ts-node scripts/cleanup-build.js",
-        "build-remote": "npm run remote && npm run build",
-        "build-local": "npm run local && npm run build",
-        "build-test": "node scripts/run-test.js",
-        "changelog": "npx auto-changelog",
-        "build-docs": "statigen -s docs -o .tmp/docs",
-        "publish-docs": "npm run build-docs && git checkout docspub && rm -rf docs && cp -r .tmp/docs . && git add --all && git commit -m 'docs update' && git push -f && git checkout master",
-        "watch-docs": "npm run build-docs -- --watch"
+  "name": "maestro-roku",
+  "version": "0.11.3",
+  "description": "A development platform for building roku channels in brighterscript",
+  "directories": {
+    "doc": "docs"
+  },
+  "files": [
+    "dist/**/!(manifest)*",
+    "!dist/components/maestro",
+    "!roku_modules",
+    "dist/**/!(*.spec.)*"
+  ],
+  "dependencies": {
+    "bslib": "npm:@rokucommunity/bslib@^0.1.1",
+    "log": "npm:roku-log@^0.4.1"
+  },
+  "devDependencies": {
+    "@rokucommunity/bslint": "^0.3.0",
+    "auto-changelog": "^2.2.1",
+    "brighterscript": "^0.39.0",
+    "fs-extra": "^7.0.1",
+    "maestro-roku-bsc-plugin": "^0.9.3",
+    "rimraf": "^3.0.2",
+    "roku-log-bsc-plugin": "^0.3.0",
+    "rooibos-roku": "^4.3.0",
+    "ropm": "^0.9.1",
+    "statigen": "^0.3.0",
+    "typescript": "^4.1.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgejecook/maestro-roku.git"
+  },
+  "keywords": [
+    "ropm",
+    "brightscript",
+    "mvvm",
+    "framework",
+    "fun"
+  ],
+  "author": "George Cook",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/georgejecook/maestro-roku/issues"
+  },
+  "homepage": "https://github.com/georgejecook/maestro-roku#readme",
+  "ts-node": {
+    "transpileOnly": true,
+    "compileOptions": {
+      "incremental": true,
+      "allowJs": false
     }
+  },
+  "ropm": {
+    "rootDir": "src",
+    "packageRootDir": "dist",
+    "prefixMatching": "expanded"
+  },
+  "auto-changelog": {
+    "template": "keepachangelog",
+    "commitLimit": false,
+    "tag-pattern": ".+"
+  },
+  "scripts": {
+    "build": "node scripts/run.js && ts-node scripts/cleanup-build.js",
+    "build-test": "node scripts/run-test.js",
+    "changelog": "npx auto-changelog",
+    "build-docs": "statigen -s docs -o .tmp/docs",
+    "publish-docs": "npm run build-docs && git checkout docspub && rm -rf docs && cp -r .tmp/docs . && git add --all && git commit -m 'docs update' && git push -f && git checkout master",
+    "watch-docs": "npm run build-docs -- --watch",
+    "lint": "npx bslint"
+  }
 }

@@ -3,10 +3,10 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mc
 
-' /**
-'  * @module ComponentPool
-'  * @description all purpose component pool that can store any kind of components for reuse
-'  */
+  ' /**
+  '  * @module ComponentPool
+  '  * @description all purpose component pool that can store any kind of components for reuse
+  '  */
   @strict
   @node("mc_ComponentPool", "Group")
   class ComponentPool
@@ -43,7 +43,7 @@ namespace mc
       m.top.numberOfComponentsInUse = 0
     end function
 
-    function getComponentPool(componentType)
+    function getComponentPool(componentType as string) as mc.types.node
       pool = m.poolsByComponentType[componentType]
       if pool = invalid
         pool = { usedComponentsById: {}
@@ -56,7 +56,7 @@ namespace mc
       return pool
     end function
 
-    function prebakeComponents(number)
+    function prebakeComponents(number as integer, componentType as string)
       m.log.info("adding ", number, componentType, "components")
       pool = m.getComponentPool(componentType)
 
@@ -72,11 +72,9 @@ namespace mc
           m.log.error("error creating component with type", componentType)
         end if
       end for
-      ' ? "finished making components"
     end function
 
-    function getComponent(componentType = invalid)
-      ? "asked for component of "; componentType
+    function getComponent(componentType as string) as mc.types.node
 
       pool = m.getComponentPool(componentType)
 
@@ -97,19 +95,24 @@ namespace mc
         end if
       end if
 
+      id = invalid
       for each id in pool.freeComponentsById
         exit for
       end for
 
-      component = pool.freeComponentsById[id]
-      pool.freeComponentsById.delete(id)
-      pool.usedComponentsById[id] = component
-      m.top.numberOfComponentsInUse++
-      ' ? "returning component with id"; id
-      return component
+      if id <> invalid
+        component = pool.freeComponentsById[id]
+        pool.freeComponentsById.delete(id)
+        pool.usedComponentsById[id] = component
+        m.top.numberOfComponentsInUse++
+        return component
+      else
+        m.log.error("could not get or create component of type ", componentType)
+        return invalid
+      end if
     end function
 
-    function releaseComponent(component)
+    function releaseComponent(component as mc.types.node)
       if component <> invalid
         ' ? "releasing component "; component.id
         pool = m.getComponentPool(component.subType())
@@ -124,7 +127,7 @@ namespace mc
     '++ private impl
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function createComponent(componentType)
+    private function createComponent(componentType as string) as dynamic
       pool = m.getComponentPool(componentType)
       component = createObject("roSGNode", componentType)
       component.id = str(pool.numberOfComponentsInPool).trim()

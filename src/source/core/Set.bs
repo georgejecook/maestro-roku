@@ -1,5 +1,5 @@
 ' /**
-'  * @member Dicationry
+'  * @member Dictionary
 '  * @memberof module:Set
 '  * @instance
 '  * @function
@@ -24,7 +24,7 @@ namespace mc.collections
       m.top._debug = invalid
     end function
 
-    public function add(value)
+    public function add(value as dynamic)
       index = m.getIndex(value)
       if index <> -1
         m.data.remove(index)
@@ -33,25 +33,25 @@ namespace mc.collections
       m.top.length = m.data.count()
     end function
 
-    public function append(other)
+    public function append(other as mc.types.node)
       m.data.append(other)
       m.top.length = m.data.count()
     end function
 
-    public function get(index)
+    public function get(index as integer) as dynamic
       return m.data[index]
     end function
 
-    public function remove(index)
+    public function remove(index as integer)
       m.data.delete(index)
       m.top.length = m.data.count()
     end function
 
-    public function hasValue(value)
+    public function hasValue(value as dynamic) as boolean
       return m.getIndex(value) <> -1
     end function
 
-    public function getIndex(value)
+    public function getIndex(value as dynamic) as integer
       for i = 0 to m.data.count() - 1
         if m.data[i] = value
           return i
@@ -64,7 +64,7 @@ namespace mc.collections
       return m.data
     end function
 
-    private function onDebugChange(value)
+    private function onDebugChange(value as dynamic)
       m.top.__contents = m.data
     end function
   end class

@@ -1,54 +1,54 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 namespace mc
-  function isUndefined(value)
+  function isUndefined(value as dynamic) as boolean
     return type(value) = "<uninitialized>"
   end function
 
-  function isInvalid(value)
+  function isInvalid(value as dynamic) as boolean
     return type(value) = "<uninitialized>" or value = invalid
   end function
 
-  function isArray(value)
+  function isArray(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and value <> invalid and GetInterface(value, "ifArray") <> invalid
   end function
 
-  function isAACompatible(value)
+  function isAACompatible(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and value <> invalid and GetInterface(value, "ifAssociativeArray") <> invalid
   end function
 
-  function isString(value)
+  function isString(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and GetInterface(value, "ifString") <> invalid
   end function
 
-  function isBoolean(value)
+  function isBoolean(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and GetInterface(value, "ifBoolean") <> invalid
   end function
 
-  function isFunction(value)
+  function isFunction(value as dynamic) as boolean
     return type(value) = "Function" or type(value) = "roFunction"
   end function
 
-  function isInteger(value)
+  function isInteger(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and GetInterface(value, "ifInt") <> invalid
   end function
 
-  function isNumber(value)
+  function isNumber(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and (GetInterface(value, "ifFloat") <> invalid or GetInterface(value, "ifInt") <> invalid)
   end function
 
-  function isFloat(value)
+  function isFloat(value as dynamic) as boolean
     return type(value) <> "<uninitialized>" and GetInterface(value, "ifFloat") <> invalid
   end function
 
-  function isPoint(value)
+  function isPoint(value as dynamic) as boolean
     return mc.isArray(value) and value.count() = 2
   end function
 
-  function isPointEqual(value, otherValue)
-    return mc.isPoint(value) and mc.isPoint(otherValue) and value[0] = othervalue[0] and value[1] = otherValue[1]
+  function isPointEqual(value as dynamic, otherValue as dynamic) as boolean
+    return mc.isPoint(value) and mc.isPoint(otherValue) and value[0] = otherValue[0] and value[1] = otherValue[1]
   end function
 
-  function dv(view)
+  function dv(view as dynamic) as string
     if type(view) = "roSGNode"
       return view.subtype() + "." + view.id
     else
@@ -69,7 +69,7 @@ namespace mc
   '  * @param {Any} p3 param 3, can leave blank to skip
   '  * @returns {any} whatever the func returns, or invald if not found
   '  */
-  function callAAFunc(target, funcName, p1 = "#M_NONE#", p2 = "#M_NONE#", p3 = "#M_NONE#")
+  function callAAFunc(target as mc.types.node, funcName as string, p1 = "#M_NONE#" as dynamic, p2 = "#M_NONE#" as dynamic, p3 = "#M_NONE#" as dynamic) as dynamic
 
     if target <> invalid
       if mc.isFunction(target[funcName])
@@ -92,21 +92,21 @@ namespace mc
     return invalid
   end function
 
-  function apply(func, args = [], target = invalid)
+  function apply(func as function, args = [] as mc.types.array, target = invalid as mc.types.assocarray) as dynamic
     if not mc.isArray(args)
-      'm.log.error("apply expects an array of args")
+      m.log.error("apply expects an array of args")
       return invalid
     end if
 
     count = args.count()
     if count > 4
-      'm.log.error("apply only supports up to 4 params")
+      m.log.error("apply only supports up to 4 params")
       return invalid
     end if
 
     if target <> invalid
       if not mc.isFunction(target[func])
-        'm.log.error("target did not have function ", func)
+        m.log.error("target did not have function ", func)
         return invalid
       end if
 
@@ -139,9 +139,10 @@ namespace mc
         return func(args[0], args[1], args[2], args[3])
       end if
     end if
+    return invalid
   end function
 
-  function removeDuplicateKeys(aa = invalid, otherAA = invalid)
+  function removeDuplicateKeys(aa = invalid as mc.types.assocarray, otherAA = invalid as mc.types.assocarray)
     if otherAA <> invalid and aa <> invalid
 
       for each key in otherAA
@@ -160,12 +161,12 @@ namespace mc
   '  * @memberof module:Utils
   '  * @instance
   '  * @function
-  '  * @description get's content field from array. This variation has a slower implementation that supports array lookup
+  '  * @description gets content field from array. This variation has a slower implementation that supports array lookup
   '  * @param {assocarray} content - node/aa to look up on
   '  * @param {string} field - path to field, with "items.2.path.syntax",
-  '  * @returns {any} value if foud, or default value
+  '  * @returns {any} value if found, or default value
   '  */
-  function getPath(content, field, default = invalid, disableIndexing = false)
+  function getPath(content as object, field as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
     part = invalid
 
     if field <> invalid
@@ -207,12 +208,12 @@ namespace mc
   '  * @memberof module:Utils
   '  * @instance
   '  * @function
-  '  * @description get's content field from array. This variation has a slower implementation that supports array lookup
+  '  * @description gets content field from array. This variation has a slower implementation that supports array lookup
   '  * @param {assocarray} content - node/aa to look up on
   '  * @param {string} field - path to field, with "items.2.path.syntax",
-  '  * @returns {any} value if foud, or default value
+  '  * @returns {any} value if found, or default value
   '  */
-  function setPath(content, field, value = invalid)
+  function setPath(content as dynamic, field as mc.types.array, value = invalid as dynamic)
     part = invalid
 
     if field <> invalid
@@ -240,14 +241,13 @@ namespace mc
         end if
         i++
       end while
-    end if
-
-    if part <> invalid and i = numParts
-      part[parts[i]] = value
+      if part <> invalid and i = numParts
+        part[parts[i]] = value
+      end if
     end if
   end function
 
-  function setOrAddNodeField(node, field, value = invalid)
+  function setOrAddNodeField(node as mc.types.node, field as string, value = invalid as dynamic)
     if type(node) = "roSGNode"
       if node.doesExist(field)
         node[field] = value
@@ -263,7 +263,7 @@ namespace mc
     end if
   end function
 
-  function setNodeAAValue(node, field, key, value = invalid)
+  function setNodeAAValue(node as mc.types.node, field as string, key as string, value = invalid as dynamic)
     v = node[field]
     if v = invalid
       v = {}
@@ -272,7 +272,7 @@ namespace mc
     mc.setOrAddNodeField(node, field, v)
   end function
 
-  function setNodeArrayValue(node, field, index, value = invalid)
+  function setNodeArrayValue(node as mc.types.node, field as string, index as integer, value = invalid as dynamic)
     v = node[field]
     if v = invalid
       v = []
@@ -281,13 +281,13 @@ namespace mc
     mc.setOrAddNodeField(node, field, v)
   end function
 
-  function setOrAddNodeFields(node, fields)
+  function setOrAddNodeFields(node as mc.types.node, fields as mc.types.array)
     for each field in fields
       mc.setOrAddNodeField(node, field, fields[field])
     end for
   end function
 
-  function getChildAtDepth(node, depth)
+  function getChildAtDepth(node as mc.types.node, depth as integer) as dynamic
     currentDepth = 0
 
     while node <> invalid and currentDepth < depth
@@ -298,7 +298,7 @@ namespace mc
     return node
   end function
 
-  function strToBool(s)
+  function strToBool(s as string) as boolean
     if s = invalid
       return false
     else
@@ -306,7 +306,7 @@ namespace mc
     end if
   end function
 
-  function strToInt(s)
+  function strToInt(s as string) as integer
     if s = invalid
       return 0
     else
@@ -314,7 +314,7 @@ namespace mc
     end if
   end function
 
-  function strToLong(value)
+  function strToLong(value as string) as dynamic
     a& = 0
     if mc.isString(value)
       return a& + parseJson(value)
@@ -323,7 +323,7 @@ namespace mc
     return a&
   end function
 
-  function getIndexOfItem(parent, item)
+  function getIndexOfItem(parent as mc.types.node, item as mc.types.node) as integer
     if item <> invalid
       for index = 0 to parent.getChildCount() - 1
         node = parent.getChild(index)
@@ -335,7 +335,7 @@ namespace mc
     return -1
   end function
 
-  function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, isCallingInitialize = true)
+  function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, isCallingInitialize = true as boolean) as mc.types.node
     if parent <> invalid
       node = parent.createChild(nodeType)
     else
@@ -361,12 +361,12 @@ namespace mc
     return node
   end function
 
-  function createNode(nodeType)
+  function createNode(nodeType as string) as mc.types.node
     node = createObject(nodeType)
     return node
   end function
 
-  function getFunctionName(value)
+  function getFunctionName(value as function) as string
     if mc.isFunction(value)
       return value.toStr().mid(10)
     else
@@ -374,7 +374,7 @@ namespace mc
     end if
   end function
 
-  function toggleObserver(target, field, callbackName = invalid)
+  function toggleObserver(target as object, field as string, callbackName = invalid as string)
     if target <> invalid
       if callbackName <> invalid
         target.observeFieldScoped(field, callbackName)
@@ -384,7 +384,7 @@ namespace mc
     end if
   end function
 
-  function clamp(number, low, high, wrap = false)
+  function clamp(number as dynamic, low as dynamic, high as dynamic, wrap = false as boolean) as dynamic
     if number < low
       number = wrap ? high : low
     else if number > high
@@ -397,19 +397,19 @@ namespace mc
   '++ punch out methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function getMField(fieldName)
+  function getMField(fieldName as string) as dynamic
     return m[fieldName]
   end function
 
-  function getGlobal()
+  function getGlobal() as dynamic
     return m.global
   end function
 
-  function getTop()
+  function getTop() as mc.types.node
     return m.top
   end function
 
-  function getScene()
+  function getScene() as mc.types.node
     return m.top.getScene()
   end function
 

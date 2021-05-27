@@ -1,3 +1,5 @@
+import "pkg:/source/core/Types-Polyfill.bs"
+
 function init() as void
   m.currentView = invalid
 end function
@@ -6,7 +8,7 @@ end function
 '++ view management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function hideView(view)
+function hideView(view as mc.types.node)
   if view <> invalid
     if view.isSameNode(m.top.currentView)
       m.top.currentView = invalid
@@ -17,7 +19,7 @@ function hideView(view)
 
 end function
 
-function transitionToView(view, animated = true)
+function transitionToView(view as mc.types.node, animated = true as boolean)
   if m.top.transition = invalid
     m.top.transition = createObject("roSGNode", "mv_SimpleTransition")
   end if
@@ -34,7 +36,7 @@ function onShow()
     m.log.info("setting view visible: ",  m.top.currentView.subType(), ".", m.top.currentView.id)
     m.top.currentView.visible = true
   else
-    m.log.warn("this aggregrate view has no currentView")
+    m.log.warn("this aggregate view has no currentView")
   end if
 end function
 
@@ -44,11 +46,11 @@ function onHide()
     m.log.info("setting view invisible: ",  m.top.currentView.subType(), ".", m.top.currentView.id)
     m.top.currentView.visible = false
   else
-    m.log.warn("this aggregrate view has no currentView")
+    m.log.warn("this aggregate view has no currentView")
   end if
 end function
 
-function onGainedFocus(isSelfFocused)
+function onGainedFocus(isSelfFocused as boolean)
   ' m.log.verbose("onGainedFocus", isSelfFocused)
 
   if isSelfFocused

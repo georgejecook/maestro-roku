@@ -12,7 +12,7 @@ namespace mc.collections
   '  * @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
   '  * @returns {outputType} items mapped by the mapper
   '  */
-  function mapArray(array, mapper)
+  function mapArray(array as mc.types.array, mapper as mc.collections.BaseMapper)
     items = []
     if array <> invalid
       isClass = isClass(mapper)
@@ -33,7 +33,7 @@ namespace mc.collections
     return items
   end function
 
-  function getItemAtOffset(array, item, offset)
+  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer)
     if array = invalid or array.count() = 0
       return invalid
     end if
@@ -41,7 +41,7 @@ namespace mc.collections
     return array[mc.clamp(index + offset, 0, array.count() - 1)]
   end function
 
-  function getArrayIndex(array, item)
+  function getArrayIndex(array as mc.types.array, item as dynamic)
     if array = invalid or array.count() = 0
       return -1
     end if
@@ -59,37 +59,53 @@ namespace mc.collections
   '++ mappers
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  class CallFuncMapper
-    function new(funcName, args)
+  class BaseMapper
+    function transform(item as dynamic)
+    end function
+  end class
+
+  class CallFuncMapper extends mc.collections.BaseMapper
+    function new(funcName as string, args as mc.types.assocarray)
+      super()
       m.funcName = funcName
       m.args = args
     end function
 
-    function transform(item)
-      if item = invalid then return invalid
+    override function transform(item as dynamic)
+      if item = invalid
+        return invalid
+      end if
       return item.callFunc(m.funcName, m.args)
     end function
   end class
 
-  class FuncMapper
-    function new(funcName)
+  class FuncMapper extends mc.collections.BaseMapper
+    function new(funcName as string)
+      super()
       m.funcName = funcName
     end function
 
-    function transform(item)
-      if item = invalid then return invalid
-      if item[m.funcName] = invalid then return invalid
+    override function transform(item as dynamic)
+      if item = invalid
+        return invalid
+      end if
+      if item[m.funcName] = invalid
+        return invalid
+      end if
       return item[m.funcName]()
     end function
   end class
 
-  class FieldMapper
-    function new(fieldName)
+  class FieldMapper extends mc.collections.BaseMapper
+    function new(fieldName as string)
+      super()
       m.fieldName = fieldName
     end function
 
-    function transform(item)
-      if item = invalid then return invalid
+    override function transform(item as dynamic)
+      if item = invalid
+        return invalid
+      end if
       return item[m.fieldName]
     end function
   end class
@@ -104,7 +120,7 @@ namespace mc.collections
   '  * @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   '  * @returns {boolean} items that match the predicate
   '  */
-  function filterArray(array, predicate)
+  function filterArray(array as mc.types.array, predicate as dynamic)
     items = []
     if array <> invalid
       isClass = isClass(predicate)
@@ -121,51 +137,68 @@ namespace mc.collections
   '++ filter predicates
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  class ValuePredicate
-    function new(expected)
+  class AbstractPredicate
+    function isMatch(item as dynamic) as boolean
+      return false
+    end function
+  end class
+
+  class ValuePredicate extends mc.collections.AbstractPredicate
+    function new(expected as dynamic)
+      super()
       m.expected = expected
     end function
 
-    function isMatch(item)
+    override function isMatch(item as dynamic) as boolean
       return item = m.expected
     end function
   end class
 
-  class FieldPredicate
-    function new(fieldName, expected)
+  class FieldPredicate extends mc.collections.AbstractPredicate
+    function new(fieldName as string, expected as dynamic)
+      super()
       m.fieldName = fieldName
       m.expected = expected
     end function
 
-    function isMatch(item)
-      if item = invalid then return false
+    override function isMatch(item as dynamic) as boolean
+      if item = invalid
+        return false
+      end if
       return item[m.fieldName] = m.expected
     end function
   end class
 
   class FuncPredicate
-    function new(funcName, expected)
+    function new(funcName as string, expected as dynamic)
       m.funcName = funcName
       m.expected = expected
     end function
 
-    function isMatch(item)
-      if item = invalid then return false
-      if item[m.funcName] = invalid then return false
+    function isMatch(item as dynamic) as boolean
+      if item = invalid
+        return false
+      end if
+      if item[m.funcName] = invalid
+        return false
+      end if
       compareTo = item[m.funcName]()
       return compareTo = m.expected
     end function
   end class
 
-  class CallFuncPredicate
-    function new(funcName, args, expected)
+  class CallFuncPredicate extends mc.collections.AbstractPredicate
+    function new(funcName as string, args as mc.types.assocarray, expected as dynamic)
+      super()
       m.funcName = funcName
       m.args = args
       m.expected = expected
     end function
 
-    function isMatch(item)
-      if item = invalid then return false
+    override function isMatch(item as dynamic) as boolean
+      if item = invalid
+        return false
+      end if
       compareTo = item.callFunc(m.funcName, m.args)
       return m.expected = compareTo
     end function
@@ -175,7 +208,7 @@ namespace mc.collections
   '++ basic utils
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function arrayContains(array, value)
+  function arrayContains(array as mc.types.array, value as dynamic) as boolean
     for each item in array
       if item = value
         return true

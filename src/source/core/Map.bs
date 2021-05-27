@@ -21,34 +21,34 @@ namespace mc.collections
       m.top.length = 0
     end function
 
-    public function remove(key)
+    public function remove(key as string)
       m.data.delete(key)
       m.top.length = m.data.count()
     end function
 
-    public function set(key, value)
+    public function set(key as string, value as dynamic)
       m.data[key] = value
       m.top.length = m.data.count()
     end function
 
-    public function append(other)
+    public function append(other as mc.types.node)
       m.data.append(other)
       m.top.length = m.data.count()
     end function
 
-    public function get(key)
+    public function get(key as string) as dynamic
       return m.data[key]
     end function
 
-    public function hasKey(key)
+    public function hasKey(key as string) as boolean
       return m.data[key] <> invalid
     end function
 
-    public function getValues()
+    public function getValues() as mc.types.assocarray
       return m.data
     end function
 
-    private function onDebugChange(value)
+    private function onDebugChange(value as dynamic)
       ? "dumping contents"
       m.top.__contents = m.data
     end function

@@ -1,5 +1,6 @@
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/core/Utils.bs"
+import "Types-Polyfill.bs"
 
 namespace mc
   @strict
@@ -9,7 +10,7 @@ namespace mc
     protected name
     protected log
 
-    function new(name)
+    function new(name as string)
       m.log = new log.Logger(name)
       m.name = name
     end function
@@ -32,71 +33,39 @@ namespace mc
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType, parent = invalid, id = invalid, args = invalid, callInitialize = true)
+    protected function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean)
       return mc.createSGNode(nodeType, parent, id, args, callInitialize)
     end function
 
-    protected function createNode(nodeType)
+    protected function createNode(nodeType as string)
       return mc.createNode(nodeType)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Net helpers - TODO these will be added with the with keyword
-    '  when bs supports it
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    protected function get(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
-      return m.executeRequest("GET", url, params, callback, headers, otherArgs)
-    end function
-
-    protected function post(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
-      return m.executeRequest("POST", url, params, callback, headers, otherArgs)
-    end function
-
-    protected function del(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
-      return m.executeRequest("DELETE", url, params, callback, headers, otherArgs)
-    end function
-
-    protected function put(url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
-      return m.executeRequest("PUT", url, params, callback, headers, otherArgs)
-    end function
-
-    protected function executeRequest(method, url, params = invalid, callback = invalid, headers = invalid, otherArgs = invalid)
-      args = {
-        "method": method
-        "url": url
-        "params": params
-        "headers": headers
-        "otherArgs": otherArgs
-      }
-      return m.createTask("mc_RequestTask", { args: args }, callback)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node, fieldName, callback, sendMode = "value", once = false)
+    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
       mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
     end function
 
-    protected function unobserveNodeField(node, fieldName, callback = invalid)
+    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
       mc.tasks.unobserveNodeField(node, fieldName, callback, m)
     end function
 
-    protected function waitAFrame(callback, duration = 0.01, sendMode = "none")
+    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string)
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer)
+    protected function cancelWaitTimer(timer as mc.types.node)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function createTask(taskType, fields, callback = invalid, isRunning = true, sendMode = "value", fieldName = "output")
+    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as float, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task)
+    protected function cancelTask(task as mc.types.node)
       mc.tasks.cancelTask(task)
     end function
 

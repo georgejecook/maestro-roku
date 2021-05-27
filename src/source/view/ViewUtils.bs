@@ -2,7 +2,7 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mv
-  function findNodes(nodeIds) as void
+  function findNodes(nodeIds as mc.types.array) as void
     if type(nodeIds) = "roArray"
       for each nodeId in nodeIds
         node = m.top.findNode(nodeId)
@@ -15,7 +15,7 @@ namespace mv
     end if
   end function
 
-  function getFirstParentWithType(node, parentType)
+  function getFirstParentWithType(node as mc.types.node, parentType as string) as mc.types.node
     currentNode = node
 
     while currentNode <> invalid
@@ -29,7 +29,7 @@ namespace mv
     return invalid
   end function
 
-  function getFieldInParent(content, fieldName, maxIterations = 3, defaultValue = {})
+  function getFieldInParent(content as mc.types.node, fieldName as string, maxIterations = 3 as integer, defaultValue = {} as dynamic) as dynamic
     currentNode = content
     value = invalid
 
@@ -46,7 +46,7 @@ namespace mv
     return defaultValue
   end function
 
-  function destroyView(view)
+  function destroyView(view as mc.types.node)
     p = view.getParent()
 
     if p <> invalid

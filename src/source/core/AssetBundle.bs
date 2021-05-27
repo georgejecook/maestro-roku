@@ -4,7 +4,7 @@ namespace mc
     private json
     public version
 
-    function new(json)
+    function new(json as mc.types.assocarray)
       m.json = json
       m.version = json.version
     end function
@@ -16,7 +16,9 @@ namespace mc
       missingAssets = {}
       for each assetKey in m.json.files
         filename = id + "_" + assetKey
+        '// cspell:disable-next-line
         if not fs.exists("cachefs:/" + filename)
+          '// cspell:disable-next-line
           ? "assetKey " ; assetKey ; " is not in cachefs"
           missingAssets[assetKey] = m.json.files[assetKey]
         end if
@@ -24,7 +26,7 @@ namespace mc
       return missingAssets
     end function
 
-    function getChangedAssets(newerBundle)
+    function getChangedAssets(newerBundle as mc.AssetBundle)
       changedAssets = {}
 
       for each assetKey in newerBundle.json.files
@@ -37,7 +39,7 @@ namespace mc
       return changedAssets
     end function
 
-    function writeAssets(assetData, items)
+    function writeAssets(assetData as mc.types.assocarray, items as mc.types.assocarray)
       fs = CreateObject("roFileSystem")
       id = m.json.id
       if items = invalid

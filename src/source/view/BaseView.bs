@@ -22,11 +22,11 @@ namespace mv
 
     private vm = invalid
 
-    function new(name)
+    function new(name as string)
       super(name)
     end function
 
-    protected function initializeView(view, args = invalid)
+    protected function initializeView(view as mc.types.node, args = invalid as mc.types.array)
       if view <> invalid
         view@._initialize(args)
       else
@@ -34,12 +34,12 @@ namespace mv
       end if
     end function
 
-    protected function setFocus(target)
+    protected function setFocus(target as mc.types.node)
       'bs:disable-next-line
       mv.setFocus(target)
     end function
 
-    protected function setFocusLocked(target, message)
+    protected function setFocusLocked(target as mc.types.node, message as string)
       'bs:disable-next-line
       mv.setFocusLocked(target, message)
     end function
@@ -80,7 +80,7 @@ namespace mv
         return true
       end if
 
-      if (result = invalid)
+      if result = invalid
         result = false
       end if
 
@@ -90,7 +90,7 @@ namespace mv
         result = m.isCapturingAnyKeyPress(key, press)
       end if
 
-      if (result = invalid)
+      if result = invalid
         result = false
       end if
 
@@ -101,13 +101,13 @@ namespace mv
     '++ long press support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function toggleLongPressTimer(interval)
+    protected function toggleLongPressTimer(interval as float)
       m.cancelWaitTimer(m.longPressTimer)
       m.longPressTimer = invalid
       if interval > 0
         m.longPressTimer = m.waitAFrame(m.onLongPressTimerFire, interval)
       else if m.longPressKey <> ""
-        m.log.info("finishing longPress on key ", key)
+        m.log.info("finishing longPress on key ", m.longPressKey)
         'bs:disable-next-line
         if m.isLongPressStarted and mc.isFunction(m.onLongPressFinish)
           'bs:disable-next-line
@@ -132,7 +132,7 @@ namespace mv
           key = m.longPressKey
           m.toggleLongPressTimer(0)
           if mc.isFunction(m[`onKeyPress${key}`])
-            result = m[`onKeyPress${key}`]()
+            m[`onKeyPress${key}`]()
           end if
         else
           m.log.info("long press is accepted : starting for key ", m.longPressKey)
@@ -162,7 +162,7 @@ namespace mv
       m.isShown = false
     end function
 
-    protected function onGainedFocus(isSelfFocused)
+    protected function onGainedFocus(isSelfFocused as boolean)
       if isSelfFocused
         m.isFocused = true
       end if

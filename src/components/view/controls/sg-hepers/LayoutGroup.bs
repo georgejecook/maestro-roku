@@ -1,9 +1,11 @@
+import "pkg:/source/core/Types-Polyfill.bs"
+
 function init()
   m.originalChildren = []
   m.top.observeFieldScoped("style", "onStyleChange")
 end function
 
-function _initialize(args = invalid)
+function _initialize(args = invalid as mc.types.assocarray)
   m.originalChildren = m.top.getChildren( - 1, 0)
   i = 0
   for each child in m.originalChildren
@@ -16,7 +18,7 @@ function _initialize(args = invalid)
   end for
 end function
 
-function onChildVisibleChange(event)
+function onChildVisibleChange(event as object)
   node = event.getRoSGNode()
   if not node.visible
     m.top.removeChild(node)

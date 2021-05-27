@@ -1,5 +1,6 @@
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/NetResponse.bs"
 
 'adapted from https://github.com/bvisin/roku-requests
 
@@ -15,23 +16,23 @@ namespace mc.net
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function get(url as string, params = invalid, headers = invalid, otherArgs = invalid)
+    function get(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
       return m.executeRequest("GET", url, params, headers, otherArgs)
     end function
 
-    function post(url as string, params = invalid, headers = invalid, otherArgs = invalid)
+    function post(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function delete(url as string, params = invalid, headers = invalid, otherArgs = invalid)
+    function delete(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
       return m.executeRequest("DELETE", url, params, headers, otherArgs)
     end function
 
-    function put(url as string, params = invalid, headers = invalid, otherArgs = invalid)
+    function put(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
-    function executeRequest(method, url as string, params = invalid, headers = invalid, otherArgs = invalid)
+    function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
 
       if mc.isAACompatible(otherArgs)
         args = otherArgs
@@ -54,7 +55,7 @@ namespace mc.net
       return m.request(method, url, args)
     end function
 
-    private function request(method, url as string, args as object)
+    private function request(method as string, url as string, args as object)
       _params = {}
       _headers = {}
       _data = invalid
@@ -105,7 +106,7 @@ namespace mc.net
 
   end class
 
-  function execute(method, url, headers, data, timeout, retryCount, verify)
+  function execute(method as string, url as string, headers as mc.types.assocarray, data as mc.types.assocarray, timeout as float, retryCount as integer, verify as string)
     transfer = mc.net.createUrlTransfer(true, true, verify)
     transfer.setUrl(url)
     transfer.setHeaders(headers)
@@ -113,7 +114,6 @@ namespace mc.net
     ? "[http] URL:", transfer.getURL()
     ? "[http] Timeout= ", timeout
     ? "[http] Headers: ", headers
-    cancel_and_return = false
     responseEvent = invalid
     requestDetails = {
       timesTried: 0,
@@ -164,7 +164,7 @@ namespace mc.net
     end while
 
     ? "[http] ------ END HTTP REQUEST ------"
-    return mc.net.createResponse(transfer, responseEvent, requestDetails)
+    return new mc.net.NetResponse(transfer, responseEvent, requestDetails)
   end function
 
   @strict
@@ -261,33 +261,7 @@ namespace mc.net
     end function
   end class
 
-  function createResponse(transfer as object, responseEvent as object, requestDetails as object)
-    rr = {}
-    rr.ok = false
-    text = invalid
-    if responseEvent <> invalid
-      rr.statusCode = responseEvent.getResponseCode()
-      'bs:disable-next-line
-      rr.headers = responseEvent.getResponseHeaders()
-      text = responseEvent.getString()
-
-      if rr.statusCode > 0 and rr.statusCode < 400
-        rr.ok = true
-      end if
-    else
-      rr.statusCode = -1
-    end if
-    if text <> invalid
-      rr.json = parseJson(text)
-
-      if rr.json = invalid
-        rr.json = text
-      end if
-    end if
-    return rr
-  end function
-
-  function createUrlTransfer(EnableEncodings as boolean, retainBodyOnError as boolean, verify as string)
+  function createUrlTransfer(enableEncodings as boolean, retainBodyOnError as boolean, verify as string)
     _transfer = createObject("roUrlTransfer")
     _transfer.setPort(createObject("roMessagePort"))
     _transfer.enableEncodings(enableEncodings)
@@ -298,5 +272,6 @@ namespace mc.net
     end if
     return _transfer
   end function
+
 
 end namespace

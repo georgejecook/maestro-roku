@@ -23,9 +23,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
     'bs:disable-next-line
     if mc.isFunction(isAnyKeyPressLocked) and isAnyKeyPressLocked(key)
       return true
-    else if mc_isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key) then
+    else if mc_isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
       return true
-    else if m.vm <> invalid and mc_isFunction(m.vm.isAnyKeyPressLocked) and m.vm.isAnyKeyPressLocked(key) then
+    else if m.vm <> invalid and mc_isFunction(m.vm.isAnyKeyPressLocked) and m.vm.isAnyKeyPressLocked(key)
       return true
     else if m.isKeyPressLocked
       m.log.warn("All key presses are locked, due to isKeyPressLocked flag on ", m.top.id)
@@ -60,9 +60,9 @@ function onKeyEvent(key as string, press as boolean) as boolean
       'bs:disable-next-line
       if mc.isFunction(onKeyPressReplay) then result = onKeyPressReplay() else result = false
     end if
-  ' else if m.longPressKey <> ""
-  '   toggleLongPressTimer(0)
-  '   result = true
+    ' else if m.longPressKey <> ""
+    '   toggleLongPressTimer(0)
+    '   result = true
   end if
 
   if result = invalid
@@ -93,7 +93,7 @@ function onKeyEvent(key as string, press as boolean) as boolean
   return result
 end function
 
-function toggleLongPressTimer(interval)
+function toggleLongPressTimer(interval as float)
   if m.longPressTimer <> invalid
     m.longPressTimer.unobserveFieldScoped("fire")
     m.longPressTimer = invalid
@@ -107,6 +107,7 @@ function toggleLongPressTimer(interval)
     m.longPressTimer.control = "start"
   else if m.longPressKey <> ""
     m.log.info("finishing longPress on key ", m.longPressKey)
+    'bs:disable-next-line
     if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
       'bs:disable-next-line
       onLongPressFinish(m.longPressKey)
