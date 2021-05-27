@@ -60,7 +60,7 @@ namespace mv
       style = mc.getPath(m.styles, key)
 
       if style <> invalid
-        m.resolveNestedStyles(style)
+        style = m.resolveNestedStyles(style)
       end if
       return style
     end function
@@ -71,11 +71,12 @@ namespace mv
           style[key] = m.resolveNestedStyleValue(style[key])
         end for
       else if mc.isArray(style)
-        n = style.count()
+        n = style.count() -1
         for i = 0 to n
           style[i] = m.resolveNestedStyleValue(style[i])
         end for
       end if
+      return style
     end function
 
     private function resolveNestedStyleValue(value as dynamic) as dynamic

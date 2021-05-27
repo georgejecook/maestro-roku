@@ -8,6 +8,9 @@ namespace mc
 
   class NetHelper
 
+    private target as object
+    private createTask = mc.tasks.createTask
+
     ' /**
     '  * @member new
     '  * @memberof module:NetHelper
@@ -16,8 +19,10 @@ namespace mc
     '  * @description Create a net helper for invoking net methods with the current target class
     '  * @param {target} class
     '  */
-    function new(target as mc.types.assocarray)
+    function new(target as object)
+      m.target = target
     end function
+
     function get(url as string, params = invalid as mc.types.assocarray, callback = invalid as function, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
       return m.executeRequest("GET", url, params, callback, headers, otherArgs)
     end function
@@ -42,7 +47,8 @@ namespace mc
         "headers": headers
         "otherArgs": otherArgs
       }
-      return mc.tasks.createTask("mc_RequestTask", { args: args }, callback, true, "value", m.target)
+      return m.createTask("mc_RequestTask", { args: args }, callback, true, "value", m.target)
     end function
+
   end class
 end namespace

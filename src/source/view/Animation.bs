@@ -39,9 +39,15 @@ end namespace
 
 namespace mv.animations
   class AnimationBase
-    public node
-    public repeat
-    private parentAnimation
+    public node as mc.types.node
+    public repeat as boolean
+    public control as string
+    public fromValue as dynamic
+    public toValue as dynamic
+
+    protected parentAnimation as mv.animations.AnimationBase
+    protected log as log.Logger
+    protected target as mc.types.node
 
     function new(name as string, target as mc.types.node)
       m.log = new log.Logger(name)
@@ -145,6 +151,11 @@ namespace mv.animations
       end for
       m.interpolator.key = keys
       m.interpolator.keyValue = keyValues
+    end function
+
+
+    protected function isValidValue(toValue as dynamic) as boolean
+      return false
     end function
 
     function syncStartKeys()
@@ -391,7 +402,7 @@ namespace mv.animations
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
-    override function isValidValue(value as mc.types.array) as boolean
+    protected override function isValidValue(value as mc.types.array) as boolean
       return mc.isPoint(value)
     end function
 
@@ -410,7 +421,7 @@ namespace mv.animations
       m._createInterpolator("FloatFieldInterpolator")
     end function
 
-    override function isValidValue(value as float) as boolean
+    protected override function isValidValue(value as float) as boolean
       return mc.isNumber(value) and value >= 0 and value <= 1
     end function
 
@@ -428,7 +439,7 @@ namespace mv.animations
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
-    override function isValidValue(value as mc.types.array) as boolean
+    protected override function isValidValue(value as mc.types.array) as boolean
       return mc.isPoint(value)
     end function
 
@@ -439,8 +450,9 @@ namespace mv.animations
   end class
 
   class Size extends mv.animations.AbstractAnimation
-    private wAnim
-    private hAnim
+    private wAnim as mc.types.node
+    private hAnim as mc.types.node
+    private pAnim as mc.types.node
 
     function new(target as mc.types.node, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float)
       super(target, "size", duration, fromValue, toValue, "SizeAnimation", delay)
@@ -485,7 +497,7 @@ namespace mv.animations
       m.duration = duration
     end function
 
-    override function isValidValue(value as mc.types.array) as boolean
+    protected override function isValidValue(value as mc.types.array) as boolean
       return mc.isPoint(value)
     end function
 
@@ -522,9 +534,10 @@ namespace mv.animations
   end class
 
   class KenBurns extends mv.animations.AbstractAnimation
-    private sAnim
-    private mAnim
-    private maxScale
+    private maxScale = 0.0
+    private mAnim as mc.types.node
+    private sAnim as mc.types.node
+    private pAnim as mc.types.node
 
     function new(target as mc.types.node, duration as float, maxScale as float, delay = 0 as float)
       super(target, "size", duration, invalid, invalid, "SizeAnimation", delay)
@@ -590,7 +603,7 @@ namespace mv.animations
     end function
 
     override function jumpToEnd()
-      for each animation in m.animations
+      for each animation in [m.sAnim, m.mAnim]
         animation.jumpToEnd()
       end for
     end function
@@ -669,7 +682,7 @@ namespace mv.animations
       m._createInterpolator("FloatFieldInterpolator")
     end function
 
-    override function isValidValue(value as float) as boolean
+    protected override function isValidValue(value as float) as boolean
       return mc.isNumber(value)
     end function
 
@@ -689,7 +702,7 @@ namespace mv.animations
       m._createInterpolator("Vector2DFieldInterpolator")
     end function
 
-    override function isValidValue(value as mc.types.array) as boolean
+    protected override function isValidValue(value as mc.types.array) as boolean
       return mc.isPoint(value)
     end function
 
@@ -708,13 +721,13 @@ namespace mv.animations
       super("SequenceAnimation", target)
       m.node = createObject("roSGNode", "SequentialAnimation")
       animId = mv.animations.getAnimationKeyId()
-      m.setDelay(delay)
       'bs:disable-next-line
       m.node.id = `${m.target.id}_${m.sequence}_${animId}`
       m.setRepeat(repeat)
       if animations <> invalid
         m.addAnimations(animations)
       end if
+      m.setDelay(delay)
       m.target.appendChild(m.node)
     end function
 
@@ -746,6 +759,13 @@ namespace mv.animations
         animations.push(anim.clone())
       end for
       return new mv.animations.Sequence(m.target, animations, m.repeat, m.delay)
+    end function
+
+    function setDelay(delay as float)
+      m.delay = delay
+      if m.animations.count() > 0
+        m.animations[0].setDelay(delay)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -788,8 +808,9 @@ namespace mv.animations
   end class
 
   class SimpleKenBurns extends mv.animations.AbstractAnimation
-    private sAnim
-    private mAnim
+    private sAnim as mc.types.node
+    private mAnim as mc.types.node
+    private pAnim as mc.types.node
     private scale = [1, 1]
     private movement = [0, 0]
 
@@ -859,7 +880,7 @@ namespace mv.animations
     end function
 
     override function jumpToEnd()
-      for each animation in m.animations
+      for each animation in [m.sAnim, m.mAnim]
         animation.jumpToEnd()
       end for
     end function

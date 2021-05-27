@@ -65,6 +65,9 @@ namespace mc.collections
   end class
 
   class CallFuncMapper extends mc.collections.BaseMapper
+    private funcName as string
+    private args as mc.types.assocarray
+
     function new(funcName as string, args as mc.types.assocarray)
       super()
       m.funcName = funcName
@@ -80,6 +83,8 @@ namespace mc.collections
   end class
 
   class FuncMapper extends mc.collections.BaseMapper
+    private funcName as string
+
     function new(funcName as string)
       super()
       m.funcName = funcName
@@ -97,6 +102,8 @@ namespace mc.collections
   end class
 
   class FieldMapper extends mc.collections.BaseMapper
+    private fieldName as string
+
     function new(fieldName as string)
       super()
       m.fieldName = fieldName
@@ -138,15 +145,16 @@ namespace mc.collections
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   class AbstractPredicate
-    function isMatch(item as dynamic) as boolean
+    private expected as dynamic
+
+    function isMatch(expected as dynamic) as boolean
       return false
     end function
   end class
 
   class ValuePredicate extends mc.collections.AbstractPredicate
     function new(expected as dynamic)
-      super()
-      m.expected = expected
+      super(expected)
     end function
 
     override function isMatch(item as dynamic) as boolean
@@ -155,10 +163,11 @@ namespace mc.collections
   end class
 
   class FieldPredicate extends mc.collections.AbstractPredicate
+    private fieldName as string
+
     function new(fieldName as string, expected as dynamic)
-      super()
+      super(expected)
       m.fieldName = fieldName
-      m.expected = expected
     end function
 
     override function isMatch(item as dynamic) as boolean
@@ -169,13 +178,15 @@ namespace mc.collections
     end function
   end class
 
-  class FuncPredicate
+  class FuncPredicate extends mc.collections.AbstractPredicate
+    private funcName as string
+
     function new(funcName as string, expected as dynamic)
+      super(expected)
       m.funcName = funcName
-      m.expected = expected
     end function
 
-    function isMatch(item as dynamic) as boolean
+    override function isMatch(item as dynamic) as boolean
       if item = invalid
         return false
       end if
@@ -188,11 +199,13 @@ namespace mc.collections
   end class
 
   class CallFuncPredicate extends mc.collections.AbstractPredicate
+    private funcName as string
+    private args as mc.types.assocarray
+
     function new(funcName as string, args as mc.types.assocarray, expected as dynamic)
       super()
       m.funcName = funcName
       m.args = args
-      m.expected = expected
     end function
 
     override function isMatch(item as dynamic) as boolean

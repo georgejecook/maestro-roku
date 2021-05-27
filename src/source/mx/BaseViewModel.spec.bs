@@ -23,67 +23,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("net helpers")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("gets")
-    function _()
-      result = { "id": "result" }
-
-      m.expectOnce(m.vm, "executeRequest", ["GET", "url", "params", "callback", "headers", "otherArgs"], result)
-
-      m.assertEqual(m.vm.get("url", "params", "callback", "headers", "otherArgs"), result)
-    end function
-
-    @it("posts")
-    function _()
-      result = { "id": "result" }
-
-      m.expectOnce(m.vm, "executeRequest", ["POST", "url", "params", "callback", "headers", "otherArgs"], result)
-
-      m.assertEqual(m.vm.post("url", "params", "callback", "headers", "otherArgs"), result)
-    end function
-
-    @it("puts")
-    function _()
-      result = { "id": "result" }
-
-      m.expectOnce(m.vm, "executeRequest", ["PUT", "url", "params", "callback", "headers", "otherArgs"], result)
-
-      m.assertEqual(m.vm.put("url", "params", "callback", "headers", "otherArgs"), result)
-    end function
-
-    @it("deletes")
-    function _()
-      result = { "id": "result" }
-
-      m.expectOnce(m.vm, "executeRequest", ["DELETE", "url", "params", "callback", "headers", "otherArgs"], result)
-
-      m.assertEqual(m.vm.del("url", "params", "callback", "headers", "otherArgs"), result)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("executeRequest")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("bundles up all the args into a rquest task")
-    @params("m", "u", "p", "c", "h", "o")
-    @params("m2", "u2", "p2", "c2", "h2", "o2")
-    function _(method, url, params, callback, headers, otherArgs)
-      args = {
-        "method": method
-        "url": url
-        "params": params
-        "headers": headers
-        "otherArgs": otherArgs
-      }
-      result = { "id": "result" }
-      m.expectOnce(m.vm, "createTask", ["mc_RequestTask", { args: args }, callback], result)
-      m.assertEqual(m.vm.executeRequest(method, url, params, callback, headers, otherArgs), result)
-
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("createTask")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
