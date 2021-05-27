@@ -1,3 +1,4 @@
+import "pkg:/source/core/Types-Polyfill.bs"
 ' /**
 '  * @module BaseScreen
 '  * @description Base view for all screens.
@@ -8,7 +9,7 @@
 '++ nav support
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view, animated = true)
+function push(view as mc.types.node, animated = true as boolean)
   navController = getNavController()
 
   if navController <> invalid
@@ -18,17 +19,18 @@ function push(view, animated = true)
   end if
 end function
 
-function pop(animated = true) as object
+function pop(animated = true as boolean) as object
   navController = getNavController()
 
   if navController <> invalid
     return navController@.pop(animated)
   else
     m.log.error("Pop failed - there is no navcontroller on ", m.top)
+    return invalid
   end if
 end function
 
-function replaceNavControllerScreen(targetScreen, animated = false)
+function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
   navController = getNavController()
 
   if navController <> invalid
@@ -39,12 +41,12 @@ function replaceNavControllerScreen(targetScreen, animated = false)
 end function
 
 
-function resetNavControllerToRoot(animated = false)
+function resetNavControllerToRoot(animated = false as boolean)
   m.log.method("resetNavControllerToRoot." + m.top.id)
   resetNavController(invalid, 0, animated)
 end function
 
-function resetNavController(newFirstScreen = invalid, endIndex = -1, animated = false)
+function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
   m.log.method("resetNavController." + m.top.id)
   navController = getNavController()
 
@@ -76,7 +78,7 @@ end function
 '  * @description gets the screen at the top of this screen's sceneGraph.
 '  * @returns {BaseScreen} a screen considered as the top of this graph
 '  */
-function _getTopScreen(args = invalid)
+function _getTopScreen(args = invalid as mc.types.assocarray)
   m.log.method("_getTopScreen")
   topScreen = getTopScreen()
   navController = getNavController()

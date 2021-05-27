@@ -52,7 +52,7 @@ namespace mioc
     mioc.clearClassInstances()
   end function
 
-  function getInstance(name, path = invalid)
+  function getInstance(name as string, path = invalid as string) as dynamic
     if m.__mioc = invalid
       mioc.initialize()
     end if
@@ -68,10 +68,9 @@ namespace mioc
       return mc.getPath(instance, path)
     end if
 
-    return invalid
   end function
 
-  function setInstances(instances)
+  function setInstances(instances as mc.types.assocarray)
     for each key in instances
       mioc.setInstance(key, instances[key])
     end for
@@ -85,7 +84,7 @@ namespace mioc
   '  * @param {field} name of the instance
   '  * @returns {boolean} true if added
   '  */
-  function setInstance(field, instance)
+  function setInstance(field as string, instance as dynamic)
     if type(instance) = "<uninitialized>"
       m.log.error("tried to add uninitialized instance to IOC container for field ", field)
       return false
@@ -105,7 +104,7 @@ namespace mioc
     return true
   end function
 
-  function setInstanceField(field, instanceField, value)
+  function setInstanceField(field as string, instanceField as string, value as dynamic)
     instance = mioc.getInstance(field)
     if instance <> invalid
       mc.setOrAddNodeField(instanceField, value)
@@ -121,7 +120,7 @@ namespace mioc
   '  * @param {field} name of the instance
   '  * @returns {boolean} true if added
   '  */
-  function unsetInstance(field)
+  function unsetInstance(field as string)
     if m.__mioc = invalid
       mioc.initialize()
     end if
@@ -132,7 +131,7 @@ namespace mioc
     return true
   end function
 
-  function setClassInstance(instance)
+  function setClassInstance(instance as dynamic)
     if instance.doesExist("__classname")
 
       if m._instancesByType = invalid
@@ -156,15 +155,17 @@ namespace mioc
   '  * @function
   '  * @description wrapper for IOC purposes - getting the named item from the model Locator
   '  * @param {string} classname type to create
+  '  * @param {array} args - constructor args
   '  * @param {boolean} createTypeIfNotPresent
   '  * @param {boolean}  storeInstance - defaults to true
   '  * @returns {any|invalid} resource, or invalid if not found
   '  */
-  function getClassInstance(classname, args = [], createTypeIfNotPresent = true, storeInstance = true)
+  function getClassInstance(classname as string, args = [] as mc.types.assocarray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
     if m._instancesByType = invalid
       m._instancesByType = {}
     end if
 
+    instance = invalid
     if m._instancesByType.doesExist(classname)
       instance = m._instancesByType[classname]
     else if createTypeIfNotPresent
@@ -177,7 +178,7 @@ namespace mioc
     return instance
   end function
 
-  function createClassInstance(classname, args = [])
+  function createClassInstance(classname as string, args = [] as mc.types.array) as dynamic
     'bs:disable-next-line
     clazz = mr_getClass(classname)
 
@@ -203,8 +204,8 @@ end namespace
 
 namespace mioc.testing
 
-  function setContainer(container)
-    testing.unset__mioc()
+  function setContainer(container as mc.types.assocarray)
+    mioc.testing.unset__mioc()
     m.__mioc = container
     mc.setOrAddNodeField(mc.getGlobal(), "__mioc", m.__mioc)
     mc.setOrAddNodeField(mc.getScene(), "__mioc", m.__mioc)
@@ -215,7 +216,7 @@ namespace mioc.testing
     mc.getGlobal().delete("__mioc")
   end function
 
-  function createMockClassInstance(classname, id, fields = {})
+  function createMockClassInstance(classname as string, id as string, fields = {} as mc.types.assocarray) as dynamic
     instance = { "id": id, "__classname": classname }
     instance.append(fields)
     mioc.setClassInstance(instance)

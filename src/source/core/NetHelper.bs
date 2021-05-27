@@ -1,0 +1,54 @@
+import "pkg:/source/core/Tasks.bs"
+
+namespace mc
+  ' /**
+  '  * @module mc.NetHelper
+  '  * @description helper class to make it easy to fire off async requests
+  '  */
+
+  class NetHelper
+
+    private target as object
+    private createTask = mc.tasks.createTask
+
+    ' /**
+    '  * @member new
+    '  * @memberof module:NetHelper
+    '  * @instance
+    '  * @function
+    '  * @description Create a net helper for invoking net methods with the current target class
+    '  * @param {target} class
+    '  */
+    function new(target as object)
+      m.target = target
+    end function
+
+    function get(url as string, params = invalid as mc.types.assocarray, callback = invalid as function, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+      return m.executeRequest("GET", url, params, callback, headers, otherArgs)
+    end function
+
+    function post(url as string, params = invalid as mc.types.assocarray, callback = invalid as function, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+      return m.executeRequest("POST", url, params, callback, headers, otherArgs)
+    end function
+
+    function del(url as string, params = invalid as mc.types.assocarray, callback = invalid as function, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+      return m.executeRequest("DELETE", url, params, callback, headers, otherArgs)
+    end function
+
+    function put(url as string, params = invalid as mc.types.assocarray, callback = invalid as function, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+      return m.executeRequest("PUT", url, params, callback, headers, otherArgs)
+    end function
+
+    function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, callback = invalid as function, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+      args = {
+        "method": method
+        "url": url
+        "params": params
+        "headers": headers
+        "otherArgs": otherArgs
+      }
+      return m.createTask("mc_RequestTask", { args: args }, callback, true, "value", m.target)
+    end function
+
+  end class
+end namespace

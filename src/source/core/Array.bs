@@ -23,26 +23,26 @@ namespace mc.collections
       m.top._debug = invalid
     end function
 
-    public function push(value)
+    public function push(value as dynamic)
       m.data.push(value)
       m.top.length = m.data.count()
     end function
 
-    public function append(other)
+    public function append(other as mc.types.node)
       m.data.append(other)
       m.top.length = m.data.count()
     end function
 
-    public function get(key)
+    public function get(key as string)
       return m.data[key]
     end function
 
-    public function remove(key)
+    public function remove(key as string)
       m.data.delete(key)
       m.top.length = m.data.count()
     end function
 
-    public function doesExist(value)
+    public function doesExist(value as dynamic)
       return m.getIndex(value) <> -1
     end function
 
@@ -50,16 +50,16 @@ namespace mc.collections
       return m.data
     end function
 
-    public function getIndex(value)
+    public function getIndex(value as dynamic)
       for i = 0 to m.data.count() - 1
-        if item = value
+        if m.data[i] = value
           return i
         end if
       end for
       return -1
     end function
 
-    private function onDebugChange(value)
+    private function onDebugChange(value as dynamic)
       m.top.contents = m.data
     end function
   end class

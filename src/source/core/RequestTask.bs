@@ -9,7 +9,7 @@ namespace mc
     public url = ""
     private log = new log.Logger("RequestTask")
 
-    public function nodeRun(args)
+    public function nodeRun(args as mc.types.assocarray)
       instance = new RequestTask()
       return instance.execute(args)
     end function
@@ -17,7 +17,7 @@ namespace mc
     function new()
     end function
 
-    private function execute(args)
+    private function execute(args as mc.types.assocarray) as dynamic
       request = m.makeRequest()
       method = lcase(mc.getPath(args, "method", ""))
 
@@ -46,7 +46,7 @@ namespace mc
       return result
     end function
 
-    private function makeRequest()
+    private function makeRequest() as mc.net.Request
       return new mc.net.Request()
     end function
   end class

@@ -9,7 +9,7 @@ namespace mv
 
     public __debugM = false
 
-    function new(name)
+    function new(name as string)
       super(name)
     end function
 
@@ -17,23 +17,23 @@ namespace mv
     '++ ioc wrappers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function getInstance(name)
+    protected function getInstance(name as string) as dynamic
       return mioc.getInstance(name)
     end function
 
-    protected function setInstance(field, instance)
+    protected function setInstance(field as string, instance as dynamic)
       mioc.setInstance(field, instance)
     end function
 
-    protected function getClassInstance(classname, args = [], createTypeIfNotPresent = true, storeInstance = true)
-      return mioc.getClassInstance(classname, args, createTypeIfNotPresent, storeInstance)
+    protected function getClassInstance(className as string, args = [] as mc.types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+      return mioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
     end function
 
-    protected function createClassInstance(classname, args = [])
-      return mioc.createClassInstance(classname, args)
+    protected function createClassInstance(className as string, args = [] as mc.types.array) as dynamic
+      return mioc.createClassInstance(className, args)
     end function
 
-    protected function setClassInstance(instance)
+    protected function setClassInstance(instance as dynamic)
       return mioc.setClassInstance(instance)
     end function
 
@@ -42,11 +42,11 @@ namespace mv
     '++ scope support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function getTopField(fieldName)
+    protected function getTopField(fieldName as string) as dynamic
       return mc.getMField("top")[fieldName]
     end function
 
-    protected function getMField(fieldName)
+    protected function getMField(fieldName as string) as dynamic
       return mc.getMField(fieldName)
     end function
 

@@ -88,6 +88,8 @@ function getXOffset()
       end if
     end if
   end if
+
+  return 0
 end function
 
 function createContent()
@@ -114,7 +116,7 @@ function createContent()
   return content
 end function
 
-function getItemIndex(rowListIndex)
+function getItemIndex(rowListIndex as integer)
   if m.top.direction = "horizontal"
     return rowListIndex[1]
   else
@@ -122,7 +124,7 @@ function getItemIndex(rowListIndex)
   end if
 end function
 
-function getRowListIndex(itemIndex)
+function getRowListIndex(itemIndex as integer)
   if m.top.direction = "vertical"
     return [itemIndex, 0]
   else
@@ -134,7 +136,7 @@ end function
 '++ lifecycle
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function onGainedFocus(isSelfFocused)
+function onGainedFocus(isSelfFocused as boolean)
   if isSelfFocused
     mv.setFocus(m.rowList)
   end if

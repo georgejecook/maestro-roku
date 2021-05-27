@@ -1,0 +1,77 @@
+namespace tests
+
+  @onlyk
+  @suite("NetHelper")
+  class NetHelper extends rooibos.BaseTestSuite
+
+    private helper
+    private target
+    protected override function beforeEach()
+      super.beforeEach()
+
+      m.target = { "id": "target" }
+
+      m.helper = new mc.NetHelper(m.target)
+    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("net helpers")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.helper, "executeRequest", ["GET", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.helper.get("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("posts")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.helper, "executeRequest", ["POST", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.helper.post("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("puts")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.helper, "executeRequest", ["PUT", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.helper.put("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    @it("deletes")
+    function _()
+      result = { "id": "result" }
+
+      m.expectOnce(m.helper, "executeRequest", ["DELETE", "url", "params", "callback", "headers", "otherArgs"], result)
+
+      m.assertEqual(m.helper.del("url", "params", "callback", "headers", "otherArgs"), result)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("executeRequest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("bundles up all the args into a request task")
+    @params("m", "u", "p", "c", "h", "o")
+    @params("m2", "u2", "p2", "c2", "h2", "o2")
+    function _(method, url, params, callback, headers, otherArgs)
+      args = {
+        "method": method
+        "url": url
+        "params": params
+        "headers": headers
+        "otherArgs": otherArgs
+      }
+      task = { "id": "task" }
+      m.expectOnce(m.helper, "createTask", ["mc_RequestTask", { args: args }, callback, true, "value", m.target], task)
+
+      m.assertEqual(m.helper.executeRequest(method, url, params, callback, headers, otherArgs), task)
+    end function
+  end class
+end namespace

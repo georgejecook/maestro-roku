@@ -32,14 +32,14 @@ namespace mv
       m.__m = m
     end function
 
-    function reset(args = invalid)
+    function reset()
       m.log.info("resetting cell trackers")
       m.trackers = {}
       m.top.numberOfCells = 0
       m.top.numberOfCellsInUse = 0
     end function
 
-    function getTrackers(scope = "all")
+    function getTrackers(scope = "all" as string) as mc.types.assocarray
       trackers = m.trackers[scope]
       if trackers = invalid
         trackers = {
@@ -53,13 +53,13 @@ namespace mv
       return trackers
     end function
 
-    function getCell(cellId, scope = "all")
+    function getCell(cellId as string, scope = "all" as string) as mc.types.node
       trackers = m.getTrackers(scope)
 
       return trackers.cellsById[cellId]
     end function
 
-    function getCellForContentId(id, scope = "all")
+    function getCellForContentId(id as string, scope = "all" as string) as mc.types.node
       trackers = m.getTrackers(scope)
       cellId = trackers.cellIdsByContentId[id]
 
@@ -70,7 +70,7 @@ namespace mv
       end if
     end function
 
-    function bindCellToContent(cell, content, scope = "all")
+    function bindCellToContent(cell as mc.types.node, content as mc.types.node, scope = "all" as string) as void
 
       trackers = m.getTrackers(scope)
 
@@ -86,7 +86,7 @@ namespace mv
           if content <> invalid and existingId = content.id
             m.log.debug("bound to same thing; ignoring")
             'we are bound to the same thing
-            return invalid
+            return
           else
             'unbind it from what it was bound to
             m.unbindCell(cell)
@@ -105,7 +105,7 @@ namespace mv
       trackers.cellsById[cell.trackingId] = cell
     end function
 
-    function unbindCell(cell, scope = "all")
+    function unbindCell(cell as mc.types.node, scope = "all" as string)
       trackers = m.getTrackers(scope)
       contentId = trackers.contentIdsByCellId[cell.trackingId]
 
@@ -121,7 +121,7 @@ namespace mv
       end if
     end function
 
-    function setViewStates(states, scope = "all")
+    function setViewStates(states as mc.types.assocarray, scope = "all" as string)
 
       trackers = m.getTrackers(scope)
 
@@ -139,7 +139,7 @@ namespace mv
 
     end function
 
-    function getStateForContentId(id, scope = "all")
+    function getStateForContentId(id as string, scope = "all" as string) as string
       trackers = m.getTrackers(scope)
       return trackers.viewStatesByContentId[id]
     end function

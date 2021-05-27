@@ -4,7 +4,7 @@ import "pkg:/source/core/Utils.bs"
 
 namespace mc.tasks
 
-  function waitAFrame(callback, duration = 0.01, sendMode = "none", scope = invalid, parent = invalid)
+  function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as mc.types.node) as mc.types.node
     callbackName = mc.getFunctionName(callback)
     if callbackName = invalid
       m.log.error("function ", callback, "does not exist, or is not in scope")
@@ -27,7 +27,7 @@ namespace mc.tasks
     return frameTimer
   end function
 
-  function cancelWaitTimer(timer)
+  function cancelWaitTimer(timer as mc.types.node)
     if timer <> invalid
       mc.tasks.cleanNodeObserver(timer, "fire")
       timer.control = "stop"
@@ -55,7 +55,7 @@ namespace mc.tasks
   '  * @param {object|invalid} scope - scope on which to execute the callback (default to node's m)
   '  * @returns {node|invalid} task, or invalid it could not be created
   '  */
-  function createTask(taskType, fields, callback = invalid, isRunning = true, sendMode = "value", scope = invalid, fieldName = "output")
+  function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, scope = invalid as object, fieldName = "output" as string)
 
     task = mc.createSGNode(taskType)
 
@@ -66,9 +66,6 @@ namespace mc.tasks
 
     if not mc.isAACompatible(fields)
       fields = {}
-      if mc.isUndefined(field)
-        m.log.error("was passed undefined fields - probs a coding mistake")
-      end if
     end if
 
     fields._observedField = fieldName
@@ -94,12 +91,12 @@ namespace mc.tasks
   '  * @param {node} node with field to observe
   '  * @param {string} fieldName field to observe
   '  * @param {function|string} callback pointer to function to call, or string of field to set, if sendmode is "field"
-  '  * @param {string} sendMode ("value"|"node"|"both"|"field"|"none") - if both, then your function must have 2 params (result, node), if "fied, then it will set the field named callback on instance"
+  '  * @param {string} sendMode ("value"|"node"|"both"|"field"|"none") - if both, then your function must have 2 params (result, node), if "field, then it will set the field named callback on instance"
   '  * @param {boolean} once if true observer is removed when first fired
   '  * @param {object|invalid} scope - scope on which to execute the callback (default to node's m)
   '  * @returns {boolean} true if set, false otherwise
   '  */
-  function observeNodeField(node, fieldName, callback, sendMode = "value", once = false, scope = invalid)
+  function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, scope = invalid as object) as boolean
     targetField = invalid
     context = {}
     if mc.isInvalid(callback)
@@ -154,12 +151,15 @@ namespace mc.tasks
     if contexts = invalid
       contexts = {}
       mc.tasks._getScopeContexts()[node._oid + "_" + fieldName] = contexts
+      'bs:disable-next-line
       node.observeFieldScoped(fieldName, mc.getFunctionName(_nodeCallbackBridge))
     end if
     contexts[context.key] = context
+
+    return true
   end function
 
-  function _getContextKey(node, fieldName, callback, targetField, instance = invalid)
+  function _getContextKey(node as mc.types.node, fieldName as string, callback as function, targetField as string, instance = invalid as object) as string
     if callback <> invalid
       cb = mc.getFunctionName(callback)
     else
@@ -180,8 +180,8 @@ namespace mc.tasks
     return m._nodeContexts
   end function
 
-  function _nodeCallbackBridge(evt)
-    node = evt.getROSGNode()
+  function _nodeCallbackBridge(evt as object)
+    node = evt.getRoSGNode()
     fieldName = evt.getField()
     contexts = mc.getPath(m, "_nodeContexts." + node._oid + "_" + fieldName)
 
@@ -193,6 +193,7 @@ namespace mc.tasks
     for each key in contexts
       context = contexts[key]
       if context.once
+        ? "+++removing CONTEXT "; key
         mc.tasks.cleanNodeObserver(node, fieldName)
         if node.removeOnObserve = true and node.getParent() <> invalid
           node.getParent().removeChild(node)
@@ -223,7 +224,7 @@ namespace mc.tasks
           end if
           context.instance.delete("__cb")
         else
-          executeInScope = sub(this, callback, value, sendMode, node = invalid)
+          executeInScope = function(this as object, callback as function, value as dynamic, sendMode as string, node = invalid as mc.types.node)
             m = this
             if sendMode = "both"
               callback(value, node)
@@ -234,7 +235,7 @@ namespace mc.tasks
             else
               callback(value)
             end if
-          end sub
+          end function
 
           executeInScope(context.scope, context.callback, node[fieldName], context.sendMode, node)
         end if
@@ -244,7 +245,7 @@ namespace mc.tasks
     end for
   end function
 
-  function unobserveNodeField(node, fieldName, callback, scope = invalid)
+  function unobserveNodeField(node as mc.types.node, fieldName as string, callback as float, scope = invalid as object)
     targetField = invalid
     if mc.isInvalid(callback)
       if mc.isUndefined(callback)
@@ -282,7 +283,7 @@ namespace mc.tasks
     return true
   end function
 
-  function cleanNodeObserver(node, fieldName)
+  function cleanNodeObserver(node as mc.types.node, fieldName as string)
     if node <> invalid and fieldName <> invalid and m._nodeContexts <> invalid
       m._nodeContexts.delete(node._oid + "_" + fieldName)
       node.unobserveFieldScoped(fieldName)
@@ -301,7 +302,7 @@ namespace mc.tasks
     m._nodeContexts = {}
   end function
 
-  function cancelTask(task)
+  function cancelTask(task as mc.types.node)
     if task <> invalid
       mc.tasks.cleanNodeObserver(task, task._observedField)
       task.control = "stop"
@@ -314,16 +315,20 @@ namespace mc.tasks
 
   @strict
   class ValueObserver
+    private node
+    private field
     private target
     private pendingComparators = {}
     private comparators = {}
 
-    function new(node, field, target)
+    function new(node as mc.types.node, field as string, target as object)
       m.target = target
+      m.node = node
+      m.field = field
       mc.tasks.observeNodeField(node, field, m.valueCallback, "both", false, m)
     end function
 
-    function reset(hardReset = false)
+    function reset(hardReset = false as boolean)
       m.pendingComparators = {}
       if hardReset
         m.comparators = {}
@@ -336,15 +341,15 @@ namespace mc.tasks
       m.reset(true)
       for each key in m.comparators
         comparator = m.comparators[key]
-        mc.tasks.unobserveNodeField(node, field, comparator.cb, m.target)
+        mc.tasks.unobserveNodeField(m.node, m.field, comparator.cb, m.target)
       end for
     end function
 
-    function onValue(value, func, comparator = "=", mode = "value")
+    function onValue(value as dynamic, func as function, comparator = "=" as string, mode = "value" as string)
       m.comparators[`${value}_${comparator}`] = { v: value, cb: func, c: comparator, mode: mode }
     end function
 
-    function valueCallback(value, node)
+    function valueCallback(value as dynamic, node as mc.types.node)
       if m.pendingComparators.count() > 0
         for each id in m.pendingComparators
           o = m.pendingComparators[id]
@@ -364,7 +369,7 @@ namespace mc.tasks
               end if
               m.target.delete("__cb")
             else
-              executeInScope = sub(this, callback, mode)
+              executeInScope = function(this as object, callback as function, mode as string)
                 m = this
                 if mode = "both"
                   'bs:disable-next-line
@@ -376,8 +381,9 @@ namespace mc.tasks
                   'bs:disable-next-line
                   callback()
                 end if
-              end sub
-              executeInScope(target.scope, o.cb, o.mode)
+              end function
+              'FIXME - not sure if this will work - it might be that m is aa compatible so this if will never fire. moot point for maestro in general; but might raise a problem from regular non-nodeClass/non-task non-vm usage (which I never do; but someone might)
+              executeInScope(m.target, o.cb, o.mode)
             end if
           end if
         end for

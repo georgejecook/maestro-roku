@@ -22,7 +22,7 @@ namespace mc.tasks
     '++ Delayed task support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function cancelDelayedTaskWithId(id)
+    function cancelDelayedTaskWithId(id as string)
       m.log.info("requesting cancel of delayed task with id:", id)
 
       timer = m.activeTimers[id]
@@ -43,8 +43,8 @@ namespace mc.tasks
       end if
     end function
 
-    function scheduleDelayedTask(nodeType, id, delay, fields, resultField = "output")
-      m.log.info("creating delayed task of type", nodetype, "id", id, "delay", delay)
+    function scheduleDelayedTask(nodeType as string, id as string, delay as float, fields as mc.types.assocarray, resultField = "output" as string)
+      m.log.info("creating delayed task of type", nodeType, "id", id, "delay", delay)
 
       if m.activeTimers[id] <> invalid or m.delayedTasks[id] <> invalid
         m.cancelDelayedTaskWithId(id)
@@ -64,7 +64,7 @@ namespace mc.tasks
       })
     end function
 
-    private function onDelayedTaskTimerFire(timer)
+    private function onDelayedTaskTimerFire(timer as mc.types.node)
       taskInfo = timer.taskInfo
       m.activeTimers.delete(timer.id)
       m.delayedTasks[timer.id] = mc.tasks.createTask(taskInfo.nodeType, taskInfo.fields)

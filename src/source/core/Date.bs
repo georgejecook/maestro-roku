@@ -3,7 +3,7 @@ namespace mc
 
     private date = CreateObject("roDateTime")
 
-    public function new(seconds = invalid, isoDate = invalid)
+    public function new(seconds = invalid as integer, isoDate = invalid as string)
       if seconds <> invalid
         m.setSeconds(seconds)
       else if isoDate <> invalid
@@ -17,19 +17,19 @@ namespace mc
       return m.date.asSeconds()
     end function
 
-    public function setSeconds(seconds)
+    public function setSeconds(seconds as integer)
       m.date.fromSeconds(seconds)
     end function
 
-    public function getSecondsSince(otherTimeInSeconds)
+    public function getSecondsSince(otherTimeInSeconds as integer)
       return m.getSeconds() - otherTimeInSeconds
     end function
 
-    public function getSecondsUntil(otherTimeInSeconds)
+    public function getSecondsUntil(otherTimeInSeconds as integer)
       return otherTimeInSeconds - m.getSeconds()
     end function
 
-    public function getUserFriendlyDateString(format = "no-weekday")
+    public function getUserFriendlyDateString(format = "no-weekday" as string)
       return m.date.asDateString(format)
     end function
 
@@ -37,7 +37,7 @@ namespace mc
       return m.date.mark()
     end function
 
-    public function getTimeString(update = false)
+    public function getTimeString(update = false as boolean)
       if update
         m.date.mark()
       end if

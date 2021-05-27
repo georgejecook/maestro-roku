@@ -1,5 +1,6 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
+import "pkg:/source/core/Types-Polyfill.bs"
 
 ' /**
 '  * @module FocusManager
@@ -25,7 +26,7 @@ end function
 '++ Protected api - only call from mixin
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOn(node, isForced = false) as void
+function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
   ' m.log.method("setFocusOn", node)
 
   if m.top.isLocked
@@ -55,12 +56,12 @@ function _setFocusOn(node, isForced = false) as void
 
 end function
 
-function _unsetFocusOn(node)
-  m.log.info("manualy unsetting focus on node")
+function _unsetFocusOn(node as mc.types.node)
+  m.log.info("manually unsetting focus on node")
   node.setFocus(false)
 end function
 
-function _setFocusLocked(node, reason = "")
+function _setFocusLocked(node as mc.types.node, reason = "" as string)
 
   if node <> invalid
     _setFocusOn(node, true)
@@ -88,7 +89,7 @@ end function
 '++ private impl
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOnImpl(node, parents) as void
+function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as void
 
   currentNode = m.top.focusedNode
   isCurrentNode = false
@@ -120,6 +121,7 @@ function _setFocusOnImpl(node, parents) as void
   m.parents = parents
 
   if node <> invalid
+    previousDrawFocusFeedback = false
     if node.doesExist("drawFocusFeedback")
       previousDrawFocusFeedback = node.drawFocusFeedback
       node.drawFocusFeedback = false
@@ -141,9 +143,10 @@ function _setFocusOnImpl(node, parents) as void
   end if
 end function
 
-function getParents(node)
+function getParents(node as mc.types.node)
   parent = node.getParent()
   parents = []
+  '// cspell:disable-next-line
   parentOids = {}
   maxDepth = 20
   i = 0
@@ -154,10 +157,12 @@ function getParents(node)
       return []
     end if
     if parent._oid <> invalid
+      '// cspell:disable-next-line
       if parentOids[parent._oid] <> invalid
-        m.log.warn("for some reason this parent hiearchy was looping to infinity!")
+        m.log.warn("for some reason this parent hierarchy was looping to infinity!")
         exit while
       end if
+      '// cspell:disable-next-line
       parentOids[parent._oid] = true
     end if
     parents.push(parent)
@@ -172,7 +177,7 @@ function getParents(node)
   return parents
 end function
 
-function isValid(node)
+function isValid(node as mc.types.node)
 
   if mc.isUndefined(node)
     m.log.error("asked to focus on undefined node")
@@ -181,14 +186,14 @@ function isValid(node)
     m.log.error("asked to focus on invalid node")
     return false
   else if type(node) <> "roSGNode"
-    m.log.error("asked to focus on non rsgnode")
+    m.log.error("asked to focus on non rsGNode")
     return false
   end if
 
   return true
 end function
 
-function isInScene(parents)
+function isInScene(parents as mc.types.array)
 
   if parents.count() = 0
     m.log.error("asked to focus on node with no parents")
@@ -205,7 +210,7 @@ function isInScene(parents)
   return true
 end function
 
-function setFieldOnNodes(nodes, field, value)
+function setFieldOnNodes(nodes as mc.types.node, field as string, value as dynamic)
   ' m.log.info("--------------------------------START")
   for i = 0 to nodes.count() - 1
     node = nodes[i]

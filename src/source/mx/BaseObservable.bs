@@ -26,7 +26,7 @@ namespace mx
     private log
     public __name
 
-    public function new(name)
+    public function new(name as string)
       m.log = new log.Logger(name)
       m.__name = name
     end function
@@ -41,7 +41,7 @@ namespace mx
     '++ Utils
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getNodeFieldBindingKey(node, field, targetField)
+    public function getNodeFieldBindingKey(node as mc.types.node, field as string, targetField as string)
       return "vm_" + node.id + "_" + field + "_" + targetField
     end function
 
@@ -57,9 +57,9 @@ namespace mx
       m.unbindAllFields()
     end function
 
-    public function toggleNotifications(isEnabled) as void
+    public function toggleNotifications(isEnabled as boolean) as void
       m.isBindingNotificationEnabled = isEnabled
-      if(m.isBindingNotificationEnabled = true)
+      if m.isBindingNotificationEnabled = true
         '        logDebug("bindings renabled notifying pending observers")
         m.firePendingObserverNotifications()
         m.firePendingBindingNotifications()
@@ -92,9 +92,9 @@ namespace mx
     '  * @param {string} fieldName - name of field to set
     '  * @param {any} value - new value
     '  * @param {boolean} alwaysNotify - if true, will notify on same value being set
-    '  * @returns {boolean} true if succesful
+    '  * @returns {boolean} true if successful
     '  */
-    public function setField(fieldName, value, originKey = invalid, notify = true) as boolean
+    public function setField(fieldName as string, value as dynamic, originKey = invalid as string, notify = true as boolean) as boolean
       if not mc.isString(fieldName) or fieldName.trim() = ""
         m.log.error("Tried to setField with illegal field name class", m.__className)
         return false
@@ -130,7 +130,7 @@ namespace mx
     '  * @param {string} sendMode - (none|value|node|both)
     '  * @param {function} func - pointer to function to call to call back with
     '  */
-    public function observeField(fieldName, func, fireOnSet = false, transformFunc = invalid, once = false, mode = "value")
+    public function observeField(fieldName as string, func as function, fireOnSet = false as boolean, transformFunc = invalid as function, once = false as boolean, mode = "value" as string)
 
       properties = m.createBindingProperties(fireOnSet, transformFunc, once, mode, func)
 
@@ -147,12 +147,12 @@ namespace mx
       end if
     end function
 
-    public function unobserveField(fieldName, func) as boolean
+    public function unobserveField(fieldName as string, func as function) as boolean
       observers = m.observers[fieldName]
       if observers = invalid
         observers = {}
       end if
-      observers.delete(mc.getFunctionName(functionName))
+      observers.delete(mc.getFunctionName(func))
 
       if observers.count() = 0
         m.observers.delete(fieldName)
@@ -166,7 +166,7 @@ namespace mx
       m.observers = {}
     end function
 
-    public function notify(fieldName) as void
+    public function notify(fieldName as string) as void
       observers = m.observers[fieldName]
       if observers = invalid
         observers = {}
@@ -209,7 +209,7 @@ namespace mx
     '  * @param {function} transformFunc - pointer to function to call to modify this value when executing the binding
     '  * @param {boolean} isFiringOnce - if true, then the binding is removed as soon as as it is invoked
     '  */
-    public function bindField(fieldName, targetNode, targetField, fireOnSet = false, transformFunc = invalid, isFiringOnce = false)
+    public function bindField(fieldName as string, targetNode as mc.types.node, targetField as string, fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean) as boolean
       bindings = m.bindings[fieldName]
 
       if bindings = invalid
@@ -252,7 +252,7 @@ namespace mx
     '  * @param {string} targetField - field on node to update with change values
     '  * @returns {boolean} true if successful
     '  */
-    public function unbindField(fieldName, targetNode, targetField) as boolean
+    public function unbindField(fieldName as string, targetNode as mc.types.node, targetField as string) as boolean
       bindings = m.bindings[fieldName]
       if bindings = invalid
         bindings = {}
@@ -285,7 +285,7 @@ namespace mx
     '  * @param {string} specificKey - if present, will specify a particular binding key
     '  * @param {string} excludeKey - if present, will not update this node field - to stop cyclical bindings
     '  */
-    public function notifyBinding(fieldName, specificKey = invalid, excludeKey = invalid) as boolean
+    public function notifyBinding(fieldName as string, specificKey = invalid as string, excludeKey = invalid as string) as boolean
       bindings = m.bindings[fieldName]
       if bindings = invalid
         m.pendingBindings[fieldName] = 1
@@ -345,11 +345,11 @@ namespace mx
     '  * @param {string} sendMode - (none|value|node|both)
     '  * @param {function} func - pointer to function to call to call back with
     '  */
-    function createBindingProperties(fireOnSet = false, transformFunc = invalid, isFiringOnce = false, sendMode = "value", func = invalid)
+    function createBindingProperties(fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean, sendMode = "value" as string, func = invalid as function)
       return [fireOnSet, transformFunc, isFiringOnce, sendMode, func]
     end function
 
-    function createNodeBindingProperties(field, node, targetField, fireOnSet = false, transformFunc = invalid, isFiringOnce = false)
+    function createNodeBindingProperties(field as string, node as mc.types.node, targetField as string, fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean)
       return [field, node, targetField, fireOnSet, transformFunc, isFiringOnce]
     end function
 
@@ -364,7 +364,7 @@ namespace mx
   '  *              the class
   '  * @param {event} event
   '  */
-  function observerCallback(func, value, transformFunc, mode) as void
+  function observerCallback(func as function, value as dynamic, transformFunc as function, mode as string) as void
     if m.vm <> invalid
       if transformFunc <> invalid
         value = transformFunc(value)

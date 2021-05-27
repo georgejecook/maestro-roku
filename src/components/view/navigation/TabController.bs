@@ -22,7 +22,7 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function changeCurrentItem(item)
+function changeCurrentItem(item as mc.types.node)
   m.log.info("changeCurrentItem", item)
 
   if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
@@ -39,7 +39,7 @@ end function
 '++ View management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function getViewForMenuItemContent(menuItemContent, useCache = true)
+function getViewForMenuItemContent(menuItemContent as mc.types.node, useCache = true as boolean)
   if menuItemContent = invalid
     return invalid
   end if
@@ -61,12 +61,12 @@ function getViews()
   return views
 end function
 
-function addExistingView(existingView)
+function addExistingView(existingView as boolean)
   m.viewsByMenuItemId[existingView.id] = existingView
   existingView.visible = false
 end function
 
-function _createView(menuItemContent)
+function _createView(menuItemContent as mc.types.node)
   m.log.method("createView menuItemContent.screenType", menuItemContent.screenType)
   childView = createView(menuItemContent)
 
@@ -86,7 +86,7 @@ function _createView(menuItemContent)
     containerView.visible = false
     return containerView
   else
-    m.log.error("menu item ", menuItemContent.id, " resulted in invalid view from createView. Was this view inteded to be added via addExistingView?")
+    m.log.error("menu item ", menuItemContent.id, " resulted in invalid view from createView. Was this view intended to be added via addExistingView?")
     return invalid
   end if
 end function
@@ -99,7 +99,7 @@ end function
 '  * @param {node} a selected menu item
 '  * @returns {BaseScreen} a screen to display in a TabChildScreen
 '  */
-function createView(menuItemContent)
+function createView(menuItemContent as mc.types.node)
   view = invalid
 
   if menuItemContent.screenType <> "none"
@@ -116,6 +116,6 @@ end function
 '++ Lifecycle
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args)
+function initialize(args as mc.types.assocarray)
   addChildViews()
 end function
