@@ -1,0 +1,36 @@
+namespace tests
+  @suite("QueryStringBuilder tests")
+  class QueryStringBuilderTests extends tests.BaseTestSuite
+
+    private qs
+    protected override function beforeEach()
+      super.beforeEach()
+      m.qs = new mc.net.QueryStringBuilder()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("adds default params")
+    @params("t", { "a": 1, "b": 2 }, "t?a=1&b=2")
+    @params("t", { "a": "a1", "b": "a2" }, "t?a=a1&b=a2")
+    @params("t", { "a": "a/1", "b": "a2" }, "t?a=a%2F1&b=a2")
+    @params("t?f=b", { "a": 1, "b": 2 }, "t?f=b&a=1&b=2")
+    @params("t?f=b&x=y", { "a": 1, "b": 2 }, "t?f=b&x=y&a=1&b=2")
+    @params("t?f=b&", { "a": 1, "b": 2 }, "t?f=b&a=1&b=2")
+    function _(url, params, expected)
+      m.qs = new mc.net.QueryStringBuilder(params)
+      m.assertEqual(m.qs.appendToUrl(url), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("build")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("builds various urls from params")
+    function _()
+    end function
+
+  end class
+end namespace

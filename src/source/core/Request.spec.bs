@@ -1,9 +1,12 @@
 namespace tests
   @suite("Request tests")
-  class RequesTests extends tests.BaseTestSuite
+  class RequestTests extends tests.BaseTestSuite
+
+    private request
 
     protected override function beforeEach()
       super.beforeEach()
+      m.request = new mc.net.Request()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -12,48 +15,43 @@ namespace tests
 
     @it("gets")
     function _()
-      req = new mc.net.Request()
       result = { "id": "result" }
 
-      m.expectOnce(req, "get", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "get", ["url", "params", "headers", "otherArgs"], result)
 
-      m.assertEqual(req.get("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.get("url", "params", "headers", "otherArgs"), result)
     end function
 
     @it("posts")
     function _()
-      req = new mc.net.Request()
       result = { "id": "result" }
 
-      m.expectOnce(req, "post", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "post", ["url", "params", "headers", "otherArgs"], result)
 
-      m.assertEqual(req.post("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.post("url", "params", "headers", "otherArgs"), result)
     end function
 
     @it("puts")
     function _()
-      req = new mc.net.Request()
       result = { "id": "result" }
 
-      m.expectOnce(req, "put", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "put", ["url", "params", "headers", "otherArgs"], result)
 
-      m.assertEqual(req.put("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.put("url", "params", "headers", "otherArgs"), result)
     end function
 
     @it("deletes")
     function _()
-      req = new mc.net.Request()
       result = { "id": "result" }
 
-      m.expectOnce(req, "delete", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "delete", ["url", "params", "headers", "otherArgs"], result)
 
-      m.assertEqual(req.delete("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.delete("url", "params", "headers", "otherArgs"), result)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("executeRequest")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
     @it("does not pass parmas or headers if not set")
     @params("get", "u1", invalid, invalid)
@@ -62,22 +60,20 @@ namespace tests
     @params("put", "u2", invalid, "illegal")
     @params("put", "u2", "illegal", "illegal")
     function _(method, url, params, headers)
-      req = new mc.net.Request()
 
       expectedArgs = {
       }
 
       result = { "id": "result" }
-      m.expectOnce(req, "request", [method, url, expectedArgs], result)
+      m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], result)
 
-      m.assertEqual(req.executeRequest(method, url, params, headers), result)
+      m.assertEqual(m.request.executeRequest(method, url, params, headers), result)
     end function
 
 
     @it("passes headers values to request, if set")
     @params("put", "u2", { "i": 1 }, { "i": 2 })
     function _(method, url, params, headers)
-      req = new mc.net.Request()
 
       expectedArgs = {
         params: params
@@ -85,14 +81,13 @@ namespace tests
       }
 
       result = { "id": "result" }
-      m.expectOnce(req, "request", [method, url, expectedArgs], result)
+      m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], result)
 
-      m.assertEqual(req.executeRequest(method, url, params, headers), result)
+      m.assertEqual(m.request.executeRequest(method, url, params, headers), result)
     end function
 
     @it("reformats args if receiving otherArgs")
     function _()
-      req = new mc.net.Request()
       otherArgs = { "id": "otherArgs" }
 
       expectedArgs = {
@@ -100,14 +95,13 @@ namespace tests
       }
 
       result = { "id": "result" }
-      m.expectOnce(req, "request", ["method", "url", expectedArgs], result)
+      m.expectOnce(m.request, "runRequest", ["method", "url", expectedArgs], result)
 
-      m.assertEqual(req.executeRequest("method", "url", invalid, invalid, otherArgs), result)
+      m.assertEqual(m.request.executeRequest("method", "url", invalid, invalid, otherArgs), result)
     end function
 
     @it("reformats args if receiving otherArgs - with params and headers")
     function _()
-      req = new mc.net.Request()
       otherArgs = { "id": "otherArgs" }
 
       headers = { "id": "headers" }
@@ -120,9 +114,284 @@ namespace tests
       }
 
       result = { "id": "result" }
-      m.expectOnce(req, "request", ["method", "url", expectedArgs], result)
+      m.expectOnce(m.request, "runRequest", ["method", "url", expectedArgs], result)
 
-      m.assertEqual(req.executeRequest("method", "url", params, headers, otherArgs), result)
+      m.assertEqual(m.request.executeRequest("method", "url", params, headers, otherArgs), result)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("_execute")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("text response valid")
+    @params("GET", "u", { id: "h" }, invalid, 100)
+    @params("GET", "u", { id: "h" }, invalid, 200)
+    @params("GET", "u", { id: "h" }, invalid, 299)
+    function _(method, url, headers, data, repsonseCode)
+      transfer = { "id": "transfer" }
+      m.expectOnce(m.request, "createUrlTransfer", [true, true, "crt"], transfer)
+
+      m.expectOnce(transfer, "setUrl", [url])
+      m.expectOnce(transfer, "setHeaders", [headers])
+
+      event = { "id": "event" }
+      m.expectOnce(m.request, "sendTransfer", [transfer, 30, method, data], event)
+
+      m.expectOnce(event, "getResponseCode", [], repsonseCode)
+
+      netResult = { "id": "netResult" }
+
+      m.expectOnce(m.request, "createNetResult", [event, ""], netResult)
+
+      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+
+      m.assertEqual(result, netResult)
+    end function
+
+    @it("times out on first request")
+    @params("GET", "u", { id: "h" }, invalid, 100)
+    @params("GET", "u", { id: "h" }, invalid, 200)
+    @params("POST", "u", { id: "h" }, invalid, 200)
+    @params("POST", "u", { id: "h" }, "data", 200)
+    @params("PUT", "u", { id: "h" }, invalid, 200)
+    @params("PUT", "u", { id: "h" }, "data", 200)
+    function _(method, url, headers, data, repsonseCode)
+      transfer = { "id": "transfer" }
+      m.expectOnce(m.request, "createUrlTransfer", [true, true, "crt"], transfer)
+
+      m.expectOnce(transfer, "setUrl", [url])
+      m.expectOnce(transfer, "setHeaders", [headers])
+
+      m.expectOnce(m.request, "sendTransfer", [transfer, 30, method, data], invalid)
+      m.expectOnce(transfer, "asyncCancel", [])
+
+      'time out doubles each time
+      event = { "id": "event" }
+      m.expectOnce(m.request, "sendTransfer", [transfer, 60, method, data], event)
+      m.expectOnce(event, "getResponseCode", [], repsonseCode)
+
+
+      netResult = { "id": "netResult" }
+
+      m.expectOnce(m.request, "createNetResult", [event, ""], netResult)
+
+      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+
+      m.assertEqual(result, netResult)
+    end function
+
+    @it("Fails after maximum attempts - invalid responses")
+    @params("GET", "u", { id: "h" }, invalid)
+    @params("GET", "u", { id: "h" }, invalid)
+    @params("GET", "u", { id: "h" }, invalid)
+    function _(method, url, headers, data)
+      transfer = { "id": "transfer" }
+      m.expectOnce(m.request, "createUrlTransfer", [true, true, "crt"], transfer)
+
+      m.expectOnce(transfer, "setUrl", [url])
+      m.expectOnce(transfer, "setHeaders", [headers])
+
+      m.expectOnce(m.request, "sendTransfer", [transfer, 30, method, data], invalid)
+      m.expectOnce(transfer, "asyncCancel", [])
+
+      m.expectOnce(m.request, "sendTransfer", [transfer, 60, method, data], invalid)
+      m.expectOnce(transfer, "asyncCancel", [])
+
+      m.expectOnce(m.request, "sendTransfer", [transfer, 120, method, data], invalid)
+      m.expectOnce(transfer, "asyncCancel", [])
+
+      netResult = { "id": "netResult" }
+
+      m.expectOnce(m.request, "createNetResult", [invalid, ""], netResult)
+
+      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+
+      m.assertEqual(result, netResult)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createNetResult")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates response object")
+    @params(200, "r", invalid, "", true, "r")
+    @params(200, invalid, invalid, "", true, invalid)
+    @params(205, "r", { "h1": "a" }, "", true, "r")
+    @params(400, "r", invalid, "", false, "r")
+    @params(503, "r", { "h1": "a" }, "", false, "r")
+    @params(200, "r", invalid, "", true, "r")
+    @params(205, "r", { "h1": "a" }, "application/json", true, invalid)
+    @params(205, invalid, { "h1": "a" }, "application/json", true, invalid)
+    @params(205, "[{},1]", invalid, "application/json", true, [{}, 1])
+    function _(code, text, headers, contentType, ok, expectedData)
+      event = { "id": "event" }
+      m.expectOnce(event, "getResponseCode", [], code)
+      m.expectOnce(event, "getResponseHeaders", [], headers)
+      m.expectOnce(event, "getString", [], text)
+
+      result = m.request.createNetResult(event, contentType)
+      m.assertEqual(result.isOk, ok)
+      m.assertEqual(result.statusCode, code)
+      m.assertEqual(result.data, expectedData)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("sendTransfer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("handles unsent POST")
+    @params(30, invalid, "")
+    @params(30, "", "")
+    @params(30, "data", "data")
+    function _(timeout, data, expectedData)
+      transfer = { "id": "transfer" }
+      m.expectOnce(transfer, "asyncPostFromString", [expectedData], false)
+
+      m.assertInvalid(m.request.sendTransfer(transfer, timeout, "POST", data))
+    end function
+
+    @it("handles unsent default")
+    @params(30, invalid, "")
+    @params(30, "", "")
+    @params(30, "data", "data")
+    function _(timeout, data, expectedData)
+      transfer = { "id": "transfer" }
+
+      m.expectOnce(transfer, "setRequest", ["other"])
+      m.expectOnce(transfer, "asyncPostFromString", [expectedData], false)
+
+      m.assertInvalid(m.request.sendTransfer(transfer, timeout, "other", data))
+    end function
+
+    @it("handles sent default")
+    @params(30, invalid, "")
+    @params(30, "", "")
+    @params(30, "data", "data")
+    function _(timeout, data, expectedData)
+      transfer = { "id": "transfer" }
+
+      m.expectOnce(transfer, "setRequest", ["other"])
+      m.expectOnce(transfer, "asyncPostFromString", [expectedData], true)
+      m.expectOnce(transfer, "getPort", [], "port")
+
+      responseEvent = { "id": "responseEvent" }
+      m.expectOnce(m.request, "waitForResponseEvent", [timeout, "port"], responseEvent)
+
+      m.assertEqual(m.request.sendTransfer(transfer, timeout, "other", data), responseEvent)
+    end function
+
+    @it("handles sent POST")
+    @params(30, invalid, "")
+    @params(30, "", "")
+    @params(30, "data", "data")
+    function _(timeout, data, expectedData)
+      transfer = { "id": "transfer" }
+      m.expectOnce(transfer, "asyncPostFromString", [expectedData], true)
+      m.expectOnce(transfer, "getPort", [], "port")
+
+      responseEvent = { "id": "responseEvent" }
+      m.expectOnce(m.request, "waitForResponseEvent", [timeout, "port"], responseEvent)
+
+      m.assertEqual(m.request.sendTransfer(transfer, timeout, "POST", data), responseEvent)
+
+    end function
+
+    @it("handles unsent GET")
+    @params(30, invalid)
+    @params(30, "")
+    @params(30, "data")
+    function _(timeout, data)
+      transfer = { "id": "transfer" }
+      m.expectOnce(transfer, "asyncGetToString", [], false)
+
+      m.assertInvalid(m.request.sendTransfer(transfer, timeout, "GET", data))
+    end function
+
+    @it("handles sent GET")
+    @params(30, invalid)
+    @params(30, "")
+    @params(30, "data")
+    function _(timeout, data)
+      transfer = { "id": "transfer" }
+      m.expectOnce(transfer, "asyncGetToString", [], true)
+      m.expectOnce(transfer, "getPort", [], "port")
+
+      responseEvent = { "id": "responseEvent" }
+      m.expectOnce(m.request, "waitForResponseEvent", [timeout, "port"], responseEvent)
+
+      m.assertEqual(m.request.sendTransfer(transfer, timeout, "GET", data), responseEvent)
+
+    end function
+
+    @it("handles unsent HEAD")
+    @params(30, invalid)
+    @params(30, "")
+    @params(30, "data")
+    function _(timeout, data)
+      transfer = { "id": "transfer" }
+      m.expectOnce(transfer, "asyncHead", [], false)
+
+      m.assertInvalid(m.request.sendTransfer(transfer, timeout, "HEAD", data))
+    end function
+
+    @it("handles sent HEAD")
+    @params(30, invalid)
+    @params(30, "")
+    @params(30, "data")
+    function _(timeout, data)
+      transfer = { "id": "transfer" }
+      m.expectOnce(transfer, "asyncHead", [], true)
+      m.expectOnce(transfer, "getPort", [], "port")
+
+      responseEvent = { "id": "responseEvent" }
+      m.expectOnce(m.request, "waitForResponseEvent", [timeout, "port"], responseEvent)
+
+      m.assertEqual(m.request.sendTransfer(transfer, timeout, "HEAD", data), responseEvent)
+
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("runRequest")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("bundles up args for execute method, as expected")
+    @params("GET", "u", "u", invalid, {}, invalid, 1, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u", invalid, {}, invalid, 1, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u", invalid, {}, invalid, 1, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u", {}, {}, invalid, 1, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u", { retryCount: 3 }, {}, invalid, 3, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u", { certificatePath: "cp" }, {}, invalid, 1, "cp")
+    @params("GET", "u", "u?a=1", { params: { a: 1 } }, {}, invalid, 1, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u?a=1", { params: { a: 1 }, "data": "d" }, {}, "d", 1, "common:/certs/ca-bundle.crt")
+    @params("POST", "u", "u?a=1", { params: { a: 1 }, "json": [{}, 1] }, { "Content-Type": "application/json" }, "[{},1]", 1, "common:/certs/ca-bundle.crt")
+    @params("GET", "u", "u", { headers: { "ct": "b" } }, { ct: "b" }, invalid, 1, "common:/certs/ca-bundle.crt")
+    function _(method, url, expectedUrl, args, headers, data, retryCount, certificatePath)
+      executeResult = { "id": "executeResult" }
+
+      m.expectOnce(m.request, "_execute", [method, expectedUrl, headers, data, 30000, retryCount, certificatePath], executeResult)
+
+      result = m.request.runRequest(method, url, args)
+      m.assertEqual(result, executeResult)
+    end function
+
+    @it("changes timeout")
+    @params(0)
+    @params(3000)
+    @params(15000)
+    function _(timeout)
+      executeResult = { "id": "executeResult" }
+
+      m.expectOnce(m.request, "_execute", ["GET", "u", {}, invalid, timeout, 1, "common:/certs/ca-bundle.crt"], executeResult)
+      args = {
+        timeout: timeout
+      }
+
+      result = m.request.runRequest("GET", "u", args)
+      m.assertEqual(result, executeResult)
+    end function
+
+
   end class
 end namespace
