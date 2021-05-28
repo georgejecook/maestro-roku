@@ -1,0 +1,49 @@
+namespace tests
+  @suite("NetResult tests")
+  class NetResultTests extends tests.BaseTestSuite
+
+    protected override function beforeEach()
+      super.beforeEach()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("ascertains isOk and sets other params")
+    @params(-1, invalid, invalid, invalid, false)
+    @params(0, invalid, invalid, invalid, false)
+    @params(400, invalid, invalid, invalid, false)
+    @params(401, invalid, invalid, invalid, false)
+    @params(503, invalid, invalid, invalid, false)
+    @params(-1, "data", "message", invalid, false)
+    @params(-1, "data", "message", {id:"h"}, false)
+    @params(0, "data", "message", {id:"h"}, false)
+    @params(400, "data", "message", {id:"h"}, false)
+    @params(401, "data", "message", {id:"h"}, false)
+    @params(402, "data", "message", {id:"h"}, false)
+    @params(1, "data", "message", invalid, true)
+    @params(200, "data", "message", invalid, true)
+    @params(205, "data", "message", invalid, true)
+    @params(1, invalid, invalid, invalid, true)
+    @params(200, invalid, invalid, invalid, true)
+    @params(205, invalid, invalid, invalid, true)
+    function _(code, data, message, headers, ok)
+      result = new mc.net.NetResult(code, data, message, headers)
+      m.assertEqual(result.isOK, ok)
+      m.assertEqual(result.statusCode, code)
+      m.assertEqual(result.data, data)
+      m.assertEqual(result.message, message)
+      m.assertEqual(result.headers, headers)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("build")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("builds various urls from params")
+    function _()
+    end function
+
+  end class
+end namespace
