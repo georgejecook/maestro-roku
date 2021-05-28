@@ -1,12 +1,13 @@
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
-import "pkg:/source/core/NetResponse.bs"
+import "pkg:/source/core/NetResult.bs"
+import "pkg:/source/core/QueryStringBuilder.bs"
 
 'adapted from https://github.com/bvisin/roku-requests
 
 namespace mc.net
-  @strict
-  class Request
+
+class Request
     private log
 
     function new()
@@ -16,23 +17,23 @@ namespace mc.net
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function get(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+    function get(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
       return m.executeRequest("GET", url, params, headers, otherArgs)
     end function
 
-    function post(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+    function post(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function delete(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+    function delete(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
       return m.executeRequest("DELETE", url, params, headers, otherArgs)
     end function
 
-    function put(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+    function put(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
-    function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray)
+    function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
 
       if mc.isAACompatible(otherArgs)
         args = otherArgs
@@ -52,226 +53,180 @@ namespace mc.net
         m.log.error("received illegal headers type", type(headers))
       end if
 
-      return m.request(method, url, args)
+      return m.runRequest(method, url, args)
     end function
 
-    private function request(method as string, url as string, args as object)
-      _params = {}
-      _headers = {}
-      _data = invalid
-      _json = invalid
-      _timeout = 30000
-      _retryCount = 0
-      _verify = "common:/certs/ca-bundle.crt"
-      if args <> invalid and type(args) = "roAssociativeArray"
-        if args.params <> invalid and type(args.params) = "roAssociativeArray"
-          _params = args.params
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' /**
+    '  * @member runRequest
+    '  * @memberof module:Request
+    '  * @instance
+    '  * @function
+    '  * @description compiles the request parameters and args and runs the request, returning the response
+    '  * @param {string} method
+    '  * @param {string} url
+    '  * @param {assocarray} args - args for the request
+    '  * @returns {mc.net.NetResult} response object
+    '  */
+    private function runRequest(method as string, url as string, args as object) as mc.net.NetResult
+      headers = {}
+      params = {}
+      data = invalid
+      timeout = 30000
+      retryCount = 1
+      certificatePath = "common:/certs/ca-bundle.crt"
+
+      if mc.isAACompatible(args)
+        if mc.isAACompatible(args.params)
+          params = args.params
         end if
-        if args.headers <> invalid and type(args.headers) = "roAssociativeArray"
-          _headers = args.headers
+
+        if mc.isAACompatible(args.headers)
+          headers = args.headers
         end if
-        if args.data <> invalid and (type(args.data) = "String" or type(args.data) = "roString")
-          _data = args.data
+
+        if mc.isAACompatible(args.json) or mc.isArray(args.json)
+          headers["Content-Type"] = "application/json"
+          data = formatJson(args.json)
+        else if mc.isString(args.data)
+          data = args.data
         end if
-        if args.json <> invalid and type(args.json) = "roAssociativeArray"
-          _json = FormatJson(args.json)
+
+        if mc.isInteger(args.timeout)
+          timeout = args.timeout
         end if
-        if args.timeout <> invalid and (type(args.timeout) = "Integer" or type(args.timeout) = "roInteger")
-          _timeout = args.timeout
+
+        if mc.isInteger(args.retryCount)
+          retryCount = args.retryCount
         end if
-        if args.retryCount <> invalid and (type(args.retryCount) = "Integer" or type(args.retryCount) = "roInteger")
-          _retryCount = args.retryCount
-        end if
-        if args.verify <> invalid and (type(args.verify) = "String" or type(args.verify) = "roString")
-          _verify = args.verify
+
+        if mc.isString(args.certificatePath)
+          certificatePath = args.certificatePath
         end if
       end if
-      requestHeaders = new mc.net.headers()
-      requestHeaders.addHeadersAA(_headers)
-      requestQueryString = new mc.net.queryString()
-      requestQueryString.addParamsAA(_params)
-      if _data <> invalid
-        data = _data
-      else if _json <> invalid
-        data = _json
-        requestHeaders.addHeader("Content-Type", "application/json")
-      else
+
+      queryStringBuilder = new mc.net.QueryStringBuilder(params)
+      url = queryStringBuilder.appendToUrl(url)
+
+      return m._execute(method, url, headers, data, timeout, retryCount, certificatePath)
+    end function
+
+    private function _execute(method as string, url as string, headers as mc.types.assocarray, data as string, timeout as float, retryCount as integer, certificatePath as string)
+      transfer = m.createUrlTransfer(true, true, certificatePath)
+      transfer.setUrl(url)
+      transfer.setHeaders(headers)
+
+      m.log.info("------ START HTTP REQUEST ------")
+      m.log.info("URL:", url)
+      m.log.info("Timeout= ", timeout)
+      m.log.info("Headers: ", headers)
+      responseEvent = invalid
+      requestDetails = {
+        timesTried: 0,
+      }
+
+      while retryCount > 0
+        retryCount = retryCount - 1
+        requestDetails.timesTried = requestDetails.timesTried + 1
+        m.log.info("Method: ", method)
+
+        responseEvent = m.sendTransfer(transfer, timeout, method, data)
+
+        if responseEvent <> invalid
+          responseCode = responseEvent.getResponseCode()
+          m.log.info("Response Code", responseCode)
+
+          if responseCode > 0 and responseCode < 400
+            exit while
+          else
+            m.log.warn("Bad response", responseCode)
+            m.log.warn("Will Retry ", retryCount)
+          end if
+
+        else
+          m.log.error("Event Timed Out")
+          transfer.asyncCancel()
+          timeout = timeout * 2
+          m.log.error("Timeout=", timeout)
+        end if
+      end while
+
+      m.log.info("------ END HTTP REQUEST ------")
+      return m.createNetResult(responseEvent, mc.getPath(headers, "Content-Type", ""))
+    end function
+
+    private function createUrlTransfer(enableEncodings as boolean, retainBodyOnError as boolean, certificatePath as string)
+      transfer = createObject("roUrlTransfer")
+      transfer.setPort(createObject("roMessagePort"))
+      transfer.enableEncodings(enableEncodings)
+      transfer.retainBodyOnError(retainBodyOnError)
+      if certificatePath <> ""
+        transfer.setCertificatesFile(certificatePath)
+        transfer.initClientCertificates()
+      end if
+      return transfer
+    end function
+
+    private function sendTransfer(transfer as object, timeout as integer, method as string, data = invalid as string) as object
+      sent = false
+
+      if data = invalid
         data = ""
       end if
-      url = requestQueryString.append(url)
-      headers = requestHeaders._headers
-      response = mc.net.execute(method, url, headers, data, _timeout, _retryCount, _verify)
-      return response
-    end function
-
-  end class
-
-  function execute(method as string, url as string, headers as mc.types.assocarray, data as mc.types.assocarray, timeout as float, retryCount as integer, verify as string)
-    transfer = mc.net.createUrlTransfer(true, true, verify)
-    transfer.setUrl(url)
-    transfer.setHeaders(headers)
-    ? "[http] ------ START HTTP REQUEST ------"
-    ? "[http] URL:", transfer.getURL()
-    ? "[http] Timeout= ", timeout
-    ? "[http] Headers: ", headers
-    responseEvent = invalid
-    requestDetails = {
-      timesTried: 0,
-    }
-
-    while retryCount >= 0
-      retryCount = retryCount - 1
-      requestDetails.timesTried = requestDetails.timesTried + 1
-      ? "[http] Method: ", method
 
       if method = "POST"
         sent = transfer.asyncPostFromString(data)
-
       else if method = "GET"
         sent = transfer.asyncGetToString()
-
       else if method = "HEAD"
         sent = transfer.asyncHead()
-
       else
         transfer.setRequest(method)
         sent = transfer.asyncPostFromString(data)
       end if
 
-      if sent = true
-        event = wait(timeout, transfer.getPort())
-
-        if type(event) = "roUrlEvent"
-          responseEvent = event
-          responseCode = event.getResponseCode()
-          ? "[http] Response Code", responseCode
-
-          if responseCode > 0 and responseCode < 400
-            exit while
-
-          else
-            ? "[http] Bad response", responseCode
-            ? "[http] Will Retry ", retryCount
-          end if
-
-        else
-          ? "[http] Event Timed Out"
-          transfer.asyncCancel()
-          timeout = timeout * 2
-          ? "[http] Timeout=", timeout
-        end if
-      end if
-    end while
-
-    ? "[http] ------ END HTTP REQUEST ------"
-    return new mc.net.NetResponse(transfer, responseEvent, requestDetails)
-  end function
-
-  @strict
-  class Headers
-    private _headers = {}
-
-    function new()
-    end function
-
-    function addHeader(key as string, value as string)
-      m._headers[key] = value
-    end function
-
-    function addHeadersAA(headers as object)
-      m._headers.append(headers)
-    end function
-  end class
-
-  @strict
-  class QueryString
-    private _transfer = createObject("roUrlTransfer")
-    private _qs_array = []
-
-    function new()
-    end function
-    function addString(params as string)
-      if params.instr("&")
-        split_params = params.split("&")
-        for each param in split_params
-          if param.instr("=")
-            split_param = param.split("=")
-            m.addParamKeyValue(split_param[0], split_param[1])
-          else
-            m.addParamKeyValue(param, "")
-          end if
-        end for
-      else if params.instr("=")
-        split_params = params.split("=")
-        m.addParamKeyValue(split_params[0], split_params[1])
+      if sent
+        return m.waitForResponseEvent(timeout, transfer.getPort())
       else
-        m.addParamKeyValue(params, "")
+        return invalid
       end if
     end function
 
-    function addParamKeyValue(param as string, key as string)
-      m._qs_array.push([param, key])
-    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ proxy wrappers for testing
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function addParamsAA(params as object)
-      for each item in params.items()
-        m.addParamKeyValue(item.key, item.value)
-      end for
-    end function
-
-    function addParamsArray(params as object)
-      if params.count() > 0
-        for each item in params
-          if item.count() > 1
-            m.addParamKeyValue(item[0], item[1])
-          else if item.count() > 0
-            m.addParamKeyValue(item[0], "")
-          end if
-        end for
+    private function waitForResponseEvent(timeout as integer, port as object) as object
+      event = wait(timeout, port)
+      if type(event) = "roUrlEvent"
+        return event
+      else
+        return invalid
       end if
     end function
 
-    function build() as string
-      output = ""
-      c = 0
-      for each qs in m._qs_array
-        if c = 0
-          output = qs[0] + "=" + m._transfer.escape(qs[1])
-        else
-          output = output + "&" + qs[0] + "=" + m._transfer.escape(qs[1])
-        end if
-        c += 1
-      end for
-      return output
-    end function
+    private function createNetResult(responseEvent as object, contentType = "" as string) as mc.net.NetResult
+      data = invalid
+      headers = invalid
+      statusCode = -1
 
-    function append(url as string) as string
-      if m._qs_array.count() > 0
-        if url.instr("?")
-          if url.right(1) = "?"
-            return url + m.build()
-          else
-            return url + "&" + m.build()
-          end if
-        else
-          return url + "?" + m.build()
-        end if
+      if responseEvent <> invalid
+        statusCode = responseEvent.getResponseCode()
+        'bs:disable-next-line
+        headers = responseEvent.getResponseHeaders()
+        data = responseEvent.getString()
       end if
-      return url
+
+      if contentType = "application/json" and data <> invalid
+        data = parseJson(data)
+      end if
+
+      return new mc.net.NetResult(statusCode, data, invalid, headers)
     end function
   end class
-
-  function createUrlTransfer(enableEncodings as boolean, retainBodyOnError as boolean, verify as string)
-    _transfer = createObject("roUrlTransfer")
-    _transfer.setPort(createObject("roMessagePort"))
-    _transfer.enableEncodings(enableEncodings)
-    _transfer.retainBodyOnError(retainBodyOnError)
-    if verify <> ""
-      _transfer.setCertificatesFile(verify)
-      _transfer.initClientCertificates()
-    end if
-    return _transfer
-  end function
-
 
 end namespace

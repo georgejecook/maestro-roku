@@ -1,0 +1,88 @@
+namespace mc.net
+
+  class QueryStringBuilder
+    private _qs_array = []
+
+    function new(params = invalid as mc.types.assocarray)
+      if params <> invalid
+        m.addParamsAA(params)
+      end if
+    end function
+
+    function appendToUrl(url as string) as string
+      if m._qs_array.count() > 0
+        if url.instr("?") <> -1
+          if url.right(1) = "?"
+            return url + m.build()
+          else
+            if url.right(1) = "&"
+              return url + m.build()
+            else
+              return url + "&" + m.build()
+            end if
+          end if
+        else
+          return url + "?" + m.build()
+        end if
+      end if
+      return url
+    end function
+
+    function addString(params as string)
+      if params.instr("&") = -1
+        split_params = params.split("&")
+        for each param in split_params
+          if param.instr("=") = -1
+            split_param = param.split("=")
+            m.addParamKeyValue(split_param[0], split_param[1])
+          else
+            m.addParamKeyValue(param, "")
+          end if
+        end for
+      else if params.instr("=") = -1
+        split_params = params.split("=")
+        m.addParamKeyValue(split_params[0], split_params[1])
+      else
+        m.addParamKeyValue(params, "")
+      end if
+    end function
+
+    function addParamKeyValue(key as string, value as object)
+      m._qs_array.push([key, `${value}`])
+    end function
+
+    function addParamsAA(params as object)
+      for each item in params.items()
+        m.addParamKeyValue(item.key, item.value)
+      end for
+    end function
+
+    function addParamsArray(params as mc.types.assocarray)
+      if params.count() > 0
+        for each item in params
+          if item.count() > 1
+            m.addParamKeyValue(item[0], item[1])
+          else if item.count() > 0
+            m.addParamKeyValue(item[0], "")
+          end if
+        end for
+      end if
+    end function
+
+    private function build() as string
+      output = ""
+      c = 0
+      for each qs in m._qs_array
+        if c = 0
+          output = qs[0] + "=" + qs[1].encodeUriComponent()
+        else
+          output = output + "&" + qs[0] + "=" + qs[1].encodeUriComponent()
+        end if
+        c += 1
+      end for
+      return output
+    end function
+
+  end class
+
+end namespace
