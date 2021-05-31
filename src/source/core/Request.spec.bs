@@ -141,7 +141,7 @@ namespace tests
 
       netResult = { "id": "netResult" }
 
-      m.expectOnce(m.request, "createNetResult", [event, ""], netResult)
+      m.expectOnce(m.request, "createNetResult", [event], netResult)
 
       result = m.request._execute(method, url, headers, data, 30, 3, "crt")
 
@@ -173,7 +173,7 @@ namespace tests
 
       netResult = { "id": "netResult" }
 
-      m.expectOnce(m.request, "createNetResult", [event, ""], netResult)
+      m.expectOnce(m.request, "createNetResult", [event], netResult)
 
       result = m.request._execute(method, url, headers, data, 30, 3, "crt")
 
@@ -202,7 +202,7 @@ namespace tests
 
       netResult = { "id": "netResult" }
 
-      m.expectOnce(m.request, "createNetResult", [invalid, ""], netResult)
+      m.expectOnce(m.request, "createNetResult", [invalid], netResult)
 
       result = m.request._execute(method, url, headers, data, 30, 3, "crt")
 
@@ -214,22 +214,26 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @it("creates response object")
-    @params(200, "r", invalid, "", true, "r")
-    @params(200, invalid, invalid, "", true, invalid)
-    @params(205, "r", { "h1": "a" }, "", true, "r")
-    @params(400, "r", invalid, "", false, "r")
-    @params(503, "r", { "h1": "a" }, "", false, "r")
-    @params(200, "r", invalid, "", true, "r")
-    @params(205, "r", { "h1": "a" }, "application/json", true, invalid)
-    @params(205, invalid, { "h1": "a" }, "application/json", true, invalid)
-    @params(205, "[{},1]", invalid, "application/json", true, [{}, 1])
-    function _(code, text, headers, contentType, ok, expectedData)
+    @params(200, "r", invalid, true, "r")
+    @params(200, invalid, invalid, true, invalid)
+    @params(205, "r", { "h1": "a" }, true, "r")
+    @params(400, "r", invalid, false, "r")
+    @params(503, "r", { "h1": "a" }, false, "r")
+    @params(200, "r", invalid, true, "r")
+    @params(200, "r", {}, true, "r")
+    @params(205, "r", { "content-type": "application/json" }, true, invalid)
+    @params(205, invalid, { "content-type": "application/json" }, true, invalid)
+    @params(205, "[{},1]", { "content-type": "application/json" }, true, [{}, 1])
+    @params(205, "[{},1]", { "Content-Type": "application/json" }, true, [{}, 1])
+    @params(205, "[{},1]", { "CONTENT-TYPE": "application/json" }, true, [{}, 1])
+    @params(205, "[{},1]", { "c": "application/json" }, true, "[{},1]")
+    function _(code, text, headers, ok, expectedData)
       event = { "id": "event" }
       m.expectOnce(event, "getResponseCode", [], code)
       m.expectOnce(event, "getResponseHeaders", [], headers)
       m.expectOnce(event, "getString", [], text)
 
-      result = m.request.createNetResult(event, contentType)
+      result = m.request.createNetResult(event)
       m.assertEqual(result.isOk, ok)
       m.assertEqual(result.statusCode, code)
       m.assertEqual(result.data, expectedData)
