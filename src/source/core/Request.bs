@@ -156,7 +156,7 @@ class Request
       end while
 
       m.log.info("------ END HTTP REQUEST ------")
-      return m.createNetResult(responseEvent, mc.getPath(headers, "Content-Type", ""))
+      return m.createNetResult(responseEvent)
     end function
 
     private function createUrlTransfer(enableEncodings as boolean, retainBodyOnError as boolean, certificatePath as string)
@@ -209,19 +209,22 @@ class Request
       end if
     end function
 
-    private function createNetResult(responseEvent as object, contentType = "" as string) as mc.net.NetResult
+    private function createNetResult(responseEvent as object) as mc.net.NetResult
       data = invalid
       headers = invalid
       statusCode = -1
+
+      contentType = ""
 
       if responseEvent <> invalid
         statusCode = responseEvent.getResponseCode()
         'bs:disable-next-line
         headers = responseEvent.getResponseHeaders()
+        contentType = mc.getPath(headers, "content-type", "")
         data = responseEvent.getString()
       end if
 
-      if contentType = "application/json" and data <> invalid
+      if lCase(contentType) = "application/json" and data <> invalid
         data = parseJson(data)
       end if
 
