@@ -224,7 +224,7 @@ class Request
         data = responseEvent.getString()
       end if
 
-      if lCase(contentType) = "application/json" and data <> invalid
+      if lCase(contentType).instr("application/json") <> -1 and data <> invalid
         data = parseJson(data)
       end if
 
