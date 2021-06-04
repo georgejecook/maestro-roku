@@ -117,7 +117,9 @@ namespace mc
         ' ? "releasing component "; component.id
         pool = m.getComponentPool(component.subType())
         pool.usedComponentsById.delete(component.id)
-        component.getParent().removeChild(component)
+        if component.getParent() <> invalid
+          component.getParent().removeChild(component)
+        end if
         pool.freeComponentsById[component.id] = component
         m.top.numberOfComponentsInUse--
       end if
