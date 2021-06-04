@@ -26,14 +26,14 @@ Only one screen is ever visible at a time. A screen's lifecycle methods for focu
 
 ## TabController
 
-BaseAggregateView subclass which allows you to switch various views. The tabController will display a screen which corresponds to the currently selected item. The screen is created lazily, unless it was specified using `addExistingView`
+`BaseAggregateView` subclass which allows you to switch various views. The tabController will display a screen which corresponds to the currently selected item. The screen is created lazily, unless it was specified using `addExistingView`
 
-### TabController fields
+### Fields
 
  - `menuItems` array of items, which are used to create child screens. The menuItem must have an id, which matches the view passed in with `addExistingView`, or have it's screenType set to the valid type of a `BaseScreen` subclass
  - `currentItem` _readOnly_ the currently selected menuItem
 
-### TabController functions
+### Functions
 
  - `addExistingView` - will register the passed in view to be displayed when a menu item with the same id is set as the `currentItem`
  - `getViewForMenuItemContent`
@@ -42,15 +42,15 @@ BaseAggregateView subclass which allows you to switch various views. The tabCont
 
 ## NavController
 
-NavController controls a stack of views stacked one up on the other. When a BaseScreen is added to a NavController it's `navController` field is set to the navController. In addition the lifecycle methods `onAddedToAggregateView` and `onRemovedFromAggregateView` are invoked in accordance with `pop`, `push` and `reset`
+`NavController` controls a stack of views stacked one up on the other. When a BaseScreen is added to a NavController it's `navController` field is set to the navController. In addition the lifecycle methods `onAddedToAggregateView` and `onRemovedFromAggregateView` are invoked in accordance with `pop`, `push` and `reset`
 
-### NavController fields
+### Fields
 
  - `numberOfViews` _readonly_ number of Views on the stack
  - `isLastViewPopped` _readonly_ true, if the last view is popped, can be observed
  - `isAutoFocusEnabled` if true then pushed views receive focus
 
-## NavController functions
+### Functions
 
  - `push` - pushes the passed in view onto the stack, and initializes it
  - `pop` - pops current view from the stack
@@ -59,10 +59,23 @@ NavController controls a stack of views stacked one up on the other. When a Base
 
 ## DynamicContainer
 
-DynamicContainer is analogue to iOS's container view. It affords the embedding of screens, within screens. This is useful for:
+`DynamicContainer` is analogue to iOS's container view. It affords the embedding of screens, within screens. This is useful for:
 
  - Tab switchers
  - Sub views (e.g. placing a *faux* dialog on top of a screen)
  - Embedding a forgot password screen inside of another screen
 
 It has one method `SetNextView`, which will set the current view on the container. Note, you can bind directly to this, in mvvm bindings, as maestro knows how to call node functions.
+
+## MultiContainer
+
+Allows for display of multiple components on top of each other, in an indexed manner.
+Set the children with the `children` field, and then use the `index` field to specify which child is focused. The MultiContainer will automatically focus on, and scroll to the child at the requested index.
+
+### Fields
+ - `animationDuration` - controls animation speed
+ - `children` - the the children of the multiContainer
+ - `index` - index of current focused view, if set will jump to view at index
+ - `isAnimated` - if false, will jump to index without animating
+ - `needsRecalculating` - if true, will force layout again
+ - `yOffsets` - collection of values that correspond to each child. Each value will offset the screen position for the corresponding view
