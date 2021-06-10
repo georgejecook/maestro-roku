@@ -393,6 +393,22 @@ namespace mc
     return number
   end function
 
+  function getStackTrace() as string
+    text = ""
+    try
+      throw ""
+    catch e
+      'bs:disable-next-line
+      for i = e.backTrace.count() - 3 to 0 step -1
+        'bs:disable-next-line
+        item = e.backTrace[i]
+        'bs:disable-next-line
+        text += item.filename + "(" + item.line_number.toStr().trim() + ")" + chr(10)
+      end for
+    end try
+    return text
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ punch out methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
