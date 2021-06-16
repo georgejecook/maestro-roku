@@ -1,0 +1,76 @@
+namespace ml.itemDelegateMixin
+
+  ' wires up a cell, or row (or some other list item) to method handlers for the delegate events it may receive. This should be used to add listeners to a cell, or a row renderer. You are free to just simply use the events, that come in onListEventMap, as well.
+  ' @param {class} instance - target for the delegate; if invalid, then it will default to the methods on node scope
+  ' @returns {returnType} returnDescription
+  function setDelegate(instance = invalid as object)
+    m.listEventMap = {}
+    if instance = invalid
+      instance = m
+    end if
+
+    if instance <> invalid
+      funcMap = {
+        "onWillEnter": "willEnter"
+        "onWillExit": "willExit"
+        "onDidEnter": "didEnter"
+        "onDidExit": "didExit"
+        "onWillGainFocus": "willGainFocus"
+        "onWillLoseFocus": "willLoseFocus"
+        "onDidGainFocus": "didGainFocus"
+        "onDidLoseFocus": "didLoseFocus"
+        "onGainingFocus": "gainingFocus"
+        "onLosingFocus": "losingFocus"
+        "onScrollingUpdate": "scrollUpdate"
+      }
+
+      for each funcName in funcMap
+        if mc_isFunction(instance[funcName])
+          m.listEventMap[funcMap[funcName]] = funcName
+        end if
+      end for
+      if mc_isFunction(instance["onScrollingChange"])
+        m.listEventMap["scrollStart"] = "onScrollingChange"
+        m.listEventMap["scrollStop"] = "onScrollingChange"
+      end if
+    end if
+
+    m.isObservingListEvents = m.listEventMap.count() > 0
+
+    if m.isObservingListEvents
+      m.listItemDelegate = instance
+      'bs:disable-next-line
+      mc.toggleObserver(m.top, "listEvent", mc.getFunctionName(onListEventBridge))
+    else
+      mc.toggleObserver(m.top, "listEvent")
+    end if
+  end function
+
+  function onListEventBridge(sgEvent as object) as void
+    if m.listItemDelegate.isRecyclePending = true
+      ' ? "recycling delegate that requires recycling"
+      m.listItemDelegate.recycle()
+      return
+    end if
+
+    event = sgEvent.getData()
+    eventName = event.name
+    if not m.isObservingListEvents or m.listEventMap[eventName] = invalid
+      ' ? "LE(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
+      return
+    end if
+    ' ? "LEB" ; eventName
+
+    if eventName = "scrollStart" or eventName = "scrollStop"
+      m.listItemDelegate["onScrollingChange"](eventName = "scrollStart", event.long)
+    else if eventName = "scrollUpdate"
+      m.listItemDelegate["onScrollingUpdate"](event.startIndex, event.currentIndex)
+    else if eventName = "gainingFocus" or eventName = "losingFocus"
+      m.listItemDelegate[m.listEventMap[eventName]](event.direction, event.fraction)
+    else
+      m.listItemDelegate[m.listEventMap[eventName]](event.direction)
+    end if
+
+  end function
+
+end namespace

@@ -1,0 +1,153 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/view/BaseView.bs"
+
+namespace ml
+  @node("ml_BaseRow", "mv_BaseView")
+  class BaseRow extends mv.BaseView
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ content
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @observer("_onContentChange")
+    public content as mc.types.Node
+    private _content
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public control fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @observer("onAnimateToItemChange")
+    public animateToItem = -1
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private state
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public index = -1
+    public renderState = "none"
+    @observer("onIsRenderedChange")
+    public isRendered = false
+    public isInViewport = false
+    public height = 0
+    public width = 0
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ event delegation
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @observer("onListEvent")
+    public listEvent as mc.types.Assocarray
+    public owner as mc.types.Node
+
+    protected isInitialized = false
+    protected wasHidden = false
+    protected wasFocusable = true
+    protected settings
+    'debug
+    public _vs = "none"
+
+    function new()
+      super(m.top.subType())
+      ml.itemDelegateMixin.setDelegate()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function initialize()
+      super.initialize()
+      m.createViews()
+      m.isInitialized = true
+      m._onContentChange()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function _onContentChange()
+      m.log.info("onContentChange")
+      if m.isInitialized
+        if m._content = invalid or not m._content.isSameNode(m.content)
+          m._content = m.content
+          m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+          m.onContentChange(m._content)
+        else if m._content <> invalid
+          isListRefreshNeeded = false
+          if m.wasHidden <> m._content.isHidden
+            m.wasHidden = m._content.isHidden
+            isListRefreshNeeded = true
+          end if
+          if m.wasFocusable <> m._content.isFocusEnabled
+            m.wasFocusable = m._content.isFocusEnabled
+            isListRefreshNeeded = true
+          end if
+
+          if isListRefreshNeeded
+            m.owner@.forceUpdate()
+          end if
+        end if
+
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function forceUpdate(keepOldFocusIfPossible = true as boolean) as void
+      if m.owner = invalid or m._content = invalid
+        return
+      end if
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+      m.onContentChange(m._content, keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true)
+    end function
+
+    public function getRenderer(index as integer) as object
+      'implement me
+      return invalid
+    end function
+
+    public function getRect(index as integer, useScreenCoords = false as boolean) as object
+      'implement me
+      return invalid
+    end function
+
+    public function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer) as object
+      'implement me
+      return invalid
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ abstract methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createViews()
+      'implement me
+    end function
+
+    protected function onContentchange(content as mc.types.node)
+      'implement me
+    end function
+
+    protected function onIsRenderedChange()
+      'implement me
+    end function
+
+    protected function onAnimateToItemChange(index as integer)
+      'implement me
+    end function
+
+    protected function onListEvent(event as object)
+    end function
+
+    public function onFlowFocusFraction(fraction as float)
+    end function
+
+  end class
+end namespace

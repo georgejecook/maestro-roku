@@ -19,6 +19,7 @@ namespace mv
     protected isLongPressStarted = false
     protected longPressKey = ""
     protected longPressTimer
+    protected longPressInterval
 
     private vm = invalid
 
@@ -104,6 +105,7 @@ namespace mv
     protected function toggleLongPressTimer(interval as float)
       m.cancelWaitTimer(m.longPressTimer)
       m.longPressTimer = invalid
+      m.longPressInterval = interval
       if interval > 0
         m.longPressTimer = m.waitAFrame(m.onLongPressTimerFire, interval)
       else if m.longPressKey <> ""
@@ -121,9 +123,16 @@ namespace mv
     protected function onLongPressTimerFire()
       if m.isLongPressStarted
         'bs:disable-next-line
-        if mc.isFunction(m.onLongPressUpdate) and not m.onLongPressUpdate(m.longPressKey)
-          m.log.info("long press was cancelled by the onLongPressUpdate call")
-          m.toggleLongPressTimer(0)
+        if mc.isFunction(m.onLongPressUpdate)
+          'bs:disable-next-line
+          if not m.onLongPressUpdate(m.longPressKey)
+            m.log.info("long press was cancelled by the onLongPressUpdate call")
+            if mc.isFunction(m.toggleLongPressTimer)
+              m.toggleLongPressTimer(0)
+            end if
+          else
+            m.toggleLongPressTimer(m.longPressInterval)
+          end if
         end if
       else
         'bs:disable-next-line
@@ -137,6 +146,7 @@ namespace mv
         else
           m.log.info("long press is accepted : starting for key ", m.longPressKey)
           m.isLongPressStarted = true
+          m.toggleLongPressTimer(m.longPressInterval)
         end if
       end if
     end function

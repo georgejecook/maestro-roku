@@ -1,0 +1,80 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/view/BaseView.bs"
+
+namespace ml
+  class BaseCell
+
+    public index = -1
+
+
+    ' any item in a list will have this set whenever it gets recycled
+    @observer("onInitialStateChange")
+    public initialState as mc.types.AssocArray
+
+    public listEvent as mc.types.AssocArray
+
+    private isViewCreated = false
+    private isRecyclePending = true
+
+    protected content as mc.types.Node
+    protected list
+    protected row
+    protected size as mc.types.Array
+
+    function new()
+      ml.itemDelegateMixin.setDelegate()
+    end function
+
+    private function _createViews()
+      if m.content <> invalid
+        m.createViews()
+        m.isViewCreated = true
+      end if
+    end function
+
+    private function _onContentChange(content as mc.types.node)
+      m.onContentChange(content)
+      m.isRecyclePending = false
+    end function
+
+    protected function onInitialStateChange(state as string)
+      m.list = state.list
+      m.row = state.row
+      m.size = state.size
+      m.content = state.content
+      m.isRecyclePending = true
+      if m.isViewCreated
+        m._onContentChange(state.content)
+      end if
+    end function
+
+    public function recycle()
+      if not m.isViewCreated
+        m._createViews()
+      end if
+      if m.isRecyclePending
+        m._onContentChange(m.content)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ abstract methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createViews()
+      'override me!
+    end function
+
+    protected function onContentChange(content as mc.types.node)
+      'override me
+    end function
+
+
+  end class
+end namespace

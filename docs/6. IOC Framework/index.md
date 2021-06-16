@@ -1,6 +1,6 @@
 ---
 priority: 1020
-title: IOC
+title: Overview
 ---
 # IOC
 
@@ -86,7 +86,7 @@ Maestro is all about testability, for this reason all the main base classes (e.g
     @describe("onRefreshComplete")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("dismisses on succesful refresh")
+    @it("dismisses on successful refresh")
     function _()
       user = { "id": "user", isLoggedIn: true }
       m.expectOnce(m.vm, "getInstance", ["user"], user)

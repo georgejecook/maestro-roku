@@ -1,0 +1,206 @@
+import "pkg:/source/ml/ItemViewManager.bs"
+
+namespace ml
+  class RowItemViewManager extends ml.ItemViewManager
+    public row = invalid
+    public cellsById = {}
+    public componentPool
+    public lastRowIsRendered = "none"
+    public isFlowSupported = false
+
+    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
+      super("RowItemViewManager", list, container, 0, minPos, maxPos)
+      m.componentPool = componentPool
+      m.row = row
+
+      m.lookAheadDistance = maxPos * 1.5
+      m.lookBehindDistance = maxPos * 1.5
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function createRenderers(content as mc.types.node)
+      'renderers are created as needed
+      m.cellsById = {}
+    end function
+
+    override function updateLayout()
+      m.log.info("ROW updateLayout")
+
+      index = 0
+      ' m.contentGroup.translation = [0, 0]
+
+      offset = 0
+      for each item in m.content.getChildren(-1, 0)
+        settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+        if m.axes = 0
+          translation = [offset, 0]
+        else
+          translation = [0, offset]
+        end if
+        m.rects.push({
+          translation: translation,
+          size: settings.size
+          index: index
+          rowIndex: m.row.index
+        })
+        'TODO - for now, no vis options for rows children..
+        m.visibleItems.push(item)
+
+        offset += settings.size[m.axes] + settings.space
+        index++
+      end for
+    end function
+
+    override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
+      return true
+    end function
+
+    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
+      m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
+      m.renderedComponents = []
+      if m.row.isRendered
+        for each id in renderStateMap
+          m.applyrenderStateForCell(id, renderStateMap[id])
+        end for
+      else
+        ' ? "ROW IS NOT !! RENDERED" ; m.row.index
+        for each id in renderStateMap
+          m.applyrenderStateForCell(id, "none")
+        end for
+      end if
+
+      m.lastRowIsRendered = m.row.isRendered
+    end function
+
+    function applyrenderStateForCell(id as string, renderState as string)
+      m.log.verbose("applyrenderStateForCell", id, renderState)
+      index = id.toInt()
+      ' isRendered = m.row.isRendered
+      item = m.content.getChild(index)
+
+      if item <> invalid
+        if renderState = "rendered"
+          cell = m.cellsById[id]
+          if cell = invalid
+            settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+            ' ? "GETTING CELL " ; id
+            cell = m.componentPool@.getComponent(settings.compName)
+
+            if cell <> invalid
+              cell.translation = m.rects[index].translation
+
+              cell.initialState = {
+                row: m.row
+                list: m.owner
+                size: m.rects[index].size
+                content: item
+              }
+
+              cell.visible = true
+              ' cell.visible = isRendered
+
+              ' ? ">>>>>>>> " ; isRendered
+
+              ' if isRendered
+              cell.listEvent = { "name": "didEnter" }
+              ' end if
+
+              if m.lastScrollEvent <> invalid
+                cell.listEvent = m.lastScrollEvent
+              end if
+
+              m.container.appendChild(cell)
+              cell.index = index
+              m.cellsById[id] = cell
+            else
+              ? ">>ERR no cell for " ; settings.compName
+            end if
+          end if
+          if cell <> invalid
+            m.renderedComponents.push(cell)
+          end if
+        else
+          cell = m.cellsById[id]
+          if cell <> invalid
+            ' ? "RELEASING " ; id
+            m.componentPool@.releaseComponent(cell)
+            m.cellsById.delete(id)
+          else
+            'this is almost certainly due to trying to release a cell during setting content
+            ' ? " COULD NOT FIND CELL TO RELEASE" ; id
+          end if
+        end if
+      end if
+    end function
+
+    override function getRenderer(index as integer)
+      return m.cellsById[str(index).trim()]
+    end function
+
+    override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
+      if m.isScrolling = isScrolling
+        return
+      end if
+      m.scrollingStartIndex = isScrolling ? startIndex: -1
+      m.isScrolling = isScrolling
+
+      ' ? "++++ setIsScrolling" ; isScrolling
+      m.row.isScrolling = isScrolling
+
+      m.owner.isScrolling = isScrolling
+
+      event = {
+        name: isScrolling ? "scrollStart" : "scrollStop"
+        startIndex: m.scrollingStartIndex
+        long: isLong
+        startIndex: m.scrollingStartIndex
+      }
+      m.lastScrollEvent = isScrolling ? event : invalid
+
+
+      for each id in m.cellsById
+        comp = m.cellsById[id]
+        comp.listEvent = event
+      end for
+
+      m.owner.listEvent = {
+        name: event.name
+        index: m.row.index
+        long: isLong
+        startIndex: startIndex
+      }
+      ' ? "++++ row - listEvent " ; formatJson(m.row.listEvent)
+      ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
+    end function
+
+    override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
+      rect = super.getScreenRect(index, screenPos, direction)
+
+      if rect <> invalid
+        rect.translation[1] += m.settings.screenPos
+      end if
+
+      return rect
+    end function
+
+    override function getNextFlowScreenPosition(index as integer, direction as integer, screenPos as integer)
+      if m.isFlowSupported = true
+        itemRect = m.rects[index]
+        if itemRect <> invalid
+          screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
+        end if
+        if direction = -1
+          'TODO
+          return invalid
+        end if
+      end if
+
+      return invalid
+    end function
+
+
+  end class
+end namespace

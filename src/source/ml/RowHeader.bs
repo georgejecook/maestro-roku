@@ -1,0 +1,62 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("ml_RowHeader", "Group")
+class RowHeader
+
+  public height = 0.0
+  public width = 0.0
+
+  private content
+  private isInitialized
+
+  'views
+  private bgRect
+  private label
+
+  function new()
+  end function
+
+  private function createViews()
+    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+    })
+    m.label = mc.createSGNode("mv_Label", m.top, "label", {
+      vertAlign: "center"
+    })
+  end function
+
+  public function setContent(rowContent as mc.types.node, settings as mc.types.node)
+    if m.content = invalid or not m.content.isSameNode(rowContent)
+      m.content = rowContent
+      m.createViews()
+      if m.content <> invalid
+        m.label.visible = true
+        m.label.size = [m.width, m.height]
+        m.bgRect.size = [m.width, m.height]
+
+
+        if settings <> invalid
+          m.label.translation = settings.labelOffset
+          m.label.fontKey = settings.fontKey
+          m.label.color = settings.textColor
+          m.bgRect.color = settings.backgroundColor
+          m.bgRect.visible = settings.backgroundVisible
+          m.bgRect.opacity = settings.backgroundOpacity
+          if settings.labelSettings <> invalid
+            m.label.setFields(settings.labelSettings)
+          end if
+        else
+          m.bgRect.visible = false
+          m.label.translation = [0, 0]
+          m.label.fontKey = settings.fontKey
+          m.label.color = settings.textColor
+        end if
+        m.label.text = m.content.title
+      else
+        m.label.text = ""
+        m.label.visible = false
+        m.bgRect.visible = false
+      end if
+    end if
+  end function
+end class

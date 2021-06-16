@@ -1,0 +1,134 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/ml/cells/BaseCell.bs"
+import "pkg:/source/view/Animation.bs"
+
+@node("HeroCell", "Group")
+class HeroCell extends ml.BaseCell
+
+  private poster
+  private bgRect
+  private textRect
+
+  private isViewCreated = false
+  private label
+  private labelGroup
+  private labelAnim
+  private size = [1100, 700]
+  private scale = 1
+  private isLabelVisible = false
+
+  function new()
+    super()
+  end function
+
+  protected override function createViews() as void
+    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: m.size
+      color: "#000000"
+    })
+    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+      translation: [0, 0]
+      loadingBitmapUri: "http://via.placeholder.com/1700x700"
+      failedBitmapUri: "http://via.placeholder.com/1700x700"
+      uri: "http://via.placeholder.com/1700x700"
+      loadWidth: m.size[0]
+      loadHeight: m.size[1]
+      size: m.size
+      loadDisplayMode: "zoomToFill"
+    })
+    m.labelGroup = mc.createSGNode("Group", m.top, "labelGroup", {
+
+    })
+    m.textRect = mc.createSGNode("mv_Rectangle", m.labelGroup, "bgRect", {
+      size: m.size
+      color: "#000000"
+      opacity: 0.5
+      translation: [0, 250]
+      size: [m.size[0], 300]
+    })
+    m.label = mc.createSGNode("mv_Label", m.labelGroup, "label", {
+      fontKey: "mediumBold,60"
+      horizAlign: "center"
+      vertAlign: "center"
+      color: "#ffffff"
+      translation: [0, 300]
+      size: [m.size[0], 100]
+    })
+    m.labelAnim = new mv.animations.Fade(m.labelGroup, 0.2, 1, 0)
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    m.poster.width = m.size[0]
+    m.poster.height = m.size[1]
+    m.setFocusState(0, true)
+
+    m.poster.uri = content.HDGRIDPOSTERURL
+    m.label.text = content.title
+    'TODO - this should be part of initial state setting
+    ' m.onScrollingChange(m.list.isScrolling, false)
+  end function
+
+  private function toggleLabelVisible(visible as boolean)
+    if m.isLabelVisible <> visible
+      m.isLabelVisible = visible
+      if visible
+        m.labelAnim.animateTo(1, 0.2)
+      else
+        m.labelAnim.animateTo(0, 0.2)
+      end if
+      m.labelAnim.start()
+    end if
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onScrollingChange(isScrolling as boolean, isLong as boolean)
+    if not isScrolling
+      m.toggleLabelVisible(true)
+    end if
+  end function
+
+  private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
+    m.toggleLabelVisible(abs(startIndex - currentIndex) < 2)
+  end function
+
+  private function onDidGainFocus(direction as integer)
+    m.setFocusState(1, true)
+  end function
+
+  private function onDidLoseFocus(direction as integer)
+    m.setFocusState(1, false)
+  end function
+
+  private function onGainingFocus(direction as integer, fraction as float)
+    m.setFocusState(fraction, true)
+  end function
+
+  private function onLosingFocus(direction as integer, fraction as float)
+    m.setFocusState(fraction, false)
+  end function
+
+  private function setFocusState(fraction as float, isGaining as boolean) as void
+
+    if fraction > 1
+      fraction = 1
+    end if
+    if isGaining
+      m.poster.opacity = 0.3 + fraction
+      ' m.label.text = `${m.index} G: ${fraction}`
+    else
+      m.poster.opacity = 0.3 + (1 - fraction)
+      ' ? "OPACITY " ; m.poster.opacity
+      ' m.label.text = `${m.index} L: ${fraction}`
+    end if
+  end function
+end class

@@ -1,0 +1,25 @@
+import "pkg:/source/ml/ItemScroller.bs"
+import "pkg:/components/view/mixin/FocusMixin.bs"
+
+namespace ml
+  class ListItemScroller extends ml.ItemScroller
+    function new(group as mc.types.node)
+      super(group, 1)
+    end function
+
+    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
+      row = invalid
+      if index <> invalid
+        row = m.viewManager.getRenderer(index)
+        ' ? " SETTING FOCUS TO MANUAL ROW "; index
+      else if not isMoving
+        ' ? " setting focus to row "; index
+        row = m.viewManager.getRenderer(m.index)
+      end if
+
+      if row <> invalid
+        mv.setFocus(row)
+      end if
+    end function
+  end class
+end namespace

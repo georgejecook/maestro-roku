@@ -1,0 +1,161 @@
+namespace tests
+  @tags("ml")
+  @suite("ItemViewManager tests")
+  class ItemViewManagerTests extends tests.BaseTestSuite
+
+    public owner
+    public container
+    public viewManager
+
+    protected override function beforeEach()
+      super.beforeEach()
+
+      m.owner = new rooibos.utils.MockNode("owner")
+      m.owner.content = ml.listMixin.createListContent()
+      m.owner.translation = [0, 0]
+      m.owner.width = 1920
+      m.owner.height = 1080
+
+      m.container = new rooibos.utils.MockNode("container")
+      m.container.translation = [0, 0]
+      m.container.width = 1920
+      m.container.height = 1080
+
+      m.viewManager = new tests.TestItemViewManager(m.owner, m.container, 1)
+      m.viewManager.lookAheadDistance = 2700
+      m.viewManager.lookBehindDistance = 0
+
+      tests.utils.configureViewManager(m.viewManager, 0)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests translation conversions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("some group calculations to sanity check after getting weird results")
+    function test()
+      'bs:disable-next-line
+      owner = m.scene.createChild("Group")
+      container = owner.createChild("Group")
+      child = container.createChild("Rectangle")
+      owner.translation = [0, 0]
+
+      container.translation = [0, 0]
+      child.translation = [300, 0]
+      'bs:disable-next-line
+      ? "P" ; child.ancestorBoundingRect(owner).x ; " C " ; child.BoundingRect().x
+      container.translation = [300, 0]
+      'bs:disable-next-line
+      ? "P" ; child.ancestorBoundingRect(owner).x ; " C " ; child.BoundingRect().x
+
+      container.translation = [-300, 0]
+      'bs:disable-next-line
+      ? "P" ; child.ancestorBoundingRect(owner).x ; " C " ; child.BoundingRect().x
+
+      container.translation = [1000, 0]
+      'bs:disable-next-line
+      ? "P" ; child.ancestorBoundingRect(owner).x ; " C " ; child.BoundingRect().x
+
+      container.translation = [-1000, 0]
+      'bs:disable-next-line
+      ? "P" ; child.ancestorBoundingRect(owner).x ; " C " ; child.BoundingRect().x
+
+      child.translation = [1000, 0]
+      'bs:disable-next-line
+      ? "P" ; child.ancestorBoundingRect(owner).x ; " C " ; child.BoundingRect().x
+
+    end function
+
+    @it("convertChildTranslationToOwner - various cases")
+    @params(0, 0, 0)
+    @params(0, 100, 100)
+    @params(0, 300, 300)
+    @params(0, 500, 500)
+    @params(0, 3000, 3000)
+    @params(-100, 100, 0)
+    @params(-300, 300, 0)
+    @params(-500, 500, 0)
+    @params(-3000, 3000, 0)
+    @params(-50, 100, 50)
+    @params(-100, 300, 200)
+    @params(-200, 500, 300)
+    @params(-3000, 3000, 0)
+    @params(100, 100, 200)
+    @params(300, 300, 600)
+    @params(500, 500, 1000)
+    @params(3000, 3000, 6000)
+    function convertChildTranslationToOwner(containerOffset, itemOffset, expected)
+      'bs:disable-next-line
+      m.viewManager.owner = m.scene.createChild("Group")
+      m.viewManager.container = m.viewManager.owner.createChild("Group")
+
+      m.viewManager.container.translation = [containerOffset, 0]
+
+      m.assertEqual(int(m.viewManager.convertChildTranslationToOwner([itemOffset, 0])[0]), expected)
+
+    end function
+
+    @it("convertOwnerTranslationToChild - various cases")
+    @params(0, 0, 0)
+    @params(0, 100, -100)
+    @params(0, 300, -300)
+    @params(0, 500, -500)
+    @params(0, 3000, -3000)
+    @params(-100, 0, -100)
+    @params(-100, 100, -200)
+    @params(-300, 300, -600)
+    @params(-500, 500, -1000)
+    @params(-3000, 3000, -6000)
+    @params(-50, 100, -150)
+    @params(-100, 300, -400)
+    @params(-200, 500, -700)
+    @params(-3000, 3000, -6000)
+    @params(100, 100, 0)
+    @params(300, 300, 0)
+    @params(500, 500, 0)
+    @params(3000, 3000, 0)
+    function test(containerOffset, screenOffset, expected)
+      'bs:disable-next-line
+      m.viewManager.owner = m.scene.createChild("Group")
+      m.viewManager.container = m.viewManager.owner.createChild("Group")
+
+      m.viewManager.container.translation = [containerOffset, 0]
+
+      m.assertEqual(int(m.viewManager.convertOwnerTranslationToChild([screenOffset, 0])[0]), expected)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests getComponentsInViewPort")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("left to right - simple case")
+    @params(0, [0, 1, 2, 3], [4, 5, 6, 7, 8, 9])
+    @params(200, [0, 1, 2, 3, 4], [5, 6, 7, 8, 9])
+    @params(250, [0, 1, 2, 3, 4], [5, 6, 7, 8, 9])
+    @params(300, [0, 1, 2, 3, 4], [5, 6, 7, 8, 9])
+    @params(301, [1, 2, 3, 4], [0, 5, 6, 7, 8, 9])
+    @params(350, [1, 2, 3, 4], [0, 5, 6, 7, 8, 9])
+    @params(400, [1, 2, 3, 4], [0, 5, 6, 7, 8, 9])
+    @params(550, [1, 2, 3, 4, 5], [0, 6, 7, 8, 9])
+    @params(600, [1, 2, 3, 4, 5], [0, 6, 7, 8, 9])
+    @params(601, [2, 3, 4, 5], [0, 1, 6, 7, 8, 9])
+    @params(700, [2, 3, 4, 5], [0, 1, 6, 7, 8, 9])
+    @params(800, [2, 3, 4, 5, 6], [0, 1, 7, 8, 9])
+    function test(offset, trueIds, falseIds)
+      m.viewManager.updateRenderedComponents(1, 0)
+      compStates = m.viewManager.getComponentsInViewPort(offset)
+
+      for each id in trueIds
+        strId = str(id).trim()
+        m.assertTrue(compStates[strId], "id '" + strId + "' should be true")
+      end for
+      for each id in falseIds
+        strId = str(id).trim()
+        m.assertFalse(compStates[strId], "id '" + strId + "' should be false")
+      end for
+
+    end function
+  end class
+end namespace
