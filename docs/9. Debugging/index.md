@@ -24,3 +24,14 @@ title: Debugging
     - Maestro injects code into non-vm code-behind file, to create variables for all nodes with ids
     - Maestro removes any xml values from nodes that contained binding information
 
+### Debugging with source maps
+
+If maestro is giving you a hard time, and you want to be able to jump into the brighterscript source:
+
+ - clone the maestro-roku ropm package on your machine
+ - build maestro-roku with source maps enabled:
+   - `npm run build-local`
+ - in your project that is using maestro, edit the ropm package import in your `package.json` to be:
+   - `"maestro": "file:/PATH/TO/WHERE/YOU/CLONED/maestro-roku"`
+ - `ropm copy` in your project's folder
+ - you are now using a local copy of maestro with source maps. Happy bug hunting! Please feel free to submit prs :)

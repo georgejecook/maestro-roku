@@ -55,3 +55,9 @@ Been in production for > 2 years at:
   - smithsonian
   - corco
   - other clients (names pending permission ;) )
+
+# Contributing:
+
+ - Please feel free to raise issues with features/bug reports
+ - And feel free to submit prs
+ - Or reach out to me on the roku-slack channel
