@@ -14,6 +14,7 @@ class ListScreen extends mv.BaseScreen
   private list
   private listHolder
   private bgRect
+  private button
 
   'style
   private numberOfRows = 20
@@ -38,6 +39,9 @@ class ListScreen extends mv.BaseScreen
       size = [1920, 1080]
     end if
 
+    m.button = m.createSGNode("Button", m.top, "button", {
+      title: "focus me"
+    })
     m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
       translation: translation
       size: size
@@ -107,11 +111,11 @@ class ListScreen extends mv.BaseScreen
         complexFocusSettings = ml.listMixin.createFocusSettings()
         complexFocusSettings.feedbackStyle = "none"
         row.settings = ml.listMixin.createRowSettings(invalid, complexFocusSettings, 30, invalid, 0, "ComplexRow")
-      ' else if i= 6
-      '   row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
-      '   row.settings.height = 700
-      '   row.settings.contentOffset = [100, -200]
-      '   row.settings.peekNextPixels = 300
+        ' else if i= 6
+        '   row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
+        '   row.settings.height = 700
+        '   row.settings.contentOffset = [100, -200]
+        '   row.settings.peekNextPixels = 300
       else
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
         row.settings.contentOffset = [100, 30]
@@ -141,7 +145,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.peekNextPixels = 0
       else if i = 13
         row.settings.screenPos = 200
-      ' else if i <> 0
+        ' else if i <> 0
       end if
 
       row.appendChildren(m.makeItems(m.defaultCellType, 20))
@@ -200,6 +204,17 @@ class ListScreen extends mv.BaseScreen
     return true
   end function
 
+  function onKeyPressUp() as boolean
+    ? "FOCUS ON BUTTON"
+    m.setFocus(m.button)
+    return true
+  end function
+
+  function onKeyPressDown() as boolean
+    ? "FOCUS ON LIST"
+    m.setFocus(m.list)
+    return true
+  end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
