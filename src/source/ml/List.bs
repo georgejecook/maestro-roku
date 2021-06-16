@@ -22,11 +22,17 @@ namespace ml
     public height = 1080
     public isHidden = false
 
-    @observer("onAnimateToRowChange")
-    public animateToRow = -1
+    @observer("onJumpToRowIndexChange")
+    public jumpToRowIndex = -1
 
-    @observer("onAnimateToItemChange")
-    public animateToItem = -1
+    @observer("onJumpToRowItemIndexChange")
+    public jumpToRowItemIndex = -1
+
+    @observer("onAnimateToRowIndexChange")
+    public animateToRowIndex = -1
+
+    @observer("onAnimateToItemIndexChange")
+    public animateToItemIndex = -1
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ state
@@ -82,10 +88,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusIndicator
+    private isIndicatorHidden = false
     private flowFocusDelegate
     private focusPointAnim
     private dummyFocusView
     private dummyFocusAnim
+    private activeFocusSettings
 
     function new()
       super("mv_List")
@@ -183,19 +191,25 @@ namespace ml
       end if
     end function
 
-    private function onAnimateToRowChange(index as integer)
+    private function onAnimateToRowIndexChange(index as integer)
       if m.content <> invalid
         m.itemScroller.moveToIndex(index)
       end if
     end function
 
-    private function onAnimateToItemChange(index as integer)
-      if m._content <> invalid
-        row = m.getRowRenderer(m.focusedRowIndex)
-        if row <> invalid
-          row.animateToItem = index
-        end if
+    private function onJumpToRowIndexChange(index as integer)
+      ? "JUMP TO ROW INDEX"
+      m.moveToItem([index, 0], false)
+    end function
+
+    private function onJumpToRowItemIndexChange(index as integer)
+      if m.content <> invalid
+        m.itemScroller.moveToIndex(index, invalid, false)
       end if
+    end function
+
+    private function onAnimateToItemIndexChange(index as integer)
+      m.moveToRowItem(index, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -245,6 +259,37 @@ namespace ml
       return m.viewManager.getScreenRect(rowIndex, screenPos, direction)
     end function
 
+    public function moveToRow(index as integer, animated as boolean)
+      if m.content <> invalid
+        m.itemScroller.moveToIndex(index, invalid, false)
+      end if
+    end function
+
+    public function moveToRowItem(index as integer, animated as boolean)
+      if m._content <> invalid
+        ? "moveToRowItem2"
+        row = m.getRowRenderer(index)
+        if row <> invalid
+          ? "moveToRowItem3"
+          row@.jumpToItem(index, invalid, animated)
+        end if
+      end if
+    end function
+
+    public function moveToItem(indices as mc.types.array, animated as boolean)
+      if m.content <> invalid
+        if m.focusedRowIndex <> indices[0]
+          m.itemScroller.moveToIndex(indices[0], animated)
+        end if
+        row = m.getRowRenderer(indices[0])
+        if row <> invalid
+          row@.jumpToItem(indices[1], animated)
+        end if
+      end if
+    end function
+
+
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ focus management
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -268,7 +313,7 @@ namespace ml
       m.targetFocusRect = m.getCellScreenRect(index[0], index[1])
 
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
-
+      m.activeFocusSettings = focusSettings
       if focusSettings.feedbackStyle = "none"
         m.focusIndicator.visible = false
       else
@@ -284,7 +329,8 @@ namespace ml
 
         'note - we don't show again until we are in position
         if isInPosition
-          m.focusIndicator.visible = true
+          m.focusIndicator.visible = not m.isIndicatorHidden
+          ' m.focusIndicator.visible = true
           m.moveFocusIndicatorToFocusPosition(false)
         else
           m.moveFocusIndicatorToFocusPosition()
@@ -442,6 +488,48 @@ namespace ml
       end if
 
       return false
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+      m.isIndicatorHidden = false
+      if isSelfFocused
+        if m.activeFocusSettings <> invalid
+          m.focusIndicator.visible = m.activeFocusSettings.feedbackStyle <> "none"
+          row = m.getRowRenderer(m.focusedRowIndex)
+          if row <> invalid
+            mv.setFocus(row)
+          end if
+          '   'TODO set focus to active row
+        end if
+      end if
+    end function
+
+    protected override function onLostFocus()
+      ? ">>>list lost focus"
+      super.onLostFocus()
+      ? "LOST FOCUS "; m.top.isChildFocused
+      'bs:disable-next-line
+      if not m.top.isChildFocused
+        ? "LOSING LIST FOCUS"
+        m.focusIndicator.visible = false
+        m.isIndicatorHidden = true
+      end if
+    end function
+
+    protected override function onChildLostFocus()
+      'bs:disable-next-line
+      ? ">>>onChildLostFocus " ; m.top.isChildFocused
+
+      'bs:disable-next-line
+      if not m.top.isChildFocused
+        ? "LOSING LIST FOCUS"
+        m.focusIndicator.visible = false
+        m.isIndicatorHidden = true
+      end if
     end function
   end class
 end namespace

@@ -98,11 +98,16 @@ namespace ml
           end if
         end for
       end if
+      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      if cell <> invalid
+        ' TODO potentially filter events
+        cell.listEvent = event
+      end if
     end function
 
-    protected override function onAnimateToItemChange(index as integer)
+    public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid
-        m.itemScroller.moveToIndex(index)
+        m.itemScroller.moveToIndex(index, invalid, animated)
       end if
     end function
 
