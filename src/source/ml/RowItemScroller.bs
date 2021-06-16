@@ -1,0 +1,20 @@
+import "pkg:/source/ml/ItemScroller.bs"
+
+namespace ml
+  class RowItemScroller extends ml.ItemScroller
+    function new(viewManager as mc.types.node)
+      super(viewManager, 0)
+    end function
+
+    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
+      if not isMoving
+        m.log.info("stopped scrolling on item", m.index)
+      end if
+    end function
+
+    override function getFocusSettings()
+      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+    end function
+
+  end class
+end namespace

@@ -17,6 +17,7 @@ namespace mx
     public isShown = false
     protected isLongPressStarted = false
     protected longPressKey = ""
+    protected longPressInterval = 0
 
 
     ' /**
@@ -302,10 +303,15 @@ namespace mx
     protected function onLongPressTimerFire()
       if m.isLongPressStarted
         'bs:disable-next-line
-        if mc.isFunction(m.onLongPressUpdate) and not m.onLongPressUpdate(m.longPressKey)
-          m.log.info("long press was cancelled by the onLongPressUpdate call")
-          if mc.isFunction(m.toggleLongPressTimer)
-            m.toggleLongPressTimer(0)
+        if mc.isFunction(m.onLongPressUpdate)
+          'bs:disable-next-line
+          if not m.onLongPressUpdate(m.longPressKey)
+            m.log.info("long press was cancelled by the onLongPressUpdate call")
+            if mc.isFunction(m.toggleLongPressTimer)
+              m.toggleLongPressTimer(0)
+            end if
+          else
+            m.toggleLongPressTimer(m.longPressInterval)
           end if
         end if
       else
@@ -316,6 +322,7 @@ namespace mx
         else
           m.log.info("long press is accepted : starting for key ", m.longPressKey)
           m.isLongPressStarted = true
+          m.toggleLongPressTimer(m.longPressInterval)
         end if
       end if
     end function

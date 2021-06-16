@@ -1,0 +1,152 @@
+namespace ml.listMixin
+  function createListContent(rowContent = [] as mc.types.array, focusSettings = invalid as mc.types.node, rowSettings = invalid as mc.types.node, listSettings = invalid as mc.types.node)
+    content = createObject("roSGNode", "ml_ListContent")
+    content.appendChildren(rowContent)
+
+    if rowSettings = invalid
+      rowSettings = ml.listMixin.createRowSettings()
+    end if
+
+    if focusSettings = invalid
+      focusSettings = ml.listMixin.createFocusSettings()
+    end if
+
+    if listSettings = invalid
+      listSettings = ml.listMixin.createListSettings()
+    end if
+
+    content.update({
+      rowSettings: rowSettings
+      focusSettings: focusSettings
+      listSettings: listSettings
+    })
+
+    return content
+  end function
+
+  function createRowSettings(cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = 0 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+    settings = createObject("roSGNode", "ml_RowSettings")
+
+    if cellSettings = invalid
+      cellSettings = ml.listMixin.createCellSettings()
+    end if
+
+    if headerSettings = invalid
+      headerSettings = ml.listMixin.createHeaderSettings()
+    end if
+
+    if focusSettings = invalid
+      focusSettings = ml.listMixin.createFocusSettings()
+    end if
+
+    settings.update({
+      componentName: compName
+      screenPos: screenPos
+      height: height
+      space: space
+      cellSettings: cellSettings
+      contentOffset: [0, 0]
+      headerSettings: headerSettings
+      focusSettings: focusSettings
+    })
+
+    return settings
+  end function
+
+  function createListSettings(lookaheadDistance = 5000 as integer, lookBehindDistance = 2000 as integer)
+    settings = createObject("roSGNode", "ml_ListSettings")
+
+    settings.update({
+      lookaheadDistance: lookaheadDistance
+      lookBehindDistance: lookBehindDistance
+    })
+
+    return settings
+  end function
+
+  function createHeaderSettings(offset = [30, 20] as string, height = 50 as integer, fontKey = "MediumBold,30" as string, color = "#ffffff" as string)
+    settings = createObject("roSGNode", "ml_HeaderSettings")
+
+    settings.update({
+      offset: offset
+      height: height
+      fontKey: fontKey
+      textColor: color
+    })
+
+    return settings
+  end function
+
+  function createCellSettings(compName = "ml_SimpleCell" as string, size = [300, 500] as mc.types.array, space = 30 as integer, screenPos = 0 as integer)
+    settings = createObject("roSGNode", "ml_CellSettings")
+
+    settings.update({
+      compName: compName
+      size: size
+      space: space
+      screenPos: screenPos
+    })
+
+    return settings
+  end function
+
+  function createFocusSettings(animSpeed = 3 as float, fastAnimSpeed = 1 as float, animStyle = "fixed" as string, offsets = invalid as mc.types.array)
+    settings = createObject("roSGNode", "ml_FocusSettings")
+    if offsets = invalid
+      offsets = [0, 0, 0, 0]
+    end if
+    settings.update({
+      animSpeed: animSpeed / 10.0
+      fastAnimSpeed: fastAnimSpeed / 10.0
+      animStyle: animStyle
+      feedbackOffsets: offsets
+    })
+    return settings
+
+  end function
+
+  function setTileSettings(compName = "ml_Cell" as string, cellSize = [300, 500] as mc.types.array)
+  end function
+
+  function getRowSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node)
+    if rowContent <> invalid and rowContent.settings <> invalid
+      ' ? " USING ROW SETTINGS " ; rowContent.settings.screenPos
+      return rowContent.settings
+    else if listContent <> invalid and listContent.rowSettings <> invalid
+      ' ? " USING LIST SETTINGS"
+      return listContent.rowSettings
+    else
+      'THIS SHOULD NOT BE POSSIBLE
+      m.log.error("no settings for list - this should not have been called!")
+      return createObject("roSGNode", "ml_RowSettings")
+    end if
+  end function
+
+  function getCellSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node, itemContent = invalid as mc.types.node)
+    if itemContent <> invalid and itemContent.settings <> invalid
+      return itemContent.settings
+    else if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.cellSettings <> invalid
+      return rowContent.settings.cellSettings
+    else if listContent <> invalid and listContent.rowSettings <> invalid
+      return listContent.rowSettings.cellSettings
+    else
+      m.log.error("no listContent for list - this should not have been called!")
+      return invalid
+    end if
+  end function
+
+  function getFocusSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node)
+    if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.focusSettings <> invalid
+      return rowContent.settings.focusSettings
+    else if listContent <> invalid and listContent.rowSettings <> invalid and listContent.rowSettings.focusSettings <> invalid
+      return listContent.rowSettings.focusSettings
+    else if listContent <> invalid and listContent.focusSettings <> invalid
+      m.log.error("no listContent for list - this should not have been called!")
+      return listContent.focusSettings
+    end if
+    return invalid
+  end function
+
+  ' roku_list.setRowSettings(row, rowRenderer, offset, cellREnderr, cellSize)
+  ' roku_list.setTileSettings(content, cellRenderer, cellSize)
+end namespace

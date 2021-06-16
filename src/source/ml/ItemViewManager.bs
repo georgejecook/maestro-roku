@@ -1,0 +1,438 @@
+import "pkg:/source/core/BaseClass.bs"
+import "pkg:/source/ml/ListMixin.bs"
+
+namespace ml
+  class ItemViewManager extends mc.BaseClass
+
+    public screenRect = { translation: [0, 0], size: [1920, 1080] }
+    public componentBufferMode = "none"
+
+    'owning views
+    'we wrap the container to make it very easy to reason about content offsets
+    public container = invalid
+    public owner = invalid
+    public delegate = invalid
+    public contentGroup = invalid
+
+    'content
+    public content = invalid
+    public components = []
+    public rects = []
+    public settings = invalid
+
+    'tracking
+    public direction = 0
+    public visibleItems = []
+    public visibleComponents = []
+    public hiddenComponents = []
+    public numberOfItems = 0
+    public axes = 0
+    public minPos = 0
+    public maxPos = 1080
+    public lookAheadDistance = 1000
+    public lookBehindDistance = 1000
+    public lastRenderedIndexes = { startIndex: -1, endIndex: -1 }
+    public lastScrollIndex = 0
+    public lastScrollDirection = 0
+    public renderedComponents = []
+    public isScrolling = false
+    public scrollingStartIndex = -1
+
+    'stored so we can send it with initialstate
+    public lastScrollEvent as mc.types.assocarray
+
+    function new(name as string, owner as mc.types.node, container as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
+      super(name)
+      m.container = container
+      m.contentGroup = container.getParent()
+      m.owner = owner
+      m.axes = axes
+      m.minPos = minPos
+      m.maxPos = maxPos
+      m.lastScrollDirection = 0
+      m.lastScrollIndex = 0
+
+      m.updateScreenRect()
+    end function
+
+    private function updateScreenRect()
+      m.screenRect = { translation: m.owner.translation, size: [m.owner.width, m.owner.height] }
+    end function
+
+    function forceUpdateLayout()
+      m._updateLayout()
+    end function
+
+    function setContent(content as mc.types.node)
+      m.log.info("setContent")
+      m.content = content
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
+      ' m.container.removeChildren(m.container.getChildren(-1, 0))
+      m._createRenderers(content)
+      m._updateLayout()
+
+      m.numberOfItems = m.visibleItems.count()
+    end function
+
+    function _createRenderers(content as mc.types.node)
+      m.components = []
+      m.visibleComponents = []
+      m.visibleItems = []
+
+      m.createRenderers(content)
+    end function
+
+    function _updateLayout()
+      m.log.info("_updateLayout")
+      m.updateScreenRect()
+
+      m.visibleComponents = []
+      m.visibleItems = []
+      m.rects = []
+
+      m.updateLayout()
+    end function
+
+    function onFocusIndexChange(direction as integer, index as integer)
+      m.updateRenderedComponents(direction, index)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ util
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function convertChildTranslationToOwner(containerTranslation as mc.types.array)
+      return [m.container.translation[0] + containerTranslation[0], m.container.translation[1] + containerTranslation[1]]
+    end function
+
+    function convertOwnerTranslationToChild(ownerTranslation as mc.types.array)
+      return [m.container.translation[0] - ownerTranslation[0], m.container.translation[1] - ownerTranslation[1]]
+    end function
+
+    function getComponentsInViewPort(startOffset as integer)
+      compStates = {}
+
+      sStart = m.screenRect.translation[m.axes] + startOffset
+      sEnd = sStart + m.screenRect.size[m.axes]
+
+      ' for each comp in m.visibleComponents
+      for each comp in m.renderedComponents
+        if comp.index <> invalid
+          cRect = m.rects[comp.index]
+          if cRect <> invalid
+            cStart = cRect.translation[m.axes]
+            cEnd = cStart + cRect.size[m.axes]
+            if (cStart >= sStart and cStart <= sEnd) or (cEnd >= sStart and cEnd <= sEnd)
+              compStates[comp.id] = true
+            else
+              compStates[comp.id] = false
+            end if
+          end if
+        else
+          ? "comp index not set!"
+        end if
+        ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
+      end for
+
+      return compStates
+    end function
+
+    function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer)
+      m.isScrolling = isScrolling
+      m.scrollingStartIndex = isScrolling ? startIndex: -1
+      m.owner.isScrolling = isScrolling
+      event = {
+        name: isScrolling ? "scrollStart" : "scrollStop"
+        startIndex: m.scrollingStartIndex
+        long: isLong
+        startIndex: m.scrollingStartIndex
+      }
+      m.lastScrollEvent = isScrolling ? event : invalid
+
+      for each comp in m.renderedComponents
+        comp.listEvent = event
+      end for
+    end function
+
+    function updateScrolling(currentIndex as integer) as void
+      if currentIndex = m.scrollingStartIndex or m.scrollingStartIndex = -1
+        return
+      end if
+      m.lastScrollEvent = {
+        name: "scrollUpdate"
+        startIndex: m.scrollingStartIndex
+        currentIndex: currentIndex
+      }
+      for each comp in m.renderedComponents
+        comp.listEvent = m.lastScrollEvent
+      end for
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ visibility state management
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function updateRenderedComponents(direction as integer, index as integer, force = false as boolean) as void
+      if not force and not m.shouldUpdateRenderedIndexes(direction, index)
+        ' ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
+        return
+      end if
+
+      renderedIndexes = m.getRenderedIndexes(direction, index)
+
+      if (m.lastRenderedIndexes <> invalid) and m.lastRenderedIndexes.startIndex = renderedIndexes.startIndex and m.lastRenderedIndexes.endIndex = renderedIndexes.endIndex
+        ' this is the same set of comps as last time
+        if m.renderedComponents.count() > 0
+          ' and we have seemingly done our initial render; so we can bail.
+          return
+        end if
+      end if
+
+      ' 'bs:disable-next-line
+      ' if m.row <> invalid
+      '   ? " RI " ; renderedIndexes
+      '   ? " LRI " ; m.lastRenderedIndexes
+      ' end if
+      m.log.info("+-renderedIndexes index", index, renderedIndexes)
+      renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
+      m.renderedComponents = []
+      m.applyRenderStateMap(renderedStateMap)
+      m.lastRenderedIndexes = renderedIndexes
+    end function
+
+    function shouldUpdateRenderedIndexes(direction as integer, index as integer)
+      ' ? "???? I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
+      if direction <> m.lastScrollDirection or abs(index - m.lastScrollIndex) > 10 or index = 0
+        ' ? " LIST SHOULD UPDATE I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
+        m.lastScrollIndex = index
+        m.lastScrollDirection = direction
+        return true
+      end if
+      return false
+    end function
+
+    function getRenderedIndexes(direction as integer, index as integer)
+      indexPos = abs(m.getTargetTranslation(index, direction)[m.axes])
+
+      if direction < 0
+        beforePos = indexPos - m.lookAheadDistance
+        afterPos = indexPos + m.lookBehindDistance
+      else
+        afterPos = indexPos + m.lookAheadDistance
+        beforePos = indexPos - m.lookBehindDistance
+      end if
+
+      if beforePos < 0
+        beforePos = 0
+      end if
+
+      if afterPos < 0
+        afterPos = 0
+      end if
+
+      ' 'bs:disable-next-line
+      ' if m.row <> invalid
+      '   ? "++ROW "; m.lookAheadDistance ; "  " ; m.lookBehindDistance
+      ' end if
+      return {
+        startIndex: m.getIndexAtPosition(beforePos, direction)
+        endIndex: m.getIndexAtPosition(afterPos, direction)
+      }
+    end function
+
+    function createRenderedStateMap(direction as integer, index as integer, renderedIndexes as integer)
+      m.log.method("createRenderedStateMap", m.__className, index, renderedIndexes)
+      renderedStateMap = {}
+
+      if m.numberOfItems = 0
+        return {}
+      end if
+
+      m.updateRenderStateMap(renderedStateMap, m.lastRenderedIndexes.startIndex, m.lastRenderedIndexes.endIndex, m.componentBufferMode)
+      m.updateRenderStateMap(renderedStateMap, renderedIndexes.startIndex, renderedIndexes.endIndex, "rendered")
+      return renderedStateMap
+    end function
+
+    function updateRenderStateMap(renderedStateMap as mc.types.assocarray, startIndex as integer, endIndex as integer, state as string)
+      if startIndex < 0
+        startIndex = 0
+      end if
+
+      ' ? " endindex " ; endIndex ; " m.numberOfItems "; m.numberOfItems
+      if endIndex > m.numberOfItems
+        endIndex = m.numberOfItems - 1
+      end if
+
+      for i = startIndex to endIndex
+
+        rect = m.rects[i]
+        if rect <> invalid
+          ' ? "ROW "; i ; " rect idx "; rect.index ; " state " ; state
+          renderedStateMap[str(rect.index).trim()] = state
+        else
+          ' ? " NO RECT "; i
+        end if
+      end for
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ itemRect positions
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function getTargetTranslation(index as integer, direction as integer, screenPos = invalid as boolean)
+      itemRect = m.rects[index]
+
+      if itemRect = invalid
+        m.log.warn("no itemRect for index", index)
+        return [-1, -1]
+      end if
+
+      screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
+      targetPos = m.getOffsetForScreenPosition(itemRect, screenPos)
+      ' ? " POS " ; targetPos ; " dir " ; m.direction ; " sp " ; screenPos ; " it " ; itemRect.translation[m.axes]
+
+      if m.axes = 0
+        return [- targetPos, m.container.translation[1]]
+      else
+        return [m.container.translation[0], - targetPos]
+      end if
+
+    end function
+
+    function getNextFlowScreenPosition(index as integer, direction as integer)
+      itemRect = m.rects[index]
+
+      if itemRect = invalid
+        m.log.warn("no itemRect for index", index)
+        return invalid
+      end if
+
+      itemScreenPos = - itemRect.translation[m.axes] + m.container.translation[m.axes]
+
+      if itemScreenPos > m.minPos and itemScreenPos + itemRect.size.width < m.maxPos
+        'we can simply move the focus to this position
+        return itemScreenPos
+      end if
+
+      'if part or all of the view is off the viewport, then a scroll is required
+      return invalid
+    end function
+
+    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, screenPos = invalid as integer)
+
+      if itemRect <> invalid
+        if screenPos <> invalid
+          ' ? " USING SCREEN POS" ; screenPos
+          screenPos = screenPos
+        else if itemRect.screenPos <> invalid
+          ' ? " USING ITEM RECT SCREEN POS"
+          screenPos = itemRect.screenPos
+        else if m.direction = -1
+          screenPos = m.minPos
+        else if m.direction = 1
+          'TODO - calculate position that can fit on screen
+          screenPos = m.minPos ' fixed focus
+          ' return m.maxPos - itemRect.width
+        end if
+      end if
+      if screenPos = invalid
+        screenPos = m.minPos
+      end if
+
+      return screenPos
+    end function
+
+    function getOffsetForScreenPosition(itemRect as object, screenPos as integer)
+      if itemRect <> invalid
+        return itemRect.translation[m.axes] - screenPos
+      else
+        return m.minPos
+      end if
+    end function
+
+    function getIndexAtPosition(position as integer, direction as integer)
+      p = abs(position)
+      i = 0
+      for i = 0 to m.numberOfItems
+        itemRect = m.rects[i]
+        ' screenPos = m.getScreenPositionForItem(itemRect, direction)
+        'the offset is already factored in
+        itemPos = m.getOffsetForScreenPosition(itemRect, 0)
+        if itemPos > p
+          ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos ; " sp " ; screenPos
+          ' ? "+++++!!! MATCHED ITEM INDEX "; i -1
+          return mc.clamp(i - 1, 0, m.numberOfItems)
+        end if
+      end for
+
+      'we must be at the end! -return last item
+      return mc.clamp(i - 1, 0, m.numberOfItems)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ general item api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function getRect(index as integer, useScreenCoords = false as boolean)
+      rect = m.rects[index]
+      if rect <> invalid
+        screenRect = {
+          size: [rect.size[0], rect.size[1]]
+          translation: [rect.translation[0], rect.translation[1]]
+          index: rect.index
+          screenPos: rect.screenPos
+        }
+        if useScreenCoords
+          screenRect.translation = m.convertChildTranslationToOwner(screenRect.translation)
+        end if
+      else
+        screenRect = {
+          translation: [0, 0]
+          size: [0, 0]
+          index: -1
+          screenpos: 0
+        }
+      end if
+      return screenRect
+    end function
+
+    function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
+      rect = m.getRect(index)
+      if rect <> invalid and rect.screenPos <> invalid
+        rect.translation[m.axes] += rect.screenPos
+      end if
+      return rect
+    end function
+
+    function getFocusSettings()
+      return m.content.focusSettings
+    end function
+
+    function getItemSettings()
+      return m.content.settings
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ abstract methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function createRenderers(items as mc.types.array)
+      m.log.error("You must override this method")
+    end function
+
+    function updateLayout()
+      m.log.error("You must override this method")
+    end function
+
+    function applyRenderStateMap(renderedStateMap as mc.types.assocarray)
+      m.log.error("You must override this method")
+    end function
+
+    function getRenderer(index as integer)
+      m.log.error("You must override this method")
+      return invalid
+    end function
+
+
+  end class
+end namespace

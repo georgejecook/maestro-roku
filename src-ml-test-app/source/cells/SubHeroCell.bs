@@ -1,0 +1,119 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/ml/cells/BaseCell.bs"
+
+@node("SubHeroCell", "mv_BaseView")
+class SubHeroCell extends ml.BaseCell
+
+  private poster
+  private rectangle
+  private label
+  private bgRect
+
+  private isViewCreated = false
+  private posterSize = [450, 320.0]
+
+  function new()
+    super()
+  end function
+
+  protected override function createViews() as void
+    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [m.posterSize[0] * 2, m.posterSize[1]]
+      color: "#555555"
+    })
+    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+      translation: [0, 0]
+      loadDisplayMode: "scaleToFill"
+      loadingBitmapUri: "http://via.placeholder.com/450x320"
+      failedBitmapUri: "http://via.placeholder.com/450x320"
+      loadWidth: m.posterSize[0]
+      loadHeight: m.posterSize[1]
+      size: m.posterSize
+      uri: "http://via.placeholder.com/450x320"
+    })
+    m.rectangle = mc.createSGNode("mv_Rectangle", m.top, "rectangle", {
+      opacity: 0.4
+      color: "#000000"
+      width: m.posterSize[0]
+      translation: [m.posterSize[0], 0]
+      height: 50
+    })
+    m.label = mc.createSGNode("mv_Label", m.top, "label", {
+      width: m.posterSize[0]
+      fontKey: "mediumBold,30"
+      horizAlign: "left"
+      translation: [m.posterSize[0] + 20, 10]
+    })
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    m.label.text = "C:" + content.title
+    m.label.visible = true
+    m.poster.uri = content.HDGRIDPOSTERURL
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onScrollingChange(isScrolling as boolean, isLong as boolean)
+    ' ? ">>> OSC i: "; m.index; " s: " ; isScrolling ; " l " ; isLong
+    if not isScrolling
+      m.label.visible = true
+    end if
+  end function
+
+  private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
+    ' ? ">>> OSU i: "; m.index; " s: " ; startIndex ; " ci " ; currentIndex
+    textVisible = abs(startIndex - currentIndex) < 2
+    m.label.visible = textVisible
+  end function
+
+  private function onWillExit(direction as integer)
+    ' ? "SC: onCellWillExit " ; " " ; direction
+  end function
+
+  private function onDidEnter(direction as integer)
+    ' ? "SC: onCellDidEnter " ; " " ; direction
+    ' m.onContentChange()
+  end function
+
+  private function onDidExit(direction as integer)
+    ' ? "SC: onCellDidExit " ; " " ; direction
+  end function
+
+  private function onWillGainFocus(direction as integer)
+    ' ? "SC: onCellWillGainFocus " ; " " ; direction
+  end function
+
+  private function onWillLoseFocus(direction as integer)
+    ' ? "SC: onCellWillLoseFocus " ; " " ; direction
+  end function
+
+  private function onDidGainFocus(direction as integer)
+    ' ? "SC: onCellDidGainFocus " ; " " ; direction
+  end function
+
+  private function onDidLoseFocus(direction as integer)
+    ' ? "SC: onCellDidLoseFocus " ; " " ; direction
+    if direction = 1
+    end if
+  end function
+
+  private function onGainingFocus(direction as integer, fraction as float)
+    ' ? "SC: onGainingFocus " ; " " ; direction ; " "  ; fraction
+  end function
+
+  private function onLosingFocus(direction as integer, fraction as float)
+    ' ? "SC: onLosingFocus " ; " " ; direction ; " " ; fraction
+    if direction = 1
+    end if
+  end function
+
+end class

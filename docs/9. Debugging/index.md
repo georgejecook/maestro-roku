@@ -1,8 +1,8 @@
 ---
 priority: 1000
-title: Overview
+title: Debugging
 ---
-# Overview
+# Debugging
 
 ## General debugging tips
 
@@ -21,6 +21,6 @@ title: Overview
     - Maestro generates brs and xml files for NodeClasses and Tasks
     - Maestro generates a codebehind file (.brs) for an xml file, with a vm, if there was no codebehind
     - Maestro injects code into codebehind files (generated, or not), to wire up bindings
-    - Maestro injects code into non-vm codebhind file, to create variables for all nodes with ids
+    - Maestro injects code into non-vm code-behind file, to create variables for all nodes with ids
     - Maestro removes any xml values from nodes that contained binding information
 

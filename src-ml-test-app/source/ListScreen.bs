@@ -1,0 +1,308 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/ml/ListDelegateMixin.bs"
+import "pkg:/source/core/DebugTimer.bs"
+
+@node("ListScreen", "mv_BaseScreen")
+class ListScreen extends mv.BaseScreen
+
+  @observer("onRemoveItems")
+  @alwaysnotify
+  public removeItems = 0
+
+  'views
+  private list
+  private listHolder
+  private bgRect
+
+  'style
+  private numberOfRows = 20
+  private defaultCellType = "ml_SimpleCell"
+
+  'state
+  public componentPool as mc.types.Node
+  private contentId = 0
+  private rowSettings
+  private focusSettings
+  private cellSettings
+  private loadingIndicator
+
+  private isSmall = false
+  function new()
+    super("ListScreen")
+    if m.isSmall
+      translation = [300, 300]
+      size = [600, 500]
+    else
+      translation = [0, 0]
+      size = [1920, 1080]
+    end if
+
+    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      translation: translation
+      size: size
+      color: "#6a307d"
+    })
+    m.listHolder = m.createSGNode("Group", m.top, "listHolder")
+    m.componentPool = m.global.componentPool
+
+    m.list = m.createSGNode("ml_List", m.listHolder, "list", {
+      translation: translation
+      width: size[0]
+      height: size[1]
+    })
+    m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
+      isActive: true
+      width: 1920
+      height: 1080
+      backgroundVisible: false
+    })
+    ml.delegateMixin.setListDelegate(m.list)
+    m.onResetChange()
+  end function
+
+  private function onResetChange()
+    m.list.content = invalid
+    ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
+    if m.isSmall
+      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [80, 50], 30)
+    else
+      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 320], 30)
+    end if
+
+    timer = new mc.utils.DebugTimer("list")
+    m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
+
+    m.focusSettings = ml.listMixin.createFocusSettings(.5, .1, "fixed", [-50, -50, 50, 50])
+    ' listSettings = ml.listMixin.createListSettings(3000, 2000)
+    listSettings = ml.listMixin.createListSettings(-1, -1)
+    content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
+    timer.log("makeData")
+    m.list.content = content
+    timer.log("set content")
+    m.loadingIndicator.isActive = false
+  end function
+
+  private function createData()
+    content = []
+    rowFocusSettings = ml.listMixin.createFocusSettings(.3, .1, "fixed", [-20, -20, 20, 20])
+    for i = 0 to m.numberOfRows - 1
+      row = createObject("roSGNode", "ml_RowContent")
+      if i = 0
+        row0FocusSettings = ml.listMixin.createFocusSettings(.2, .5, "fixed", [-20, -20, 20, 20])
+        cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
+        row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
+        row.settings.headerSettings.position = "none"
+        row.settings.contentOffset = [400, -30]
+      else if i = 1 or i = 4 or i = 8
+        row1FocusSettings = ml.listMixin.createFocusSettings(.5, .1, "fixed", [30, 30, -30, -30])
+        ' row1FocusSettings.feedbackUri = "pkg:/images/circle.png"
+        row1FocusSettings.feedbackColor = "#F4D42A"
+        headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
+        cellSettings = ml.listMixin.createCellSettings("SubHeroCell", [900, 320], 100)
+        row.settings = ml.listMixin.createRowSettings(cellSettings, row1FocusSettings, 30, headerSettings)
+        row.settings.contentOffset = [100, 0]
+
+      else if i = 5 or i = 11
+        complexFocusSettings = ml.listMixin.createFocusSettings()
+        complexFocusSettings.feedbackStyle = "none"
+        row.settings = ml.listMixin.createRowSettings(invalid, complexFocusSettings, 30, invalid, 0, "ComplexRow")
+      ' else if i= 6
+      '   row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
+      '   row.settings.height = 700
+      '   row.settings.contentOffset = [100, -200]
+      '   row.settings.peekNextPixels = 300
+      else
+        row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
+        row.settings.contentOffset = [100, 30]
+        row.settings.peekNextPixels = 300
+      end if
+      ' row.settings.peekNextPixels = 200
+      ' row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
+      ' row.settings.contentOffset = [100, 30]
+      row.title = "ROW " + str(i)
+      content.push(row)
+      if i = 1
+        row.settings.screenPos = 730
+
+        ' end if
+        ' if i mod 9 = 0
+        '   row.addFields({ "focusType": "fixed" })
+        '   ' row.addFields({ "focusType": "floatingWrap" })
+        '   row.title += " floating"
+        ' else
+        '   row.addFields({ "focusType": "fixed" })
+        '   row.title += " fixed"
+        ' end if
+
+      else if i = 8
+        row.settings.screenPos = 400
+      else if i = 12 or i = 6
+        row.settings.peekNextPixels = 0
+      else if i = 13
+        row.settings.screenPos = 200
+      ' else if i <> 0
+      end if
+
+      row.appendChildren(m.makeItems(m.defaultCellType, 20))
+    end for
+    return content
+  end function
+
+  private function addItems(cellType as string, number as integer)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row.appendChildren(m.makeItems(cellType, number))
+  end function
+
+  private function makeItems(cellType as string, number as integer)
+    items = []
+    for i = 0 to number
+      items.push(m.makeItem(cellType, `Item ${m.contentId} [${i}]`))
+    end for
+    return items
+  end function
+
+  private function makeItem(cellType as string, title as string) as mc.types.node
+    child = createObject("roSGNode", "ContentNode")
+    child.id = str(m.contentId).trim()
+    child.description = "some really long " + child.id + "text in here " + child.id
+    child.HDGRIDPOSTERURL = "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340"
+    child.title = title
+    m.contentId++
+    return child
+  end function
+
+  private function onRemoveItems(items as integer)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+
+    startIndex = row.getChildCount() - items
+    children = row.getChildren(items, startIndex)
+    row.removeChildren(children)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ keypresses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onKeyPressOption() as boolean
+    return true
+  end function
+
+  private function onKeyPressFastForward() as boolean
+    return true
+  end function
+
+  private function onKeyPressBack() as boolean
+    if m.top.isRoot <> true
+      m.list.isHidden = true
+      m.pop()
+    end if
+    return true
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ lifecycle
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onShow()
+    super.onShow()
+    m.list.isHidden = false
+    mv.setFocus(m.list)
+  end function
+
+  protected override function onHide()
+    super.onHide()
+    m.list.isHidden = true
+  end function
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    super.onGainedFocus(isSelfFocused)
+    m.log.info("onGainedFocus", isSelfFocused)
+
+    if isSelfFocused
+      mv.setFocus(m.list)
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ list delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    mioc.setInstance("focusedIndex", {
+      row: rowIndex
+      cell: itemIndex
+    })
+  end function
+
+  private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellDidGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    mioc.setInstance("focusedIndex", {
+      row: rowIndex
+      cell: itemIndex
+    })
+  end function
+
+
+  private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  end function
+
+  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
+    ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+
+    row = m.list@.getRowRenderer(rowIndex)
+    mioc.setInstance("focusedIndex", {
+      row: rowIndex
+      cell: row.focusedCellIndex
+    })
+
+    ' if direction = -1
+    '   row = m.list@.getRowRenderer(rowIndex)
+    '   row.opacity = 1
+    ' end if
+  end function
+
+  private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
+    ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+
+    ' row = m.list@.getRowRenderer(rowIndex)
+    ' if direction = 1
+    '   row.opacity = 0
+    ' end if
+
+  end function
+
+  private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
+    ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+    ' if direction = -1
+    '   row = m.list@.getRowRenderer(rowIndex)
+    '   row.opacity = fraction
+    ' end if
+  end function
+
+  private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
+    ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+    ' if direction = 1
+    '   row = m.list@.getRowRenderer(rowIndex)
+    '   row.opacity = 1 - fraction
+    ' end if
+
+  end function
+
+  private function onItemSelected(rowIndex as integer, itemIndex as integer)
+    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
+    rowContent = m.list.content.getChild(rowIndex)
+    title = `NEW Item ${m.contentId}`
+    child = m.makeItem("SimpleCell", title)
+    rowContent.insertChild(child, itemIndex)
+    ' rowContent.removeChild(child)
+    row = m.list@.getRowRenderer(rowIndex)
+    row@.forceUpdate()
+    ' newScreen = createObject("roSGNode", "ListScreen")
+    ' m.push(newScreen)
+    ' mv.setFocus(newScreen)
+  end function
+
+end class

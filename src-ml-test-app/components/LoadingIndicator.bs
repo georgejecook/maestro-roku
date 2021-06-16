@@ -1,0 +1,82 @@
+function init()
+  m.image.observeField("loadStatus", "omImageLoadStatusChange")
+  m.rotationAnimationInterpolator.key = [1, 0]
+  m.top.visible = false
+  m.top.control = "stop"
+end function
+
+function updateLayout()
+  m.log.info("updating layout")
+  componentWidth = m.top.width
+  componentHeight = m.top.height
+
+  m.background.height = componentHeight
+  m.background.width = componentWidth
+
+  loadingGroupWidth = max(m.image.width, m.text.width)
+
+  loadingGroupHeight = m.image.height + 30
+
+  m.image.scaleRotateCenter = [m.image.width / 2, m.image.height / 2]
+
+  ' position loading group, image and text at the center
+  m.loadingGroup.translation = [(componentWidth - loadingGroupWidth) / 2, (componentHeight - loadingGroupHeight) / 2]
+  m.image.translation = [(loadingGroupWidth - m.image.width) / 2, 0]
+  m.text.translation = [0, m.image.height + m.top.spacing]
+end function
+
+function onIsActiveChange()
+  if m.top.isActive
+    updateLayout()
+    m.top.control = "start"
+  else
+    m.top.control = "stop"
+  end if
+end function
+
+function onControlChange()
+  m.log.info("m.top.control", m.top.control)
+
+  if m.top.control = "start"
+    m.fadeAnimation.control = "stop"
+    onFadeAnimationStop()
+    m.loadingIndicatorGroup.opacity = 1
+    startAnimation()
+  else if m.top.control = "stop"
+    ' if there is fadeInterval set, fully dispose component before stopping spinning animation
+    if m.top.fadeInterval > 0
+      m.fadeAnimation.duration = m.top.fadeInterval
+      m.fadeAnimation.observeField("state", "onFadeAnimationStateChange")
+      m.fadeAnimation.control = "start"
+    else
+      onFadeAnimationStop()
+    end if
+  end if
+end function
+
+function onFadeAnimationStateChange()
+  if m.fadeAnimation.state = "stopped"
+    onFadeAnimationStop()
+  end if
+end function
+
+function startAnimation()
+  m.rotationAnimation.control = "start"
+  m.top.state = "running"
+  m.top.visible = true
+end function
+
+function onFadeAnimationStop()
+  m.rotationAnimation.control = "stop"
+  m.top.state = "stopped"
+  m.top.visible = false
+end function
+
+
+function max(a as float, b as float) as float
+  if a > b
+    return a
+  else
+    return b
+  end if
+end function

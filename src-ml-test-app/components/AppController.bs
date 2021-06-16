@@ -1,0 +1,70 @@
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/core/DebugTimer.bs"
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Initialization
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function Init()
+  mv.initializeFocusManager(m.global)
+  tick = m.top.getScene().createChild("Timer")
+  tick.duration = 0.01
+  tick.repeat = true
+  tick.control = "start"
+  mc.setOrAddNodeField(m.global, "tick", tick)
+  mc.tasks.observeNodeField(tick, "fire", onInfoChange, "none")
+  mioc.setInstance("focusedIndex", {
+    row: 0
+    cell: 0
+  })
+
+  initFlyweight()
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ flyweight
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function initFlyweight()
+  m.componentPool = createObject("roSGNode", "mc_ComponentPool")
+  m.global.addFields({ "componentPool": m.componentPool })
+
+  m.cellTracker = createObject("roSGNode", "mv_CellTracker")
+  m.global.addFields({ "cellTracker": m.cellTracker })
+  m.top.addFields({ "_global": m.global })
+
+  m.infoLabel = m.top.findNode("infoLabel")
+
+end function
+
+function prebakeCells()
+  timer = new mc.utils.DebugTimer("prebake")
+  m.componentPool@.prebakeComponents(70, "ml_SimpleCell")
+  timer.log("prebake")
+end function
+
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ callbacks
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onInfoChange()
+  m.infoLabel.text = ` Cell Pressure - mList: ${m.componentPool.numberOfComponentsInUse} / ${m.componentPool.numberOfComponents} - sg ${m.cellTracker.numberOfCellsInUse} / ${m.cellTracker.numberOfCells}`
+  focusedIndex = mioc.getInstance("focusedIndex")
+  m.infoLabel.text += ` FOCUS: ${focusedIndex.row}, ${focusedIndex.cell}`
+end function
+
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ lifecycle
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function onFirstShow()
+  m.log.info("onFirstShow")
+  prebakeCells()
+  screen = mc.createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
+  ' screen = mc.createSGNode("RowListScreen", m.top.findNode("contentGroup"), "listScreen")
+  mv.setFocus(screen)
+  m.loadingIndicator.isActive = false
+end function

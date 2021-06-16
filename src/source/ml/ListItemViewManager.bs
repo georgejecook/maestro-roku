@@ -1,0 +1,144 @@
+import "pkg:/source/ml/ItemViewManager.bs"
+import "pkg:/source/ml/ListMixin.bs"
+
+namespace ml
+  class ListItemViewManager extends ml.ItemViewManager
+
+    function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer)
+      super("ListItemViewManager", list, container, 1, minPos, maxPos)
+      m.delegate = list.rowEvents
+      m.lookAheadDistance = maxPos * 5
+      m.lookBehindDistance = maxPos * 2
+    end function
+
+    override function getRenderer(index as integer)
+      return m.components[index]
+    end function
+
+    override function createRenderers(content as mc.types.node)
+
+      if content <> invalid
+        index = 0
+        for each rowContent in content.getChildren(-1, 0)
+          settings = ml.listMixin.getRowSettings(m.content, rowContent)
+          rect = m.getRect(index)
+
+          comp = m.createRow(rowContent, index, settings, rect.height)
+          if comp <> invalid
+            comp.index = index
+            comp.renderState = "none"
+
+            m.components.push(comp)
+          else
+            m.log.error("could not create row for index ")
+          end if
+          index++
+        end for
+      end if
+    end function
+
+    function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, height as integer)
+      compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
+      'TODO - measure height to ascertain how many
+      isRendered = index < 4
+      return m.createSGNode(compName, m.container, str(index).trim(), {
+        renderState: isRendered ? "rendered" : m.componentBufferMode
+        isRendered: isRendered
+        content: rowContent
+        owner: m.owner
+        index: index
+        width: m.owner.width
+        height: height
+        'TODO - measure the heights.
+        isInViewport: isRendered
+      })
+    end function
+
+    override function updateLayout()
+      y = 0
+      w = m.owner.width
+
+      for each comp in m.components
+        settings = ml.listMixin.getRowSettings(m.content, comp.content)
+        comp.visible = comp.content.isHidden <> true
+        comp.height = m.calculateRowHeight(settings)
+        screenPos = settings.screenPos
+
+        if comp.visible
+          translation = [0, y]
+          yOffset = 0
+          contentOffset = settings.contentOffset
+          if contentOffset <> invalid
+            translation[0] += contentOffset[0]
+            yOffset = contentOffset[1]
+            translation[1] += yOffset
+          end if
+
+          comp.translation = translation
+          'TODO better handle the whole visibility
+
+          height = comp.height + settings.space + yOffset
+          if settings.peekNextPixels <> 0
+            screenPos = 1080 - (height + settings.peekNextPixels)
+            settings.screenPos = screenPos
+          end if
+
+          y += height
+          m.rects.push({
+            translation: comp.translation
+            size: [w, comp.height]
+            index: comp.index
+            screenPos: screenPos
+          })
+          m.visibleComponents.push(comp)
+          m.visibleItems.push(comp.content)
+        else
+          m.hiddenComponents.push(comp)
+        end if
+
+      end for
+
+    end function
+
+    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
+      for each id in renderStateMap
+        comp = m.components[id.toInt()]
+
+        if comp <> invalid and comp.renderState <> renderStateMap[id]
+          comp.renderState = renderStateMap[id]
+          if comp.renderState = "rendered"
+            m.renderedComponents.push(comp)
+          end if
+          comp.isRendered = comp.renderState = "rendered"
+        else
+          ' ? "ERROR could not find visible comp for "; id
+        end if
+      end for
+
+    end function
+
+    override function getFocusSettings()
+      return m.content.focusSettings
+    end function
+
+    ' @params{ml_RowSettings} settings for the current row
+    private function calculateRowHeight(settings as mc.types.node) as integer
+      height = 300
+      if settings = invalid
+        return height
+      end if
+
+      if settings.height <> -1
+        height = settings.height
+      else
+        height = settings.cellSettings.size[1]
+      end if
+
+      if settings.headerSettings.position <> "none"
+        height += settings.headerSettings.height
+      end if
+      return height
+    end function
+
+  end class
+end namespace

@@ -1,0 +1,137 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/ml/ListDelegateMixin.bs"
+
+@node("RowListScreen", "mv_BaseScreen")
+class RowListScreen extends mv.BaseScreen
+
+  'views
+  private list
+  private listHolder
+  private bgRect
+
+  'style
+  private numberOfRows = 50
+  private defaultCellType = "RowListCell"
+
+  'state
+  private contentId = 0
+  private rowSettings
+  private focusSettings
+  private cellSettings
+
+  private isSmall = false
+
+  function new()
+    super("RowListScreen")
+    m.log.info("RowListScreen new")
+    translation = [0, 0]
+    size = [1920, 1080]
+
+    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      translation: translation
+      size: size
+      color: "#b286f0"
+    })
+    m.listHolder = m.createSGNode("Group", m.top, "listHolder")
+
+    m.list = m.createSGNode("mv_RowList", m.listHolder, "list", {
+      translation: translation
+      itemSize: [1920, 300]
+      itemComponentName: "RowListCell"
+      rowItemSize: [480, 320]
+      numRows: 3
+    })
+    m.onResetChange()
+  end function
+
+  private function onResetChange()
+    m.list.content = invalid
+    ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
+    content = m.createSGNode("ContentNode", invalid, "content")
+    content.appendChildren(m.createRows())
+    m.list.content = content
+  end function
+
+  private function createRows()
+    rows = []
+    for i = 0 to m.numberOfRows - 1
+      row = m.createSGNode("ContentNode", invalid, `row_${i}`)
+      row.title = "ROW " + str(i)
+      row.appendChildren(m.makeItems(m.defaultCellType, 20))
+      rows.push(row)
+    end for
+    return rows
+  end function
+
+  private function makeItems(cellType as string, number as integer)
+    d = createObject("roDateTime")
+    nonce = str(d.asSeconds()).trim()
+    items = []
+    for i = 0 to number
+      child = createObject("roSGNode", "ContentNode")
+      child.id = str(m.contentId).trim()
+      child.description = "some really long " + child.id + "text in here " + child.id
+      ' child.HDGRIDPOSTERURL = "https://picsum.photos/id/" + str(230).trim() + "/360/300?n=" + nonce
+      child.HDGRIDPOSTERURL = "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340?n=" + nonce
+      ' child.HDGRIDPOSTERURL = "https://p1.hiclipart.com/preview/484/533/90/random-movie-collection-folder-icon-part-3-2-guns-256x256-2-guns-movie-poster-art-png-clipart.jpg"
+      child.title = `Item ${child.id}`
+
+      ' if m.contentId mod 5 = 0
+      '   cellType = "SimpleCell"
+      ' else if m.contentId mod 7 = 0
+      '   cellType = "ComplexCell"
+      ' end if
+
+      ' child.addFields({
+      '   "cellType": cellType
+      ' })
+      items.push(child)
+      m.contentId++
+    end for
+    return items
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ keypresses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onKeyPressOption() as boolean
+    return true
+  end function
+
+  private function onKeyPressFastForward() as boolean
+    return true
+  end function
+
+  private function onKeyPressBack() as boolean
+    if m.top.isRoot <> true
+      m.list.isHidden = true
+      m.pop()
+    end if
+    return true
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ lifecycle
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onShow()
+    super.onShow()
+    mv.setFocus(m.list)
+  end function
+
+  protected override function onHide()
+    super.onHide()
+  end function
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    super.onGainedFocus(isSelfFocused)
+    m.log.info("onGainedFocus", isSelfFocused)
+
+    if isSelfFocused
+      mv.setFocus(m.list)
+    end if
+  end function
+
+end class
