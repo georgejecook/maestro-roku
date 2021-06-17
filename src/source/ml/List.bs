@@ -318,7 +318,6 @@ namespace ml
 
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
       m.activeFocusSettings = focusSettings
-      ' ? "focusSettings.feedbackStyle "; focusSettings.feedbackStyle
       if focusSettings.feedbackStyle = "none"
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
@@ -347,7 +346,6 @@ namespace ml
     end function
 
     private function moveFocusIndicatorToFocusPosition(animated = true as boolean) as void
-      ' m.focusIndicator.visible = m.rowHasIndicator and not m.isIndicatorHidden
       if m.targetFocusRect = invalid
         m.log.error("no target focus rect!")
         return
@@ -402,8 +400,12 @@ namespace ml
     '++ flow focus support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function startFlowFocus(scrollingComponent as mc.types.node, source as mc.types.node, target as mc.types.node, speed as float)
-
+    public function startFlowFocus(scrollingComponent as mc.types.node, source as mc.types.node, target as mc.types.node, speed as float) as void
+      if source = invalid or target = invalid
+        m.log.error("error in flow focus animation1")
+        m.flowFocusDelegate@.onFlowFocusFraction(1)
+        return
+      end if
       'TODO - finish animation if existing delegate
       m.flowFocusDelegate = scrollingComponent
       m.focusPointAnim.setFromToValue(source.translation, target.translation)
@@ -456,8 +458,7 @@ namespace ml
 
     private function onKeyPressDown() as boolean
       m.log.verbose("onKeyPressDown")
-      if m.itemScroller.index < m.viewManager.numberOfItems
-        ' return m.itemScroller.move(1)
+      if m.itemScroller.index < m.viewManager.numberOfItems - 1
         return m.itemScroller.moveFromPress(1)
       else
         return false
@@ -466,7 +467,7 @@ namespace ml
 
     private function getLongPressIntervalForKey(key as string) as float
       m.log.verbose("getLongPressIntervalForKey", key)
-      if (key = "up" and m.itemScroller.index > 0) or (key = "down" and m.itemScroller.index < m.viewManager.numberOfItems)
+      if (key = "up" and m.itemScroller.index > 0) or (key = "down" and m.itemScroller.index < m.viewManager.numberOfItems - 1)
         return 0.2
       else
         return 0
@@ -476,7 +477,7 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
-      if (key = "up" and m.itemScroller.index > 0) or (key = "down" and m.itemScroller.index < m.viewManager.numberOfItems)
+      if (key = "up" and m.itemScroller.index > 0) or (key = "down" and m.itemScroller.index < m.viewManager.numberOfItems - 1)
         if key = "up"
           m.log.verbose("long press started on key", key, "going to animate to start of list")
           return m.itemScroller.moveToEnd(-1)
@@ -524,6 +525,14 @@ namespace ml
     end function
 
     protected override function onChildLostFocus()
+      'bs:disable-next-line
+      if not m.top.isChildFocused
+        m.isIndicatorHidden = true
+        m.focusIndicator.visible = false
+      end if
+    end function
+
+    protected function onChildGainedFocus()
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.isIndicatorHidden = true
