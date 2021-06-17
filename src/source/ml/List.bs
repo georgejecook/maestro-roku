@@ -94,6 +94,7 @@ namespace ml
     private dummyFocusView
     private dummyFocusAnim
     private activeFocusSettings
+    private rowHasIndicator = true
 
     function new()
       super("mv_List")
@@ -295,17 +296,20 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
+      ' ? "ON NEXT CHANGE" ; index
       m.applyFocusSettings(index, false)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
       row = m.getRowRenderer(index)
+      ' ? "ON ROW INDEX CHANGE" ; index
       m.applyFocusSettings([index, row.focusedCellIndex], true)
     end function
 
     private function onFocusedCellIndexChange(index as integer)
       m.applyFocusSettings([m.focusedRowIndex, index], true)
     end function
+
 
     private function applyFocusSettings(index as mc.types.array, isInPosition as boolean)
       settings = ml.listMixin.getRowSettings(m.content, m.content.getChild(index[0]))
@@ -314,9 +318,13 @@ namespace ml
 
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
       m.activeFocusSettings = focusSettings
+      ' ? "focusSettings.feedbackStyle "; focusSettings.feedbackStyle
       if focusSettings.feedbackStyle = "none"
+        m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else
+        m.rowHasIndicator = true
+
         if focusSettings.animStyle = "fixed"
           m.targetFocusRect.translation[0] = settings.contentOffset[0]
         end if
@@ -330,7 +338,6 @@ namespace ml
         'note - we don't show again until we are in position
         if isInPosition
           m.focusIndicator.visible = not m.isIndicatorHidden
-          ' m.focusIndicator.visible = true
           m.moveFocusIndicatorToFocusPosition(false)
         else
           m.moveFocusIndicatorToFocusPosition()
@@ -340,13 +347,14 @@ namespace ml
     end function
 
     private function moveFocusIndicatorToFocusPosition(animated = true as boolean) as void
+      ' m.focusIndicator.visible = m.rowHasIndicator and not m.isIndicatorHidden
       if m.targetFocusRect = invalid
         m.log.error("no target focus rect!")
         return
       end if
-
       if animated
         m.dummyFocusAnim.start()
+        m.focusIndicator.translation = m.targetFocusRect.indicatorTranslation
         m.focusIndicator.size = m.targetFocusRect.indicatorSize
       else
         m.focusIndicator.translation = m.targetFocusRect.indicatorTranslation
@@ -362,9 +370,10 @@ namespace ml
 
       pointTranslation = m.interpolate(m.sourceFocusRect.translation, m.targetFocusRect.translation, fraction)
       m.focusPoint.translation = pointTranslation
-      translation = m.interpolate(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation, fraction)
+      ' translation = m.interpolate(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation, fraction)
       ' size = m.interpolate(m.sourceFocusRect.indicatorSize, m.targetFocusRect.indicatorSize, fraction)
-      m.focusIndicator.translation = translation
+      ' m.focusIndicator.translation = translation
+      ' m.focusIndicator.visible = m.rowHasIndicator and not m.isIndicatorHidden
       ' m.focusIndicator.width = size[0]
       ' m.focusIndicator.height = size[1]
       ' ? "onFocusedRowPercentChange " ; fraction ; " " ; translation[1]; " " ; m.targetFocusRect.translation[1]
@@ -497,38 +506,28 @@ namespace ml
       super.onGainedFocus(isSelfFocused)
       m.isIndicatorHidden = false
       if isSelfFocused
-        if m.activeFocusSettings <> invalid
-          m.focusIndicator.visible = m.activeFocusSettings.feedbackStyle <> "none"
-          row = m.getRowRenderer(m.focusedRowIndex)
-          if row <> invalid
-            mv.setFocus(row)
-          end if
-          '   'TODO set focus to active row
+        m.focusIndicator.visible = m.rowHasIndicator
+        row = m.getRowRenderer(m.focusedRowIndex)
+        if row <> invalid
+          mv.setFocus(row)
         end if
       end if
     end function
 
     protected override function onLostFocus()
-      ? ">>>list lost focus"
       super.onLostFocus()
-      ? "LOST FOCUS "; m.top.isChildFocused
       'bs:disable-next-line
       if not m.top.isChildFocused
-        ? "LOSING LIST FOCUS"
-        m.focusIndicator.visible = false
         m.isIndicatorHidden = true
+        m.focusIndicator.visible = false
       end if
     end function
 
     protected override function onChildLostFocus()
       'bs:disable-next-line
-      ? ">>>onChildLostFocus " ; m.top.isChildFocused
-
-      'bs:disable-next-line
       if not m.top.isChildFocused
-        ? "LOSING LIST FOCUS"
-        m.focusIndicator.visible = false
         m.isIndicatorHidden = true
+        m.focusIndicator.visible = false
       end if
     end function
   end class
