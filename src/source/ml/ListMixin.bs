@@ -53,6 +53,23 @@ namespace ml.listMixin
     return settings
   end function
 
+  function createCustomRowSettings(compName as string, height as integer, screenPos = 0 as integer)
+    settings = createObject("roSGNode", "ml_RowSettings")
+
+    settings.update({
+      componentName: compName
+      screenPos: screenPos
+      height: height
+      space: 0
+      cellSettings: invalid
+      contentOffset: [0, 0]
+      headerSettings: ml.listMixin.createEmptyHeaderSettings()
+      focusSettings: ml.listMixin.createFocusSettings(3, 1, "fixed", invalid, "none")
+    })
+
+    return settings
+  end function
+
   function createListSettings(lookaheadDistance = 5000 as integer, lookBehindDistance = 2000 as integer)
     settings = createObject("roSGNode", "ml_ListSettings")
 
@@ -77,6 +94,18 @@ namespace ml.listMixin
     return settings
   end function
 
+  function createEmptyHeaderSettings()
+    settings = createObject("roSGNode", "ml_HeaderSettings")
+
+    settings.update({
+      offset: [0, 0]
+      height: 0
+      fontKey: ""
+      position: "none"
+    })
+    return settings
+  end function
+
   function createCellSettings(compName = "ml_SimpleCell" as string, size = [300, 500] as mc.types.array, space = 30 as integer, screenPos = 0 as integer)
     settings = createObject("roSGNode", "ml_CellSettings")
 
@@ -90,7 +119,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function createFocusSettings(animSpeed = 3 as float, fastAnimSpeed = 1 as float, animStyle = "fixed" as string, offsets = invalid as mc.types.array)
+  function createFocusSettings(animSpeed = 3 as float, fastAnimSpeed = 1 as float, animStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string)
     settings = createObject("roSGNode", "ml_FocusSettings")
     if offsets = invalid
       offsets = [0, 0, 0, 0]
@@ -100,6 +129,7 @@ namespace ml.listMixin
       fastAnimSpeed: fastAnimSpeed / 10.0
       animStyle: animStyle
       feedbackOffsets: offsets
+      feedbackStyle: feedbackStyle
     })
     return settings
 
