@@ -120,21 +120,8 @@ namespace ml
         return false
       end if
 
-      if (m.viewManager.isScrolling or m.isMovingMultiple) and m.direction = direction
-        m.log.info("was already scrolling - trying to keep moving")
-        index = m.getValidTargetIndex(m.targetIndex + direction, direction)
-        if index <> -1
-          m.targetIndex = index
-          m.isMovingMultiple = true
-          return true
-        else
-          return false
-        end if
-      else
-        return m.move(direction)
-      end if
+      return m.move(direction, invalid, true, true)
     end function
-
 
     function move(offset as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
       index = m.index + offset

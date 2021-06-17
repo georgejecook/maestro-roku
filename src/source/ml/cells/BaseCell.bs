@@ -8,6 +8,7 @@ import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 
 namespace ml
+  @node("ml_BaseCell", "Group")
   class BaseCell
 
     public index = -1
@@ -16,6 +17,9 @@ namespace ml
     ' any item in a list will have this set whenever it gets recycled
     @observer("onInitialStateChange")
     public initialState as mc.types.AssocArray
+
+    @observer("onIsPrebaked")
+    public isPrebaked = false
 
     public listEvent as mc.types.AssocArray
 
@@ -29,6 +33,15 @@ namespace ml
 
     function new()
       ml.itemDelegateMixin.setDelegate()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    protected function onIsPrebaked(value as boolean)
+      'can do things like:
+      ' m.createViews()
+      ' m.isViewCreated = true
     end function
 
     private function _createViews()

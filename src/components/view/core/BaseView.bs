@@ -198,6 +198,7 @@ function onIsChildFocusedChange()
     onGainedFocus(false)
   else
     'we don't notify about this
+    onChildLostFocus()
   end if
 end function
 
@@ -251,6 +252,17 @@ function onLostFocus()
     m.vm.onLostFocus()
   else if m.onLostFocus <> invalid
     m.onLostFocus()
+  end if
+end function
+
+function onChildLostFocus()
+  if m.global.focusManager.isLogging
+    m.log.info("lost focus:", m.top.subType(), ".", m.top.id)
+  end if
+  if m.vm <> invalid and m.vm.onChildLostFocus <> invalid
+    m.vm.onChildLostFocus()
+  else if m.onChildLostFocus <> invalid
+    m.onChildLostFocus()
   end if
 end function
 

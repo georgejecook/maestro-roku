@@ -98,11 +98,16 @@ namespace ml
           end if
         end for
       end if
+      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      if cell <> invalid
+        ' TODO potentially filter events
+        cell.listEvent = event
+      end if
     end function
 
-    protected override function onAnimateToItemChange(index as integer)
+    public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid
-        m.itemScroller.moveToIndex(index)
+        m.itemScroller.moveToIndex(index, invalid, animated)
       end if
     end function
 
@@ -171,17 +176,17 @@ namespace ml
     private function onKeyPressLeft() as boolean
       m.log.verbose("onKeyPressLeft")
       if m.canScroll("left")
-        m.itemScroller.moveFromPress(-1)
+        return m.itemScroller.moveFromPress(-1)
       end if
-      return true
+      return false
     end function
 
     private function onKeyPressRight() as boolean
       m.log.verbose("onKeyPressRight")
       if m.canScroll("right")
-        m.itemScroller.moveFromPress(1)
+        return m.itemScroller.moveFromPress(1)
       end if
-      return true
+      return false
     end function
 
     private function getLongPressIntervalForKey(key as string) as float
@@ -194,7 +199,7 @@ namespace ml
     end function
 
     private function canScroll(key as string)
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.getChildCount()))
+      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.getChildCount() -1))
     end function
 
     private function onLongPressStart(key as string) as boolean

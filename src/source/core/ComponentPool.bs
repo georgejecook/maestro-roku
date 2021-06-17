@@ -64,6 +64,7 @@ namespace mc
         component = createObject("roSGNode", componentType)
         if component <> invalid
           component.id = str(pool.numberOfComponentsInPool).trim()
+          component.isPrebaked = true
           pool.numberOfComponentsInPool++
           pool.freeComponentsById[component.id] = component
           pool.allComponents.push(component)
@@ -85,9 +86,13 @@ namespace mc
           m.log.warn("creating", m.top.numberOfComponentsToCreateWhenDry, "more", componentType, "components")
           for i = 0 to m.top.numberOfComponentsToCreateWhenDry
             component = m.createComponent(componentType)
-            pool.freeComponentsById[component.id] = component
-            pool.numberOfComponentsInPool++
-            pool.allComponents.push(component)
+            if component <> invalid
+              pool.freeComponentsById[component.id] = component
+              pool.numberOfComponentsInPool++
+              pool.allComponents.push(component)
+            else
+              m.log.error("could not create component of type", componentType)
+            end if
           end for
           m.top.numberOfComponents += m.top.numberOfComponentsToCreateWhenDry
         else
@@ -139,7 +144,7 @@ namespace mc
       else
         m.log.error("could not create component of type", componentType)
       end if
-    return component
+      return component
     end function
 
   end class

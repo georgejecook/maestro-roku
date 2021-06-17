@@ -114,7 +114,7 @@ function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as vo
       currentNode.isFocused = false
     end if
 
-    setFieldOnNodes(m.parents, "isChildFocused", false)
+    setFieldOnNodes(m.parents, "isChildFocused", false, parents)
   end if
 
   m.top.focusedNode = node
@@ -210,17 +210,29 @@ function isInScene(parents as mc.types.array)
   return true
 end function
 
-function setFieldOnNodes(nodes as mc.types.node, field as string, value as dynamic)
-  ' m.log.info("--------------------------------START")
+function setFieldOnNodes(nodes as mc.types.array, field as string, value as dynamic, excludeParents = invalid as mc.types.array)
+  ' ? "--------------------------------START"
+
   for i = 0 to nodes.count() - 1
     node = nodes[i]
-    ' m.log.info(i, "id", node.id)
+    ' ? i ; " " ; "id" ; " " ; node.id ; " " ; node[field] " > "; value
     if node.doesExist(field) and node[field] <> value
-      ' m.log.info(field, "node[field]", node[field], value)
-      node[field] = value
+      if excludeParents = invalid or not excludeContains(excludeParents, node)
+        ' ? field ; " " ; " " ; node[field] ; " " ; value
+        node[field] = value
+      end if
     end if
 
   end for
-  ' m.log.info("--------------------------------END")
+  ' ? "--------------------------------END"
 
+end function
+
+function excludeContains(array as mc.types.array, value as dynamic) as boolean
+  for each item in array
+    if item.isSameNode(value)
+      return true
+    end if
+  end for
+  return false
 end function
