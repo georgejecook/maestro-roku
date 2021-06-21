@@ -295,8 +295,13 @@ namespace ml
         if index > m.nextIndex
           index = m.nextIndex
         end if
+        if m.focusManager.didStart and m.focusManager.nextIndex = index and index = 0
+          ' ? " >>> move to end already started"
+        else
+          m.moveToIndex(index, invalid, true, false, true)
+        end if
+
         ' ? "FINISH INDEX" ; index ; " POS "; position ; " I " ; m.index; " NI "; m.nextIndex
-        m.moveToIndex(index, invalid, true, false, true)
         return
       end if
       nextIndex = m.nextIndex
@@ -323,6 +328,7 @@ namespace ml
 
       nextRect = m.viewManager.rects[m.nextIndex]
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, screenPos)
+      ' ? ">>>SCREEN POS" ; index ; " " ; screenPos
       m.activeOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
@@ -397,7 +403,7 @@ namespace ml
     '  * @param {integer} index - the index you KNOW you are on when your move is finished (finished could mean from one index to nextindex, while animating; doesn't have to be targetIndex)
     '  * @param {boolean} isMoving - if true, then deltas are calculated for next position, and observers fired if their screen status will change
     '  */
-    function setFocusIndex(index as integer, isMoving as boolean, screenPos = invalid as integer, notifyFocusManager = true as boolean)
+    function setFocusIndex(index as integer, isMoving as boolean, screenPos = invalid as integer, notifyFocusManager = true as boolean) as void
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
       if index = -1
@@ -407,6 +413,7 @@ namespace ml
         if index >= m.viewManager.numberOfItems - 1
           index = m.viewManager.numberOfItems - 1
         end if
+
         m.index = index
         m.setNextIndex(m.index + m.direction)
       end if
