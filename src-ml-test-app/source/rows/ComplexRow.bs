@@ -95,10 +95,14 @@ class ComplextRow extends ml.BaseRow
 
   private function onDidGainFocus(direction as integer)
     ' ? "CR: onDidGainFocus " ; " " ; direction
-    if direction = 1
-      m.setFocus(m.button1)
-    else
-      m.setFocus(m.button2)
+    if m.owner.isFocused or m.owner.isChildFocused
+      if direction = 1
+        m.setFocus(m.button1)
+        m.isButton1Focused = true
+      else
+        m.setFocus(m.button2)
+        m.isButton1Focused = false
+      end if
     end if
   end function
 
