@@ -18,19 +18,25 @@ namespace ml
     public content as mc.types.Node
     private _content
 
+    public state = "none"
+
     public width = 1920
     public height = 1080
     public isHidden = false
 
+    @alwaysnotify
     @observer("onJumpToRowIndexChange")
     public jumpToRowIndex = -1
 
+    @alwaysnotify
     @observer("onJumpToRowItemIndexChange")
     public jumpToRowItemIndex = -1
 
+    @alwaysnotify
     @observer("onAnimateToRowIndexChange")
     public animateToRowIndex = -1
 
+    @alwaysnotify
     @observer("onAnimateToItemIndexChange")
     public animateToItemIndex = -1
 
@@ -120,7 +126,7 @@ namespace ml
       m.focusIndicator = m.createSGNode("mv_Poster", m.top, "focusIndicator", {
         blendColor: "#ffffff"
         uri: "pkg:/images/input-focusrect.9.png"
-        visible: true
+        visible: false
       })
       m.focusPoint = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#ff0000"
@@ -130,6 +136,7 @@ namespace ml
       m.dummyFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#00ff00"
         size: [20, 20]
+        visible: false
       })
     end function
 
@@ -148,8 +155,7 @@ namespace ml
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height)
       m.itemScroller = new ml.ListItemScroller(m.viewManager)
       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.rowEvents)
-      m.focusManager.name = "LIST FM "
-      ' m.clippingRect = [0,0,1920,550]
+      m.focusManager.name = "LIST FM"
       m.focusIndicator = m.top.findNode("focusIndicator")
       m.content = invalid
     end function
@@ -169,7 +175,7 @@ namespace ml
         m.itemScroller.reset()
         m.top.clippingrect = [0, 0, m.width, m.height]
         'FIXME - this is hardcoded - it could be that the first index is not valid
-        m.nextFocusIndex = [0, 0]
+        ' m.nextFocusIndex = [0, 0]
       end if
     end function
 
@@ -279,10 +285,13 @@ namespace ml
       if m.content <> invalid
         if m.focusedRowIndex <> indices[0]
           m.itemScroller.moveToIndex(indices[0], invalid, animated)
+        else
+          m.focusedRowIndex = indices[0]
         end if
         row = m.getRowRenderer(indices[0])
         if row <> invalid
           row@.jumpToItem(indices[1], animated)
+          m.focusedCellIndex = indices[1]
         end if
       end if
     end function
@@ -309,7 +318,10 @@ namespace ml
     end function
 
 
-    private function applyFocusSettings(index as mc.types.array, isInPosition as boolean)
+    private function applyFocusSettings(index as mc.types.array, isInPosition as boolean) as void
+      if m.viewManager.isRendering
+        return
+      end if
       settings = ml.listMixin.getRowSettings(m.content, m.content.getChild(index[0]))
       m.sourceFocusRect = m.targetFocusRect
       m.targetFocusRect = m.getCellScreenRect(index[0], index[1])
