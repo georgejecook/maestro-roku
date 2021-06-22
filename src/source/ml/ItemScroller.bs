@@ -34,6 +34,7 @@ namespace ml
     private settings
     private isMovingMultiple = false
     private activeOffset = 0
+    private nextActiveOffset = 0
     private isScrollCancelled = 0
 
     'flow focus state
@@ -74,10 +75,13 @@ namespace ml
 
       m.onViewManagerUpdate()
       if keepOldFocusIfPossible
-        m.moveToIndex(-1, invalid, false)
-        m.moveToIndex(previousIndex, previousScreenPos, false)
+        m.setFocusIndex(previousIndex, false, previousScreenPos, true)
+        m.moveToIndex(previousIndex, previousScreenPos, false, false, 0)
+        m.focusManager.onFocusAnimationUpdate(1)
       else
-        m.moveToIndex(0, invalid, false)
+        m.setFocusIndex(0, false, previousScreenPos, true)
+        m.moveToIndex(0, invalid, false, false, 0)
+        m.focusManager.onFocusAnimationUpdate(1)
       end if
     end function
 
@@ -186,16 +190,16 @@ namespace ml
       return matchedIndex
     end function
 
-    function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, useCurrentDirection = false as boolean) as boolean
+    function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, screenPos, animated)
-      direction = 0
-      if not useCurrentDirection
+
+      if direction = invalid
+        direction = 0
         if index < m.index
           direction = -1
         else
           direction = 1
         end if
-        m.direction = direction
       end if
 
       itemRect = m.viewManager.rects[index]
@@ -222,6 +226,7 @@ namespace ml
         return false
       end if
 
+      m.direction = direction
       m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
       m.targetIndex = index
 
@@ -299,7 +304,8 @@ namespace ml
         if m.focusManager.didStart and m.focusManager.nextIndex = index and index = 0
           ' ? " >>> move to end already started"
         else
-          m.moveToIndex(index, invalid, true, false, true)
+          'move; but force moving in the current direction
+          m.moveToIndex(index, invalid, true, false, m.direction)
         end if
 
         ' ? "FINISH INDEX" ; index ; " POS "; position ; " I " ; m.index; " NI "; m.nextIndex
@@ -330,7 +336,7 @@ namespace ml
       nextRect = m.viewManager.rects[m.nextIndex]
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, screenPos)
       ' ? ">>>SCREEN POS" ; index ; " " ; screenPos
-      m.activeOffset = screenPos
+      m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
       if nextTranslation <> invalid
@@ -409,6 +415,7 @@ namespace ml
       ' TODO - check if index is actually changed
       if index = -1
         m.index = 0
+        m.activeOffset = m.nextActiveOffset
         m.setNextIndex(0, screenPos)
       else
         if index >= m.viewManager.numberOfItems - 1
@@ -416,6 +423,7 @@ namespace ml
         end if
 
         m.index = index
+        m.activeOffset = m.nextActiveOffset
         m.setNextIndex(m.index + m.direction)
       end if
 
