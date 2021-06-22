@@ -4,6 +4,16 @@ import "pkg:/source/ml/ListMixin.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ async row creation
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private creationIndex = -1
+    'sometimes we want to create all rows up front, for important screens
+    'using async renderer creation allows us to do this without clogging up the devices's render thread
+    private batchSize = 3
+    private batchDelay = 3
+
     function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer)
       super("ListItemViewManager", list, container, 1, minPos, maxPos)
       m.delegate = list.rowEvents
@@ -15,11 +25,47 @@ namespace ml
       return m.components[index]
     end function
 
-    override function createRenderers(content as mc.types.node)
+    override function createRenderers(content as mc.types.node) as boolean
 
       if content <> invalid
+        m.creationIndex = -1
+        settings = content.listSettings
+        isReady = true
+        if settings.rowCreationStrategy = "async"
+          m.batchSize = settings.rowCreationBatchSize
+          m.batchDelay = settings.rowCreationBatchDelay
+          m.owner.state = "rendering"
+          isReady = false
+        else
+          m.batchSize = m.content.getchildCount()
+        end if
+        m.createRendererBatch()
+        return isReady
+      end if
+      m.waitAFrame(m.createRendererBatch, 0.15)
+      return false
+    end function
+
+    protected override function onRenderersCreated()
+      super.onRenderersCreated()
+      m.itemScroller.reset()
+      m.owner.nextFocusIndex = [0, 0]
+      ' m.owner@.applyFocusSettings()
+      m.owner.state = "rendered"
+    end function
+
+    override function createRendererBatch() as void
+      if m.content <> invalid
         index = 0
-        for each rowContent in content.getChildren(-1, 0)
+        for i = 0 to m.batchSize
+          m.creationIndex++
+          index = m.creationIndex
+          if m.creationIndex >= m.content.getchildCount()
+            ' ? "FINISHED RENDERING LIST ROWS"
+            m.onRenderersCreated()
+            return
+          end if
+          rowContent = m.content.getChild(index)
           settings = ml.listMixin.getRowSettings(m.content, rowContent)
           rect = m.getRect(index)
 
@@ -27,13 +73,15 @@ namespace ml
           if comp <> invalid
             comp.index = index
             comp.renderState = "none"
-
             m.components.push(comp)
           else
             m.log.error("could not create row for index ")
           end if
           index++
         end for
+        if m.creationIndex < m.content.getchildCount()
+          m.waitAFrame(m.createRendererBatch, 0.15)
+        end if
       end if
     end function
 

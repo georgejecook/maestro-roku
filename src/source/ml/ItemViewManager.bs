@@ -1,5 +1,6 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemScroller.bs"
 
 namespace ml
   class ItemViewManager extends mc.BaseClass
@@ -37,9 +38,11 @@ namespace ml
     public renderedComponents = []
     public isScrolling = false
     public scrollingStartIndex = -1
+    private isRendering = false
 
     'stored so we can send it with initialstate
     public lastScrollEvent as mc.types.assocarray
+    public itemScroller as ml.ItemScroller
 
     function new(name as string, owner as mc.types.node, container as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
       super(name)
@@ -68,18 +71,26 @@ namespace ml
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
       ' m.container.removeChildren(m.container.getChildren(-1, 0))
-      m._createRenderers(content)
-      m._updateLayout()
-
-      m.numberOfItems = m.visibleItems.count()
+      if m._createRenderers(content) = false
+        m.isRendering = true
+        m.log.info("This viewManager is doing async rendering")
+      else
+        m.onRenderersCreated()
+      end if
     end function
 
-    function _createRenderers(content as mc.types.node)
+    function _createRenderers(content as mc.types.node) as boolean
       m.components = []
       m.visibleComponents = []
       m.visibleItems = []
 
-      m.createRenderers(content)
+      return m.createRenderers(content)
+    end function
+
+    protected function onRenderersCreated()
+      m.isRendering = false
+      m._updateLayout()
+      m.numberOfItems = m.visibleItems.count()
     end function
 
     function _updateLayout()

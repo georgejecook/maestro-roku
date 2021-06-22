@@ -91,6 +91,7 @@ namespace ml
     end function
 
     protected override function onListEvent(event as object)
+      ' ? "ROW ON LIST EVENT " ; event
       if event.name = "willEnter" or event.name = "didEnter"
         for each component in m.cellsGroup.getChildren(-1, 0)
           if component.doesExist("listEvent")
@@ -199,7 +200,7 @@ namespace ml
     end function
 
     private function canScroll(key as string)
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.getChildCount() -1))
+      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.getChildCount() - 1))
     end function
 
     private function onLongPressStart(key as string) as boolean
@@ -235,7 +236,6 @@ namespace ml
 
     protected function onWillLoseFocus(direction as integer)
       m.log.verbose("This row will lose focus - cancelling scrolling")
-      ' ? " WILL LOSE "; m.index
       m.itemScroller.cancelScrolling()
       m.toggleLongPressTimer(0)
       m.isScrollingEnabled = false
@@ -243,7 +243,6 @@ namespace ml
 
     protected function onWillGainFocus(direction as integer)
       m.log.verbose("This row will gain focus - cancelling scrolling")
-      ' ? " WILL GAIN "; m.index
       m.isScrollingEnabled = true
     end function
 

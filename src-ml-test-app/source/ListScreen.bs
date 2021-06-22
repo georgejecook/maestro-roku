@@ -80,11 +80,33 @@ class ListScreen extends mv.BaseScreen
     m.focusSettings = ml.listMixin.createFocusSettings(.5, .3, "fixed", [-50, -50, 50, 50])
     ' listSettings = ml.listMixin.createListSettings(3000, 2000)
     listSettings = ml.listMixin.createListSettings(-1, -1)
+    ' listSettings.rowCreationStrategy = "all"
+    listSettings.rowCreationStrategy = "async"
+    listSettings.rowCreationBatchSize = 10
+    listSettings.rowCreationBatchDelay = 0.1
+
     content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
+    m.setFocus(m.loadingIndicator)
+    m.list.visible = false
     m.list.content = content
     timer.log("set content")
-    m.loadingIndicator.isActive = false
+    if m.list.state = "rendered"
+      m.onListRenderState("rendered")
+      m.loadingIndicator.isActive = false
+    else
+      m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
+    end if
+  end function
+
+  private function onListRenderState(state as string)
+    if state = "rendered"
+      m.list@.moveToItem([0, 0], false)
+      m.list.nextFocusIndex = [0,0]
+      m.list.visible = true
+      m.loadingIndicator.isActive = false
+      m.setFocus(m.list)
+    end if
   end function
 
   private function createData()
@@ -108,7 +130,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.contentOffset = [100, 0]
 
       else if i = 5 or i = 11
-        complexFocusSettings = ml.listMixin.createFocusSettings()4   2    complexFocusSettings.feedbackStyle = "none"
+        complexFocusSettings = ml.listMixin.createFocusSettings()4 2 complexFocusSettings.feedbackStyle = "none"
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
         ' row.settings = ml.listMixin.createRowSettings(invalid, complexFocusSettings, 30, invalid, 0, "ComplexRow")
         ' else if i= 6

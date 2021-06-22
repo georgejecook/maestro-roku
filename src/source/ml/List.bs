@@ -18,19 +18,25 @@ namespace ml
     public content as mc.types.Node
     private _content
 
+    public state = "none"
+
     public width = 1920
     public height = 1080
     public isHidden = false
 
+    @alwaysnotify
     @observer("onJumpToRowIndexChange")
     public jumpToRowIndex = -1
 
+    @alwaysnotify
     @observer("onJumpToRowItemIndexChange")
     public jumpToRowItemIndex = -1
 
+    @alwaysnotify
     @observer("onAnimateToRowIndexChange")
     public animateToRowIndex = -1
 
+    @alwaysnotify
     @observer("onAnimateToItemIndexChange")
     public animateToItemIndex = -1
 
@@ -39,14 +45,20 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     public isScrolling = false
 
+    @alwaysnotify
     @observer("onFocusedRowIndexChange")
     public focusedRowIndex = 0
 
+    @alwaysnotify
     @observer("onFocusedCellIndexChange")
     public focusedCellIndex = 0
+
+    @observer("onFocusedRowPercentChange")
     public focusedRowPercent = 0.0
+
     public focusedCellPercent = 0.0
 
+    @alwaysnotify
     @observer("onNextFocusIndexChange")
     public nextFocusIndex as mc.types.Array
 
@@ -88,13 +100,14 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusIndicator
-    private isIndicatorHidden = false
+    private isIndicatorHidden = true
     private flowFocusDelegate
     private focusPointAnim
     private dummyFocusView
     private dummyFocusAnim
     private activeFocusSettings
     private rowHasIndicator = true
+    private isFocusSettingsChangePending = false
 
     function new()
       super("mv_List")
@@ -120,7 +133,7 @@ namespace ml
       m.focusIndicator = m.createSGNode("mv_Poster", m.top, "focusIndicator", {
         blendColor: "#ffffff"
         uri: "pkg:/images/input-focusrect.9.png"
-        visible: true
+        visible: false
       })
       m.focusPoint = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#ff0000"
@@ -130,6 +143,7 @@ namespace ml
       m.dummyFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#00ff00"
         size: [20, 20]
+        visible: false
       })
     end function
 
@@ -137,7 +151,7 @@ namespace ml
       m.focusPointAnim = new mv.animations.Move(m.focusPoint, 0.2, [0, 0], [0, 0])
       m.focusPointAnim.observeFraction(m.onFlowFocusFractionChange, m)
       m.dummyFocusAnim = new mv.animations.Size(m.dummyFocusView, 0.5, [0, 0], [0, 0])
-      m.dummyFocusAnim.observeFraction(m.updateFocusIndicatorForFraction, m)
+      ' m.dummyFocusAnim.observeFraction(m.updateFocusIndicatorForFraction, m)
     end function
 
     private function initManagers()
@@ -148,8 +162,7 @@ namespace ml
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height)
       m.itemScroller = new ml.ListItemScroller(m.viewManager)
       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.rowEvents)
-      m.focusManager.name = "LIST FM "
-      ' m.clippingRect = [0,0,1920,550]
+      m.focusManager.name = "LIST FM"
       m.focusIndicator = m.top.findNode("focusIndicator")
       m.content = invalid
     end function
@@ -166,10 +179,7 @@ namespace ml
       if m.content <> invalid
         m.applyListSettings(m.content.listSettings)
         m.viewManager.setContent(m.content)
-        m.itemScroller.reset()
         m.top.clippingrect = [0, 0, m.width, m.height]
-        'FIXME - this is hardcoded - it could be that the first index is not valid
-        m.nextFocusIndex = [0, 0]
       end if
     end function
 
@@ -199,8 +209,9 @@ namespace ml
     end function
 
     private function onJumpToRowIndexChange(index as integer)
-      ? "JUMP TO ROW INDEX"
-      m.moveToItem([index, 0], false)
+      if index <> -1
+        m.moveToItem([index, 0], false)
+      end if
     end function
 
     private function onJumpToRowItemIndexChange(index as integer)
@@ -266,11 +277,13 @@ namespace ml
       end if
     end function
 
-    public function moveToRowItem(index as integer, animated as boolean)
-      if m._content <> invalid
-        row = m.getRowRenderer(index)
-        if row <> invalid
-          row@.jumpToItem(index, invalid, animated)
+    public function moveToRowItem(index as integer, animated as boolean) as void
+      if index = -1
+        if m._content <> invalid and index <> -1
+          row = m.getRowRenderer(index)
+          if row <> invalid
+            row@.jumpToItem(index, invalid, animated)
+          end if
         end if
       end if
     end function
@@ -279,15 +292,16 @@ namespace ml
       if m.content <> invalid
         if m.focusedRowIndex <> indices[0]
           m.itemScroller.moveToIndex(indices[0], invalid, animated)
+        else
+          m.focusedRowIndex = indices[0]
         end if
         row = m.getRowRenderer(indices[0])
         if row <> invalid
           row@.jumpToItem(indices[1], animated)
+          m.focusedCellIndex = indices[1]
         end if
       end if
     end function
-
-
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ focus management
@@ -295,21 +309,50 @@ namespace ml
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
       ' ? "ON NEXT CHANGE" ; index
-      m.applyFocusSettings(index, false)
+      m.preprareFocusSettings(index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
       row = m.getRowRenderer(index)
       ' ? "ON ROW INDEX CHANGE" ; index
-      m.applyFocusSettings([index, row.focusedCellIndex], true)
+      m.preprareFocusSettings([index, row.focusedCellIndex])
+      m.applyFocusSettings(true)
     end function
 
     private function onFocusedCellIndexChange(index as integer)
-      m.applyFocusSettings([m.focusedRowIndex, index], true)
+      m.preprareFocusSettings([m.focusedRowIndex, index])
     end function
 
+    private function onFocusedRowPercentChange(value as float)
+      ' ? "ROW % " ; value
+      if m.isFocusSettingsChangePending and value > 0.75
+        m.applyFocusSettings(true)
+      end if
+    end function
 
-    private function applyFocusSettings(index as mc.types.array, isInPosition as boolean)
+    private function applyFocusSettings(isInPosition as boolean) as void
+      focusSettings = m.activeFocusSettings
+
+      m.targetFocusRect.indicatorTranslation = [m.targetFocusRect.translation[0] + focusSettings.feedbackOffsets[0], m.targetFocusRect.translation[1] + focusSettings.feedbackOffsets[1]]
+      m.targetFocusRect.indicatorSize = [m.targetFocusRect.size[0] + focusSettings.feedbackOffsets[2] - focusSettings.feedbackOffsets[0], m.targetFocusRect.size[1] + focusSettings.feedbackOffsets[3] - focusSettings.feedbackOffsets[1]]
+
+      m.focusIndicator.blendColor = focusSettings.feedbackColor
+      m.focusIndicator.uri = focusSettings.feedbackUri
+
+      if isInPosition
+        'note - we don't show again until we are in position
+        m.focusIndicator.visible = not m.isIndicatorHidden
+        m.moveFocusIndicatorToFocusPosition(false)
+      else
+        m.moveFocusIndicatorToFocusPosition()
+      end if
+      m.isFocusSettingsChangePending = false
+    end function
+
+    private function preprareFocusSettings(index as mc.types.array) as void
+      if m.viewManager.isRendering
+        return
+      end if
       settings = ml.listMixin.getRowSettings(m.content, m.content.getChild(index[0]))
       m.sourceFocusRect = m.targetFocusRect
       m.targetFocusRect = m.getCellScreenRect(index[0], index[1])
@@ -321,26 +364,12 @@ namespace ml
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
-
-        if focusSettings.animStyle = "fixed"
-          m.targetFocusRect.translation[0] = settings.contentOffset[0]
-        end if
-
-        m.targetFocusRect.indicatorTranslation = [m.targetFocusRect.translation[0] + focusSettings.feedbackOffsets[0], m.targetFocusRect.translation[1] + focusSettings.feedbackOffsets[1]]
-        m.targetFocusRect.indicatorSize = [m.targetFocusRect.size[0] + focusSettings.feedbackOffsets[2] - focusSettings.feedbackOffsets[0], m.targetFocusRect.size[1] + focusSettings.feedbackOffsets[3] - focusSettings.feedbackOffsets[1]]
-
-        m.focusIndicator.blendColor = focusSettings.feedbackColor
-        m.focusIndicator.uri = focusSettings.feedbackUri
-
-        'note - we don't show again until we are in position
-        if isInPosition
-          m.focusIndicator.visible = not m.isIndicatorHidden
-          m.moveFocusIndicatorToFocusPosition(false)
-        else
-          m.moveFocusIndicatorToFocusPosition()
-        end if
       end if
 
+      if focusSettings.animStyle = "fixed"
+        m.targetFocusRect.translation[0] = settings.contentOffset[0]
+      end if
+      m.isFocusSettingsChangePending = true
     end function
 
     private function moveFocusIndicatorToFocusPosition(animated = true as boolean) as void
@@ -366,6 +395,10 @@ namespace ml
 
       pointTranslation = m.interpolate(m.sourceFocusRect.translation, m.targetFocusRect.translation, fraction)
       m.focusPoint.translation = pointTranslation
+      'this is old code for interpolating the focus indicator.. not using it right now - looks better with instant changing
+      'perhaps leave it as a setting in future?
+
+
       ' translation = m.interpolate(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation, fraction)
       ' size = m.interpolate(m.sourceFocusRect.indicatorSize, m.targetFocusRect.indicatorSize, fraction)
       ' m.focusIndicator.translation = translation
@@ -373,17 +406,6 @@ namespace ml
       ' m.focusIndicator.width = size[0]
       ' m.focusIndicator.height = size[1]
       ' ? "onFocusedRowPercentChange " ; fraction ; " " ; translation[1]; " " ; m.targetFocusRect.translation[1]
-    end function
-
-    private function getTranslationCorrectedForScreenEdge(translation as mc.types.array, itemTranslation as mc.types.array) as mc.types.array
-      if m.itemScroller.direction = 1
-        ' ? "MOVING DOWN T: "; translation ; " IT: "; itemTranslation
-      else if m.itemScroller.direction = -1
-        ' ? "MOVING UP T: "; translation ; " IT: "; itemTranslation
-        ' if itemTran
-      end if
-
-      return translation
     end function
 
     private function interpolate(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
