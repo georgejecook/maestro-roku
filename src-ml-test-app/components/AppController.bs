@@ -50,9 +50,19 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function onInfoChange()
-  m.infoLabel.text = ` Cell Pressure - mList: ${m.componentPool.numberOfComponentsInUse} / ${m.componentPool.numberOfComponents} - sg ${m.cellTracker.numberOfCellsInUse} / ${m.cellTracker.numberOfCells}`
+  ' m.infoLabel.text = ` Cell Pressure - mList: ${m.componentPool.numberOfComponentsInUse} / ${m.componentPool.numberOfComponents} - sg ${m.cellTracker.numberOfCellsInUse} / ${m.cellTracker.numberOfCells}`
   focusedIndex = mioc.getInstance("focusedIndex")
-  m.infoLabel.text += ` FOCUS: ${focusedIndex.row}, ${focusedIndex.cell}`
+  index = mioc.getInstance("_index")
+  nextIndex = mioc.getInstance("_nextIndex")
+  listContainer = mioc.getInstance("listContainer")
+  if listContainer <> invalid
+    m.infoLabel.text = ` pos ${listContainer.translation[0]} `
+  else
+    m.infoLabel.text = ""
+  end if
+
+  m.infoLabel.text += ` FOCUSED INDEX: ${focusedIndex.cell} INDEX: ${index} NEXT ${nextIndex}`
+  ' m.infoLabel.text += ` FOCUS: ${focusedIndex.row}, ${focusedIndex.cell}`
 end function
 
 

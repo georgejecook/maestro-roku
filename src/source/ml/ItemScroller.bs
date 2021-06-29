@@ -110,6 +110,7 @@ namespace ml
       else
         index = m.viewManager.numberOfItems - 1
       end if
+      ' ? "+++MVE TO END"
       m.moveToIndex(index, screenPos, animated, fast)
       return true
     end function
@@ -129,6 +130,7 @@ namespace ml
     end function
 
     function move(offset as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+      ' ? "+++MOVE"
       index = m.index + offset
 
       if offset > 0
@@ -192,6 +194,7 @@ namespace ml
 
     function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, screenPos, animated)
+      ' ? "+++moveToIndex I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
 
       if direction = invalid
         direction = 0
@@ -219,6 +222,7 @@ namespace ml
         ' end if
       end if
 
+      ? "++ MTI screenPos index" ; index ; screenPos
       targetTranslation = m.viewManager.getTargetTranslation(index, direction, screenPos)
 
       if targetTranslation = invalid
@@ -249,6 +253,7 @@ namespace ml
         end if
 
         m.toggleScrolling(true)
+        ' ? ":0000"
         m.setFocusIndex(m.index, true, screenPos)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
         ' ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
@@ -258,6 +263,7 @@ namespace ml
         m.container.translation = targetTranslation
         'TODO -check if jump is bigger than a certain amount
         ' m.viewManager.updateRenderedComponents(m.direction, m.index)
+        ' ? ":1111"
         m.setFocusIndex(index, false)
       end if
 
@@ -294,30 +300,87 @@ namespace ml
     end function
 
     function finishAnimating() as void
-      if m.direction = -1
-        ' ? "FINISH BACK"
-        position = m.container.translation[m.axes] - m.activeOffset
-        index = m.viewManager.getIndexAtPosition(position - 1, m.direction)
-        if index > m.nextIndex
-          index = m.nextIndex
-        end if
-        if m.focusManager.didStart and m.focusManager.nextIndex = index and index = 0
-          ' ? " >>> move to end already started"
-        else
-          'move; but force moving in the current direction
-          m.moveToIndex(index, invalid, true, false, m.direction)
-        end if
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "+++ FINISH ANIMATING"
+      ' if m.direction = -1
+      '   ? "FINISH BACK"
+      '   position = m.container.translation[m.axes] - m.activeOffset
+      '   index = m.viewManager.getIndexAtPosition(position - 1, m.direction)
+      '   if index > m.nextIndex
+      '     index = m.nextIndex
+      '   end if
+      '   if m.focusManager.didStart and m.focusManager.nextIndex = index and index = 0
+      '     ' ? " >>> move to end already started"
+      '   else
+      '     'move; but force moving in the current direction
+      '      ? "moving to end"
+      '     m.moveToIndex(index, invalid, true, false, m.direction)
+      '   end if
 
-        ' ? "FINISH INDEX" ; index ; " POS "; position ; " I " ; m.index; " NI "; m.nextIndex
-        return
-      end if
-      nextIndex = m.nextIndex
-      if (nextIndex > -1 and nextIndex < m.viewManager.numberOfItems) and m.index <> nextIndex
-        m.moveToIndex(nextIndex, invalid, true)
-      else
-        ' ? "+>>3Already in place "; m.index ; " ni "; nextIndex ; " " ; m.viewManager.numberOfItems
-      end if
+      '   ? "FINISH INDEX" ; index ; " POS "; position ; " I " ; m.index; " NI "; m.nextIndex
+      '   return
+      ' end if
+      m.finishMovingToIndex()
+      ' if m.direction = -1
+      '   ? "FINISH BACK" ; m.index ; " NI "; m.nextIndex
+      '   m.moveToIndex(m.index, invalid, true)
+      ' else
+      '   nextIndex = m.nextIndex
+      '   if (nextIndex > -1 and nextIndex < m.viewManager.numberOfItems) and m.index <> nextIndex
+      '     m.moveToIndex(nextIndex, invalid, true)
+      '   else
+      '     ' ? "+>>3Already in place "; m.index ; " ni "; nextIndex ; " " ; m.viewManager.numberOfItems
+      '   end if
+      ' end if
     end function
+
+    function finishMovingToIndex(screenPos = invalid as integer) as boolean
+      index = m.nextIndex
+      itemRect = m.viewManager.rects[index]
+      if screenPos = invalid and itemRect <> invalid
+        screenPos = itemRect.screenPos
+        ' screenPos = m.screenPos
+      end if
+
+      if m.isFloatingFocus
+        m.log.error("floating focus is not supported yet")
+        'not yet supported
+        ' nextFlowPosition = m.viewManager.getNextFlowScreenPosition()
+        ' if nextFlowPosition <> invalid
+        '   m.moveFocusToIndex(index, nextFlowPosition, animated)
+        ' end if
+      end if
+
+      targetTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
+
+      if targetTranslation = invalid
+        m.log.error("cannot move! translation invalid for index", index)
+        return false
+      end if
+
+      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
+      m.targetIndex = index
+
+      'TODO - take into account floating focus
+      isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
+      'can only be animated
+      m.animSpeed = m.settings.animSpeed
+      if not isMoveRequired
+        m.log.info("already in place - no need to scroll ", index, " >", m.nextIndex)
+        m.setFocusUsingFlowAnim(index, m.nextIndex, m.direction)
+        return true
+      end if
+
+      'we are already scrolling
+      m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
+      m.moveAnimation.start()
+      return true
+    end function
+
 
     function setNextIndex(index as integer, screenPos = invalid as integer) as void
       if index >= m.viewManager.numberOfItems
@@ -330,12 +393,13 @@ namespace ml
         index = 0
       end if
       m.nextIndex = index
+      mioc.setInstance("_nextIndex", m.nextIndex)
 
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, screenPos)
-      ' ? ">>>SCREEN POS" ; index ; " " ; screenPos
+      ' ? "+++ SET NEXT ACTIVE OFFSET " ; index ; " " ; screenPos
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
@@ -369,7 +433,7 @@ namespace ml
 
       position = m.container.translation[m.axes] - m.activeOffset
       index = m.viewManager.getIndexAtPosition(position, m.direction)
-      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index
+      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
 
       if fraction = 1
         m.focusManager.onFocusAnimationUpdate(1)
@@ -391,7 +455,7 @@ namespace ml
         end if
         if index <> m.index and index <> m.targetIndex
           m.focusManager.onFocusAnimationUpdate(1)
-          ' ? "INDEX CHANGED " ; m.index ; " > " ; index ;  " POS "; position
+          ' ? "INDEX CHANGED " ; m.index ; " > " ; index ; " POS "; position
           m.setFocusIndex(index, true)
         end if
       else
@@ -413,6 +477,7 @@ namespace ml
     function setFocusIndex(index as integer, isMoving as boolean, screenPos = invalid as integer, notifyFocusManager = true as boolean) as void
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
+      ' ? "~~~SFI "; index ; " moving "; isMoving ; " sp "; screenPos ; " d "; m.direction
       if index = -1
         m.index = 0
         m.activeOffset = m.nextActiveOffset
@@ -426,7 +491,8 @@ namespace ml
         m.activeOffset = m.nextActiveOffset
         m.setNextIndex(m.index + m.direction)
       end if
-
+      mioc.setInstance("_index", m.index)
+      mioc.setInstance("_nextIndex", m.nextIndex)
 
       'TODO -note - we need to know what screenPos WAS in a floating scenario!!
       m.indexPosition = m.viewManager.getTargetTranslation(m.index, m.direction, screenPos)[m.axes]

@@ -45,11 +45,13 @@ namespace ml
 
     end function
 
-    function setFocusPosition(index as integer, indexPosition as integer, nextIndex as integer, nextPosition as integer, direction as integer)
+    function setFocusPosition(index as integer, indexPosition as integer, nextIndex as integer, nextPosition as integer, direction as integer) as void
       m.log.info(index, indexPosition, nextIndex, nextPosition, direction)
       ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-      ' ? "SFP I: "; index ; " NI "; nextIndex
-
+      ' ? "SFP I: "; index ; " NI "; nextIndex ; " D "; direction
+      if m.index = index and m.nextIndex = nextIndex and m.direction = direction
+        return
+      end if
       m.index = index
       m.indexPosition = indexPosition
       m.nextIndex = nextIndex
@@ -71,6 +73,7 @@ namespace ml
     end function
 
     function onContainerPositionChange(offset as integer)
+      ' ? "OCPC " ; offset
       distance = abs(m.nextPosition - m.indexPosition)
       currentPos = abs(m.indexPosition - offset)
       if distance <> 0
@@ -86,11 +89,14 @@ namespace ml
       ' ? " IP " ; m.indexPosition ;" > NIP "; m.nextPosition
       ' ? "offset:" ; offset ; " CP: " ; currentPos ; " P " ; m.indexPosition ;" > "; m.nextPosition ; " D:" ; distance ; " C:" ; " F: ";fraction
 
-      m.onFocusUpdate(fraction)
+      m.onFocusUpdate(mc.clamp(fraction, 0, 1))
     end function
 
     function onFocusUpdate(fraction as float) as void
-      ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+      if fraction = 1 or fraction = 0
+        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+        ' ? " OFU I "; m.index ; " NI "; m.nextIndex
+      end if
       if not m.isNotifying
         ' ? "NOT NOTIFYING"
         return
