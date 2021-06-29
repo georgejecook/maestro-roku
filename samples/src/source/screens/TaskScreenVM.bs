@@ -1,0 +1,48 @@
+import "pkg:/source/roku_modules/maestro/mx/BaseViewModel.brs"
+import "pkg:/source/roku_modules/maestro/mx/VMTransformFunctions.brs"
+'
+namespace screens
+  class TaskScreenVM extends mx.BaseViewModel
+
+    public focusedIndex = -1
+    public items        = createObject("roSGNode", "ContentNode")
+    public hasItems     = false
+    public loadDataTask
+
+    public override function initialize()
+      super.initialize()
+      m.loadData()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function loadData()
+      m.loadDataTask = m.createTask("ContentTask", {
+        args: {
+          command: "task"
+        }
+      }, m.onLoadData)
+    end function
+
+    protected function onLoadData(result as mc.types.assocarray)
+      m.log.info("got result", result)
+      contentNode = CreateObject("roSGNode", "ContentNode")
+      if result.isOK
+        'content.appendChildren([result.data])
+        contentNode.Update({
+          children: result.data
+        }, true)
+        ' populate content field with root content node.
+        ' Observer(see OnMainContentLoaded in MainScene.brs) is invoked at that moment
+        m.hasItems = true
+      end if
+      'm.log.debug("contentNode", contentNode )
+      m.items.appendChildren( contentNode )
+    end function
+
+
+  end class
+
+endnamespace

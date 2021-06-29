@@ -1,0 +1,29 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/roku_modules/maestro/core/Utils.brs"
+import "pkg:/source/roku_modules/maestro/core/Request.brs"
+import "pkg:/source/roku_modules/maestro/core/MIOC.brs"
+
+@task("ContentTask", "Task")
+@strict
+class ContentTask
+  private log = new log.Logger("ContentTask")
+
+  @inject("styleManager")
+  private styleManager
+
+  ' @injectClass("mc.net.Request")
+  private request = new mc.net.Request()
+
+  private config = mc.getPath(m.styleManager@.getStyle("app"), "server", {})
+
+  private function execute(args as mc.types.assocarray)
+    command = lcase(mc.getPath(args, "command", ""))
+    result = { isOK: false }
+    ' need to integrate the api stuff
+    result = m.request.get(`${mc.config.endpoint}/movies.json`)
+    'result = m.parseHomeResult(result)
+    '
+    return result
+  end function
+
+endclass
