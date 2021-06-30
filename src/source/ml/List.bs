@@ -203,25 +203,27 @@ namespace ml
     end function
 
     private function onAnimateToRowIndexChange(index as integer)
-      if m.content <> invalid
+      if m.content <> invalid and index <> -1
         m.itemScroller.moveToIndex(index)
       end if
     end function
 
     private function onJumpToRowIndexChange(index as integer)
-      if index <> -1
-        m.moveToItem([index, 0], false)
+      if m.content <> invalid and index <> -1
+        m.moveToRow(index, false)
       end if
     end function
 
     private function onJumpToRowItemIndexChange(index as integer)
-      if m.content <> invalid
-        m.itemScroller.moveToIndex(index, invalid, false)
+        if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
+        m.moveToItem([m.focusedRowIndex, index], false)
       end if
     end function
 
     private function onAnimateToItemIndexChange(index as integer)
-      m.moveToRowItem(index, true)
+      if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
+        m.moveToItem([m.focusedRowIndex, index], true)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -290,13 +292,10 @@ namespace ml
 
     public function moveToItem(indices as mc.types.array, animated as boolean)
       if m.content <> invalid
-        if m.focusedRowIndex <> indices[0]
-          m.itemScroller.moveToIndex(indices[0], invalid, animated)
-        else
-          m.focusedRowIndex = indices[0]
-        end if
+        m.itemScroller.moveToIndex(indices[0], invalid, animated)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
+          'if animated we will need to set the focus first, I guess?
           row@.jumpToItem(indices[1], animated)
           m.focusedCellIndex = indices[1]
         end if
@@ -308,13 +307,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ' ? "ON NEXT CHANGE" ; index
+      ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings(index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
+      ? "ON ROW INDEX CHANGE" ; index
       row = m.getRowRenderer(index)
-      ' ? "ON ROW INDEX CHANGE" ; index
       m.preprareFocusSettings([index, row.focusedCellIndex])
       m.applyFocusSettings(true)
     end function

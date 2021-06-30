@@ -94,11 +94,11 @@ namespace ml
 
     function onFocusUpdate(fraction as float) as void
       if fraction = 1 or fraction = 0
-        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
-        ' ? " OFU I "; m.index ; " NI "; m.nextIndex
+        ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+        ? " OFU I "; m.index ; " NI "; m.nextIndex
       end if
       if not m.isNotifying
-        ' ? "NOT NOTIFYING"
+        ? "NOT NOTIFYING"
         return
       end if
       if not m.didStart
@@ -109,9 +109,10 @@ namespace ml
       else if fraction = 0
         return
       else if fraction = 1
-        if m.didFinish
+        if m.didFinish or not m.didStart
           return
         end if
+        ' ? " DID FINISH "; m.index
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
@@ -178,6 +179,7 @@ namespace ml
         m.viewManager.owner.focusedCellIndex = m.nextIndex
         m.viewManager.row.focusedCellIndex = m.nextIndex
       else
+        ? ">>>>>>>>>>>>>>> setOwnerIndexes" ; m.nextIndex
         m.viewManager.owner.focusedRowIndex = m.nextIndex
         comp = m.viewManager.getRenderer(m.nextIndex)
         if comp <> invalid
