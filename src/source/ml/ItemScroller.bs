@@ -2,6 +2,8 @@ import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/ListMixin.bs"
 
+#const use_debug_hacks = false
+
 namespace ml
 
   class ItemScroller extends mc.BaseClass
@@ -22,6 +24,7 @@ namespace ml
     public nextIndex = 0
     public nextPosition = 0
     public targetIndex = 0
+    public scrollStartIndex = 0
     public container as mc.types.node
     public direction = 0
     public axes = 0 'x = 0, y =1
@@ -39,6 +42,9 @@ namespace ml
 
     'flow focus state
     private flowFocusIndex = -1
+
+    'used for debugging
+    protected isList = false
 
     function new(viewManager as ml.ItemViewManager, axes as mc.types.array)
       super("ItemScroller")
@@ -70,19 +76,30 @@ namespace ml
     end function
 
     public function reset(keepOldFocusIfPossible = false as boolean)
-      previousIndex = m.index
-      previousScreenPos = m.screenPos
+      if keepOldFocusIfPossible
+        index = m.index
+        previousScreenPos = m.screenPos
+      else
+        index = 0
+        previousScreenPos = 0
+      end if
 
       m.onViewManagerUpdate()
       if keepOldFocusIfPossible
-        m.setFocusIndex(previousIndex, false, previousScreenPos, true)
-        m.moveToIndex(previousIndex, previousScreenPos, false, false, 0)
+        m.setFocusIndex(index, false, previousScreenPos, true)
+        m.moveToIndex(index, previousScreenPos, false, false, 0)
         m.focusManager.onFocusAnimationUpdate(1)
       else
         m.setFocusIndex(0, false, previousScreenPos, true)
         m.moveToIndex(0, invalid, false, false, 0)
         m.focusManager.onFocusAnimationUpdate(1)
       end if
+      if index = invalid or index = -1
+        index = 0
+      end if
+      'TODO need to actually set the focus properly
+      m.forceFocusOnIndex(index, previousScreenPos)
+
     end function
 
     public function cancelScrolling()
@@ -110,6 +127,7 @@ namespace ml
       else
         index = m.viewManager.numberOfItems - 1
       end if
+      ' ? "+++MVE TO END"
       m.moveToIndex(index, screenPos, animated, fast)
       return true
     end function
@@ -129,6 +147,7 @@ namespace ml
     end function
 
     function move(offset as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+      ' ? "+++MOVE"
       index = m.index + offset
 
       if offset > 0
@@ -192,6 +211,7 @@ namespace ml
 
     function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, screenPos, animated)
+      ' ? "+++moveToIndex I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
 
       if direction = invalid
         direction = 0
@@ -208,8 +228,6 @@ namespace ml
         ' screenPos = m.screenPos
       end if
 
-
-
       if m.isFloatingFocus
         m.log.error("floating focus is not supported yet")
         'not yet supported
@@ -219,6 +237,7 @@ namespace ml
         ' end if
       end if
 
+      ' ? "++ MTI screenPos index" ; index ; screenPos
       targetTranslation = m.viewManager.getTargetTranslation(index, direction, screenPos)
 
       if targetTranslation = invalid
@@ -229,6 +248,7 @@ namespace ml
       m.direction = direction
       m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
       m.targetIndex = index
+      m.scrollStartIndex = m.index
 
       m.setNextIndex(m.index + m.direction)
 
@@ -249,6 +269,7 @@ namespace ml
         end if
 
         m.toggleScrolling(true)
+        ' ? ":0000"
         m.setFocusIndex(m.index, true, screenPos)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
         ' ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
@@ -258,7 +279,13 @@ namespace ml
         m.container.translation = targetTranslation
         'TODO -check if jump is bigger than a certain amount
         ' m.viewManager.updateRenderedComponents(m.direction, m.index)
-        m.setFocusIndex(index, false)
+        if m.isList
+          ? ":1111 "; index
+        end if
+        ' m.setNextIndex(index)
+        m.viewManager.updateRenderedComponents(m.direction, index)
+        ' m.setFocusIndex(index, false)
+        m.forceFocusOnIndex(index, screenPos)
       end if
 
       return true
@@ -294,30 +321,60 @@ namespace ml
     end function
 
     function finishAnimating() as void
-      if m.direction = -1
-        ' ? "FINISH BACK"
-        position = m.container.translation[m.axes] - m.activeOffset
-        index = m.viewManager.getIndexAtPosition(position - 1, m.direction)
-        if index > m.nextIndex
-          index = m.nextIndex
-        end if
-        if m.focusManager.didStart and m.focusManager.nextIndex = index and index = 0
-          ' ? " >>> move to end already started"
-        else
-          'move; but force moving in the current direction
-          m.moveToIndex(index, invalid, true, false, m.direction)
-        end if
-
-        ' ? "FINISH INDEX" ; index ; " POS "; position ; " I " ; m.index; " NI "; m.nextIndex
-        return
-      end if
-      nextIndex = m.nextIndex
-      if (nextIndex > -1 and nextIndex < m.viewManager.numberOfItems) and m.index <> nextIndex
-        m.moveToIndex(nextIndex, invalid, true)
-      else
-        ' ? "+>>3Already in place "; m.index ; " ni "; nextIndex ; " " ; m.viewManager.numberOfItems
-      end if
+      m.finishMovingToIndex()
     end function
+
+    function finishMovingToIndex(screenPos = invalid as integer) as boolean
+      index = m.nextIndex
+      itemRect = m.viewManager.rects[index]
+      if itemRect = invalid
+        return false
+      end if
+
+      if screenPos = invalid and itemRect <> invalid
+        screenPos = itemRect.screenPos
+        ' screenPos = m.screenPos
+      end if
+
+      if m.isFloatingFocus
+        m.log.error("floating focus is not supported yet")
+        'not yet supported
+        ' nextFlowPosition = m.viewManager.getNextFlowScreenPosition()
+        ' if nextFlowPosition <> invalid
+        '   m.moveFocusToIndex(index, nextFlowPosition, animated)
+        ' end if
+      end if
+
+      targetTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
+
+      if targetTranslation = invalid
+        m.log.error("cannot move! translation invalid for index", index)
+        return false
+      end if
+
+      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
+      m.targetIndex = index
+
+      'TODO - take into account floating focus
+      isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
+      'can only be animated
+      m.animSpeed = m.settings.animSpeed
+      if not isMoveRequired
+        if m.focusedIndex = index
+          m.log.info("already in place")
+          return false
+        end if
+        m.log.info("already in place - no need to scroll ", index, " >", m.nextIndex)
+        m.setFocusUsingFlowAnim(index, m.nextIndex, m.direction)
+        return true
+      end if
+
+      'we are already scrolling
+      m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
+      m.moveAnimation.start()
+      return true
+    end function
+
 
     function setNextIndex(index as integer, screenPos = invalid as integer) as void
       if index >= m.viewManager.numberOfItems
@@ -330,12 +387,14 @@ namespace ml
         index = 0
       end if
       m.nextIndex = index
-
+      #if use_debug_hacks
+        mioc.setInstance("_nextIndex", m.nextIndex)
+      #end if
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, screenPos)
-      ' ? ">>>SCREEN POS" ; index ; " " ; screenPos
+      ' ? "+++ SET NEXT ACTIVE OFFSET " ; index ; " " ; screenPos
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
@@ -367,9 +426,14 @@ namespace ml
     function onAnimationFractionChange(fraction as float)
       ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple)
 
-      position = m.container.translation[m.axes] - m.activeOffset
+      ' if m.direction = -1
+      '   position = m.container.translation[m.axes]
+      ' else
+        position = m.container.translation[m.axes] - m.activeOffset
+      ' end if
+
       index = m.viewManager.getIndexAtPosition(position, m.direction)
-      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index
+      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
 
       if fraction = 1
         m.focusManager.onFocusAnimationUpdate(1)
@@ -384,14 +448,18 @@ namespace ml
           m.targetIndex = -1
         end if
       else if m.isMovingMultiple
-        m.focusManager.onContainerPositionChange(position)
-        'hack here..
+        actualPos = m.container.translation[m.axes]
+        m.focusManager.onContainerPositionChange(actualPos)
+        ' ? "++ start "; m.scrollStartIndex ; " I " ; m.index ; " posI " ; index
+        'going backward requires us to increase the index, as we're always one off
         if m.direction = -1
           index += 1
         end if
         if index <> m.index and index <> m.targetIndex
-          m.focusManager.onFocusAnimationUpdate(1)
-          ' ? "INDEX CHANGED " ; m.index ; " > " ; index ;  " POS "; position
+          if m.scrollStartIndex <> m.index 'this stops a premature call to didFinishScrolling
+            m.focusManager.onFocusAnimationUpdate(1)
+          end if
+          ' ? "INDEX CHANGED " ; m.index ; " > " ; index ; " POS "; position
           m.setFocusIndex(index, true)
         end if
       else
@@ -413,6 +481,7 @@ namespace ml
     function setFocusIndex(index as integer, isMoving as boolean, screenPos = invalid as integer, notifyFocusManager = true as boolean) as void
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
+      ' ? "~~~SFI "; index ; " moving "; isMoving ; " sp "; screenPos ; " d "; m.direction
       if index = -1
         m.index = 0
         m.activeOffset = m.nextActiveOffset
@@ -427,6 +496,10 @@ namespace ml
         m.setNextIndex(m.index + m.direction)
       end if
 
+      #if use_debug_hacks
+        mioc.setInstance("_index", m.index)
+        mioc.setInstance("_nextIndex", m.nextIndex)
+      #end if
 
       'TODO -note - we need to know what screenPos WAS in a floating scenario!!
       m.indexPosition = m.viewManager.getTargetTranslation(m.index, m.direction, screenPos)[m.axes]
@@ -442,6 +515,34 @@ namespace ml
         m.setFocusOnRenderer(true, m.nextIndex)
       else
         m.setFocusOnRenderer(false)
+      end if
+    end function
+
+    function forceFocusOnIndex(index as integer, screenPos = invalid as integer, notifyFocusManager = true as boolean) as void
+      index = mc.clamp(index, 0, m.viewManager.numberOfItems)
+      m.index = index
+      m.activeOffset = m.nextActiveOffset
+      ' m.setNextIndex(m.index + m.direction)
+      itemRect = m.viewManager.rects[index]
+      if itemRect <> invalid
+        screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
+      end if
+      m.setNextIndex(index, screenPos)
+
+      'TODO -note - we need to know what screenPos WAS in a floating scenario!!
+      m.indexPosition = m.viewManager.getTargetTranslation(m.index, m.direction, screenPos)[m.axes]
+
+      ' m.viewManager.updateRenderedComponents(m.direction, m.index)
+
+      ' m.notifyViewportEvents(true)
+
+      if notifyFocusManager
+        m.focusManager.setFocusPosition(m.index, m.indexPosition, m.nextIndex, m.nextPosition, m.direction)
+      end if
+      m.focusManager.onFocusAnimationUpdate(1)
+      'TODO - for cells, do we want to trigger focus events?
+      if m.isList
+        m.setFocusOnRenderer(false, m.index)
       end if
     end function
 

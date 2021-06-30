@@ -69,12 +69,14 @@ class HeroCell extends ml.BaseCell
     m.setFocusState(0, true)
 
     m.poster.uri = content.HDGRIDPOSTERURL
-    m.label.text = content.title
+    ' m.label.text = content.title
+    m.label.text = `${m.top.translation[0]} : ${m.index}`
     'TODO - this should be part of initial state setting
     ' m.onScrollingChange(m.list.isScrolling, false)
   end function
 
-  private function toggleLabelVisible(visible as boolean)
+  private function toggleLabelVisible(visible as boolean) as void
+    return
     if m.isLabelVisible <> visible
       m.isLabelVisible = visible
       if visible
