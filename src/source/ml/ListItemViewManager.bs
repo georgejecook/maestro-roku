@@ -1,5 +1,6 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/ListMixin.bs"
+#const use_debug_hacks = false
 
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
@@ -149,12 +150,27 @@ namespace ml
           })
           m.visibleComponents.push(comp)
           m.visibleItems.push(comp.content)
+
+          #if use_debug_hacks
+            m.hackInfoIntoHeader(comp)
+          #end if
         else
           m.hiddenComponents.push(comp)
         end if
 
       end for
 
+    end function
+
+    private function hackInfoIntoHeader(comp as mc.types.node)
+      if comp.subType() = "ml_HorizontalRow"
+
+        header = comp.getChild(2).getChild(0)
+        if header <> invalid
+          label = header.getChild(1)
+          label.text = `I ${comp.index} POS ${comp.translation[1]} SP ${comp.content.settings.screenPos}`
+        end if
+      end if
     end function
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)

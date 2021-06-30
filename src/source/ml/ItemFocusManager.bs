@@ -1,5 +1,6 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/view/Animation.bs"
+#const use_debug_hacks = false
 
 namespace ml
   class ItemFocusManager extends mc.BaseClass
@@ -78,14 +79,18 @@ namespace ml
       currentPos = abs(m.indexPosition - offset)
       if distance <> 0
         fraction = currentPos / distance
-        ' if m.direction = -1
-        '   if fraction > 0
-        '     fraction = 1 - fraction
-        '   end if
-        ' end if
       else
         fraction = 0
       end if
+      #if use_debug_hacks
+        mioc.setInstance("_percent", fraction)
+        mioc.setInstance("_distance", distance)
+        mioc.setInstance("_currentPos", currentPos)
+        mioc.setInstance("_startPos", m.indexPosition)
+        mioc.setInstance("_offset", offset)
+        mioc.setInstance("_currentPos", offset)
+        mioc.setInstance("_targetPos", m.nextPosition)
+      #end if
       ' ? " IP " ; m.indexPosition ;" > NIP "; m.nextPosition
       ' ? "offset:" ; offset ; " CP: " ; currentPos ; " P " ; m.indexPosition ;" > "; m.nextPosition ; " D:" ; distance ; " C:" ; " F: ";fraction
 
@@ -94,8 +99,8 @@ namespace ml
 
     function onFocusUpdate(fraction as float) as void
       if fraction = 1 or fraction = 0
-        ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
-        ? " OFU I "; m.index ; " NI "; m.nextIndex
+        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+        ' ? " OFU I "; m.index ; " NI "; m.nextIndex
       end if
       if not m.isNotifying
         ? "NOT NOTIFYING"
@@ -144,11 +149,14 @@ namespace ml
         name: nextName
         index: m.nextIndex
       }
-      event.rowIndex = m.rowIndex
+      isSendingFromEvent = m.nextIndex <> m.index
+      if isSendingFromEvent
+        event.rowIndex = m.rowIndex
+      end if
       nextEvent.rowIndex = m.rowIndex
 
       'let components know, so they can react
-      if m.cell <> invalid
+      if isSendingFromEvent and m.cell <> invalid
         m.cell.listEvent = event
       end if
 
@@ -157,7 +165,9 @@ namespace ml
       end if
 
       for each delegate in m.delegates
-        delegate.listEvent = event
+        if isSendingFromEvent
+          delegate.listEvent = event
+        end if
         delegate.listEvent = nextEvent
       end for
     end function
@@ -179,7 +189,6 @@ namespace ml
         m.viewManager.owner.focusedCellIndex = m.nextIndex
         m.viewManager.row.focusedCellIndex = m.nextIndex
       else
-        ? ">>>>>>>>>>>>>>> setOwnerIndexes" ; m.nextIndex
         m.viewManager.owner.focusedRowIndex = m.nextIndex
         comp = m.viewManager.getRenderer(m.nextIndex)
         if comp <> invalid

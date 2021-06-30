@@ -5,6 +5,7 @@ import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
+#const use_debug_hacks = false
 
 namespace ml
   @node("ml_List", "mv_BaseView")
@@ -160,6 +161,10 @@ namespace ml
       m.rowsGroup = m.top.findNode("rowsGroup")
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height)
+
+      #if use_debug_hacks
+        mioc.setInstance("listContainer", m.rowsGroup)
+      #end if
       m.itemScroller = new ml.ListItemScroller(m.viewManager)
       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.rowEvents)
       m.focusManager.name = "LIST FM"
@@ -215,7 +220,7 @@ namespace ml
     end function
 
     private function onJumpToRowItemIndexChange(index as integer)
-        if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
+      if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
         m.moveToItem([m.focusedRowIndex, index], false)
       end if
     end function
@@ -307,12 +312,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ? "ON NEXT CHANGE" ; index
+      ' ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings(index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      ? "ON ROW INDEX CHANGE" ; index
+      ' ? "ON ROW INDEX CHANGE" ; index
       row = m.getRowRenderer(index)
       m.preprareFocusSettings([index, row.focusedCellIndex])
       m.applyFocusSettings(true)
