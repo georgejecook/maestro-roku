@@ -5,6 +5,7 @@ import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
+#const use_debug_hacks = false
 
 namespace ml
   @node("ml_List", "mv_BaseView")
@@ -160,6 +161,10 @@ namespace ml
       m.rowsGroup = m.top.findNode("rowsGroup")
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height)
+
+      #if use_debug_hacks
+        mioc.setInstance("listContainer", m.rowsGroup)
+      #end if
       m.itemScroller = new ml.ListItemScroller(m.viewManager)
       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.rowEvents)
       m.focusManager.name = "LIST FM"
@@ -203,25 +208,27 @@ namespace ml
     end function
 
     private function onAnimateToRowIndexChange(index as integer)
-      if m.content <> invalid
+      if m.content <> invalid and index <> -1
         m.itemScroller.moveToIndex(index)
       end if
     end function
 
     private function onJumpToRowIndexChange(index as integer)
-      if index <> -1
-        m.moveToItem([index, 0], false)
+      if m.content <> invalid and index <> -1
+        m.moveToRow(index, false)
       end if
     end function
 
     private function onJumpToRowItemIndexChange(index as integer)
-      if m.content <> invalid
-        m.itemScroller.moveToIndex(index, invalid, false)
+      if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
+        m.moveToItem([m.focusedRowIndex, index], false)
       end if
     end function
 
     private function onAnimateToItemIndexChange(index as integer)
-      m.moveToRowItem(index, true)
+      if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
+        m.moveToItem([m.focusedRowIndex, index], true)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -290,13 +297,10 @@ namespace ml
 
     public function moveToItem(indices as mc.types.array, animated as boolean)
       if m.content <> invalid
-        if m.focusedRowIndex <> indices[0]
-          m.itemScroller.moveToIndex(indices[0], invalid, animated)
-        else
-          m.focusedRowIndex = indices[0]
-        end if
+        m.itemScroller.moveToIndex(indices[0], invalid, animated)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
+          'if animated we will need to set the focus first, I guess?
           row@.jumpToItem(indices[1], animated)
           m.focusedCellIndex = indices[1]
         end if
@@ -313,8 +317,8 @@ namespace ml
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      row = m.getRowRenderer(index)
       ' ? "ON ROW INDEX CHANGE" ; index
+      row = m.getRowRenderer(index)
       m.preprareFocusSettings([index, row.focusedCellIndex])
       m.applyFocusSettings(true)
     end function

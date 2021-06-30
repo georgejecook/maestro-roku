@@ -27,6 +27,7 @@ class ListScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
+  private scrollSpeed = 1
 
   private isSmall = false
   function new()
@@ -77,7 +78,8 @@ class ListScreen extends mv.BaseScreen
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(.5, .3, "fixed", [-50, -50, 50, 50])
+    m.sdf = ""
+    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-50, -50, 50, 50])
     ' listSettings = ml.listMixin.createListSettings(3000, 2000)
     listSettings = ml.listMixin.createListSettings(-1, -1)
     ' listSettings.rowCreationStrategy = "all"
@@ -102,7 +104,7 @@ class ListScreen extends mv.BaseScreen
   private function onListRenderState(state as string)
     if state = "rendered"
       m.list@.moveToItem([0, 0], false)
-      m.list.nextFocusIndex = [0,0]
+      m.list.nextFocusIndex = [0, 0]
       m.list.visible = true
       m.loadingIndicator.isActive = false
       m.setFocus(m.list)
@@ -111,17 +113,17 @@ class ListScreen extends mv.BaseScreen
 
   private function createData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(.5, .3, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
     for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
       if i = 0
-        row0FocusSettings = ml.listMixin.createFocusSettings(.5, .3, "fixed", [-20, -20, 20, 20])
+        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
       else if i = 1 or i = 4 or i = 8
-        row1FocusSettings = ml.listMixin.createFocusSettings(.5, .3, "fixed", [30, 30, -30, -30])
+        row1FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [30, 30, -30, -30])
         ' row1FocusSettings.feedbackUri = "pkg:/images/circle.png"
         row1FocusSettings.feedbackColor = "#F4D42A"
         headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
@@ -169,6 +171,9 @@ class ListScreen extends mv.BaseScreen
         row.settings.screenPos = 200
         ' else if i <> 0
       end if
+      'HACK
+      row.settings.screenPos = 0
+      ' row.settings.peekNextPixels = 0
 
       row.appendChildren(m.makeItems(m.defaultCellType, 20))
     end for
@@ -275,6 +280,7 @@ class ListScreen extends mv.BaseScreen
 
   private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
     ' ? "+SCREEN onCellDidGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
     mioc.setInstance("focusedIndex", {
       row: rowIndex
       cell: itemIndex
