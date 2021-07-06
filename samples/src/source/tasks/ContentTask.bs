@@ -1,15 +1,14 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/roku_modules/maestro/core/Utils.brs"
 import "pkg:/source/roku_modules/maestro/core/Request.brs"
-import "pkg:/source/roku_modules/maestro/core/MIOC.brs"
-
+'
 @task("ContentTask", "Task")
 @strict
 class ContentTask
   private log = new log.Logger("ContentTask")
 
-  @inject("styleManager")
-  private styleManager
+  '@inject("styleManager")
+  'private styleManager
 
   @injectClass("mc.net.Request")
   private request = new mc.net.Request()
@@ -22,9 +21,25 @@ class ContentTask
     ' need to integrate the api stuff
     url = `https://jsonplaceholder.typicode.com/photos`
     result = m.request.get(url)
+    m.log.debug("result", result)
     'result = m.request.get(`${config.endpoint}/movies.json`)
-    'result = m.parseHomeResult(result)
+    result = m.parseResult(result)
     '
+    return result
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ PARSER Management
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  private function parseResult( result as mc.types.assocarray )
+    rootChildren = []
+    if result <> invalid
+      m.log.debug("result ",result)
+      result = { isOK: true, data: rootChildren }
+    else
+      result = { isOK: false, data: invalid }
+    endif
+
     return result
   end function
 
