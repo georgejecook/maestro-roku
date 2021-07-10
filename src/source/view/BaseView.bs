@@ -20,6 +20,7 @@ namespace mv
     protected longPressKey = ""
     protected longPressTimer
     protected longPressInterval
+    protected focusedControl = invalid
 
     private vm = invalid
 
@@ -36,13 +37,21 @@ namespace mv
     end function
 
     protected function setFocus(target as mc.types.node)
+      m.focusedControl = target
       'bs:disable-next-line
       mv.setFocus(target)
     end function
 
     protected function setFocusLocked(target as mc.types.node, message as string)
+      if target <> invalid
+        m.focusedControl = target
+      end if
       'bs:disable-next-line
       mv.setFocusLocked(target, message)
+    end function
+
+    protected function isControlFocused(control as mc.types.node)
+      return m.focusedControl <> invalid and control <> invalid and m.focusedControl.id = control.id
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -175,6 +184,9 @@ namespace mv
     protected function onGainedFocus(isSelfFocused as boolean)
       if isSelfFocused
         m.isFocused = true
+        if m.focusedControl <> invalid
+          m.setFocus(m.focusedControl)
+        end if
       end if
     end function
 
