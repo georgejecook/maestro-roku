@@ -319,8 +319,10 @@ namespace ml
     private function onFocusedRowIndexChange(index as integer)
       ' ? "ON ROW INDEX CHANGE" ; index
       row = m.getRowRenderer(index)
-      m.preprareFocusSettings([index, row.focusedCellIndex])
-      m.applyFocusSettings(true)
+      if row <> invalid
+        m.preprareFocusSettings([index, row.focusedCellIndex])
+        m.applyFocusSettings(true)
+      end if
     end function
 
     private function onFocusedCellIndexChange(index as integer)
@@ -336,6 +338,9 @@ namespace ml
 
     private function applyFocusSettings(isInPosition as boolean) as void
       focusSettings = m.activeFocusSettings
+      if m.targetFocusRect = invalid
+        return
+      end if
 
       m.targetFocusRect.indicatorTranslation = [m.targetFocusRect.translation[0] + focusSettings.feedbackOffsets[0], m.targetFocusRect.translation[1] + focusSettings.feedbackOffsets[1]]
       m.targetFocusRect.indicatorSize = [m.targetFocusRect.size[0] + focusSettings.feedbackOffsets[2] - focusSettings.feedbackOffsets[0], m.targetFocusRect.size[1] + focusSettings.feedbackOffsets[3] - focusSettings.feedbackOffsets[1]]
