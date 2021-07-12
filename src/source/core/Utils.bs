@@ -432,3 +432,25 @@ namespace mc
   end function
 
 end namespace
+
+namespace mc.private
+  function getMaestroPooledComponent(componentType as string) as object
+    componentPool = m.global.__m_componentPool
+    if componentPool = invalid
+      componentPool = createObject("roSGNode", "mc_ComponentPool")
+      componentPool.numberOfComponentsToCreateWhenDry = 5
+      componentPool@.prebakeComponents(5, "Timer")
+      m.global.addFields({ "__m_componentPool": componentPool })
+    end if
+
+    return componentPool@.getComponent(componentType)
+  end function
+
+  function releaseMaestroPoooleComponent(component as object)
+    componentPool = m.global.__m_componentPool
+    if componentPool <> invalid
+      componentPool@.releaseComponent(component)
+    end if
+
+  end function
+end namespace

@@ -18,7 +18,7 @@ namespace mx
     protected isLongPressStarted = false
     protected longPressKey = ""
     protected longPressInterval = 0
-
+    protected longPressTimer = invalid
 
     ' /**
     '  * @member new
@@ -287,16 +287,32 @@ namespace mx
 
     protected function toggleLongPressTimer(interval as float)
       if interval > 0
-        m.waitAFrame(m.onLongPressTimerFire, interval)
-      else if m.longPressKey <> invalid and m.longPressKey <> ""
-        m.log.info("finishing longPress on key ", m.longPressKey)
-        'bs:disable-next-line
-        if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
-          'bs:disable-next-line
-          onLongPressFinish(m.longPressKey)
+        if m.longPressTimer = invalid
+          m.longPressTimer = mc.private.getMaestroPooledComponent("Timer")
         end if
-        m.longPressKey = ""
-        m.isLongPressStarted = false
+        m.longPressTimer.duration = interval
+        m.longPressTimer.repeat = true
+        m.observeNodeField(m.longPressTimer, "fire", m.onLongPressTimerFire, "none")
+        m.longPressTimer.control = "start"
+
+      else
+        if m.longPressTimer <> invalid
+          m.unobserveNodeField(m.longPressTimer, "fire", m.onLongPressTimerFire)
+          m.longPressTimer.control = "stop"
+          m.longPressTimer.repeat = false
+          m.longPressTimer = invalid
+        end if
+
+        if m.longPressKey <> invalid and m.longPressKey <> ""
+          m.log.info("finishing longPress on key ", m.longPressKey)
+          'bs:disable-next-line
+          if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
+            'bs:disable-next-line
+            onLongPressFinish(m.longPressKey)
+          end if
+          m.longPressKey = ""
+          m.isLongPressStarted = false
+        end if
       end if
     end function
 
@@ -311,7 +327,8 @@ namespace mx
               m.toggleLongPressTimer(0)
             end if
           else
-            m.toggleLongPressTimer(m.longPressInterval)
+            'timer will keep ticking
+            ' m.toggleLongPressTimer(m.longPressInterval)
           end if
         end if
       else
@@ -322,7 +339,8 @@ namespace mx
         else
           m.log.info("long press is accepted : starting for key ", m.longPressKey)
           m.isLongPressStarted = true
-          m.toggleLongPressTimer(m.longPressInterval)
+          'timer will keep ticking
+          ' m.toggleLongPressTimer(m.longPressInterval)
         end if
       end if
     end function
