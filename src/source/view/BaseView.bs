@@ -1,5 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
-import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/view/NodeClass.bs"
 
@@ -19,7 +19,6 @@ namespace mv
     protected isLongPressStarted = false
     protected longPressKey = ""
     protected longPressTimer
-    protected longPressInterval
     protected focusedControl = invalid
 
     private vm = invalid
@@ -112,20 +111,33 @@ namespace mv
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function toggleLongPressTimer(interval as float)
-      m.cancelWaitTimer(m.longPressTimer)
-      m.longPressTimer = invalid
-      m.longPressInterval = interval
       if interval > 0
-        m.longPressTimer = m.waitAFrame(m.onLongPressTimerFire, interval)
-      else if m.longPressKey <> ""
-        m.log.info("finishing longPress on key ", m.longPressKey)
-        'bs:disable-next-line
-        if m.isLongPressStarted and mc.isFunction(m.onLongPressFinish)
-          'bs:disable-next-line
-          m.onLongPressFinish(m.longPressKey)
+        if m.longPressTimer = invalid
+          m.longPressTimer = mc.private.getMaestroPooledComponent("Timer")
         end if
-        m.longPressKey = ""
-        m.isLongPressStarted = false
+        m.longPressTimer.duration = interval
+        m.longPressTimer.repeat = true
+        m.observeNodeField(m.longPressTimer, "fire", m.onLongPressTimerFire, "none")
+        m.longPressTimer.control = "start"
+      else
+        if m.longPressTimer <> invalid
+          m.unobserveNodeField(m.longPressTimer, "fire", m.onLongPressTimerFire)
+          m.longPressTimer.control = "stop"
+          m.longPressTimer.repeat = false
+          mc.private.releaseMaestroPoooleComponent(m.longPressTimer)
+          m.longPressTimer = invalid
+        end if
+
+        if m.longPressKey <> ""
+          m.log.info("finishing longPress on key ", m.longPressKey)
+          'bs:disable-next-line
+          if m.isLongPressStarted and mc.isFunction(m.onLongPressFinish)
+            'bs:disable-next-line
+            m.onLongPressFinish(m.longPressKey)
+          end if
+          m.longPressKey = ""
+          m.isLongPressStarted = false
+        end if
       end if
     end function
 
@@ -140,7 +152,8 @@ namespace mv
               m.toggleLongPressTimer(0)
             end if
           else
-            m.toggleLongPressTimer(m.longPressInterval)
+            'will keep ticking
+            ' m.toggleLongPressTimer(m.longPressInterval)
           end if
         end if
       else
@@ -155,7 +168,8 @@ namespace mv
         else
           m.log.info("long press is accepted : starting for key ", m.longPressKey)
           m.isLongPressStarted = true
-          m.toggleLongPressTimer(m.longPressInterval)
+          'will keep ticking
+          ' m.toggleLongPressTimer(m.longPressInterval)
         end if
       end if
     end function
