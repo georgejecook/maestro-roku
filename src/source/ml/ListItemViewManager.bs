@@ -5,6 +5,28 @@ import "pkg:/source/ml/ListMixin.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
+    private componentPool as mc.types.node
+    private batchTimer as mc.types.node
+    private isBatchCreationInProgress = false
+
+    public override function reset()
+      m.log.info ("resetting list view manager")
+
+      if m.isBatchCreationInProgress
+        m.cancelBatching()
+      end if
+
+      if m.components.count() > 0
+        m.log.info("releasing", m.components.count(), "list children")
+        for each component in m.components
+          component.content = invalid
+        end for
+        m.componentPool@.releaseComponents(m.components)
+      end if
+
+      super.reset()
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ async row creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -15,15 +37,21 @@ namespace ml
     private batchSize = 3
     private batchDelay = 3
 
-    function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer)
+    function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
       super("ListItemViewManager", list, container, 1, minPos, maxPos)
       m.delegate = list.rowEvents
+      m.componentPool = componentPool
       m.lookAheadDistance = maxPos * 5
       m.lookBehindDistance = maxPos * 2
     end function
 
     override function getRenderer(index as integer)
       return m.components[index]
+    end function
+
+    private function cancelBatching()
+      m.isBatchCreationInProgress = false
+      m.cancelWaitTimer(m.batchTimer)
     end function
 
     override function createRenderers(content as mc.types.node) as boolean
@@ -43,7 +71,7 @@ namespace ml
         m.createRendererBatch()
         return isReady
       end if
-      m.waitAFrame(m.createRendererBatch, 0.15)
+      m.batchTimer = m.waitAFrame(m.createRendererBatch, 0.15)
       return false
     end function
 
@@ -99,17 +127,32 @@ namespace ml
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'TODO - measure height to ascertain how many
       isRendered = index < 4
-      return m.createSGNode(compName, m.container, str(index).trim(), {
+      row = m.componentPool@.getComponent(compName, 1)
+      row.id = index.toStr()
+      state = {
         renderState: isRendered ? "rendered" : m.componentBufferMode
         isRendered: isRendered
-        content: rowContent
         owner: m.owner
         index: index
         width: m.owner.width
         height: height
         'TODO - measure the heights.
         isInViewport: isRendered
-      })
+      }
+      m.container.appendChild(row)
+      row.setFields(state)
+
+      if row.isInitialized
+        ? "RECYCLE EXISTING ROW"
+        row@.recycle(rowContent)
+        row.content = rowContent
+      else
+        ? "CREATE NEW ROW "
+        row.content = rowContent
+        row@._initialize(invalid)
+      end if
+
+      return row
     end function
 
     override function updateLayout()

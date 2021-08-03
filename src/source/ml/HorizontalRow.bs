@@ -78,16 +78,28 @@ namespace ml
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    protected override function onRecycle(newContent as mc.types.node)
+      m.cleanHeader()
+      m.viewManager.setContent(invalid)
+      m.itemScroller.reset()
+    end function
+
     protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       m.configureHeader()
-      if content <> invalid
+
+      if content = invalid
+        m.log.info("row content is set to invalid. resetting")
+        m.viewManager.reset()
+      else
+        m.viewManager.reset()
         m.viewManager.setContent(content)
 
         m.focusManager.isNotifying = keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true
         m.itemScroller.reset(keepOldFocusIfPossible)
         m.focusManager.isNotifying = true
       end if
+      ' end if
     end function
 
     protected override function onIsRenderedChange()
@@ -149,10 +161,16 @@ namespace ml
         headerSettings = m.settings.headerSettings
         if m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
-          if headerSettings.position = "onTop"
-            m.header = m.createSGNode(headerSettings.compName, m.foregroundGroup, "header")
-          else if headerSettings.position = "underneath"
-            m.header = m.createSGNode(headerSettings.compName, m.backgroundGroup, "header")
+          m.currentHeaderType = headerSettings.compName
+          m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
+
+          if m.header <> invalid
+            m.header.id = "header"
+            if headerSettings.position = "onTop"
+              m.foregroundGroup.appendChild(m.header)
+            else if headerSettings.position = "underneath"
+              m.backgroundGroup.appendChild(m.header)
+            end if
           end if
         end if
 
@@ -166,14 +184,14 @@ namespace ml
           m.contentGroup.translation = [0, 0]
         end if
       end if
-      ? "CH" ; m.settings.screenPos
     end function
 
     private function cleanHeader()
-      if m.currentHeaderType <> invalid
-        m.currentHeaderType = invalid
+      if m.header <> invalid
+        m.componentPool@.releaseComponents(m.header)
         m.header.getParent().removeChild(m.header)
         m.header = invalid
+        m.currentHeaderType = invalid
       end if
     end function
 

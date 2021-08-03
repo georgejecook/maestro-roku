@@ -28,6 +28,7 @@ class ListScreen extends mv.BaseScreen
   private cellSettings
   private loadingIndicator
   private scrollSpeed = 1
+  private prefix = "-A- "
 
   private isSmall = false
   function new()
@@ -148,7 +149,7 @@ class ListScreen extends mv.BaseScreen
       ' row.settings.peekNextPixels = 200
       ' row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
       ' row.settings.contentOffset = [100, 30]
-      row.title = "ROW " + str(i)
+      row.title = m.prefix + "ROW " + str(i)
       content.push(row)
       if i = 1
         row.settings.screenPos = 730
@@ -215,7 +216,12 @@ class ListScreen extends mv.BaseScreen
   '++ keypresses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onKeyPressOption() as boolean
+  private function onKeyPressOptions() as boolean
+    ? " RESETTING DATA"
+
+    m.prefix = m.prefix = "-A- " ? "-B- " : "-A- "
+    m.list.content = invalid
+    m.onResetChange()
     return true
   end function
 
@@ -296,10 +302,18 @@ class ListScreen extends mv.BaseScreen
     ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
 
     row = m.list@.getRowRenderer(rowIndex)
-    mioc.setInstance("focusedIndex", {
-      row: rowIndex
-      cell: row.focusedCellIndex
-    })
+    if row <> invalid
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: row.focusedCellIndex
+      })
+    else
+      mioc.setInstance("focusedIndex", {
+        row: -1
+        cell: -1
+      })
+
+    end if
 
     ' if direction = -1
     '   row = m.list@.getRowRenderer(rowIndex)

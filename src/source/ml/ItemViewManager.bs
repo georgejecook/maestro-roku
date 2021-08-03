@@ -62,6 +62,37 @@ namespace ml
       m.screenRect = { translation: m.owner.translation, size: [m.owner.width, m.owner.height] }
     end function
 
+    public function reset()
+      m.content = invalid
+      m.components = []
+      m.rects = []
+      m.settings = invalid
+
+      'TODO - these need to get reset from our owner on recycle
+      ' m.axes = 0
+      ' m.minPos = 0
+      ' m.maxPos = 1080
+      ' m.lookAheadDistance = 1000
+      ' m.lookBehindDistance = 1000
+
+      m.direction = 0
+      m.visibleItems = []
+      m.visibleComponents = []
+      m.hiddenComponents = []
+      m.numberOfItems = 0
+
+      m.lastRenderedIndexes = { startIndex: -1, endIndex: -1 }
+      m.lastScrollIndex = 0
+      m.lastScrollDirection = 0
+      m.renderedComponents = []
+      m.isScrolling = false
+      m.scrollingStartIndex = -1
+      m.isRendering = false
+
+      m.lastScrollEvent = invalid
+      m.itemScroller.reset()
+    end function
+
     function forceUpdateLayout()
       m._updateLayout()
     end function

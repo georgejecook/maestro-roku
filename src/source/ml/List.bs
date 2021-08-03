@@ -160,7 +160,7 @@ namespace ml
       m.rowEvents = m.createEventsBroker("rows")
       m.rowsGroup = m.top.findNode("rowsGroup")
 
-      m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height)
+      m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
 
       #if use_debug_hacks
         mioc.setInstance("listContainer", m.rowsGroup)
@@ -181,10 +181,15 @@ namespace ml
 
     private function resetState()
       m.log.info("resetState")
-      if m.content <> invalid
-        m.applyListSettings(m.content.listSettings)
-        m.viewManager.setContent(m.content)
+
+      if m._content <> invalid
+        m.log.info("new content is present")
+        m.applyListSettings(m._content.listSettings)
+        m.viewManager.setContent(m._content)
         m.top.clippingrect = [0, 0, m.width, m.height]
+      else
+        m.log.info("content is being set to invalid - resetting view manager")
+        m.viewManager.reset()
       end if
     end function
 
@@ -359,12 +364,17 @@ namespace ml
     end function
 
     private function preprareFocusSettings(index as mc.types.array) as void
-      if m.viewManager.isRendering
+      if m.viewManager.isRendering or m.content = invalid
         return
       end if
       settings = ml.listMixin.getRowSettings(m.content, m.content.getChild(index[0]))
       m.sourceFocusRect = m.targetFocusRect
       m.targetFocusRect = m.getCellScreenRect(index[0], index[1])
+
+      if m.targetFocusRect = invalid
+        m.focusIndicator.visible = false
+        return
+      end if
 
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
       m.activeFocusSettings = focusSettings
