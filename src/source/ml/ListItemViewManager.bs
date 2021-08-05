@@ -37,7 +37,8 @@ namespace ml
       m.isUpdating = true
       ' if m.owner.nextFocusIndex <> invalid
       m.previousFocusedRow = m.itemScroller.focusedItem
-      ? ">>>>> WAS FOCUSED" ; m.previousFocusedRow.title
+      ? " CONTENT UPDATED"
+      ' ? ">>>>> WAS FOCUSED" ; m.previousFocusedRow.title
       m.previousFocusedIndex = m.itemScroller.index
       ' end if
       m.createRenderers(m.content)
@@ -133,14 +134,13 @@ namespace ml
     end function
 
     private function restorePreviousFocus()
-      ? "RESTORE FOCUS ";
-      ? "PREVOIUS ROW"; m.previousFocusedRow
-      ? "PREVOIUS INDEX"; m.previousFocusedIndex
+      ' ? "RESTORE FOCUS ";
+      ' ? "PREVOIUS ROW"; m.previousFocusedRow
+      ' ? "PREVOIUS INDEX"; m.previousFocusedIndex
 
       focusIndex = [0, 0]
 
       if m.previousFocusedRow <> invalid
-        ? "AAA"
         row = m.rowsByContentID[m.previousFocusedRow.id]
         if row = invalid
           index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
@@ -159,7 +159,6 @@ namespace ml
       m.itemScroller.forceFocusOnIndex(focusIndex[0])
       m.owner.nextFocusIndex = focusIndex
       m.owner.focusedRowIndex = focusIndex[0]
-      m.owner@.applyFocusSettings()
     end function
 
     override function createRendererBatch() as void
