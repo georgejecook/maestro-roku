@@ -60,7 +60,7 @@ namespace mc
       for i = 0 to number
         component = createObject("roSGNode", componentType)
         if component <> invalid
-          component.id = str(pool.numberOfComponentsInPool).trim()
+          component.id = rnd(2147483647).toStr()
           component.isPrebaked = true
           pool.numberOfComponentsInPool++
           pool.freeComponentsById[component.id] = component
@@ -77,6 +77,7 @@ namespace mc
       pool = m.getComponentPool(componentType)
 
       if pool.freeComponentsById.count() = 0
+        ' ? ">>>> RAN OUT OF " ; componentType
         m.log.warn("ran out of components getting type :", componentType)
 
         if m.isCreateMoreEnabled
@@ -121,12 +122,12 @@ namespace mc
 
     function releaseComponent(component as mc.types.node)
       if component <> invalid
-        ' ? "releasing component "; component.id
-        pool = m.getComponentPool(component.subType())
-        pool.usedComponentsById.delete(component.id)
+        ' ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid
           component.getParent().removeChild(component)
         end if
+        pool = m.getComponentPool(component.subType())
+        pool.usedComponentsById.delete(component.id)
         pool.freeComponentsById[component.id] = component
         m.numberOfComponentsInUse--
       end if
@@ -146,7 +147,7 @@ namespace mc
       pool = m.getComponentPool(componentType)
       component = createObject("roSGNode", componentType)
       if component <> invalid
-        component.id = str(pool.numberOfComponentsInPool).trim()
+        component.id = rnd(2147483647).toStr()
         pool.allComponents.push(component)
         pool.freeComponentsById[component.id] = component
       else
