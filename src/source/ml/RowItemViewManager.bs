@@ -22,7 +22,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function reset()
-      m.log.info ("resetting list view manager")
       m.log.info("releasing", m.cellsById.count(), "row children")
       for each id in m.cellsById
         m.componentPool@.releaseComponent(m.cellsById[id])
@@ -40,6 +39,9 @@ namespace ml
 
     override function updateLayout() as void
       m.log.info("ROW updateLayout")
+      m.rects = []
+      m.visibleComponents = []
+      m.visibleItems = []
 
       if m.content = invalid
         return
@@ -68,6 +70,8 @@ namespace ml
         offset += settings.size[m.axes] + settings.space
         index++
       end for
+
+      m.numberOfItems = m.visibleItems.count()
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)

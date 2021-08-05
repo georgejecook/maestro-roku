@@ -63,6 +63,7 @@ namespace ml
     end function
 
     public function reset()
+      m.log.info ("resetting base.itemViewManager", m.__classname)
       m.content = invalid
       m.components = []
       m.rects = []
@@ -110,6 +111,10 @@ namespace ml
       end if
     end function
 
+    'call this method when the content has changed in some way
+    function onContentUpdated()
+    end function
+
     function _createRenderers(content as mc.types.node) as boolean
       m.components = []
       m.visibleComponents = []
@@ -121,17 +126,11 @@ namespace ml
     protected function onRenderersCreated()
       m.isRendering = false
       m._updateLayout()
-      m.numberOfItems = m.visibleItems.count()
     end function
 
     function _updateLayout()
       m.log.info("_updateLayout")
       m.updateScreenRect()
-
-      m.visibleComponents = []
-      m.visibleItems = []
-      m.rects = []
-
       m.updateLayout()
     end function
 
@@ -417,6 +416,7 @@ namespace ml
 
     function getRect(index as integer, useScreenCoords = false as boolean)
       rect = m.rects[index]
+
       if rect <> invalid
         screenRect = {
           size: [rect.size[0], rect.size[1]]

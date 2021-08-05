@@ -206,10 +206,23 @@ namespace ml
 
     private function onContentChange()
       m.log.info("onContentChange")
-      if m.isInitialized and (m._content = invalid or not m._content.isSameNode(m.content))
-        m._content = m.content
-        m.resetState()
+      if m.isInitialized
+        if m._content <> invalid and not m._content.isSameNode(m.content)
+          m.unobserveNodeField(m._content, "version", m.onContentUpdated)
+        end if
+        if m._content = invalid or not m._content.isSameNode(m.content)
+          m._content = m.content
+          m.observeNodeField(m._content, "version", m.onContentUpdated, "none")
+          m.resetState()
+        else
+          ' m.log.info("current content has changed in some way!")
+        end if
       end if
+    end function
+
+    private function onContentUpdated()
+      m.log.info("This content has changed in some way")
+      m.viewManager.onContentUpdated()
     end function
 
     private function onAnimateToRowIndexChange(index as integer)

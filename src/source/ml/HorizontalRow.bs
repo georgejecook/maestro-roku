@@ -165,7 +165,6 @@ namespace ml
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
 
           if m.header <> invalid
-            m.header.id = "header"
             if headerSettings.position = "onTop"
               m.foregroundGroup.appendChild(m.header)
             else if headerSettings.position = "underneath"
@@ -188,8 +187,9 @@ namespace ml
 
     private function cleanHeader()
       if m.header <> invalid
-        m.componentPool@.releaseComponents(m.header)
-        m.header.getParent().removeChild(m.header)
+        m.log.info("cleaning header")
+        m.header@.setContent(invalid)
+        m.componentPool@.releaseComponent(m.header)
         m.header = invalid
         m.currentHeaderType = invalid
       end if

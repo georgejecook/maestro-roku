@@ -71,10 +71,12 @@ namespace ml
       m.log.info("onContentChange")
       if m.isInitialized
         if m._content = invalid or not m._content.isSameNode(m.content)
+          'was no content or it changed
           m._content = m.content
           m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
           m.onContentChange(m._content)
         else if m._content <> invalid
+          'is the same content
           isListRefreshNeeded = false
 
           if m.wasHidden <> m._content.isHidden
