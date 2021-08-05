@@ -21,14 +21,31 @@ namespace ml
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    public override function reset()
+      m.log.info("releasing", m.cellsById.count(), "row children")
+      for each id in m.cellsById
+        m.componentPool@.releaseComponent(m.cellsById[id])
+      end for
+      m.cellsById = {}
+      super.reset()
+    end function
+
+
     override function createRenderers(content as mc.types.node) as boolean
       'renderers are created as needed
       m.cellsById = {}
       return true
     end function
 
-    override function updateLayout()
+    override function updateLayout() as void
       m.log.info("ROW updateLayout")
+      m.rects = []
+      m.visibleComponents = []
+      m.visibleItems = []
+
+      if m.content = invalid
+        return
+      end if
 
       index = 0
       ' m.contentGroup.translation = [0, 0]
@@ -53,6 +70,8 @@ namespace ml
         offset += settings.size[m.axes] + settings.space
         index++
       end for
+
+      m.numberOfItems = m.visibleItems.count()
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)

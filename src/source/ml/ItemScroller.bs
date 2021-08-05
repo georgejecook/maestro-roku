@@ -19,6 +19,7 @@ namespace ml
     public lastRCMap = {}
     public nextRCMap = {}
     public index = 0
+    public focusedItem as mc.types.node
     public indexPosition = 0
     public focusedIndex = 0
     public nextIndex = 0
@@ -99,7 +100,6 @@ namespace ml
       end if
       'TODO need to actually set the focus properly
       m.forceFocusOnIndex(index, previousScreenPos)
-
     end function
 
     public function cancelScrolling()
@@ -279,9 +279,6 @@ namespace ml
         m.container.translation = targetTranslation
         'TODO -check if jump is bigger than a certain amount
         ' m.viewManager.updateRenderedComponents(m.direction, m.index)
-        if m.isList
-          ? ":1111 "; index
-        end if
         ' m.setNextIndex(index)
         m.viewManager.updateRenderedComponents(m.direction, index)
         ' m.setFocusIndex(index, false)
@@ -495,6 +492,8 @@ namespace ml
         m.activeOffset = m.nextActiveOffset
         m.setNextIndex(m.index + m.direction)
       end if
+
+      m.focusedItem = m.viewManager.visibleItems[index]
 
       #if use_debug_hacks
         mioc.setInstance("_index", m.index)

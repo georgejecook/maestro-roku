@@ -29,6 +29,9 @@ namespace ml
     public height = 0
     public width = 0
 
+    'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
+    public alwaysNotifyContentChange = false
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ event delegation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -68,11 +71,14 @@ namespace ml
       m.log.info("onContentChange")
       if m.isInitialized
         if m._content = invalid or not m._content.isSameNode(m.content)
+          'was no content or it changed
           m._content = m.content
           m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
           m.onContentChange(m._content)
         else if m._content <> invalid
+          'is the same content
           isListRefreshNeeded = false
+
           if m.wasHidden <> m._content.isHidden
             m.wasHidden = m._content.isHidden
             isListRefreshNeeded = true
@@ -82,9 +88,16 @@ namespace ml
             isListRefreshNeeded = true
           end if
 
+          if m.alwaysNotifyContentChange
+            m.onContentChange(m._content)
+          end if
+
           if isListRefreshNeeded
             m.owner@.forceUpdate()
           end if
+        else
+          'new content is invalid
+          m._onContentChange(invalid)
         end if
 
       end if
@@ -93,6 +106,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function recycle(newContent as mc.types.node)
+      m.onRecycle(newContent)
+    end function
 
     public function forceUpdate(keepOldFocusIfPossible = true as boolean) as void
       if m.owner = invalid or m._content = invalid
@@ -120,6 +137,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function onRecycle(newContent as mc.types.node)
+      'implement me
+    end function
 
     protected function createViews()
       'implement me

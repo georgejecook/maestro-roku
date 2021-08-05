@@ -3,20 +3,16 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mc
 
-  ' /**
-  '  * @module ComponentPool
-  '  * @description all purpose component pool that can store any kind of components for reuse
-  '  */
-  @strict
+  ' all purpose component pool that can store any kind of components for reuse
   @node("mc_ComponentPool", "Group")
   class ComponentPool
 
-    @observeField("onDebugMChange")
+    @observer("onDebugMChange")
     @alwaysnotify
     public _debugM = false
     public __m = {}
     public isCreateMoreEnabled = true
-    public numberOfComponentsToCreateWhenDry = 30
+    public numberOfComponentsToCreateWhenDry = 10
     public numberOfComponentsInUse = 0
     public numberOfComponents = 0
 
@@ -29,6 +25,7 @@ namespace mc
     end function
 
     private function onDebugMChange()
+      m.log.error("dumping m")
       m.__m = m
     end function
 
@@ -39,8 +36,8 @@ namespace mc
     function reset()
       m.log.info("reset")
       m.poolsByComponentType = {}
-      m.top.numberOfComponents = 0
-      m.top.numberOfComponentsInUse = 0
+      m.numberOfComponents = 0
+      m.numberOfComponentsInUse = 0
     end function
 
     function getComponentPool(componentType as string) as mc.types.node
@@ -63,38 +60,44 @@ namespace mc
       for i = 0 to number
         component = createObject("roSGNode", componentType)
         if component <> invalid
-          component.id = str(pool.numberOfComponentsInPool).trim()
+          component.id = rnd(2147483647).toStr()
           component.isPrebaked = true
           pool.numberOfComponentsInPool++
           pool.freeComponentsById[component.id] = component
           pool.allComponents.push(component)
-          m.top.numberOfComponents++
+          m.numberOfComponents++
         else
           m.log.error("error creating component with type", componentType)
         end if
       end for
     end function
 
-    function getComponent(componentType as string) as mc.types.node
+    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as mc.types.node
 
       pool = m.getComponentPool(componentType)
 
       if pool.freeComponentsById.count() = 0
+        ' ? ">>>> RAN OUT OF " ; componentType
         m.log.warn("ran out of components getting type :", componentType)
 
-        if m.top.isCreateMoreEnabled
-          m.log.warn("creating", m.top.numberOfComponentsToCreateWhenDry, "more", componentType, "components")
-          for i = 0 to m.top.numberOfComponentsToCreateWhenDry
+        if m.isCreateMoreEnabled
+          m.log.warn("creating", m.numberOfComponentsToCreateWhenDry, "more", componentType, "components")
+          if numToCreateIfDry = -1
+            numToCreateIfDry = m.numberOfComponentsToCreateWhenDry
+          end if
+          numberOfComponents = m.numberOfComponents
+          for i = 0 to numToCreateIfDry
             component = m.createComponent(componentType)
             if component <> invalid
               pool.freeComponentsById[component.id] = component
               pool.numberOfComponentsInPool++
               pool.allComponents.push(component)
+              numberOfComponents++
             else
               m.log.error("could not create component of type", componentType)
             end if
           end for
-          m.top.numberOfComponents += m.top.numberOfComponentsToCreateWhenDry
+          m.numberOfComponents = numberOfComponents
         else
           return invalid
         end if
@@ -109,7 +112,7 @@ namespace mc
         component = pool.freeComponentsById[id]
         pool.freeComponentsById.delete(id)
         pool.usedComponentsById[id] = component
-        m.top.numberOfComponentsInUse++
+        m.numberOfComponentsInUse++
         return component
       else
         m.log.error("could not get or create component of type ", componentType)
@@ -119,15 +122,21 @@ namespace mc
 
     function releaseComponent(component as mc.types.node)
       if component <> invalid
-        ' ? "releasing component "; component.id
-        pool = m.getComponentPool(component.subType())
-        pool.usedComponentsById.delete(component.id)
+        ' ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid
           component.getParent().removeChild(component)
         end if
+        pool = m.getComponentPool(component.subType())
+        pool.usedComponentsById.delete(component.id)
         pool.freeComponentsById[component.id] = component
-        m.top.numberOfComponentsInUse--
+        m.numberOfComponentsInUse--
       end if
+    end function
+
+    function releaseComponents(components as mc.types.array)
+      for each component in components
+        m.releaseComponent(component)
+      end for
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -138,7 +147,7 @@ namespace mc
       pool = m.getComponentPool(componentType)
       component = createObject("roSGNode", componentType)
       if component <> invalid
-        component.id = str(pool.numberOfComponentsInPool).trim()
+        component.id = rnd(2147483647).toStr()
         pool.allComponents.push(component)
         pool.freeComponentsById[component.id] = component
       else
