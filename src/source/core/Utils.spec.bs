@@ -107,5 +107,56 @@ namespace tests
       m.assertInvalid(mc.getPath(a, path))
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createSGNode")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates node and sets properties on it")
+    function _()
+      node = mc.createSGNode("ContentNode", invalid, "myId", {
+        title: "t"
+      })
+      m.assertSubType(node, "ContentNode")
+      m.assertEqual(node.id, "myId")
+      m.assertEqual(node.title, "t")
+
+    end function
+
+    @it("creates node and sets multiple sets of properties on it")
+    function _()
+      node = mc.createSGNode("ContentNode", invalid, "myId",
+      [
+        {
+          title: "t"
+        },
+        {
+          description: "d"
+        }
+      ])
+      m.assertSubType(node, "ContentNode")
+      m.assertEqual(node.id, "myId")
+      m.assertEqual(node.title, "t")
+      m.assertEqual(node.description, "d")
+
+    end function
+
+    @it("overlays multi sets of fields")
+    function _()
+      node = mc.createSGNode("ContentNode", invalid, "myId",
+      [
+        {
+          title: "t"
+          description: "d"
+        },
+        {
+          title: "t2"
+        }
+      ])
+      m.assertSubType(node, "ContentNode")
+      m.assertEqual(node.id, "myId")
+      m.assertEqual(node.title, "t2")
+      m.assertEqual(node.description, "d")
+
+    end function
   end class
 end namespace

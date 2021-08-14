@@ -337,6 +337,10 @@ namespace mc
     return -1
   end function
 
+  ' @param {string} nodeType - type of node
+  ' @param {node} parent - parent to append created node to
+  ' @param {string} id - id of new node
+  ' @param {assocarray|array of assocarray} args - if assocarray, fields that are applied to the node on creation, if array of assoarray, will iterate over the fields applying them all
   function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, isCallingInitialize = true as boolean) as mc.types.node
     if parent <> invalid
       node = parent.createChild(nodeType)
@@ -352,7 +356,13 @@ namespace mc
       node.id = id
 
       if args <> invalid
-        node.setFields(args)
+        if mc.isArray(args)
+          for each a in args
+            node.setFields(a)
+          end for
+        else
+          node.setFields(args)
+        end if
       end if
 
       if isCallingInitialize and node.isInitialized <> invalid
