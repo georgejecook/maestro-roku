@@ -27,6 +27,8 @@ namespace ml
     public visibleComponents = []
     public hiddenComponents = []
     public numberOfItems = 0
+
+    ' 0 - x, 1 - y, 2 - both
     public axes = 0
     public minPos = 0
     public maxPos = 1080
@@ -289,6 +291,8 @@ namespace ml
         return {}
       end if
 
+      ? "++++++++++++++++++++"
+      ? "m.lastRenderedIndexes" ; m.lastRenderedIndexes
       m.updateRenderStateMap(renderedStateMap, m.lastRenderedIndexes.startIndex, m.lastRenderedIndexes.endIndex, m.componentBufferMode)
       m.updateRenderStateMap(renderedStateMap, renderedIndexes.startIndex, renderedIndexes.endIndex, "rendered")
       return renderedStateMap
@@ -340,7 +344,7 @@ namespace ml
 
     end function
 
-    function getNextFlowScreenPosition(index as integer, direction as integer)
+    function getFlowScreenPosition(index as integer, direction as integer)
       itemRect = m.rects[index]
 
       if itemRect = invalid

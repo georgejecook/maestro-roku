@@ -26,6 +26,19 @@ namespace ml.listMixin
 
   function createRowSettings(cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = 0 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
     settings = createObject("roSGNode", "ml_RowSettings")
+    ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
+    return settings
+  end function
+
+  function createGridRowSettings(cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = 0 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, compName = "ml_GridRow" as string, height = -1 as integer)
+    settings = createObject("roSGNode", "ml_GridRowSettings")
+    ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
+    settings.numColumns = numColumns
+    settings.rowHeight = rowHeight
+    return settings
+  end function
+
+  function configureRowSettings(settings as mc.types.node, cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = 0 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
 
     if cellSettings = invalid
       cellSettings = ml.listMixin.createCellSettings()
@@ -49,8 +62,6 @@ namespace ml.listMixin
       headerSettings: headerSettings
       focusSettings: focusSettings
     })
-
-    return settings
   end function
 
   function createCustomRowSettings(compName as string, height as integer, screenPos = 0 as integer)
@@ -119,7 +130,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function createFocusSettings(animSpeed = 3 as float, fastAnimSpeed = 1 as float, animStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string)
+  function createFocusSettings(animSpeed = 3 as float, fastAnimSpeed = 1 as float, horizAnimStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string)
     settings = createObject("roSGNode", "ml_FocusSettings")
     if offsets = invalid
       offsets = [0, 0, 0, 0]
@@ -127,7 +138,7 @@ namespace ml.listMixin
     settings.update({
       animSpeed: animSpeed / 10.0
       fastAnimSpeed: fastAnimSpeed / 10.0
-      animStyle: animStyle
+      horizAnimStyle: horizAnimStyle
       feedbackOffsets: offsets
       feedbackStyle: feedbackStyle
     })

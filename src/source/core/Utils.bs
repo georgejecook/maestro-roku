@@ -441,6 +441,19 @@ namespace mc
     return m.top.getScene()
   end function
 
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ mis utils
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function interpolateArray(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
+    if a <> invalid and b <> invalid
+      return [a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction]
+    else
+      return [0, 0]
+    end if
+  end function
+
+
 end namespace
 
 namespace mc.private

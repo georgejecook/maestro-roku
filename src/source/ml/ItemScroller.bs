@@ -132,18 +132,18 @@ namespace ml
       return true
     end function
 
-    private function moveFromPress(direction as integer) as boolean
-      index = m.index + direction
+    function moveFromPress(offset as integer) as boolean
+      index = m.index + offset
 
-      if direction = 1 and m.index = m.viewManager.numberOfItems - 1
+      if offset > 0 and m.index = m.viewManager.numberOfItems - 1
         m.log.info("already at end")
         return false
-      else if index = -1
+      else if index < 0
         m.log.info("already at start")
         return false
       end if
 
-      return m.move(direction, invalid, true, true)
+      return m.move(offset, invalid, true, true)
     end function
 
     function move(offset as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
@@ -231,7 +231,7 @@ namespace ml
       if m.isFloatingFocus
         m.log.error("floating focus is not supported yet")
         'not yet supported
-        ' nextFlowPosition = m.viewManager.getNextFlowScreenPosition()
+        ' nextFlowPosition = m.viewManager.getFlowScreenPosition()
         ' if nextFlowPosition <> invalid
         '   m.moveFocusToIndex(index, nextFlowPosition, animated)
         ' end if
@@ -250,7 +250,8 @@ namespace ml
       m.targetIndex = index
       m.scrollStartIndex = m.index
 
-      m.setNextIndex(m.index + m.direction)
+      ' m.setNextIndex(m.index + m.direction)
+      m.setNextIndex(index)
 
       'TODO - take into account floating focus
       isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
@@ -288,14 +289,17 @@ namespace ml
       return true
     end function
 
-    private function setFocusUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
+    protected function setFocusUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
       m.toggleScrolling(true)
       m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
       m.flowFocusIndex = nextIndex
       fromItem = m.viewManager.getRenderer(index)
+      fromSubIndex = fromItem.focusedCellIndex
       toItem = m.viewManager.getRenderer(nextIndex)
-      m.viewManager.owner@.startFlowFocus(mc.getMField("top"), fromItem, toItem, 0.5)
-      ' m.viewManager.owner@.startFlowFocus(mc.getMField("top"), fromItem, toItem, m.animSpeed)
+
+      'we want to ask the row - "what is your index, coming from this direction?"
+      toSubIndex = toItem.focusedCellIndex
+      m.viewManager.owner@.startFlowFocus([index, fromSubIndex], [nextIndex, toSubIndex], m.animSpeed, mc.getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
@@ -336,7 +340,7 @@ namespace ml
       if m.isFloatingFocus
         m.log.error("floating focus is not supported yet")
         'not yet supported
-        ' nextFlowPosition = m.viewManager.getNextFlowScreenPosition()
+        ' nextFlowPosition = m.viewManager.getFlowScreenPosition()
         ' if nextFlowPosition <> invalid
         '   m.moveFocusToIndex(index, nextFlowPosition, animated)
         ' end if
@@ -426,7 +430,7 @@ namespace ml
       ' if m.direction = -1
       '   position = m.container.translation[m.axes]
       ' else
-        position = m.container.translation[m.axes] - m.activeOffset
+      position = m.container.translation[m.axes] - m.activeOffset
       ' end if
 
       index = m.viewManager.getIndexAtPosition(position, m.direction)

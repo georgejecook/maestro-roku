@@ -271,7 +271,11 @@ namespace ml
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true
-        height = m.calculateRowHeight(settings)
+        if settings.subType() = "ml_GridRowSettings"
+          height = m.calculateGridRowHeight(item, settings)
+        else
+          height = m.calculateRowHeight(settings)
+        end if
         screenPos = settings.screenPos
 
         if visible
@@ -362,5 +366,18 @@ namespace ml
       return height
     end function
 
+    private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
+      numItems = row.getChildCount()
+      numCols = settings.numColumns
+      numCols = numCols < 1 ? 1 : numCols
+      numRows = numItems / numCols
+      rowHeight = settings.rowHeight
+      height = numRows * rowHeight
+
+      if settings.headerSettings.position <> "none"
+        height += settings.headerSettings.height
+      end if
+      return height
+    end function
   end class
 end namespace

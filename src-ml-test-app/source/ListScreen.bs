@@ -91,8 +91,9 @@ class ListScreen extends mv.BaseScreen
     listSettings.rowCreationBatchSize = 10
     listSettings.rowCreationBatchDelay = 0.1
 
-      ' content = ml.listMixin.createListContent(m.createSimpleData(), m.focusSettings, m.rowSettings, listSettings)
-      content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.createSimpleData(), m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
+    content = ml.listMixin.createListContent(m.createGridData(), m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     m.list.visible = false
@@ -212,6 +213,48 @@ class ListScreen extends mv.BaseScreen
     return content
   end function
 
+  private function createGridData()
+    content = []
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    showHero = false
+
+    'TODO - add normal rows around this
+    for i = 0 to 3
+      row = createObject("roSGNode", "ml_RowContent")
+      row.id = rnd(2147483647).toStr()
+      numItems = 5
+      if showHero and i = 0
+        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+        cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
+        row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
+        row.settings.headerSettings.position = "none"
+        row.settings.contentOffset = [400, -30]
+        row.settings.screenPos = 0
+      else if i = 1
+        rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 3, 450)
+        row.settings.contentOffset = [100, 30]
+        ' row.settings.peekNextPixels = 300
+        numItems = 20
+      else
+        row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
+        row.settings.contentOffset = [100, 30]
+        ' row.settings.peekNextPixels = 300
+        row.settings.screenPos = 0
+      end if
+      row.title = m.prefix + "ROW " + str(i)
+      content.push(row)
+      row.appendChildren(m.makeItems(m.defaultCellType, 5))
+
+      end if
+      row.title = m.prefix + "ROW " + str(i)
+      content.push(row)
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+    end for
+
+    return content
+  end function
+
 
   private function addItems(cellType as string, number as integer)
     row = m.list.content.getChild(m.list.focusedRowIndex)
@@ -246,7 +289,7 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function addRow(index as integer)
-  rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
     row = createObject("roSGNode", "ml_RowContent")
     rowFocusSettings.feedbackColor = "#F4D42A"
     headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
@@ -271,26 +314,26 @@ class ListScreen extends mv.BaseScreen
   '++ keypresses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onKeyPressOptions() as boolean
-    ? " RESETTING DATA"
+  ' private function onKeyPressOptions() as boolean
+  '   ? " RESETTING DATA"
 
-    m.prefix = m.prefix = "-A- " ? "-B- " : "-A- "
-    m.list.content = invalid
-    ' m.onResetChange()
-    return true
-  end function
+  '   m.prefix = m.prefix = "-A- " ? "-B- " : "-A- "
+  '   m.list.content = invalid
+  '   ' m.onResetChange()
+  '   return true
+  ' end function
 
-  function onKeyPressRewind() as boolean
-    ? "REMOVING "
-    m.removeRow(1)
-    return true
-  end function
+  ' function onKeyPressRewind() as boolean
+  '   ? "REMOVING "
+  '   m.removeRow(1)
+  '   return true
+  ' end function
 
-  private function onKeyPressFastForward() as boolean
-    ? "ADDING"
-    m.addRow(1)
-    return true
-  end function
+  ' private function onKeyPressFastForward() as boolean
+  '   ? "ADDING"
+  '   m.addRow(1)
+  '   return true
+  ' end function
 
   private function onKeyPressBack() as boolean
     if m.top.isRoot <> true

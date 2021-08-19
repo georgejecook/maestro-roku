@@ -61,7 +61,9 @@ namespace mc
         component = createObject("roSGNode", componentType)
         if component <> invalid
           component.id = rnd(2147483647).toStr()
-          component.isPrebaked = true
+          if component.isPrebaked <> invalid
+            component.isPrebaked = true
+          end if
           pool.numberOfComponentsInPool++
           pool.freeComponentsById[component.id] = component
           pool.allComponents.push(component)

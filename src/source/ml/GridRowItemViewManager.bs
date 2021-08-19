@@ -1,15 +1,19 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 
 namespace ml
-  class RowItemViewManager extends ml.ItemViewManager
+  class GridRowItemViewManager extends ml.ItemViewManager
     public row = invalid
     public cellsById = {}
+    public numCols = 1
     public componentPool
+    public componentBufferMode = "rendered"
     public lastRowIsRendered = "none"
     public isFlowSupported = false
 
+    private rowOffsets = []
+
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
-      super("RowItemViewManager", list, container, 0, minPos, maxPos)
+      super("GridRowItemViewManager", list, container, 0, minPos, maxPos)
       m.componentPool = componentPool
       m.row = row
 
@@ -30,7 +34,6 @@ namespace ml
       super.reset()
     end function
 
-
     override function createRenderers(content as mc.types.node) as boolean
       'renderers are created as needed
       m.cellsById = {}
@@ -47,29 +50,39 @@ namespace ml
         return
       end if
 
-      index = 0
-      ' m.contentGroup.translation = [0, 0]
+      i = 0
+      xSpace = m.settings.space
+      rowHeight = m.settings.rowHeight
 
-      offset = 0
-      for each item in m.content.getChildren(-1, 0)
-        settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-        if m.axes = 0
-          translation = [offset, 0]
-        else
-          translation = [0, offset]
-        end if
-        m.rects.push({
-          translation: translation,
-          size: settings.size
-          index: index
-          rowIndex: m.row.index
-        })
-        'TODO - for now, no vis options for rows children..
-        m.visibleItems.push(item)
+      x = 0
+      y = 0
+      numItems = m.content.getChildCount()
+      children = m.content.getChildren(-1, 0)
+      m.numCols = m.settings.numColumns
+      m.numCols = m.numCols < 1 ? 1 : m.numCols
+      rowIndex = 0
+      while i < numItems -1
+        m.rowOffsets.push(y)
+        for col = 0 to m.numCols - 1
+          item = children[i]
+          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+          m.rects.push({
+            translation: [x, y],
+            size: settings.size
+            index: i
+            gridRow: rowIndex
+          })
+          'TODO - for now, no vis options for rows children..
+          m.visibleItems.push(item)
 
-        offset += settings.size[m.axes] + settings.space
-        index++
-      end for
+          x += settings.size[m.axes] + xSpace
+          i++
+        end for
+
+        x = 0
+        y += rowHeight
+        rowIndex++
+      end while
 
       m.numberOfItems = m.visibleItems.count()
     end function
@@ -115,7 +128,6 @@ namespace ml
 
               cell.initialState = {
                 row: m.row
-                rowIndex: m.row.index
                 list: m.owner
                 size: m.rects[index].size
                 content: item
@@ -197,31 +209,98 @@ namespace ml
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
-    override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = super.getScreenRect(index, screenPos, direction)
-
-      if rect <> invalid
-        rect.translation[1] += m.settings.screenPos
+    override function getFlowScreenPosition(index as integer, direction as integer, screenPos as integer)
+      itemRect = m.rects[index]
+      if itemRect <> invalid
+        screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
+        return screenPos
       end if
-
-      return rect
-    end function
-
-    override function getNextFlowScreenPosition(index as integer, direction as integer, screenPos as integer)
-      if m.isFlowSupported = true
-        itemRect = m.rects[index]
-        if itemRect <> invalid
-          screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
-        end if
-        if direction = -1
-          'TODO
-          return invalid
-        end if
-      end if
-
       return invalid
     end function
 
+    override function getComponentsInViewPort(startOffset as integer)
+      compStates = {}
+
+      ' sStart = m.screenRect.translation[m.axes] + startOffset
+      ' sEnd = sStart + m.screenRect.size[m.axes]
+
+      for each comp in m.renderedComponents
+        if comp.index <> invalid
+          cRect = m.rects[comp.index]
+          if cRect <> invalid
+            compStates[comp.id] = true
+            'TODO - minimize what is in view port
+            '   cStart = cRect.translation[m.axes]
+            '   cEnd = cStart + cRect.size[m.axes]
+            '   if (cStart >= sStart and cStart <= sEnd) or (cEnd >= sStart and cEnd <= sEnd)
+            '     compStates[comp.id] = true
+            '   else
+            '     compStates[comp.id] = false
+            '   end if
+          end if
+        else
+          ? "comp index not set!"
+        end if
+        ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
+      end for
+
+      return compStates
+    end function
+
+    override function getRenderedIndexes(direction as integer, index as integer)
+      return {
+        startIndex: 0
+        endIndex: m.content = invalid ? 0 : m.visibleItems.count() - 1
+      }
+      'TBD
+      ' indexPos = abs(m.getTargetTranslation(index, direction)[m.axes])
+
+      ' if direction < 0
+      '   beforePos = indexPos - m.lookAheadDistance
+      '   afterPos = indexPos + m.lookBehindDistance
+      ' else
+      '   afterPos = indexPos + m.lookAheadDistance
+      '   beforePos = indexPos - m.lookBehindDistance
+      ' end if
+
+      ' if beforePos < 0
+      '   beforePos = 0
+      ' end if
+
+      ' if afterPos < 0
+      '   afterPos = 0
+      ' end if
+
+      ' ' 'bs:disable-next-line
+      ' ' if m.row <> invalid
+      ' '   ? "++ROW "; m.lookAheadDistance ; "  " ; m.lookBehindDistance
+      ' ' end if
+      ' return {
+      '   startIndex: m.getIndexAtPosition(beforePos, direction)
+      '   endIndex: m.getIndexAtPosition(afterPos, direction)
+      ' }
+    end function
+
+    'the grid itself never scrolls - it will tell it's parent to scroll to the desired row
+    override function getTargetTranslation(index as integer, direction as integer, screenPos = invalid as boolean)
+      return [0, 0]
+    end function
+
+    override function getOffsetForScreenPosition(itemRect as object, screenPos as integer)
+      return 0
+    end function
+
+    override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
+      rect = super.getScreenRect(index, screenPos, direction)
+      ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ' ? " GOT ROW RECT " ; formatJson(rect)
+      ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ' if rect <> invalid
+      '   rect.translation[1] += m.settings.screenPos
+      ' end if
+
+      return rect
+    end function
 
   end class
 end namespace
