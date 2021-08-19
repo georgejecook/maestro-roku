@@ -274,34 +274,51 @@ namespace ml
     private function canScroll(key as string)
       index = m.itemScroller.index
       normalizedColumn = index mod m.viewManager.numCols
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols -1))
+      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
     private function onLongPressStart(key as string) as boolean
-      m.log.verbose(">>>>onLongPressStart", key)
+      ? "ON LONG PRESS START "; key
 
       if m.canScroll(key)
-        m.log.verbose("long press started on key", key, "going to animate to final scroll position")
+        m.log.verbose("long press started on key", key)
         if key = "left"
-          m.itemScroller.moveToEnd(-1)
-        else
-          m.itemScroller.moveToEnd(1)
+          return m.itemScroller.moveFromPress(-1)
+        else if key ="right"
+          return m.itemScroller.moveFromPress(1)
         end if
-
-        return true
       end if
 
       return false
     end function
 
     private function onLongPressFinish(key as string) as boolean
+      ? "ON LONG PRESS FINISH "; key
+
       if key = "left" or key = "right"
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
-        m.itemScroller.finishAnimating()
         return true
       end if
 
       return false
+    end function
+
+    private function onLongPressUpdate(key as string) as boolean
+      ? "ON LONG PRESS UPDATE "; key
+
+      ? "A"
+      if m.canScroll(key)
+        ? "B"
+        m.log.verbose("long press updated on key", key)
+        if key = "left"
+          ? "C"
+          m.itemScroller.moveFromPress(-1)
+        else if key = "right"
+          ? "D"
+          m.itemScroller.moveFromPress(1)
+        end if
+      end if
+      return true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

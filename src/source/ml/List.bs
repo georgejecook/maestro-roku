@@ -286,7 +286,7 @@ namespace ml
         if rect <> invalid
           rowSettings = ml.listMixin.getRowSettings(m.content, m.content.getChild(rowIndex))
           rect.translation[0] += rowSettings.contentOffset[0]
-          rect.translation[1] += rowSettings.contentOffset[1]
+          ' rect.translation[1] += rowSettings.contentOffset[1]
           rect.translation[1] += rowScreenRect.screenPos
         else
           return rowScreenRect
@@ -373,10 +373,8 @@ namespace ml
         return invalid
       end if
 
-      ? "AAAA " ; index ; " MR " ; focusSettings.isMultiRow
       if focusSettings.horizAnimStyle = "fixed"
         rowSettings = ml.listMixin.getRowSettings(m.content, m.content.getChild(index[0]))
-        ? ">>>>>> FIXED HORIZ STYLE - CLAMP LEFT"
         screenRect.translation[0] = rowSettings.contentOffset[0]
       end if
 
