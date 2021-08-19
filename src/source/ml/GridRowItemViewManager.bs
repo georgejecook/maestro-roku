@@ -61,7 +61,7 @@ namespace ml
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
-      while i < numItems -1
+      while i < numItems - 1
         m.rowOffsets.push(y)
         for col = 0 to m.numCols - 1
           item = children[i]
@@ -209,10 +209,12 @@ namespace ml
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
-    override function getFlowScreenPosition(index as integer, direction as integer, screenPos as integer)
+    override function getFlowScreenPosition(index as integer, direction as integer)
       itemRect = m.rects[index]
+
       if itemRect <> invalid
-        screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
+        'TODO screenPos to pass to this function
+        screenPos = m.getScreenPositionForItem(itemRect, direction, invalid)
         return screenPos
       end if
       return invalid

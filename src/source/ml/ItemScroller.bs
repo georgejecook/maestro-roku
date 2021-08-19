@@ -107,6 +107,7 @@ namespace ml
       if m.viewManager.isScrolling
         m.finishAnimating()
         m.toggleScrolling(false)
+        ? "AAAA"
         m.isMovingMultiple = false
       end if
     end function
@@ -209,9 +210,9 @@ namespace ml
       return matchedIndex
     end function
 
-    function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer) as boolean
+    function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, screenPos, animated)
-      ' ? "+++moveToIndex I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
+      ? "+++moveToIndex I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
 
       if direction = invalid
         direction = 0
@@ -228,21 +229,30 @@ namespace ml
         ' screenPos = m.screenPos
       end if
 
+      nextFlowPosition = invalid
+      ? "AAAA"
       if m.isFloatingFocus
-        m.log.error("floating focus is not supported yet")
-        'not yet supported
-        ' nextFlowPosition = m.viewManager.getFlowScreenPosition()
-        ' if nextFlowPosition <> invalid
-        '   m.moveFocusToIndex(index, nextFlowPosition, animated)
-        ' end if
+        ? "FLOATING!! " ; forceSequential
+        if forceSequential
+          ? "A1 " ; m.index + direction ; " " ; direction
+          nextFlowPosition = m.viewManager.getFlowScreenPosition(m.index + direction, direction)
+        else
+          ? "A2 " ; index ; " " ; direction
+          nextFlowPosition = m.viewManager.getFlowScreenPosition(index, direction)
+        end if
+        ? "NFP: "; nextFlowPosition
       end if
 
-      ' ? "++ MTI screenPos index" ; index ; screenPos
-      targetTranslation = m.viewManager.getTargetTranslation(index, direction, screenPos)
+      targetTranslation = [0, 0]
 
-      if targetTranslation = invalid
-        m.log.error("cannot move! translation invalid for index", index)
-        return false
+      if nextFlowPosition = invalid
+        ? "BBBB"
+        targetTranslation = m.viewManager.getTargetTranslation(index, direction, screenPos)
+
+        if targetTranslation = invalid
+          m.log.error("cannot move! translation invalid for index", index)
+          return false
+        end if
       end if
 
       m.direction = direction
@@ -250,13 +260,16 @@ namespace ml
       m.targetIndex = index
       m.scrollStartIndex = m.index
 
-      ' m.setNextIndex(m.index + m.direction)
-      m.setNextIndex(index)
-
-      'TODO - take into account floating focus
-      isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
+      isMoveRequired = nextFlowPosition = invalid or targetTranslation[m.axes] <> m.container.translation[m.axes]
+      ? "CCC " ; isMoveRequired
+      ? "DDD " ; nextFlowPosition
       m.log.info("moving", m.container.translation[m.axes], " > ", targetTranslation[m.axes], " pixels. animated? ", animated)
       if animated
+        if forceSequential
+          m.setNextIndex(m.index + m.direction)
+        else
+          m.setNextIndex(index)
+        end if
 
         if fast
           m.animSpeed = m.settings.fastAnimSpeed
@@ -277,7 +290,10 @@ namespace ml
         m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
         m.moveAnimation.start()
       else
-        m.container.translation = targetTranslation
+        m.setNextIndex(index)
+        if nextFlowPosition = invalid
+          m.container.translation = targetTranslation
+        end if
         'TODO -check if jump is bigger than a certain amount
         ' m.viewManager.updateRenderedComponents(m.direction, m.index)
         ' m.setNextIndex(index)
@@ -303,17 +319,20 @@ namespace ml
     end function
 
     function onFlowFocusFraction(fraction as float)
-      m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple)
+      ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
 
       if fraction = 1
         m.focusManager.onFocusAnimationUpdate(1)
-        m.toggleScrolling(false)
         m.index = m.flowFocusIndex
-        m.setFocusOnRenderer(false)
-        'FIXME - this is wrong
-        m.targetIndex = -1
-        if m.isMovingMultiple
-          m.moveToEnd(m.direction)
+        if m.isMovingMultiple and m.targetIndex <> m.index
+          m.log.info("was moving multiple, will keep moving")
+          m.setFocusOnRenderer(false)
+          m.moveToIndex(m.targetIndex, m.screenPos, true, true)
+        else
+          m.log.info("finished focusing action with this flow")
+          m.targetIndex = -1
+          m.setFocusOnRenderer(true)
+          m.toggleScrolling(false)
         end if
       else
         m.focusManager.onFocusAnimationUpdate(fraction)
@@ -416,6 +435,7 @@ namespace ml
     function toggleScrolling(active as boolean)
       m.viewManager.setIsScrolling(active, m.isMovingMultiple, m.index)
       if not active
+        ? "BBBB"
         m.isMovingMultiple = false
       end if
     end function

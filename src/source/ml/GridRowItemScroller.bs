@@ -3,8 +3,20 @@ import "pkg:/source/ml/GridRowItemViewManager.bs"
 
 namespace ml
   class GridRowItemScroller extends ml.ItemScroller
+
+    public isFloatingFocus = true
+
     function new(viewManager as ml.GridRowItemViewManager)
       super(viewManager, 0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public override function onViewManagerUpdate()
+      super.onViewManagerUpdate()
+      ' m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
     end function
 
     override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
@@ -23,6 +35,37 @@ namespace ml
       m.flowFocusIndex = nextIndex
       m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
     end function
+
+    override function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+      if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
+        m.log.info("already at end - ignoring")
+        return false
+      end if
+
+      if direction = -1
+        index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
+        m.isMovingMultiple = abs(m.index - index) > 1
+        m.moveToIndex(index, screenPos, animated, fast, -1, true)
+      else
+        index = m.ceiling(m.index + 1 / m.viewManager.numCols) * m.viewManager.numCols
+        m.isMovingMultiple = abs(m.index - index) > 1
+        m.moveToIndex(index - 1, screenPos, animated, fast, 1, true)
+      end if
+      return true
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function ceiling(x as float) as integer
+      i = int(x)
+      if i < x
+        i = i + 1
+      end if
+      return i
+    end function
+
 
   end class
 end namespace

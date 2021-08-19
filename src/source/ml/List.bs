@@ -335,12 +335,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ? "ON NEXT CHANGE" ; index
+      ' ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
+      ' ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
       row = m.getRowRenderer(index)
       if row <> invalid
         m.preprareFocusSettings([index, row.focusedCellIndex], [index, row.focusedCellIndex])
@@ -456,8 +456,8 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
-      m.log.info("starting flow focus from ", sourceIndex, "to", targetIndex)
-      ? "START FLOW" ; sourceIndex ; " " ; targetIndex
+      m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
+      ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
       '   m.flowFocusDelegate@.onFlowFocusFraction(1)
@@ -465,6 +465,10 @@ namespace ml
       ' end if
       ' m.preprareFocusSettings([targetIndex[0], targetIndex[1]])
 
+      if sourceIndex[0] = targetIndex[0] and sourceIndex[1] = targetIndex[1]
+        ? "SAME SKIP"
+        return
+      end if
 
       m.sourceFocusRect = m.getFocusRect(sourceIndex)
       m.targetFocusRect = m.getFocusRect(targetIndex)
