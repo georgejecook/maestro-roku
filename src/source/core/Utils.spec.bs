@@ -48,6 +48,34 @@ namespace tests
 
     end function
 
+    @it("gets indexed value for arrays")
+    @params("arr.0", "a")
+    @params("arr.1", "b")
+    @params("arr.2", "c")
+    function _(path, expected)
+      a = {
+        arr: ["a", "b", "c"]
+      }
+      m.assertEqual(mc.getPath(a, path), expected)
+
+    end function
+
+    @it("disables indexing")
+    @params("arr.100", "a")
+    @params("arr.200", "b")
+    @params("arr.300", "c")
+    function _(path, expected)
+      a = {
+        arr: {
+          "100": "a"
+          "200": "b"
+          "300": "c"
+        }
+      }
+      m.assertEqual(mc.getPath(a, path, invalid, false), expected)
+
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("setPath")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
