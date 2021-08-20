@@ -355,10 +355,67 @@ namespace ml
 
     end function
 
+    ' function finishAnimating() as void
+    '   m.isScrollCancelled = true
+    '   'ensure that we will stop
+    '   ' m.targetIndex = m.nextIndex
+    ' end function
+
+
     function finishAnimating() as void
-      m.isScrollCancelled = true
-      'ensure that we will stop
-      ' m.targetIndex = m.nextIndex
+      m.finishMovingToIndex()
+    end function
+
+    function finishMovingToIndex(screenPos = invalid as integer) as boolean
+      index = m.nextIndex
+      itemRect = m.viewManager.rects[index]
+      if itemRect = invalid
+        return false
+      end if
+
+      if screenPos = invalid and itemRect <> invalid
+        screenPos = itemRect.screenPos
+        ' screenPos = m.screenPos
+      end if
+
+      if m.isFloatingFocus
+        'TBD
+        m.log.error("floating focus is not supported yet")
+        'not yet supported
+        ' nextFlowPosition = m.viewManager.getFlowScreenPosition()
+        ' if nextFlowPosition <> invalid
+        '   m.moveFocusToIndex(index, nextFlowPosition, animated)
+        ' end if
+      end if
+
+      targetTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
+
+      if targetTranslation = invalid
+        m.log.error("cannot move! translation invalid for index", index)
+        return false
+      end if
+
+      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
+      m.targetIndex = index
+
+      'TODO - take into account floating focus
+      isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
+      'can only be animated
+      m.animSpeed = m.settings.animSpeed
+      if not isMoveRequired
+        if m.focusedIndex = index
+          m.log.info("already in place")
+          return false
+        end if
+        m.log.info("already in place - no need to scroll ", index, " >", m.nextIndex)
+        m.moveUsingFlowAnim(index, m.nextIndex, m.direction)
+        return true
+      end if
+
+      'we are already scrolling
+      m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
+      m.moveAnimation.start()
+      return true
     end function
 
     function setNextIndex(index as integer) as void
@@ -378,8 +435,9 @@ namespace ml
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
+      ? " NEXT INDEX " ; index ; " SP " ; m.screenPos
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, not m.isFloatingFocus, m.screenPos)
-      ' ? "+++ SET NEXT ACTIVE OFFSET " ; index ; " " ; screenPos
+      ? "+++ SET NEXT ACTIVE OFFSET " ; index ; " " ; screenPos
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
@@ -392,8 +450,8 @@ namespace ml
     end function
 
     function stopAnimating()
-      ? "+++++++++++++++++++++"
-      ? "STOP ANIMAGING"
+      ' ? "+++++++++++++++++++++"
+      ' ? "STOP ANIMAGING"
       m.moveAnimation.stop(false)
       ' m.moveAnimation.pause()
       m.toggleScrolling(false)
@@ -437,30 +495,30 @@ namespace ml
       else if m.isMovingMultiple
         actualPos = m.container.translation[m.axes]
         fraction = m.focusManager.onContainerPositionChange(actualPos)
-        ' ? " FRACTIN "; fraction
         ' ? "++ start "; m.scrollStartIndex ; " I " ; m.index ; " posI " ; index
         'going backward requires us to increase the index, as we're always one off
         if m.direction = -1
           index += 1
         end if
         if index <> m.index and index <> m.targetIndex
-          ? " CHANGE INDEX " ; index
+          ' ? " CHANGE INDEX " ; index
           if m.scrollStartIndex <> m.index 'this stops a premature call to didFinishScrolling
             m.focusManager.onFocusAnimationUpdate(1)
           end if
-          ? "INDEX CHANGED " ; m.index ; " > " ; index ; " POS "; position ; " IS CANCELLED " ; m.isScrollCancelled ; " fraction "; fraction
+          ' ? "INDEX CHANGED " ; m.index ; " > " ; index ; " POS "; position ; " IS CANCELLED " ; m.isScrollCancelled ; " fraction "; fraction
 
-          if m.isScrollCancelled
-            ? " CANCELLED " ; m.focusManager.nextPosition ; " " ; m.container.translation[m.axes]
-            m.stopAnimating()
-            nextPos = m.focusManager.nextPosition
-            m.setFocusIndex(index, false, false)
-            translation = m.container.translation
-            translation[m.axes] = nextPos
-            m.container.translation = translation
-          else
+          ' if m.isScrollCancelled
+          '   ? " CANCELLED " ; m.focusManager.nextPosition ; " " ; m.container.translation[m.axes]
+          '   m.stopAnimating()
+          '   nextPos = m.focusManager.nextPosition
+          '   m.setFocusIndex(index, false, false)
+          '   translation = m.container.translation
+          '   translation[m.axes] = nextPos
+          '   'TODO animate to finish
+          '   m.container.translation = translation
+          ' else
             m.setFocusIndex(index, true)
-          end if
+          ' end if
         end if
       else
         m.focusManager.onFocusAnimationUpdate(fraction)

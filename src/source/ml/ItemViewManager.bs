@@ -291,8 +291,8 @@ namespace ml
         return {}
       end if
 
-      ? "++++++++++++++++++++"
-      ? "m.lastRenderedIndexes" ; m.lastRenderedIndexes
+      ' ? "++++++++++++++++++++"
+      ' ? "m.lastRenderedIndexes" ; m.lastRenderedIndexes
       m.updateRenderStateMap(renderedStateMap, m.lastRenderedIndexes.startIndex, m.lastRenderedIndexes.endIndex, m.componentBufferMode)
       m.updateRenderStateMap(renderedStateMap, renderedIndexes.startIndex, renderedIndexes.endIndex, "rendered")
       return renderedStateMap
@@ -366,11 +366,12 @@ namespace ml
 
     function getScreenPositionForItem(itemRect as object, direction = 0 as integer, isFixed = true as boolean, screenPos = invalid as integer)
 
+      if itemRect <> invalid and itemRect.screenPos <> invalid and itemRect.screenPos <> -1
+        ' ? " USING ITEM RECT SCREEN POS"
+        screenPos = itemRect.screenPos
+      end if
       if screenPos = invalid and itemRect <> invalid
-        if itemRect.screenPos <> invalid
-          ' ? " USING ITEM RECT SCREEN POS"
-          screenPos = itemRect.screenPos
-        else if m.direction = -1
+        if m.direction = -1
           screenPos = m.minPos
         else if m.direction = 1
           if isFixed
