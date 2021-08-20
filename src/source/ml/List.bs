@@ -74,6 +74,7 @@ namespace ml
 
     public cellEvents as mc.types.Node
     public rowEvents as mc.types.Node
+    public focusScreenPosition = [0,0]
 
     @alwaysnotify
     public listEvent as mc.types.Assocarray
@@ -105,13 +106,14 @@ namespace ml
     private focusIndicator
     private isIndicatorHidden = true
     private flowFocusDelegate
+    private isDoingFlowFocus = false
     private focusPointAnim
     private dummyFocusView
     private dummyFocusAnim
     private activeFocusSettings
     private rowHasIndicator = true
     private isFocusSettingsChangePending = false
-
+    private minFocusChangeFraction = 0.5
     function new()
       super("mv_List")
     end function
@@ -284,10 +286,7 @@ namespace ml
       if row <> invalid
         rect = row@.getScreenRect(cellIndex, cellScreenPos)
         if rect <> invalid
-          rowSettings = ml.listMixin.getRowSettings(m.content, m.content.getChild(rowIndex))
-          rect.translation[0] += rowSettings.contentOffset[0]
-          ' rect.translation[1] += rowSettings.contentOffset[1]
-          rect.translation[1] += rowScreenRect.screenPos
+          ' rect.translation[1] += rowScreenRect.screenPos
         else
           return rowScreenRect
         end if
@@ -312,7 +311,7 @@ namespace ml
         if m._content <> invalid and index <> -1
           row = m.getRowRenderer(index)
           if row <> invalid
-            row@.jumpToItem(index, invalid, animated)
+            row@.jumpToItem(index, animated)
           end if
         end if
       end if
@@ -320,7 +319,7 @@ namespace ml
 
     public function moveToItem(indices as mc.types.array, animated as boolean)
       if m.content <> invalid
-        m.itemScroller.moveToIndex(indices[0], invalid, animated)
+        m.itemScroller.moveToIndex(indices[0], animated)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
           'if animated we will need to set the focus first, I guess?
@@ -335,12 +334,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ? "ON NEXT CHANGE" ; index
+      ' ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
+      ' ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
       row = m.getRowRenderer(index)
       if row <> invalid
         m.preprareFocusSettings([index, row.focusedCellIndex], [index, row.focusedCellIndex])
@@ -353,12 +352,22 @@ namespace ml
       m.preprareFocusSettings([m.focusedRowIndex, index], [m.focusedRowIndex, index])
     end function
 
-    private function onFocusedRowPercentChange(value as float)
+    private function onFocusedRowPercentChange(fraction as float) as void
       ' ? "ROW % " ; value
-      if m.isFocusSettingsChangePending and value > 0.75
-        m.applyFocusSettings(m.activeFocusSettings)
+      if m.isDoingFlowFocus
+        'flow focus callbacks will handle this
+        return
       end if
-      m.moveFocusIndicatorToTargetPosition(value)
+
+      if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
+        m.applyFocusSettings(m.activeFocusSettings)
+        if m.itemScroller.isMovingMultiple
+          m.moveFocusIndicatorToTargetPosition(1)
+        end if
+      end if
+      if not m.itemScroller.isMovingMultiple
+        m.moveFocusIndicatorToTargetPosition(fraction)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -372,6 +381,7 @@ namespace ml
       if screenRect = invalid
         return invalid
       end if
+
       if focusSettings.horizAnimStyle = "fixed"
         rowSettings = ml.listMixin.getRowSettings(m.content, m.content.getChild(index[0]))
         screenRect.translation[0] = rowSettings.contentOffset[0]
@@ -457,6 +467,7 @@ namespace ml
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
       m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
       ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
+      m.isDoingFlowFocus = true
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
       '   m.flowFocusDelegate@.onFlowFocusFraction(1)
@@ -472,6 +483,7 @@ namespace ml
       m.sourceFocusRect = m.getFocusRect(sourceIndex)
       m.targetFocusRect = m.getFocusRect(targetIndex)
       m.activeFocusSettings = m.targetFocusRect.settings
+      m.focusScreenPosition = m.targetFocusRect.indicatorTranslation
 
       'TODO - finish animation if existing delegate
       m.flowFocusDelegate = delegate
@@ -499,26 +511,25 @@ namespace ml
     end function
 
     public function cancelFlowFocus()
-      m.focusPointAnim.pause()
       m.flowFocusDelegate = invalid
+      m.isDoingFlowFocus = false
+      m.focusPointAnim.pause()
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
       if m.flowFocusDelegate <> invalid
         m.moveFocusIndicatorToTargetPosition(fraction)
-        if m.isFocusSettingsChangePending and fraction > 0.75
+        if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
           m.applyFocusSettings(m.activeFocusSettings)
         end if
 
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
+        if fraction = 1
+          m.isDoingFlowFocus = false
+        end if
       end if
     end function
 
-    ' public function onFlowFocusFraction(fraction as float)
-    '   m.itemScroller.onFlowFocusFraction(fraction)
-    ' end function
-
-    private currentDirection = 0
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress

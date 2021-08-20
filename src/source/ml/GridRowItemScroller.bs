@@ -29,14 +29,14 @@ namespace ml
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    protected override function setFocusUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
+    protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
       m.toggleScrolling(true)
       m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
       m.flowFocusIndex = nextIndex
       m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
     end function
 
-    override function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+    override function moveToEnd(direction as integer, animated = true as boolean, fast = false as boolean) as boolean
       if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
         m.log.info("already at end - ignoring")
         return false
@@ -44,14 +44,17 @@ namespace ml
 
       if direction = -1
         index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
-        m.isMovingMultiple = abs(m.index - index) > 1
-        m.moveToIndex(index, screenPos, animated, fast, -1, true)
+        m.moveToIndex(index, animated, fast, -1, true)
       else
-        index = ((fix(m.index /m.viewManager.numCols) * m.viewManager.numCols) +  m.viewManager.numCols) -1
-        m.isMovingMultiple = abs(m.index - index) > 1
-        m.moveToIndex(index, screenPos, animated, fast, 1, true)
+        index = ((fix(m.index / m.viewManager.numCols) * m.viewManager.numCols) + m.viewManager.numCols) - 1
+        m.moveToIndex(index, animated, fast, 1, true)
       end if
       return true
+    end function
+
+    override function finishAnimating() as void
+      super.finishAnimating()
+      m.isMovingMultiple = false
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -173,7 +173,7 @@ namespace ml
 
     public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid
-        m.itemScroller.moveToIndex(index, invalid, animated)
+        m.itemScroller.moveToIndex(index, animated)
       end if
     end function
 
@@ -188,6 +188,7 @@ namespace ml
     public override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
       rect = m.viewManager.getScreenRect(index, screenPos, direction)
       if rect <> invalid
+        rect.translation[0] += m.settings.contentOffset[0]
         rect.translation[1] += m.contentGroup.translation[1]
       end if
       return rect
@@ -283,9 +284,9 @@ namespace ml
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         if key = "left"
-          m.itemScroller.moveToEnd(-1, invalid, true, true)
+          m.itemScroller.moveToEnd(-1, true, true)
         else
-          m.itemScroller.moveToEnd(1, invalid, true, true)
+          m.itemScroller.moveToEnd(1, true, true)
         end if
 
         return true
@@ -294,15 +295,15 @@ namespace ml
       return false
     end function
 
-    ' private function onLongPressFinish(key as string) as boolean
-    '   if key = "left" or key = "right"
-    '     m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
-    '     ' m.itemScroller.finishAnimating()
-    '     return true
-    '   end if
+    private function onLongPressFinish(key as string) as boolean
+      if key = "left" or key = "right"
+        m.log.verbose("long press finished on key", key)
+        m.itemScroller.finishAnimating()
+        return true
+      end if
 
-    '   return false
-    ' end function
+      return false
+    end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ delegate

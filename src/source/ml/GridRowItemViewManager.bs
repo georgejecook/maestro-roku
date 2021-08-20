@@ -293,13 +293,14 @@ namespace ml
     end function
 
     override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = super.getScreenRect(index, screenPos, direction)
-      ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      ' ? " GOT ROW RECT " ; formatJson(rect)
-      ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      ' if rect <> invalid
-      '   rect.translation[1] += m.settings.screenPos
-      ' end if
+      rect = m.getRect(index, true)
+      if rect <> invalid
+        if screenPos <> invalid
+          rect.translation[1] += screenPos
+        else
+          rect.translation[1] += m.settings.screenPos
+        end if
+      end if
 
       return rect
     end function

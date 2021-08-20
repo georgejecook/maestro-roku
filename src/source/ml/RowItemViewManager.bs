@@ -201,9 +201,12 @@ namespace ml
       rect = super.getScreenRect(index, screenPos, direction)
 
       if rect <> invalid
-        rect.translation[1] += m.settings.screenPos
+        if screenPos <> invalid
+          rect.translation[1] += screenPos
+        else
+          rect.translation[1] += m.settings.screenPos
+        end if
       end if
-
       return rect
     end function
 

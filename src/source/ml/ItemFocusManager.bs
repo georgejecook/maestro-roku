@@ -95,6 +95,7 @@ namespace ml
       ' ? "offset:" ; offset ; " CP: " ; currentPos ; " P " ; m.indexPosition ;" > "; m.nextPosition ; " D:" ; distance ; " C:" ; " F: ";fraction
 
       m.onFocusUpdate(mc.clamp(fraction, 0, 1))
+      return fraction
     end function
 
     function onFocusUpdate(fraction as float) as void
@@ -103,7 +104,7 @@ namespace ml
         ' ? " OFU I "; m.index ; " NI "; m.nextIndex
       end if
       if not m.isNotifying
-        ? "NOT NOTIFYING"
+        ' ? "NOT NOTIFYING"
         return
       end if
       if not m.didStart
@@ -111,16 +112,18 @@ namespace ml
         nextName = "willGainFocus"
         m.didStart = true
         m.setOwnerNextFocusIndex()
+        ' ? " + sending WILL lose " ; m.index ; " / WILL gain" ; m.nextIndex
       else if fraction = 0
         return
       else if fraction = 1
         if m.didFinish or not m.didStart
           return
         end if
-        ' ? " DID FINISH "; m.index
+        ' ? " DID FINISH "; m.nextIndex
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
+        ' ? " + sending DID lose " ; m.index ; " / DID gain" ; m.nextIndex
         m.setOwnerIndexes()
       else
         name = "losingFocus"
@@ -133,7 +136,7 @@ namespace ml
         m.viewManager.owner.focusedRowPercent = fraction
       end if
 
-      m.sendEvents(name, nextName, fraction)
+       m.sendEvents(name, nextName, fraction)
     end function
 
     function sendEvents(name as string, nextName as string, fraction as float)
