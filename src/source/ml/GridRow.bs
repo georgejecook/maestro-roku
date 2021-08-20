@@ -89,7 +89,7 @@ namespace ml
     public function moveRowUp() as boolean
       m.log.verbose("moveRowUp")
       if m.canMoveRow(-1) and m.itemScroller.index > m.content.settings.numColumns - 1
-        return m.itemScroller.moveFromPress(- m.content.settings.numColumns)
+        return m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
       end if
       return false
     end function
@@ -97,7 +97,7 @@ namespace ml
     public function moveRowDown() as boolean
       m.log.verbose("moveRowDown")
       if m.canMoveRow(1) and m.itemScroller.index < m.content.getChildCount() - m.content.settings.numColumns
-        return m.itemScroller.moveFromPress(m.content.settings.numColumns)
+        return m.itemScroller.moveFromPress(m.content.settings.numColumns, false)
       end if
       return false
     end function
@@ -279,7 +279,7 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       m.log.verbose(">>>>onLongPressStart", key)
-
+      ? " ON LONG PRESS START "; key
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         if key = "left"
@@ -294,15 +294,15 @@ namespace ml
       return false
     end function
 
-    private function onLongPressFinish(key as string) as boolean
-      if key = "left" or key = "right"
-        m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
-        m.itemScroller.finishAnimating()
-        return true
-      end if
+    ' private function onLongPressFinish(key as string) as boolean
+    '   if key = "left" or key = "right"
+    '     m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
+    '     ' m.itemScroller.finishAnimating()
+    '     return true
+    '   end if
 
-      return false
-    end function
+    '   return false
+    ' end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ delegate

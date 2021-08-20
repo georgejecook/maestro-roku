@@ -47,9 +47,9 @@ namespace ml
         m.isMovingMultiple = abs(m.index - index) > 1
         m.moveToIndex(index, screenPos, animated, fast, -1, true)
       else
-        index = m.ceiling(m.index + 1 / m.viewManager.numCols) * m.viewManager.numCols
+        index = ((fix(m.index /m.viewManager.numCols) * m.viewManager.numCols) +  m.viewManager.numCols) -1
         m.isMovingMultiple = abs(m.index - index) > 1
-        m.moveToIndex(index - 1, screenPos, animated, fast, 1, true)
+        m.moveToIndex(index, screenPos, animated, fast, 1, true)
       end if
       return true
     end function

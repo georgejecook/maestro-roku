@@ -133,7 +133,7 @@ namespace ml
       return true
     end function
 
-    function moveFromPress(offset as integer) as boolean
+    function moveFromPress(offset as integer, forceSequential = true as boolean) as boolean
       index = m.index + offset
 
       if offset > 0 and m.index = m.viewManager.numberOfItems - 1
@@ -144,10 +144,10 @@ namespace ml
         return false
       end if
 
-      return m.move(offset, invalid, true, true)
+      return m.move(offset, invalid, true, true, forceSequential)
     end function
 
-    function move(offset as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+    function move(offset as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
       ' ? "+++MOVE"
       index = m.index + offset
 
@@ -178,7 +178,7 @@ namespace ml
       m.log.info(`move I ${m.index} o ${offset}, i ${index}, sp ${screenPos}, animated ${animated}, fast ${fast}`)
 
       if index <> -1
-        m.moveToIndex(index, screenPos, animated, fast)
+        m.moveToIndex(index, screenPos, animated, fast, direction, forceSequential)
       end if
 
       return true
@@ -212,8 +212,9 @@ namespace ml
 
     function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, screenPos, animated)
-      ? "+++moveToIndex I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
+      ? "MTI: I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
 
+      ? "MTI: IS FLOATING " ; m.isFloatingFocus
       if direction = invalid
         direction = 0
         if index < m.index
