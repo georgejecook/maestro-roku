@@ -424,6 +424,10 @@ namespace ml
         return
       end if
 
+      if m.nextIndex = index
+        return
+      end if
+
       m.log.info("+++setNextIndex", index)
       if index < 0
         index = 0
@@ -435,9 +439,8 @@ namespace ml
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
-      ? " NEXT INDEX " ; index ; " SP " ; m.screenPos
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, not m.isFloatingFocus, m.screenPos)
-      ? "+++ SET NEXT ACTIVE OFFSET " ; index ; " " ; screenPos
+      ? " NEXT INDEX " ; index ; " SP " ; m.screenPos ; " nao " ; screenPos
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
@@ -467,14 +470,14 @@ namespace ml
     '++ animation callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function onAnimationFractionChange(fraction as float)
+    function onAnimationFractionChange(fraction as float) as void
       ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple)
 
-      ' if m.direction = -1
-      '   position = m.container.translation[m.axes]
-      ' else
-      position = m.container.translation[m.axes] - m.activeOffset
-      ' end if
+      if m.direction = -1
+        position = m.container.translation[m.axes] - m.nextActiveOffset
+      else
+        position = m.container.translation[m.axes] - m.activeOffset
+      end if
 
       index = m.viewManager.getIndexAtPosition(position, m.direction)
       ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
@@ -493,6 +496,14 @@ namespace ml
           m.isMovingMultiple = false
         end if
       else if m.isMovingMultiple
+        ' ? " D " ; m.direction ; " m.I " ; m.index ; " I "; index ; " DIFF " ; abs(m.index - index)
+
+        if (m.direction = -1 and (index >= m.index)) or (m.direction = 1 and (index < m.index))
+        ' if (m.direction = -1 and (index >= m.index or abs(m.index - index) > 1 )) or (m.direction = 1 and (index < m.index or abs(m.index - index) > 2))
+          ? " skipping focus calc error"
+          return
+        end if
+
         actualPos = m.container.translation[m.axes]
         fraction = m.focusManager.onContainerPositionChange(actualPos)
         ' ? "++ start "; m.scrollStartIndex ; " I " ; m.index ; " posI " ; index
@@ -517,7 +528,7 @@ namespace ml
           '   'TODO animate to finish
           '   m.container.translation = translation
           ' else
-            m.setFocusIndex(index, true)
+          m.setFocusIndex(index, true)
           ' end if
         end if
       else

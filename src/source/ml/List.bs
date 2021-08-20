@@ -74,7 +74,7 @@ namespace ml
 
     public cellEvents as mc.types.Node
     public rowEvents as mc.types.Node
-    public focusScreenPosition = [0,0]
+    public focusScreenPosition = [0, 0]
 
     @alwaysnotify
     public listEvent as mc.types.Assocarray
@@ -353,7 +353,7 @@ namespace ml
     end function
 
     private function onFocusedRowPercentChange(fraction as float) as void
-      ' ? "ROW % " ; value
+      ' ? "ON ROW INDEX CHANGE" ; fraction " " ; m.focusedRowIndex
       if m.isDoingFlowFocus
         'flow focus callbacks will handle this
         return
@@ -361,13 +361,9 @@ namespace ml
 
       if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
         m.applyFocusSettings(m.activeFocusSettings)
-        if m.itemScroller.isMovingMultiple
-          m.moveFocusIndicatorToTargetPosition(1)
-        end if
       end if
-      if not m.itemScroller.isMovingMultiple
-        m.moveFocusIndicatorToTargetPosition(fraction)
-      end if
+
+      m.moveFocusIndicatorToTargetPosition(fraction)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -430,6 +426,8 @@ namespace ml
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
+        ? "APPLY FOCUS VIS"
+        m.focusIndicator.visible = not m.isIndicatorHidden
       end if
 
       m.focusIndicator.blendColor = focusSettings.feedbackColor
@@ -444,9 +442,6 @@ namespace ml
         return
       end if
 
-      'HACK - always show
-      m.focusIndicator.visible = true
-      ' m.focusIndicator.visible = not m.isIndicatorHidden
       if fraction = 1
         m.focusIndicator.translation = m.targetFocusRect.indicatorTranslation
         m.focusIndicator.size = m.targetFocusRect.indicatorSize
@@ -527,6 +522,8 @@ namespace ml
         if fraction = 1
           m.isDoingFlowFocus = false
         end if
+      else
+        m.moveFocusIndicatorToTargetPosition(fraction)
       end if
     end function
 
@@ -608,7 +605,8 @@ namespace ml
       super.onGainedFocus(isSelfFocused)
       m.isIndicatorHidden = false
       if isSelfFocused
-        m.focusIndicator.visible = m.rowHasIndicator
+        ? " ON GAINED FOCUS VIS"
+        m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings.feedbackStyle <> "none"
         row = m.getRowRenderer(m.focusedRowIndex)
         if row <> invalid
           mv.setFocus(row)
