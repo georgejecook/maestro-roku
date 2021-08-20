@@ -225,9 +225,14 @@ namespace ml
       end if
 
       itemRect = m.viewManager.rects[index]
-      if screenPos = invalid and itemRect <> invalid
-        screenPos = itemRect.screenPos
-        ' screenPos = m.screenPos
+      if screenPos = invalid
+        if itemRect <> invalid and itemRect.screenPos <> invalid
+          screenPos = itemRect.screenPos
+          ? "MTI: USE RECT SCREEN POS "; screenPos
+        else
+          screenPos = m.screenPos
+          ? "MTI: USE Previous screen POS "; screenPos
+        end if
       end if
 
       nextFlowPosition = invalid
@@ -344,60 +349,8 @@ namespace ml
     end function
 
     function finishAnimating() as void
-      m.finishMovingToIndex()
+      m.moveToIndex(m.nextIndex, invalid, true, false, m.direction)
     end function
-
-    function finishMovingToIndex(screenPos = invalid as integer) as boolean
-      index = m.nextIndex
-      itemRect = m.viewManager.rects[index]
-      if itemRect = invalid
-        return false
-      end if
-
-      if screenPos = invalid and itemRect <> invalid
-        screenPos = itemRect.screenPos
-        ' screenPos = m.screenPos
-      end if
-
-      if m.isFloatingFocus
-        m.log.error("floating focus is not supported yet")
-        'not yet supported
-        ' nextFlowPosition = m.viewManager.getFlowScreenPosition()
-        ' if nextFlowPosition <> invalid
-        '   m.moveFocusToIndex(index, nextFlowPosition, animated)
-        ' end if
-      end if
-
-      targetTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
-
-      if targetTranslation = invalid
-        m.log.error("cannot move! translation invalid for index", index)
-        return false
-      end if
-
-      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
-      m.targetIndex = index
-
-      'TODO - take into account floating focus
-      isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
-      'can only be animated
-      m.animSpeed = m.settings.animSpeed
-      if not isMoveRequired
-        if m.focusedIndex = index
-          m.log.info("already in place")
-          return false
-        end if
-        m.log.info("already in place - no need to scroll ", index, " >", m.nextIndex)
-        m.setFocusUsingFlowAnim(index, m.nextIndex, m.direction)
-        return true
-      end if
-
-      'we are already scrolling
-      m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
-      m.moveAnimation.start()
-      return true
-    end function
-
 
     function setNextIndex(index as integer, screenPos = invalid as integer) as void
       if index >= m.viewManager.numberOfItems
