@@ -332,7 +332,7 @@ namespace ml
         return [-1, -1]
       end if
 
-      screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
+      screenPos = m.getScreenPositionForItem(itemRect, direction, not m.itemScroller.isFloatingFocus, screenPos)
       targetPos = m.getOffsetForScreenPosition(itemRect, screenPos)
       ' ? " POS " ; targetPos ; " dir " ; m.direction ; " sp " ; screenPos ; " it " ; itemRect.translation[m.axes]
 
@@ -352,9 +352,10 @@ namespace ml
         return invalid
       end if
 
-      itemScreenPos = - itemRect.translation[m.axes] + m.container.translation[m.axes]
+      itemScreenPos = m.container.translation[m.axes] + itemRect.translation[m.axes]
 
-      if itemScreenPos > m.minPos and itemScreenPos + itemRect.size.width < m.maxPos
+      ? "GFSP I " ; index ; " ao: "; m.itemScroller.activeOffset ; " pos " ; itemScreenPos
+      if itemScreenPos >= m.minPos and itemScreenPos + itemRect.size[m.axes] <= m.maxPos
         'we can simply move the focus to this position
         return itemScreenPos
       end if
@@ -363,21 +364,20 @@ namespace ml
       return invalid
     end function
 
-    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, screenPos = invalid as integer)
+    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, isFixed = true as boolean, screenPos = invalid as integer)
 
-      if itemRect <> invalid
-        if screenPos <> invalid
-          ' ? " USING SCREEN POS" ; screenPos
-          screenPos = screenPos
-        else if itemRect.screenPos <> invalid
+      if screenPos <> invalid or itemRect <> invalid
+        if itemRect.screenPos <> invalid
           ' ? " USING ITEM RECT SCREEN POS"
           screenPos = itemRect.screenPos
         else if m.direction = -1
           screenPos = m.minPos
         else if m.direction = 1
-          'TODO - calculate position that can fit on screen
-          screenPos = m.minPos ' fixed focus
-          ' return m.maxPos - itemRect.width
+          if isFixed
+            screenPos = m.minPos
+          else
+            screenPos = m.maxPos - itemRect.width
+          end if
         end if
       end if
       if screenPos = invalid

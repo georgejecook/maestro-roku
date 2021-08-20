@@ -210,7 +210,7 @@ namespace ml
       return matchedIndex
     end function
 
-    function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = false as boolean) as boolean
+    function moveToIndex(index as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, screenPos, animated)
       ? "MTI: I"; " "; m.index; " "; "NI"; " "; index; " "; screenPos
 
@@ -231,12 +231,14 @@ namespace ml
       end if
 
       nextFlowPosition = invalid
+      nextIndex = m.index + direction
+
       ? "AAAA"
       if m.isFloatingFocus
         ? "FLOATING!! " ; forceSequential
         if forceSequential
-          ? "A1 " ; m.index + direction ; " " ; direction
-          nextFlowPosition = m.viewManager.getFlowScreenPosition(m.index + direction, direction)
+          ? "A1 " ; nextIndex ; " " ; direction
+          nextFlowPosition = m.viewManager.getFlowScreenPosition(nextIndex, direction)
         else
           ? "A2 " ; index ; " " ; direction
           nextFlowPosition = m.viewManager.getFlowScreenPosition(index, direction)
@@ -257,7 +259,7 @@ namespace ml
       end if
 
       m.direction = direction
-      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
+      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
       m.targetIndex = index
       m.scrollStartIndex = m.index
 
@@ -373,7 +375,7 @@ namespace ml
         return false
       end if
 
-      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
+      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
       m.targetIndex = index
 
       'TODO - take into account floating focus
@@ -414,7 +416,7 @@ namespace ml
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
-      screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, screenPos)
+      screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, not m.isFloatingFocus, screenPos)
       ' ? "+++ SET NEXT ACTIVE OFFSET " ; index ; " " ; screenPos
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
@@ -549,7 +551,7 @@ namespace ml
       ' m.setNextIndex(m.index + m.direction)
       itemRect = m.viewManager.rects[index]
       if itemRect <> invalid
-        screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, screenPos)
+        screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
       end if
       m.setNextIndex(index, screenPos)
 
