@@ -426,8 +426,12 @@ namespace ml
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
-        ? "APPLY FOCUS VIS"
-        m.focusIndicator.visible = not m.isIndicatorHidden
+        ' ? "APPLY FOCUS VIS"
+        if not m.focusIndicator.visible and not m.isIndicatorHidden
+          m.sourceFocusRect.indicatorTranslation = m.targetFocusRect.indicatorTranslation
+          m.sourceFocusRect.indicatorSize = m.targetFocusRect.indicatorSize
+          m.focusIndicator.visible = not m.isIndicatorHidden
+        end if
       end if
 
       m.focusIndicator.blendColor = focusSettings.feedbackColor

@@ -27,7 +27,7 @@ class ListScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = 1
+  private scrollSpeed = 0.7
   private prefix = "-A- "
 
   private isSmall = false
@@ -92,8 +92,8 @@ class ListScreen extends mv.BaseScreen
     listSettings.rowCreationBatchDelay = 0.1
 
     ' content = ml.listMixin.createListContent(m.createSimpleData(), m.focusSettings, m.rowSettings, listSettings)
-    ' content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
-    content = ml.listMixin.createListContent(m.createGridData(), m.focusSettings, m.rowSettings, listSettings)
+    content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.createGridData(), m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     m.list.visible = false
@@ -120,6 +120,7 @@ class ListScreen extends mv.BaseScreen
   private function createData()
     content = []
     rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    numItems = 20
     for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
@@ -129,7 +130,7 @@ class ListScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
-      else if i = 1 or i = 3 or i = 8
+      else if i = 1 or i = 15 or i = 8
         row1FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [30, 30, -30, -30])
         ' row1FocusSettings.feedbackUri = "pkg:/images/circle.png"
         row1FocusSettings.feedbackColor = "#F4D42A"
@@ -139,8 +140,13 @@ class ListScreen extends mv.BaseScreen
         row.settings.contentOffset = [100, 0]
         row.settings.screenPos = 150
         ' row.settings.peekNextPixels = 150
-
-      else if i = 6 or i =12 or i = 4 or i = 10
+      else if i = 3 or i = 16 or i = 9
+        rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 3, 400)
+        row.settings.contentOffset = [100, 30]
+        ' row.settings.peekNextPixels = 300
+        numItems = 6
+      else if i = 6 or i = 12 or i = 4 or i = 10
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
         row.settings.contentOffset = [100, 30]
         row.settings.peekNextPixels = 0
@@ -192,7 +198,7 @@ class ListScreen extends mv.BaseScreen
       ' row.settings.screenPos = -1
       ' row.settings.peekNextPixels = 0
 
-      row.appendChildren(m.makeItems(m.defaultCellType, 20))
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
     return content
   end function
