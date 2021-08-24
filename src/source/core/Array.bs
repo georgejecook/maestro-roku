@@ -1,5 +1,7 @@
+import "pkg:/source/core/Collections.bs"
+
 ' /**
-'  * @member Dicationry
+'  * @member Array
 '  * @memberof module:Set
 '  * @instance
 '  * @function
@@ -17,8 +19,14 @@ namespace mc.collections
 
     public __contents as mc.types.Array
 
+    function sortByKey(keyName as string, ascending = true as boolean)
+      data = mc.collections.getSortedArrayByKey(m.data, keyName, ascending)
+      m.clear()
+      m.append(data)
+    end function
+
     public function clear()
-      m.data = {}
+      m.data = []
       m.top.length = 0
       m.top._debug = invalid
     end function
@@ -62,5 +70,6 @@ namespace mc.collections
     private function onDebugChange(value as dynamic)
       m.top.contents = m.data
     end function
+
   end class
 end namespace
