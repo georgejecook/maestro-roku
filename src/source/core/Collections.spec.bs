@@ -1,0 +1,171 @@
+namespace tests
+  @suite("Collections tests")
+  class CollectionsTests extends tests.BaseTestSuite
+
+    private Collections
+
+    protected override function setup()
+      super.setup()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getSortedArrayByKey")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does not bork on invalid/empty values")
+    @params(invalid)
+    @params({})
+    @params([])
+    function _(value)
+      m.assertEmpty(mc.collections.getSortedArrayByKey(value, "id"))
+    end function
+
+    @it("does not bork on invalid/empty keys")
+    @params(invalid)
+    @params("")
+    @params([])
+    function _(key)
+      arr = [
+        { id: "1" }
+        { id: "2" }
+        { id: "3" }
+      ]
+      m.assertEmpty(mc.collections.getSortedArrayByKey(arr, key))
+    end function
+
+    @it("sorts on key")
+    function _()
+      arr = [
+        {
+          id: "3"
+          id2: "a"
+        }
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "1"
+          id2: "c"
+        }
+      ]
+      expected = [
+        {
+          id: "1"
+          id2: "c"
+        }
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "3"
+          id2: "a"
+        }
+      ]
+      result = mc.collections.getSortedArrayByKey(arr, "id")
+      m.assertEqual(result, expected)
+    end function
+
+    @it("sorts test 2")
+    function _()
+      arr = [
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "1"
+          id2: "a"
+        }
+        {
+          id: "3"
+          id2: "c"
+        }
+      ]
+      expected = [
+        {
+          id: "1"
+          id2: "a"
+        }
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "3"
+          id2: "c"
+        }
+      ]
+      result = mc.collections.getSortedArrayByKey(arr, "id")
+      m.assertEqual(result, expected)
+    end function
+
+    @it("sorts descending")
+    function _()
+      arr = [
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "1"
+          id2: "a"
+        }
+        {
+          id: "3"
+          id2: "c"
+        }
+      ]
+      expected = [
+        {
+          id: "3"
+          id2: "c"
+        }
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "1"
+          id2: "a"
+        }
+      ]
+      result = mc.collections.getSortedArrayByKey(arr, "id", false)
+      m.assertEqual(result, expected)
+    end function
+
+    @it("sorts on different key")
+    function _()
+      arr = [
+        {
+          id: "1"
+          id2: "a"
+        }
+        {
+          id: "3"
+          id2: "c"
+        }
+        {
+          id: "2"
+          id2: "b"
+        }
+      ]
+      expected = [
+        {
+          id: "1"
+          id2: "a"
+        }
+        {
+          id: "2"
+          id2: "b"
+        }
+        {
+          id: "3"
+          id2: "c"
+        }
+      ]
+      m.assertEqual(mc.collections.getSortedArrayByKey(arr, "id2"), expected)
+    end function
+  end class
+end namespace

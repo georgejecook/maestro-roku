@@ -208,6 +208,17 @@ namespace mx
       return(pop())
     end function
 
+    protected function dismiss(state as string)
+      if state <> invalid
+        m.state = state
+        m.getMField("top").state = state
+      end if
+
+      if m.getTopField("navController") <> invalid
+        m.pop()
+      end if
+    end function
+
     protected function getViewById(id as string) as mc.types.node
       view = mc.getMField(id)
 

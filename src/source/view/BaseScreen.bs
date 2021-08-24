@@ -11,6 +11,9 @@ namespace mv
   '  */
   class BaseScreen extends mv.BaseView
 
+    'field to allow for convenient tracking of a view
+    public state as string
+
     function new(name as string)
       super(name)
     end function
@@ -44,9 +47,24 @@ namespace mv
       resetNavControllerToRoot()
     end function
 
+    protected function getNavController()
+      'bs:disable-next-line
+      return getNavController()
+    end function
+
     protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex)
+    end function
+
+    protected function dismiss(state as string)
+      if state <> invalid
+        m.state = state
+      end if
+
+      if m.getTopField("navController") <> invalid
+        m.pop()
+      end if
     end function
 
   end class
