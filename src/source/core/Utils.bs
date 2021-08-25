@@ -46,6 +46,10 @@ namespace mc
     return mc.isArray(value) and value.count() = 2
   end function
 
+  function isClass(value as dynamic) as boolean
+    return mc.isAACompatible(value) and mc.isString(value.__classname)
+  end function
+
   function isPointEqual(value as dynamic, otherValue as dynamic) as boolean
     return mc.isPoint(value) and mc.isPoint(otherValue) and value[0] = otherValue[0] and value[1] = otherValue[1]
   end function

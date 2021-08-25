@@ -15,7 +15,7 @@ namespace mc.collections
   function mapArray(array as mc.types.array, mapper as mc.collections.BaseMapper)
     items = []
     if array <> invalid
-      isClass = isClass(mapper)
+      isClass = mc.isClass(mapper)
       for each item in array
         if isClass
           transformed = mapper.transform(item)
@@ -151,7 +151,7 @@ namespace mc.collections
   function filterArray(array as mc.types.array, predicate as dynamic)
     items = []
     if array <> invalid
-      isClass = isClass(predicate)
+      isClass = mc.isClass(predicate)
       for each item in array
         if (isClass and predicate.isMatch(item)) or (not isClass and predicate(item))
           items.push(item)
