@@ -59,6 +59,10 @@ namespace mv
     end function
 
     protected function dismiss(state as string)
+      if m.getTopField("navController") <> invalid
+        m.pop()
+      end if
+
       if state <> invalid
         m.state = state
         'This cannot be inferred because this is an abstract node class
@@ -66,9 +70,6 @@ namespace mv
         m.top.state = state
       end if
 
-      if m.getTopField("navController") <> invalid
-        m.pop()
-      end if
     end function
 
   end class
