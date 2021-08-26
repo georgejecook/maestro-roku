@@ -53,4 +53,43 @@ namespace mv
       p.removeChild(view)
     end if
   end function
+
+  function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    if mTarget = invalid
+      mTarget = m
+    end if
+
+    'TODO - convert this to use update api, for speed.
+    if mc.isArray(childrenJson)
+      if type(targetNode) = "roSGNode"
+        for i = 0 to childrenJson.count() - 1
+          nodeJson = childrenJson[i]
+
+          nodeType = nodeJson._type
+          if nodeType <> invalid
+            children = nodeJson._children
+            id = nodeJson.id
+            nodeJson.delete("id")
+            nodeJson.delete("_type")
+            nodeJson.delete("_children")
+            view = mc.createSGNode(nodeType, targetNode, id, nodeJson)
+            if view <> invalid
+              if children <> invalid
+                mv.createViewsFromStyleJson(children, view, assignViewsToM, mTarget)
+              end if
+              if assignViewsToM and id <> invalid
+                mTarget[id] = view
+              end if
+            else
+              m.log.error("could not create view ", id, "with type", nodeType)
+            end if
+          end if
+        end for
+      else
+        m.log.error("could not create views from style Json. Node was invalid")
+      end if
+    else
+      m.log.error("could not create view in targetNode", mc.dv(targetNode), "json was invalid")
+    end if
+  end function
 end namespace

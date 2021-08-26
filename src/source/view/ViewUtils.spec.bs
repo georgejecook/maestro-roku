@@ -1,0 +1,226 @@
+namespace tests
+  @nocatch
+  @only
+  @suite("ViewUtils tests")
+  class ViewUtilsTests extends mv.tests.BaseTestSuite
+
+    protected override function beforeEach()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createViewsFromStyleJson")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does not crash with illegal values")
+    @params(invalid, invalid)
+    @params({}, invalid)
+    @params("other", invalid)
+    @params(invalid, "#RBSNode")
+    @params({}, "#RBSNode")
+    @params("other", "#RBSNode")
+    function _(json, node)
+      m.executeCreateviews(json, node)
+      m.assertTrue(true)
+    end function
+
+    @it("does not process any items without types")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "id": "1"
+          "height": 1
+        },
+        {
+          "id": "2"
+          "height": 2
+        },
+        {
+          "type": "Rectangle"
+          "id": "3"
+          "height": 3
+        }
+      ]
+      m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 0)
+    end function
+
+    @it("creates top level views, in correct order, and assigns m fields")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "Rectangle"
+          "id": "v1"
+          "height": 1
+        },
+        {
+          "_type": "Label"
+          "id": "v2"
+          "height": 2
+        },
+        {
+          "_type": "Rectangle"
+          "id": "v3"
+          "height": 3
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 3)
+
+      m.assertNode(target, node.getChild(0), "Rectangle", 1)
+      m.assertNode(target, node.getChild(1), "Label", 2)
+      m.assertNode(target, node.getChild(2), "Rectangle", 3)
+    end function
+
+    @it("does not assign views on m if disabed")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "Rectangle"
+          "id": "v1"
+          "height": 1
+        },
+        {
+          "_type": "Label"
+          "id": "v2"
+          "height": 2
+        },
+        {
+          "_type": "Rectangle"
+          "id": "v3"
+          "height": 3
+        }
+      ]
+
+      target = m.executeCreateviews(json, node, false)
+      m.assertNodeCount(node, 3)
+
+      m.assertNode(target, node.getChild(0), "Rectangle", 1, false)
+      m.assertNode(target, node.getChild(1), "Label", 2, false)
+      m.assertNode(target, node.getChild(2), "Rectangle", 3, false)
+    end function
+
+    @it("creates children")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "Rectangle"
+          "id": "v1"
+          "height": 1
+          "_children": [
+            {
+              "_type": "Label"
+              "id": "v2"
+              "height": 2
+            },
+            {
+              "_type": "Rectangle"
+              "id": "v3"
+              "height": 3
+            }
+          ]
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      m.assertNode(target, node.getChild(0), "Rectangle", 1)
+
+
+      child = node.getChild(0)
+      m.assertNodeCount(child, 2)
+      m.assertNode(target, child.getChild(0), "Label", 2)
+      m.assertNode(target, child.getChild(1), "Rectangle", 3)
+    end function
+
+    @it("creates nested children")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "Rectangle"
+          "id": "v1"
+          "height": 1
+          "_children": [
+            {
+              "_type": "Label"
+              "id": "v2"
+              "height": 2
+            },
+            {
+              "_type": "Rectangle"
+              "id": "v3"
+              "height": 3
+              "_children": [
+                {
+                  "_type": "Poster"
+                  "id": "v4"
+                  "height": 4
+                },
+                {
+                  "_type": "Rectangle"
+                  "id": "v5"
+                  "height": 5
+                }
+              ]
+
+            }
+          ]
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      m.assertNode(target, node.getChild(0), "Rectangle", 1)
+
+
+      child = node.getChild(0)
+      m.assertNodeCount(child, 2)
+      m.assertNode(target, child.getChild(0), "Label", 2)
+      m.assertNode(target, child.getChild(1), "Rectangle", 3)
+
+      grandChild = child.getChild(0)
+      m.assertNodeCount(grandChild, 0)
+
+      grandChild2 = child.getChild(1)
+      m.assertNodeCount(grandChild2, 2)
+      m.assertNode(target, grandChild2.getChild(0), "Poster", 4)
+      m.assertNode(target, grandChild2.getChild(1), "Rectangle", 5)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ helpers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function executeCreateViews(json, node, isSetOnM = true)
+      target = {
+        createViewsFromStyleJson: mv.createViewsFromStyleJson
+        log: m.log
+      }
+      'bs:disable-next-line
+      target.createViewsFromStyleJson(json, node, isSetOnM)
+      return target
+    end function
+
+    private function assertNode(targetM, node, subType, id, isSetOnM = true)
+      idName = `v${id}`
+      m.assertSubType(node, subType, `${idName} was wrong type "${node.subType()}"- expected ${subType}`)
+      m.assertEqual(node.id, idName, `node had wrong id. got ${node.id} - expected ${idName}`)
+      m.assertEqual(node.height * 1.0, id * 1.0, `${idName} had wrong height. got ${node.height} - expected ${id}`)
+      if isSetOnM
+        m.assertEqual(targetM[idName], node, `${idName} was not assigned on m`)
+      else
+        m.assertInvalid(targetM[idName], `${idName} was not meant to be assigned on m; but it was`)
+      end if
+    end function
+  end class
+end namespace

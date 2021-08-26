@@ -12,6 +12,7 @@ namespace mv
   class BaseScreen extends mv.BaseView
 
     'field to allow for convenient tracking of a view
+    @alwaysnotify
     public state as string
 
     function new(name as string)
@@ -60,6 +61,9 @@ namespace mv
     protected function dismiss(state as string)
       if state <> invalid
         m.state = state
+        'This cannot be inferred because this is an abstract node class
+        'bs:disable-next-line
+        m.top.state = state
       end if
 
       if m.getTopField("navController") <> invalid

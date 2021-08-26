@@ -363,12 +363,13 @@ namespace mc
 
       if args <> invalid
         if mc.isArray(args)
+          arrArgs = []
           for each a in args
-            node.setFields(a)
+            arrArgs.push(a)
           end for
-        else
-          node.setFields(args)
+          args = arrArgs
         end if
+        node.setFields(args)
       end if
 
       if isCallingInitialize and node.isInitialized <> invalid
