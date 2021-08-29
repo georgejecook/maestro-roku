@@ -15,7 +15,7 @@ namespace mc.collections
   function mapArray(array as mc.types.array, mapper as mc.collections.BaseMapper)
     items = []
     if array <> invalid
-      isClass = isClass(mapper)
+      isClass = mc.isClass(mapper)
       for each item in array
         if isClass
           transformed = mapper.transform(item)
@@ -31,6 +31,27 @@ namespace mc.collections
       end for
     end if
     return items
+  end function
+
+  function getSortedArrayByKey(arr as mc.types.array, keyName as string, ascending = true as boolean) as mc.types.array
+    result = []
+    if mc.isArray(arr) and mc.isString(keyName) and keyName <> ""
+      dict = {}
+      for each item in arr
+        key = item[keyName]
+        if mc.isString(key)
+          dict[key] = item
+        end if
+      end for
+      keys = dict.keys()
+      if not ascending
+        keys.reverse()
+      end if
+      for each key in keys
+        result.push(dict[key])
+      end for
+    end if
+    return result
   end function
 
   function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer)
@@ -130,7 +151,7 @@ namespace mc.collections
   function filterArray(array as mc.types.array, predicate as dynamic)
     items = []
     if array <> invalid
-      isClass = isClass(predicate)
+      isClass = mc.isClass(predicate)
       for each item in array
         if (isClass and predicate.isMatch(item)) or (not isClass and predicate(item))
           items.push(item)

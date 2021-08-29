@@ -47,7 +47,7 @@ To help evaluate each of these technologies, the following swot analysis are pro
 ![ropm swot analysis](ropm-swot.png "ropm swot analysis")
 
 ### maestro
-![maestro swot analysis](ropm-swot.png "maestro swot analysis")
+![maestro swot analysis](maestro-swot.png "maestro swot analysis")
 
 ### maestro-list
 ![maestro-list swot analysis](ml-swot.png "maestro swot analysis")

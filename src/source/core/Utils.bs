@@ -46,6 +46,10 @@ namespace mc
     return mc.isArray(value) and value.count() = 2
   end function
 
+  function isClass(value as dynamic) as boolean
+    return mc.isAACompatible(value) and mc.isString(value.__classname)
+  end function
+
   function isPointEqual(value as dynamic, otherValue as dynamic) as boolean
     return mc.isPoint(value) and mc.isPoint(otherValue) and value[0] = otherValue[0] and value[1] = otherValue[1]
   end function
@@ -182,6 +186,8 @@ namespace mc
         if not disableIndexing and (parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i]))
           if mc.isArray(part)
             part = part[parts[i].toInt()]
+          else if mc.isAACompatible(part)
+            part = part[parts[i]]
           else if type(part) = "roSGNode"
             part = part.getChild(parts[i].toInt())
           else
@@ -357,12 +363,13 @@ namespace mc
 
       if args <> invalid
         if mc.isArray(args)
+          arrArgs = []
           for each a in args
-            node.setFields(a)
+            arrArgs.push(a)
           end for
-        else
-          node.setFields(args)
+          args = arrArgs
         end if
+        node.setFields(args)
       end if
 
       if isCallingInitialize and node.isInitialized <> invalid

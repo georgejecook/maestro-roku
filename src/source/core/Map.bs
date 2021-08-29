@@ -31,7 +31,10 @@ namespace mc.collections
       m.top.length = m.data.count()
     end function
 
-    public function append(other as mc.types.node)
+    public function append(other as dynamic)
+      if type(other) = "roSGNode" and other.subType = "mc_Map"
+        other = other@.getValues()
+      end if
       m.data.append(other)
       m.top.length = m.data.count()
     end function

@@ -54,5 +54,39 @@ namespace tests
       m.assertEqual(m.array@.get(2), invalid)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("sortByKey")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sort by key")
+    function _()
+      m.array@.push({ id: "2" })
+      m.array@.push({ id: "1" })
+      m.array@.push({ id: "3" })
+      expected = [
+        { id: "1" }
+        { id: "2" }
+        { id: "3" }
+      ]
+      m.array@.sortByKey("id")
+      m.assertEqual(m.array@.getValues(), expected)
+
+    end function
+
+    @it("sort by key descending")
+    function _()
+      m.array@.push({ id: "2" })
+      m.array@.push({ id: "1" })
+      m.array@.push({ id: "3" })
+      expected = [
+        { id: "3" }
+        { id: "2" }
+        { id: "1" }
+      ]
+      m.array@.sortByKey("id", false)
+      m.assertEqual(m.array@.getValues(), expected)
+
+    end function
+
   end class
 end namespace
