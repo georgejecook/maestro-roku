@@ -154,22 +154,30 @@ namespace mioc
   '  * @instance
   '  * @function
   '  * @description wrapper for IOC purposes - getting the named item from the model Locator
-  '  * @param {string} classname type to create
+  '  * @param {string|pointer} classname type to create, or a pointer to the constructor
   '  * @param {array} args - constructor args
   '  * @param {boolean} createTypeIfNotPresent
   '  * @param {boolean}  storeInstance - defaults to true
   '  * @returns {any|invalid} resource, or invalid if not found
   '  */
-  function getClassInstance(classname as string, args = [] as mc.types.assocarray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+  function getClassInstance(clazz as dynamic, args = [] as mc.types.assocarray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+    if mc.isFunction(clazz)
+      instance = mioc.createClassInstance(clazz, args)
+      if storeInstance and instance <> invalid
+        mioc.setClassInstance(instance)
+      end if
+      return instance
+    end if
+
     if m._instancesByType = invalid
       m._instancesByType = {}
     end if
 
     instance = invalid
-    if m._instancesByType.doesExist(classname)
-      instance = m._instancesByType[classname]
+    if m._instancesByType.doesExist(clazz)
+      instance = m._instancesByType[clazz]
     else if createTypeIfNotPresent
-      instance = mioc.createClassInstance(classname, args)
+      instance = mioc.createClassInstance(clazz, args)
       if storeInstance and instance <> invalid
         mioc.setClassInstance(instance)
       end if
@@ -178,9 +186,15 @@ namespace mioc
     return instance
   end function
 
-  function createClassInstance(classname as string, args = [] as mc.types.array) as dynamic
+  ' @params {string|constructor} - name of class, or pointer to class constructor
+  function createClassInstance(classType as dynamic, args = [] as mc.types.array) as dynamic
+
+    if mc.isFunction(classType)
+      return mc_apply(classType, args)
+    end if
+
     'bs:disable-next-line
-    clazz = mr_getClass(classname)
+    clazz = mr_getClass(classType)
 
     if mc_isFunction(clazz)
       return mc_apply(clazz, args)
@@ -190,7 +204,7 @@ namespace mioc
       else
         subType = "UNKNOWN SCOPE"
       end if
-      m.log.error("class", classname, "is not in scope inside", subType)
+      m.log.error("class", classType, "is not in scope inside", subType)
     end if
 
     return invalid
