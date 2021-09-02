@@ -182,7 +182,6 @@ namespace mc
 
       part = content
       while i < numParts and part <> invalid
-        'TODO find better way of doing this
         if not disableIndexing and (parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i]))
           if mc.isArray(part)
             part = part[parts[i].toInt()]
@@ -221,7 +220,7 @@ namespace mc
   '  * @param {string} field - path to field, with "items.2.path.syntax",
   '  * @returns {any} value if found, or default value
   '  */
-  function setPath(content as dynamic, field as mc.types.array, value = invalid as dynamic)
+  function setPath(content as dynamic, field as mc.types.array, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as void
     part = invalid
 
     if field <> invalid
@@ -231,26 +230,42 @@ namespace mc
 
       part = content
       while i < numParts and part <> invalid
-        'TODO find better way of doing this
-        if parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
-          if mc.isArray(part)
-            part = part[parts[i].toInt()]
-          else if type(part) = "roSGNode"
-            part = part.getChild(parts[i].toInt())
-          else
-            part = invalid
-          end if
+        isIndexNumber = parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
+        if isIndexNumber
+          index = parts[i].toInt()
         else
-          if mc.isAACompatible(part)
-            part = part[parts[i]]
+          index = parts[i]
+        end if
+
+        if mc.isArray(part) and isIndexNumber
+          nextPart = part[index]
+        else if type(part) = "roSGNode" and isIndexNumber
+          nextPart = part.getChild(index)
+        else if mc.isAACompatible(part) and not isIndexNumber
+          nextPart = part[index]
+        else
+          nextPart = invalid
+        end if
+
+        if nextPart = invalid and insertAAsForMissingValues
+          if (not isIndexNumber and mc.isAACompatible(part)) or (isIndexNumber and (mc.isArray(part) or type(part) = "roSGNode"))
+          nextPart = {}
+          part[index] = nextPart
           else
-            part = invalid
+            'index type mismatch, gonna have to bail
+            return
           end if
         end if
+        part = nextPart
         i++
       end while
+
       if part <> invalid and i = numParts
-        part[parts[i]] = value
+        if mc.isArray(part)
+          part[parts[i].toInt()] = value
+        else
+          part[parts[i]] = value
+        end if
       end if
     end if
   end function

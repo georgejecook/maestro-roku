@@ -95,6 +95,32 @@ namespace tests
       m.assertEqual(mc.getPath(a, path), value)
     end function
 
+    @it("does not crash or set value when using bad values")
+    @params("b.a")
+    @params("b.c.0")
+    @params("b.c.1")
+    @params("b.c.2")
+    @params("b.c.legal.la")
+    @params("b.c.legal.4")
+    function _(path)
+      a = {
+        b: [
+          {
+          }
+        ]
+        c: {
+          "0": "zero"
+          "1": "zero"
+          "2": "zero"
+          "legal" : [
+            "la"
+          ]
+        }
+      }
+      mc.setPath(a, path, "v")
+      m.assertInvalid(mc.getPath(a, path))
+    end function
+
     @it("sets values with no dotted path")
     @params("v", 1)
     @params("v2", 2)
@@ -120,19 +146,73 @@ namespace tests
       m.assertTrue(true, "should not have crashed")
     end function
 
-    @it("does not fail when chain is invalid")
+    @it("does not insert missing parts if disabled")
     @params("notthere.v", 1)
     @params("b.noththere.v", 2)
     @params("b.c.notthere.v", 3)
+    @params("b.arr.2.v", 4)
     function _(path, value)
       a = {
         b: {
           c: {
           }
+          arr: [
+            "a",
+            "b"
+          ]
+        }
+      }
+      mc.setPath(a, path, value, false)
+      m.assertInvalid(mc.getPath(a, path))
+    end function
+
+    @it("inserts aas for missing parts of the chain")
+    @params("notthere.v", 1)
+    @params("b.noththere.v", 2)
+    @params("b.c.notthere.v", 3)
+    @params("b.arr.2.v", 4)
+    function _(path, value)
+      a = {
+        b: {
+          c: {
+          }
+          arr: [
+            "a",
+            "b"
+          ]
         }
       }
       mc.setPath(a, path, value)
-      m.assertInvalid(mc.getPath(a, path))
+      m.assertEqual(mc.getPath(a, path), value)
+    end function
+
+    @it("sets values on arrays, too")
+    @params("b.0", "changed")
+    @params("b.1", "changed")
+    @params("b.2", "changed")
+    @params("b.3.v", "changed")
+    @params("b.3.d", "changed")
+    @params("b.3.d.0", "changed")
+    @params("b.3.d.1", "changed")
+    @params("b.3.d.2", "changed")
+    function _(path, value)
+      a = {
+        b: [
+          "a",
+          "b",
+          "c",
+          {
+            d: [
+              "da"
+              "db"
+              "dc"
+            ],
+            v: "v"
+          }
+        ]
+      }
+      mc.setPath(a, path, value)
+      m.assertEqual(mc.getPath(a, path), value)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
