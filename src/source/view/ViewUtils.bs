@@ -92,4 +92,29 @@ namespace mv
       m.log.error("could not create view in targetNode", mc.dv(targetNode), "json was invalid")
     end if
   end function
+
+  ' assumes that all views exist on m, with the ids as described in childrenJson
+  function updateViewsWithStyleJson(json as mc.types.array, mTarget = invalid as mc.types.assocarray)
+    if mTarget = invalid
+      mTarget = m
+    end if
+
+    if mc.isAACompatible(json)
+      for each id in json
+        nodeJson = json[id]
+        if mc.isAACompatible(nodeJson)
+          node = mTarget[id]
+          if node <> invalid
+            node.setFields(nodeJson)
+          else
+            m.log.error("could not find node with ", id, "on ", mc.getPath(mTarget, "__classname", "UNKNOWN CLASS"))
+          end if
+        else
+          m.log.error("found illegal json with style id ", id)
+        end if
+      end for
+    else
+      m.log.error("could not apply style json in ", mc.getPath(mTarget, "__className", "UNKNOWN CLASS"), "json was invalid - expect key pairs for views that already exist on m")
+    end if
+  end function
 end namespace
