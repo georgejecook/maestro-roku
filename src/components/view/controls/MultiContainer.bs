@@ -247,7 +247,11 @@ function onNeedsRecalculatingChange()
   for each child in m.container_layoutGroup.getChildren(-1, 0)
     'TODO observe the bounds.. not gonna be fun.. :(
     child.translation = [0, y]
-    y += child.boundingRect().height
+    if child.containerHeightOverride <> invalid and child.containerHeightOverride <> 0
+      y += child.containerHeightOverride
+    else
+      y += child.boundingRect().height
+    end if
 
     mc.setOrAddNodeField(child, "heroControl", heroControl)
     mc.setOrAddNodeField(child, "isHeroOffsetApplied", child.isHeroOffsetApplied = true)
