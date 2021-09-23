@@ -130,6 +130,22 @@ namespace ml
     end function
 
     function moveFromPress(offset as integer, forceSequential = true as boolean) as boolean
+      row = m.viewManager.visibleComponents[m.index]
+      if row <> invalid and row.isMultiRow
+        ? "INSIDE MULTI ROW"
+        if offset > 0
+          direction = 1
+        else
+          direction = -1
+        end if
+
+        if row@.canMoveRowUpDown(direction)
+          ? "Doing a multi row move press"
+          return row@.moveRowFromPress(direction)
+        end if
+      end if
+
+      ? "doing regularMoveFromPress"
       index = m.index + offset
 
       if offset > 0 and m.index = m.viewManager.numberOfItems - 1
@@ -144,6 +160,23 @@ namespace ml
     end function
 
     function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
+      'first check if we are inside a grid
+      row = m.viewManager.visibleComponents[m.index]
+      if row <> invalid and row.isMultiRow
+        ? "INSIDE MULTI ROW"
+        if offset > 0
+          direction = 1
+        else
+          direction = -1
+        end if
+
+        if row@.canMoveRowUpDown(offset)
+          'ASCERTAIN SUB INDEX HERE
+          ? "Doing a multi row move here"
+          return true
+        end if
+      end if
+
       ' ? "+++MOVE"
       index = m.index + offset
 
@@ -499,7 +532,7 @@ namespace ml
         ' ? " D " ; m.direction ; " m.I " ; m.index ; " I "; index ; " DIFF " ; abs(m.index - index)
 
         if (m.direction = -1 and (index >= m.index)) or (m.direction = 1 and (index < m.index))
-        ' if (m.direction = -1 and (index >= m.index or abs(m.index - index) > 1 )) or (m.direction = 1 and (index < m.index or abs(m.index - index) > 2))
+          ' if (m.direction = -1 and (index >= m.index or abs(m.index - index) > 1 )) or (m.direction = 1 and (index < m.index or abs(m.index - index) > 2))
           ' ? " skipping focus calc error"
           return
         end if

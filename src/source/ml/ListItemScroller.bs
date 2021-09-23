@@ -29,25 +29,5 @@ namespace ml
       end if
     end function
 
-    override function moveFromPress(offset as integer) as boolean
-      row = m.viewManager.visibleComponents[m.index]
-      if row <> invalid and row.isMultiRow and row@.moveRowFromPress(offset)
-        ? "Doing a multi row move here"
-        return true
-      else
-        index = m.index + offset
-
-        if offset > 0 and m.index = m.viewManager.numberOfItems - 1
-          m.log.info("already at end")
-          return false
-        else if index < 0
-          m.log.info("already at start")
-          return false
-        end if
-
-        return m.move(offset, true, true)
-      end if
-    end function
-
   end class
 end namespace
