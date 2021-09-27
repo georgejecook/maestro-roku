@@ -29,5 +29,27 @@ namespace ml
       end if
     end function
 
+    protected override function setIndex(index as integer)
+      super.setIndex(index)
+      m.setListSubIndex(index)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function setListSubIndex(index as integer)
+      row = m.viewManager.visibleComponents[index]
+      if row <> invalid and row.isMultiRow
+        m.subIndex = row@.getRowIndex()
+        m.maxSubIndex = row@.getMaxSubIndex()
+      else
+        m.subIndex = -1
+        m.maxSubIndex = -1
+      end if
+    end function
+
+
+
   end class
 end namespace

@@ -22,6 +22,27 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function getSubIndexAtPosition(position as integer, direction as integer)
+      position += m.row.translation[1] 'adjust for position in the list
+      p = abs(position)
+      i = 0
+      ' position -= m.contentGroup.translation[1] 'adjust for header offsets
+      numRows = m.rowOffsets.count() - 1
+      for i = numRows to 0 step -1
+        itemPos = m.rowOffsets[i]
+        if p >= itemPos
+          return mc.clamp(i, 0, numRows)
+        end if
+      end for
+
+      'we must be at the end! -return last item
+      return mc.clamp(i - 1, 0, numRows)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

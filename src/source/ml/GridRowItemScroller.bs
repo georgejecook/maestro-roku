@@ -5,6 +5,8 @@ namespace ml
   class GridRowItemScroller extends ml.ItemScroller
 
     public isFloatingFocus = true
+    public isDoingLongPress = true
+    public currentRowIndex = 0
 
     function new(viewManager as ml.GridRowItemViewManager)
       super(viewManager, 0)
@@ -67,6 +69,83 @@ namespace ml
       super.finishAnimating()
       m.isMovingMultiple = false
     end function
+
+    protected override function setIndex(index as integer)
+      super.setIndex(index)
+      m.currentRowIndex = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
+    end function
+
+    override function onFlowFocusFraction(fraction as float)
+      ' ? "on FLow fraction"; fraction ; m.__classname
+      ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
+
+      if fraction = 1
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.setIndex(m.flowFocusIndex)
+        if m.isMovingMultiple and m.targetIndex <> m.index
+          m.log.info("was moving multiple, will keep moving")
+          m.setFocusOnRenderer(false)
+          if m.isScrollCancelled or not m.isDoingLongPress
+            m.log.info("but scrolling was cancelled or finished!")
+            m.stopAnimating()
+          else
+            m.continueScrolling()
+          end if
+        else
+          m.log.info("finished focusing action with this flow")
+          m.setTargetIndex(-1)
+          m.setFocusOnRenderer(true)
+          m.toggleScrolling(false)
+        end if
+      else
+        m.focusManager.onFocusAnimationUpdate(fraction)
+      end if
+
+    end function
+
+    override function continueScrolling() as void
+      ? "CONTINUE - " ; m.direction
+      if m.isDoingLongPress
+        m.move(m.direction)
+      end if
+    end function
+
+    override function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
+
+      index = m.index + offset
+
+      if offset > 0
+        if m.index = m.viewManager.numberOfItems - 1
+          m.log.info("already at end")
+          return false
+        end if
+        direction = 1
+      else
+        if index = -1
+          m.log.info("already at start")
+          return false
+        end if
+        direction = -1
+      end if
+
+      ' if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
+      '   ? "+++MOVE FFFF"
+      '   'TODO - we might want to detect this at the list, and have a cache of next move there
+      '   m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
+      '   return false
+      ' end if
+
+      index = m.getValidTargetIndex(index, direction)
+
+      m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
+
+      if index <> -1
+        m.moveToIndex(index, animated, fast, direction, forceSequential)
+      end if
+
+      return true
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ private impl

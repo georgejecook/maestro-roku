@@ -334,12 +334,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ' ? "ON NEXT CHANGE" ; index
+      ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      ' ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
+      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
       row = m.getRowRenderer(index)
       if row <> invalid
         m.preprareFocusSettings([index, row.focusedCellIndex], [index, row.focusedCellIndex])
@@ -353,7 +353,7 @@ namespace ml
     end function
 
     private function onFocusedRowPercentChange(fraction as float) as void
-      ' ? "ON ROW INDEX CHANGE" ; fraction " " ; m.focusedRowIndex
+      ? "ON ROW PERCENT CHANGE" ; fraction " " ; m.focusedRowIndex ; " "; m.isDoingFlowFocus
       if m.isDoingFlowFocus
         'flow focus callbacks will handle this
         return
@@ -525,9 +525,16 @@ namespace ml
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
         if fraction = 1
           m.isDoingFlowFocus = false
+          ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple
+          if m.itemScroller.targetIndex <> -1 and m.itemScroller.isMovingMultiple
+            m.itemScroller.continueScrolling()
+          end if
         end if
       else
         m.moveFocusIndicatorToTargetPosition(fraction)
+        if fraction = 1
+          m.isDoingFlowFocus = false
+        end if
       end if
     end function
 

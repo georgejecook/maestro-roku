@@ -88,7 +88,9 @@ namespace ml
 
     public function moveRowUp() as boolean
       m.log.verbose("moveRowUp")
+      ? "aaaaaa"
       if m.canMoveRow(-1) and m.itemScroller.index > m.content.settings.numColumns - 1
+        ? "bbbbb"
         return m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
       end if
       return false
@@ -96,7 +98,9 @@ namespace ml
 
     public function moveRowDown() as boolean
       m.log.verbose("moveRowDown")
+      ? "aaa"
       if m.canMoveRow(1) and m.itemScroller.index < m.content.getChildCount() - m.content.settings.numColumns
+        ? "bbbbb"
         return m.itemScroller.moveFromPress(m.content.settings.numColumns, false)
       end if
       return false
@@ -110,6 +114,22 @@ namespace ml
 
     public function canMoveRowUpDown(direction as integer)
       return m.isScrollingEnabled and m.itemScroller.canMoveRowUpDown(direction)
+    end function
+
+    public function getRowIndex() as integer
+      return m.itemScroller.currentRowIndex
+    end function
+
+    public function getMaxSubIndex() as integer
+      return m.viewManager.rowOffsets.count()
+    end function
+
+    public function getRowOffset(rowIndex as integer) as integer
+      return m.viewManager.rowOffsets[rowIndex]
+    end function
+
+    function getSubIndexAtPosition(position as integer, direction as integer) as integer
+      return m.viewManager.getSubIndexAtPosition(position, direction)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -192,6 +212,7 @@ namespace ml
 
     public override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
       rect = m.viewManager.getScreenRect(index, screenPos, direction)
+      ? " RECT " ; index ; " > "; formatJson(rect.translation)
       if rect <> invalid
         rect.translation[0] += m.settings.contentOffset[0]
         rect.translation[1] += m.contentGroup.translation[1]
@@ -201,6 +222,22 @@ namespace ml
 
     public override function onFlowFocusFraction(fraction as float)
       m.itemScroller.onFlowFocusFraction(fraction)
+    end function
+
+    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, isFixed = true as boolean, screenPos = invalid as integer)
+      return m.viewManager.getScreenPositionForItem(itemRect, direction, isFixed, screenPos)
+    end function
+
+    function getFlowScreenPosition(index as integer, direction as integer)
+      return m.viewManager.getFlowScreenPosition(index, direction)
+    end function
+
+    function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
+      return m.itemScroller.moveUsingFlowAnim(index, nextIndex, direction)
+    end function
+
+    function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
+      m.itemScroller.setFocusIndex(index, isMoving, notifyFocusManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -254,6 +291,7 @@ namespace ml
 
     private function onKeyPressLeft() as boolean
       m.log.verbose("onKeyPressLeft")
+      m.itemScroller.isDoingLongPress = false
       if m.canScroll("left")
         return m.itemScroller.moveFromPress(-1)
       end if
@@ -262,6 +300,7 @@ namespace ml
 
     private function onKeyPressRight() as boolean
       m.log.verbose("onKeyPressRight")
+      m.itemScroller.isDoingLongPress = false
       if m.canScroll("right")
         return m.itemScroller.moveFromPress(1)
       end if
@@ -288,6 +327,7 @@ namespace ml
       ? " ON LONG PRESS START "; key
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
+        m.itemScroller.isDoingLongPress = true
         if key = "left"
           m.itemScroller.moveToEnd(-1, true, true)
         else
@@ -301,9 +341,11 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
+
+      m.itemScroller.isDoingLongPress = false
       if key = "left" or key = "right"
         m.log.verbose("long press finished on key", key)
-        m.itemScroller.finishAnimating()
+        m.itemScroller.cancelScrolling()
         return true
       end if
 
