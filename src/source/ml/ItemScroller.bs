@@ -635,14 +635,21 @@ namespace ml
       end if
 
       ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
-      ' row = m.viewManager.visibleComponents[m.index]
-      ' if row <> invalid and row.isMultiRow = true
-      '   ? "finished in grid"
-      '   return false
-      ' end if
+      ' row = m.viewManager.visibleComponents[m.nextIndex - m.direction]
+      row = m.viewManager.visibleComponents[m.index]
+      ' ? ">>>>>>>>>>>>>>>>>>>"
+      ' ? "FINISHED SI "; m.subIndex ; " I " ; m.index ; " i " ; index
+      ' ? ">>>>>>>>>>>>>>>>>>>"
+      if m.subIndex <> -1 and row.isMultiRow and row@.canMoveRowUpDown(m.direction)
+        ? "finished in grid that can scroll in the current direction - let's finish up"
+        m.setTargetIndex(index)
+        m.focusedIndex = index
+        m.toggleScrolling(false)
+        return false
+      end if
 
       m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
-      ? "SET TARGET INDEX FROM FINISH MOVING TO INDEX"
+      ' ? "SET TARGET INDEX FROM FINISH MOVING TO INDEX"
       m.setTargetIndex(index)
 
       'TODO - take into account floating focus
@@ -659,7 +666,7 @@ namespace ml
         return true
       end if
 
-      ? ">>>> START ANIM ; already scrolling - finish moving to index"
+      ' ? ">>>> START ANIM ; already scrolling - finish moving to index"
       'we are already scrolling
       m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
       m.moveAnimation.start()
