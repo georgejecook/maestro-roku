@@ -126,12 +126,14 @@ namespace ml
       else
         index = m.viewManager.numberOfItems - 1
       end if
-      ? "+++MVE TO END" ; m.__classname
+      ? "+++moveToEnd" ; m.__classname ; " I " ; m.index; " D "; direction
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(direction)
-        ? "Starting with a multi row move"
+        ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        ? "Starting with a multi row move" ; row@.getRowIndex()
+        ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         subRowIndex = row@.getRowIndex() + direction
-        m.moveToSubRowIndex(index, subRowIndex, animated, fast)
+        m.moveToSubRowIndex(index, subRowIndex, direction, animated, fast)
       else
         ? "Starting with a regular move"
         m.moveToIndex(index, animated, fast)
@@ -170,6 +172,7 @@ namespace ml
 
       subRowIndex = -1
 
+      ? " MOVE I " ; m.index ; " O " ; offset
       'first check if we are inside a grid
       row = m.viewManager.visibleComponents[m.index]
 
@@ -184,7 +187,7 @@ namespace ml
         if row@.canMoveRowUpDown(direction)
           ? "Doing a multi row move here"
           subRowIndex = row@.getRowIndex() + direction
-          return m.moveToSubRowIndex(m.index + offset, subRowIndex, animated, fast, direction)
+          return m.moveToSubRowIndex(m.index + offset, subRowIndex, direction, animated, fast)
         end if
       end if
 
@@ -399,22 +402,9 @@ namespace ml
     end function
 
     'variant of moveToIndex, which is used inside a multirow in a scrollable position
-    function moveToSubRowIndex(index as integer, subRowIndex as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer) as boolean
+    function moveToSubRowIndex(index as integer, subRowIndex as integer, direction as integer, animated = true as boolean, fast = false as boolean) as boolean
 
-      ? "AAAAAAAAAAAAAAAAAA " ; direction
-      if direction = invalid
-        direction = 0
-        if subRowIndex < m.subRowIndex
-          direction = -1
-        else
-          direction = 1
-        end if
-        ' if index < m.index
-        '   direction = -1
-        ' else
-        '   direction = 1
-        ' end if
-      end if
+      ? "moveToSubRowIndex "; subRowIndex; " D " ; direction
 
       'get row at current index
       row = m.viewManager.visibleComponents[m.index]
@@ -749,7 +739,7 @@ namespace ml
       ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
 
       if row <> invalid and row.isMultiRow = true
-        subRowIndex = row@.getSubRowIndexAtPosition(position, m.direction)
+        subRowIndex = row@.getSubIndexAtPosition(position, m.direction)
         if subRowIndex <> invalid and subRowIndex <> m.subRowIndex
           ? "SUB INDEX CHANGED " ; m.subRowIndex ; " -> "; subRowIndex
           m.subRowIndex = subRowIndex
@@ -817,7 +807,7 @@ namespace ml
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(m.direction)
         subRowIndex = row@.getRowIndex() + m.direction
         ? "continuing multi row move to next index" ; subRowIndex
-        m.moveToSubRowIndex(m.targetIndex, subRowIndex, true)
+        m.moveToSubRowIndex(m.targetIndex, subRowIndex, m.direction, true)
       else
         ? "continuing regular move"
         m.moveToIndex(m.targetIndex, true, true)
