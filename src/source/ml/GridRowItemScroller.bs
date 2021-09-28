@@ -128,12 +128,12 @@ namespace ml
         direction = -1
       end if
 
-      ' if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
-      '   ? "+++MOVE FFFF"
-      '   'TODO - we might want to detect this at the list, and have a cache of next move there
-      '   m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
-      '   return false
-      ' end if
+      if m.direction = direction and m.viewManager.isScrolling and not m.isDoingLongPress
+        ? "+++DOING REPEAT SCROLL - ignoring"
+        'TODO - we might want to detect this at the list, and have a cache of next move there
+        m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
+        return false
+      end if
 
       index = m.getValidTargetIndex(index, direction)
 

@@ -773,20 +773,24 @@ namespace ml
           return
         end if
 
-        actualPos = m.container.translation[m.axes]
-        fraction = m.focusManager.onContainerPositionChange(actualPos)
-        ' ? "++ start "; m.scrollStartIndex ; " I " ; m.index ; " posI " ; index
-        'going backward requires us to increase the index, as we're always one off
-        if m.direction = -1
-          index += 1
-        end if
-        if index <> m.index and index <> m.targetIndex
-          ' ? " CHANGE INDEX " ; index
-          if m.scrollStartIndex <> m.index 'this stops a premature call to didFinishScrolling
-            m.focusManager.onFocusAnimationUpdate(1)
+        if m.subIndex <> -1
+          'TODO - get the position of the container for
+        else
+          actualPos = m.container.translation[m.axes]
+          fraction = m.focusManager.onContainerPositionChange(actualPos)
+          ' ? "++ start "; m.scrollStartIndex ; " I " ; m.index ; " posI " ; index
+          'going backward requires us to increase the index, as we're always one off
+          if m.direction = -1
+            index += 1
           end if
+          if index <> m.index and index <> m.targetIndex
+            ' ? " CHANGE INDEX " ; index
+            if m.scrollStartIndex <> m.index 'this stops a premature call to didFinishScrolling
+              m.focusManager.onFocusAnimationUpdate(1)
+            end if
 
-          m.setFocusIndex(index, true)
+            m.setFocusIndex(index, true)
+          end if
         end if
       else
         m.focusManager.onFocusAnimationUpdate(fraction)
