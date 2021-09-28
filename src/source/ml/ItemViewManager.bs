@@ -172,7 +172,7 @@ namespace ml
             end if
           end if
         else
-          ? "comp index not set!"
+          ' ? "comp index not set!"
         end if
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
@@ -222,6 +222,7 @@ namespace ml
       end if
 
       renderedIndexes = m.getRenderedIndexes(direction, index)
+      ' ? " ++++ renderedIndexes " ; renderedIndexes ; " I " ; index ; " D "; direction ; " " ; m.__classname
 
       if (m.lastRenderedIndexes <> invalid) and m.lastRenderedIndexes.startIndex = renderedIndexes.startIndex and m.lastRenderedIndexes.endIndex = renderedIndexes.endIndex
         ' this is the same set of comps as last time
@@ -274,25 +275,32 @@ namespace ml
       end if
 
       ' 'bs:disable-next-line
-      ' if m.row <> invalid
-      '   ? "++ROW "; m.lookAheadDistance ; "  " ; m.lookBehindDistance
-      ' end if
-      return {
+      indexes = {
         startIndex: m.getIndexAtPosition(beforePos, direction)
         endIndex: m.getIndexAtPosition(afterPos, direction)
       }
+
+      'couple of hacky fixes - need to work out how it get's in this state
+      if indexes.startIndex = indexes.endIndex and indexes.startIndex = 0
+        indexes.endIndex = 1
+      end if
+      if indexes.startIndex = indexes.endIndex and indexes.startIndex = 1
+        indexes.startIndex = 0
+      end if
+      return indexes
     end function
 
     function createRenderedStateMap(direction as integer, index as integer, renderedIndexes as integer)
       m.log.method("createRenderedStateMap", m.__className, index, renderedIndexes)
       renderedStateMap = {}
 
+      ' ?  ">>>>> CRSM "; m.numberOfItems ; " " ; m.__classname
       if m.numberOfItems = 0
         return {}
       end if
 
       ' ? "++++++++++++++++++++"
-      ' ? "m.lastRenderedIndexes" ; m.lastRenderedIndexes
+      ' ? "m.lastRenderedIndexes" ; m.lastRenderedIndexes ; " " ; m.__classname
       m.updateRenderStateMap(renderedStateMap, m.lastRenderedIndexes.startIndex, m.lastRenderedIndexes.endIndex, m.componentBufferMode)
       m.updateRenderStateMap(renderedStateMap, renderedIndexes.startIndex, renderedIndexes.endIndex, "rendered")
       return renderedStateMap
