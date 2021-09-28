@@ -230,19 +230,63 @@ namespace ml
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
-    override function getFlowScreenPosition(index as integer, direction as integer)
-      itemRect = m.rects[index]
+    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer)
+      ' itemRect = m.rects[rowIndex]
+      ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
+      gridRowHeight = m.getHeightOfGridRow()
+      rowOffset = m.getRowOffset(rowIndex)
+      rowOffset += m.contentGroup.translation[1]
 
-      if itemRect <> invalid
-        'TODO screenPos to pass to this function
-        screenPos = m.getScreenPositionForItem(itemRect, direction, false, invalid)
-        return screenPos
+      ' ? " m.screenRect.translation[1] "; m.screenRect.translation[1]
+      sStart = m.screenRect.translation[1]
+      ' ? " gridRowHeight " ; gridRowHeight
+      sEnd = sStart + gridRowHeight
+      ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY "; m.screenRect.translation[1] ; m.screenRect.translation[1] ; " sSize " ; gridRowHeight
+
+      if rowOffset <> invalid
+        cStart = rowOffset
+        cEnd = cStart + m.settings.rowHeight + m.settings.space
+        ' ? "rect cS "; cStart ; " cE "; cEnd
+        if (cStart >= sStart and cStart <= sEnd) and (cEnd >= sStart and cEnd <= sEnd)
+          'TODO screenPos to pass to this function
+          '1. get the pos if scrolling down
+          '2. is it on screen? great, that's the position we will use
+          '3. is it not on screen? - okay - we need to scroll to it
+          ? "SCREEN POS IN THIS CASE IS "; rowOffset
+          return rowOffset
+        else
+          ? "row "; rowIndex ; " IS NOT ON SCREEN! "
+        end if
       end if
       return invalid
     end function
 
+    private function getHeightOfGridRow()
+      numRows = mc.clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
+      return numRows * (m.settings.rowHeight + m.settings.space) + m.settings.headerSettings.height
+    end function
+
+    private function getLastRowOffset() as integer
+      if m.rowOffsets.count() > 0
+        return m.rowOffsets[m.rowOffsets.count() - 1]
+      else
+        return 0
+      end if
+    end function
+
+    private function getRowOffset(index as integer) as integer
+      if m.rowOffsets.count() > index
+        return m.rowOffsets[index]
+      else
+        return 0
+      end if
+    end function
+
     override function getComponentsInViewPort(startOffset as integer)
       compStates = {}
+      'NOTE - for now, all grid items are on screen - we can tighten it up later
 
       ' sStart = m.screenRect.translation[m.axes] + startOffset
       ' sEnd = sStart + m.screenRect.size[m.axes]

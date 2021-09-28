@@ -120,7 +120,7 @@ namespace ml
       return m.itemScroller.currentRowIndex
     end function
 
-    public function getMaxSubIndex() as integer
+    public function getMaxSubRowIndex() as integer
       return m.viewManager.rowOffsets.count()
     end function
 
@@ -130,6 +130,10 @@ namespace ml
 
     function getSubIndexAtPosition(position as integer, direction as integer) as integer
       return m.viewManager.getSubIndexAtPosition(position, direction)
+    end function
+
+    function getIndexByAddingOffset(offset as integer) as integer
+      return m.itemScroller.getIndexByAddingOffset(offset)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -228,8 +232,8 @@ namespace ml
       return m.viewManager.getScreenPositionForItem(itemRect, direction, isFixed, screenPos)
     end function
 
-    function getFlowScreenPosition(index as integer, direction as integer)
-      return m.viewManager.getFlowScreenPosition(index, direction)
+    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer)
+      return m.viewManager.getSubRowFlowScreenPosition(rowIndex, direction)
     end function
 
     function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
@@ -238,6 +242,10 @@ namespace ml
 
     function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
       m.itemScroller.setFocusIndex(index, isMoving, notifyFocusManager)
+    end function
+
+    function getRowIndexUpDown(direction as integer) as integer
+      return m.getIndexByAddingOffset(direction * m.settings.numColumns)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

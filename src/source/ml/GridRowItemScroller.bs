@@ -17,7 +17,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveRowUpDown(direction as integer)
-      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols
+      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
       canMove = m.viewManager.numberOfItems > 0 and ((direction = -1 and m.index >= m.viewManager.numCols) or (direction = 1 and m.index < m.viewManager.numberOfItems - m.viewManager.numCols))
       ? "CAN MOVE ROW UP DOWN" ; canMove
       return canMove
@@ -30,6 +30,8 @@ namespace ml
     public override function onViewManagerUpdate()
       super.onViewManagerUpdate()
       ' m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
+      'grids are always floating focus
+      m.isFloatingFocus = true
     end function
 
     override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
@@ -72,7 +74,7 @@ namespace ml
 
     protected override function setIndex(index as integer)
       super.setIndex(index)
-      m.currentRowIndex = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
+      m.currentRowIndex = fix(index / m.viewManager.numCols)
     end function
 
     override function onFlowFocusFraction(fraction as float)
