@@ -15,6 +15,7 @@ namespace ml
     public focusManager ' this MUST be set before doing anything
     public moveAnimation
     public isMovingMultiple = false
+    public isFinishingScroll = false
 
     'rendered component maps
     public RCMap = {}
@@ -142,15 +143,6 @@ namespace ml
     end function
 
     function moveFromPress(offset as integer, forceSequential = true as boolean) as boolean
-      index = m.index + offset
-
-      if offset > 0 and m.index = m.viewManager.numberOfItems - 1
-        m.log.info("already at end")
-        return false
-      else if index < 0
-        m.log.info("already at start")
-        return false
-      end if
       return m.move(offset, true, true, forceSequential)
     end function
 
@@ -192,41 +184,42 @@ namespace ml
       end if
 
       index = m.index + offset
-      ' ? "+++MOVE TO " ; index
+      ? "+++MOVE TO " ; index
 
       if offset > 0
-        ' ? "+++MOVE AAAA"
+        ? "+++MOVE AAAA"
         if m.index = m.viewManager.numberOfItems - 1
           m.log.info("already at end")
-          ' ? "+++MOVE BBBB"
+          ? "+++MOVE BBBB"
           return false
         end if
         direction = 1
       else
-        ' ? "+++MOVE CCCC"
+        ? "+++MOVE CCCC"
         if index = -1
           m.log.info("already at start")
-          ' ? "+++MOVE DDDD"
+          ? "+++MOVE DDDD"
           return false
         end if
-        ' ? "+++MOVE EEEE"
+        ? "+++MOVE EEEE"
         direction = -1
       end if
 
+      'TODO - move this into individual controls
       if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
-        ' ? "+++MOVE FFFF"
+        ? "+++MOVE FFFF"
         'TODO - we might want to detect this at the list, and have a cache of next move there
         ' m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
         return false
       end if
 
-      ' ? "+++MOVE GGGG"
+      ? "+++MOVE GGGG"
       index = m.getValidTargetIndex(index, direction)
 
       ' m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
 
       if index <> -1
-        ' ? "+++MOVE HHHH"
+        ? "+++MOVE HHHH"
         m.moveToIndex(index, animated, fast, direction, forceSequential)
       end if
 
@@ -261,6 +254,7 @@ namespace ml
 
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
+      m.isFinishingScroll = false
 
       if direction = invalid
         direction = 0
@@ -302,15 +296,15 @@ namespace ml
       'floating focus is not supported outside of grids, at this time
 
       if false and m.isFloatingFocus
-        ' ? "FLOATING!! " ; forceSequential
+        ? "FLOATING!! " ; forceSequential
         if forceSequential
-          ' ? "A1 " ; nextIndex ; " " ; direction
+          ? "A1 " ; nextIndex ; " " ; direction
           nextFlowPosition = m.viewManager.getFlowScreenPosition(nextIndex, direction)
         else
-          ' ? "A2 " ; index ; " " ; direction
+          ? "A2 " ; index ; " " ; direction
           nextFlowPosition = m.viewManager.getFlowScreenPosition(index, direction)
         end if
-        ' ? "NFP: "; nextFlowPosition
+        ? "NFP: "; nextFlowPosition
       end if
 
       m.direction = direction
@@ -329,16 +323,16 @@ namespace ml
         end if
         isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
       else
-        ' ? "***FLOW POS"
+        ? "***FLOW POS"
         isMoveRequired = false
       end if
 
-      ' ? "SET TARGET INDEX MOVE TO INDEX"
+      ? "SET TARGET INDEX MOVE TO INDEX"
       m.setTargetIndex(index)
       m.scrollStartIndex = m.index
 
-      ' ? "CCC " ; isMoveRequired ; " SP " ; screenPos
-      ' ? "DDD " ; nextFlowPosition
+      ? "CCC " ; isMoveRequired ; " SP " ; screenPos
+      ? "DDD " ; nextFlowPosition
       ' m.log.info("moving", m.container.translation[m.axes], " > ", targetTranslation[m.axes], " pixels. animated? ", animated)
       ' m.viewManager.owner@.cancelFlowFocus()
 
@@ -374,10 +368,10 @@ namespace ml
 
         ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(targetTranslation)
         m.toggleScrolling(true)
-        ' ? ":0000"
+        ? ":0000"
         m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        ' ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
+        ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
         m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
         m.moveAnimation.start()
       else
@@ -404,6 +398,7 @@ namespace ml
     'variant of moveToIndex, which is used inside a multirow in a scrollable position
     function moveToSubRowIndex(index as integer, subRowIndex as integer, direction as integer, animated = true as boolean, fast = false as boolean) as boolean
 
+      m.isFinishingScroll = false
       ? "moveToSubRowIndex "; subRowIndex; " D " ; direction
 
       'get row at current index
@@ -428,13 +423,13 @@ namespace ml
       ' itemRect = m.viewManager.rects[index]
       if itemRect <> invalid and itemRect.screenPos <> invalid
         screenPos = itemRect.screenPos
-        ' ? "MTI: USE RECT SCREEN POS "; screenPos
+        ? "MTI: USE RECT SCREEN POS "; screenPos
       else
         screenPos = m.viewManager.owner.focusScreenPosition[1]
         if screenPos < 0
           screenPos = 0
         end if
-        ' ? "MTI: USE CURRENT screen POS "; screenPos
+        ? "MTI: USE CURRENT screen POS "; screenPos
       end if
 
       nextFlowPosition = invalid
@@ -483,8 +478,8 @@ namespace ml
       m.setTargetIndex(index)
       m.scrollStartIndex = m.index
 
-      ' ? "CCC " ; isMoveRequired ; " SP " ; screenPos
-      ' ? "DDD " ; nextFlowPosition
+      ? "CCC " ; isMoveRequired ; " SP " ; screenPos
+      ? "DDD " ; nextFlowPosition
       m.log.info("moving", m.container.translation[m.axes], " > ", targetTranslation[m.axes], " pixels. animated? ", animated)
       if animated
         '////////////////////////////////////////////////////////////////////////
@@ -521,12 +516,12 @@ namespace ml
         ? "3.b regular container anim"
         ? ">>>> START ANIM ; regular container anim - move to subRowindex"
         m.toggleScrolling(true)
-        ' ? ":0000"
+        ? ":0000"
         'THIS SHOULD BE CALLED ON THE ROW
         row@.setFocusIndex(nextSubRowIndex, true)
         'THIS IS PROBABLY - set SUB FOCUS INDEX...
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        ' ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
+        ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
         m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
         m.moveAnimation.start()
       else
@@ -565,7 +560,7 @@ namespace ml
     end function
 
     function onFlowFocusFraction(fraction as float)
-      ' ? "on FLow fraction"; fraction ; m.__classname
+      ? "on FLow fraction"; fraction ; m.__classname
       ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
 
       if fraction = 1
@@ -646,13 +641,14 @@ namespace ml
       end if
 
       m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
-      ' ? "SET TARGET INDEX FROM FINISH MOVING TO INDEX"
+      ? "SET TARGET INDEX FROM FINISH MOVING TO INDEX"
       m.setTargetIndex(index)
 
       'TODO - take into account floating focus
       isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
       'can only be animated
       m.animSpeed = m.settings.animSpeed
+      m.isFinishingScroll = true
       if not isMoveRequired
         if m.focusedIndex = index
           m.log.info("already in place")
@@ -663,7 +659,7 @@ namespace ml
         return true
       end if
 
-      ' ? ">>>> START ANIM ; already scrolling - finish moving to index"
+      ? ">>>> START ANIM ; already scrolling - finish moving to index"
       'we are already scrolling
       m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
       m.moveAnimation.start()
@@ -692,21 +688,21 @@ namespace ml
 
       nextRect = m.viewManager.rects[m.nextIndex]
       screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, not m.isFloatingFocus, m.screenPos)
-      ' ? " NEXT INDEX " ; index ; " SP " ; m.screenPos ; " nao " ; screenPos
+      ? " NEXT INDEX " ; index ; " SP " ; m.screenPos ; " nao " ; screenPos
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
       if nextTranslation <> invalid
         m.nextPosition = nextTranslation[m.axes]
       else
-        ' ? "COULD NOT GET NEXT POSITION - USING INDEX POS"
+        ? "COULD NOT GET NEXT POSITION - USING INDEX POS"
         m.nextPosition = m.indexPosition
       end if
     end function
 
     function stopAnimating()
-      ' ? "+++++++++++++++++++++"
-      ' ? "STOP ANIMAGING"
+      ? "+++++++++++++++++++++"
+      ? "STOP ANIMAGING"
       m.moveAnimation.stop(false)
       ' m.moveAnimation.pause()
       m.toggleScrolling(false)
@@ -763,11 +759,11 @@ namespace ml
           ' m.setTargetIndex(-1)
           m.toggleScrolling(false)
         end if
-      else if m.isMovingMultiple
+      else if m.isMovingMultiple or m.isFinishingScroll
         ' ? " D " ; m.direction ; " m.I " ; m.index ; " I "; index ; " DIFF " ; abs(m.index - index)
 
         if (m.direction = -1 and (index >= m.index)) or (m.direction = 1 and (index < m.index))
-          ' ? " skipping focus calc error"
+          ? " skipping focus calc error"
           return
         end if
 
@@ -782,7 +778,7 @@ namespace ml
             index += 1
           end if
           if index <> m.index and index <> m.targetIndex
-            ' ? " CHANGE INDEX " ; index
+            ? " CHANGE INDEX " ; index
             if m.scrollStartIndex <> m.index 'this stops a premature call to didFinishScrolling
               m.focusManager.onFocusAnimationUpdate(1)
             end if
@@ -791,6 +787,7 @@ namespace ml
           end if
         end if
       else
+        'simple one keypress case
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
 
@@ -827,7 +824,8 @@ namespace ml
     function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
-      ' ? "~~~SFI "; index ; " moving "; isMoving ; " sp "; screenPos ; " d "; m.direction
+      ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
+
       if index = -1
         m.setIndex(0)
         m.activeOffset = m.nextActiveOffset
@@ -972,5 +970,20 @@ namespace ml
 
       m.targetIndex = index
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function canMove(direction as integer) as boolean
+      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
+
+      row = m.viewManager.visibleComponents[m.index]
+      if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(direction)
+        return true
+      end if
+      return (direction = -1 and m.index > -1) or direction = 1 and m.index < m.viewManager.numberOfItems - 1
+    end function
+
   end class
 end namespace

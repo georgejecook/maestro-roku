@@ -14,6 +14,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer) as void
+      m.log.info("setFocusOnRenderer", isMoving, index)
       row = invalid
       ' if isMoving
       '   return
@@ -26,6 +27,8 @@ namespace ml
 
       if row <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
         mv.setFocus(row)
+      else
+        m.log.warn("not setting focus on", index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if
     end function
 

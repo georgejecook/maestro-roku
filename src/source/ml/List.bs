@@ -111,6 +111,7 @@ namespace ml
     private dummyFocusView
     private dummyFocusAnim
     private activeFocusSettings
+    private previousFocusSettings
     private rowHasIndicator = true
     private isFocusSettingsChangePending = false
     private minFocusChangeFraction = 0.5
@@ -329,6 +330,10 @@ namespace ml
       end if
     end function
 
+    public function onFlowFocusFraction(fraction as float)
+      m.itemScroller.onFlowFocusFraction(fraction)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ focus index callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -343,7 +348,7 @@ namespace ml
       row = m.getRowRenderer(index)
       if row <> invalid
         m.preprareFocusSettings([index, row.focusedCellIndex], [index, row.focusedCellIndex])
-        m.applyFocusSettings(m.activeFocusSettings)
+        m.applyFocusSettings(m.activeFocusSettings, true)
         m.moveFocusIndicatorToTargetPosition(1)
       end if
     end function
@@ -359,9 +364,12 @@ namespace ml
         return
       end if
 
-      if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
-        m.applyFocusSettings(m.activeFocusSettings)
+      if fraction = 1
+        m.applyFocusSettings(m.activeFocusSettings, true)
+      else if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
+        m.applyFocusSettings(m.activeFocusSettings, false)
       end if
+
 
       m.moveFocusIndicatorToTargetPosition(fraction)
     end function
@@ -403,9 +411,11 @@ namespace ml
         return
       end if
 
-      m.activeFocusSettings = m.targetFocusRect.settings
+      m.setActiveFocusSettings(m.targetFocusRect.settings)
       if m.activeFocusSettings.feedbackStyle = "none"
         m.rowHasIndicator = false
+        m.focusIndicator.visible = false
+      else if m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
@@ -414,14 +424,23 @@ namespace ml
       m.isFocusSettingsChangePending = true
     end function
 
+    private function setActiveFocusSettings(newSettings as mc.types.node)
+      m.previousFocusSettings = m.activeFocusSettings
+      m.activeFocusSettings = newSettings
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Moving/Applying focus settings
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
-    private function applyFocusSettings(focusSettings as mc.types.node) as void
-      if focusSettings.feedbackStyle = "none"
+    private function applyFocusSettings(focusSettings as mc.types.node, isFinal as boolean) as void
+      if focusSettings = invalid
+        return
+      end if
+      'note - we don't show the focus indicator till we're in place, if the last row was hidden
+      if focusSettings.feedbackStyle = "none" or (not isFinal and (m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"))
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else
@@ -481,7 +500,7 @@ namespace ml
 
       m.sourceFocusRect = m.getFocusRect(sourceIndex)
       m.targetFocusRect = m.getFocusRect(targetIndex)
-      m.activeFocusSettings = m.targetFocusRect.settings
+      m.setActiveFocusSettings(m.targetFocusRect.settings)
       m.focusScreenPosition = m.targetFocusRect.indicatorTranslation
 
       'TODO - finish animation if existing delegate
@@ -504,7 +523,7 @@ namespace ml
         return
       end if
 
-      m.activeFocusSettings = m.targetFocusRect.settings
+      m.setActiveFocusSettings(m.targetFocusRect.settings)
 
       m.isFocusSettingsChangePending = true
     end function
@@ -520,11 +539,13 @@ namespace ml
       if m.flowFocusDelegate <> invalid
         m.moveFocusIndicatorToTargetPosition(fraction)
         if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
-          m.applyFocusSettings(m.activeFocusSettings)
+          m.applyFocusSettings(m.activeFocusSettings, false)
         end if
 
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
         if fraction = 1
+          m.applyFocusSettings(m.activeFocusSettings, true)
+          'Consider that we might have gone from none
           m.isDoingFlowFocus = false
           ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple
           if m.itemScroller.targetIndex <> -1 and m.itemScroller.isMovingMultiple
@@ -534,6 +555,7 @@ namespace ml
       else
         m.moveFocusIndicatorToTargetPosition(fraction)
         if fraction = 1
+          m.applyFocusSettings(m.activeFocusSettings, true)
           m.isDoingFlowFocus = false
         end if
       end if
@@ -546,7 +568,7 @@ namespace ml
 
     private function onKeyPressUp() as boolean
       m.log.verbose("onKeyPressUp")
-      if m.itemScroller.index > -1
+      if m.itemScroller.canMove(-1)
         ' return m.itemScroller.move(-1)
         return m.itemScroller.moveFromPress(-1)
       else
@@ -568,7 +590,7 @@ namespace ml
 
     private function onKeyPressDown() as boolean
       m.log.verbose("onKeyPressDown")
-      if m.itemScroller.index < m.viewManager.numberOfItems - 1
+      if m.itemScroller.canMove(1)
         return m.itemScroller.moveFromPress(1)
       else
         return false
@@ -577,7 +599,7 @@ namespace ml
 
     private function getLongPressIntervalForKey(key as string) as float
       m.log.verbose("getLongPressIntervalForKey", key)
-      if (key = "up" and m.itemScroller.index > 0) or (key = "down" and m.itemScroller.index < m.viewManager.numberOfItems - 1)
+      if (key = "up" and m.itemScroller.canMove(-1)) or (key = "down" and m.itemScroller.canMove(1))
         return 0.2
       else
         return 0
@@ -587,7 +609,7 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
-      if (key = "up" and m.itemScroller.index > 0) or (key = "down" and m.itemScroller.index < m.viewManager.numberOfItems - 1)
+      if (key = "up" and m.itemScroller.canMove(-1)) or (key = "down" and m.itemScroller.canMove(1))
         if key = "up"
           m.log.verbose("long press started on key", key, "going to animate to start of list")
           return m.itemScroller.moveToEnd(-1)
@@ -617,10 +639,11 @@ namespace ml
       super.onGainedFocus(isSelfFocused)
       m.isIndicatorHidden = false
       if isSelfFocused
-        ? " ON GAINED FOCUS VIS"
         m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings.feedbackStyle <> "none"
+        ? " ON GAINED FOCUS "
         row = m.getRowRenderer(m.focusedRowIndex)
         if row <> invalid
+          ? " SETTING FOCUS ONTO ROW "
           mv.setFocus(row)
         end if
       end if
