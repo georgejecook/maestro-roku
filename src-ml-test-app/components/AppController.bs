@@ -2,6 +2,7 @@ import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/DebugTimer.bs"
+
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Initialization
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -82,8 +83,14 @@ end function
 function onFirstShow()
   m.log.info("onFirstShow")
   prebakeCells()
-  screen = mc.createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
-  ' screen = mc.createSGNode("RowListScreen", m.top.findNode("contentGroup"), "listScreen")
-  mv.setFocus(screen)
+  m.screen = mc.createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
+  ' m.screen = mc.createSGNode("RowListScreen", m.top.findNode("contentGroup"), "listScreen")
+  mv.setFocus(m.screen)
   m.loadingIndicator.isActive = false
+end function
+
+function onGainedFocus(isSelfFocused as boolean)
+  if isSelfFocused and m.screen <> invalid
+    mv.setFocus(m.screen)
+  end if
 end function
