@@ -347,7 +347,15 @@ namespace ml
       if m.axes = 0
         return [- targetPos, m.container.translation[1]]
       else
-        return [m.container.translation[0], - targetPos]
+        translation = [m.container.translation[0], - targetPos]
+        if direction = -1
+          row = m.visibleComponents[index]
+          if row <> invalid and row.isMultiRow
+            offset = row@.getTargetYOffsetForRow(row@.getRowIndex(), direction)
+            translation[1] -= offset
+          end if
+        end if
+        return translation
       end if
 
     end function

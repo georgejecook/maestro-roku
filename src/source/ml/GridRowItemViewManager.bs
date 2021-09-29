@@ -170,7 +170,7 @@ namespace ml
               m.container.appendChild(cell)
               m.cellsById[id] = cell
             else
-'              ? ">>ERR no cell for " ; settings.compName
+              '              ? ">>ERR no cell for " ; settings.compName
             end if
           end if
           if cell <> invalid
@@ -266,14 +266,17 @@ namespace ml
     end function
 
     function getTargetYOffsetForRow(index as integer, direction as integer) as integer
-
+      ? " getTargetYOffsetForRow "; index ; " d "; direction
+      if index = 0 and direction = 1
+        return 0
+      end if
       rect = m.getScreenRect(index, invalid, direction)
       screenY = rect.translation[1]
 
-'      ? " >>>>>>>> "; index ; " direction" direction
+      '      ? " >>>>>>>> "; index ; " direction" direction
       rowPos = m.getRowOffset(index)
       offset = rowPos - screenY
-'      ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
+      '      ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
       return offset
       ' if direction = -1
       '   offset = m.getRowOffset(index)
@@ -342,7 +345,7 @@ namespace ml
             '   end if
           end if
         else
-'          ? "comp index not set!"
+          '          ? "comp index not set!"
         end if
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
@@ -394,9 +397,11 @@ namespace ml
     end function
 
     override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      'Super crude for time being
       rect = m.getRect(index, true)
-      if direction = -1
+      'Super crude for time being
+      if index = 0 and direction <> -1
+        offset = 0
+      else if direction = -1
         offset = 0
       else if m.rowOffsets.count() < m.settings.numRows
         offset = m.rowOffsets[m.rowOffsets.count() - 1]

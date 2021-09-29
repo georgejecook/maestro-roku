@@ -255,6 +255,7 @@ namespace ml
 
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
+      ? " MTI " ; index ; " d " ; direction
       m.isFinishingScroll = false
 
       if direction = invalid
@@ -401,7 +402,7 @@ namespace ml
     function moveToSubRowIndex(index as integer, subRowIndex as integer, direction as integer, animated = true as boolean, fast = false as boolean) as boolean
 
       m.isFinishingScroll = false
-      '      ? "moveToSubRowIndex "; subRowIndex; " D " ; direction
+      ? "moveToSubRowIndex "; subRowIndex; " D " ; direction
 
       'get row at current index
       row = m.viewManager.visibleComponents[m.index]
@@ -416,8 +417,8 @@ namespace ml
       nextSubRowIndex = currentSubRowIndex + direction
       nextSubIndex = row@.getRowIndexUpDown(direction)
       '      ? "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-'      ? "SUB INDEX MOVE TO INDEX: I"; m.index; " "; "NI:"; nextSubRowIndex
-'      ? " CSRI" ; currentSubRowIndex ; " NSRI " ; nextSubRowIndex ; " NSI " ; nextSubIndex
+      '      ? "SUB INDEX MOVE TO INDEX: I"; m.index; " "; "NI:"; nextSubRowIndex
+      '      ? " CSRI" ; currentSubRowIndex ; " NSRI " ; nextSubRowIndex ; " NSI " ; nextSubIndex
       nextFlowPosition = invalid
       m.isMovingMultiple = abs(subRowIndex - currentSubRowIndex) > 1 or abs(index - m.index) > 1
 
@@ -435,9 +436,9 @@ namespace ml
       '      ? "2. ascertain if next item is on the screen NI: "; nextSubRowIndex; " given current screen offset of "; currentRowOffset
       '      ? ":::::::::::::::::::::::::::::::"
 
-'      ? " GETTING FLOW POS RT " ; row.translation[1] ; " CT " ;m.container.translation[1] ; " currentRowOffset "; currentRowOffset
+      '      ? " GETTING FLOW POS RT " ; row.translation[1] ; " CT " ;m.container.translation[1] ; " currentRowOffset "; currentRowOffset
       nextFlowPosition = row@.getSubRowFlowScreenPosition(nextSubRowIndex, direction, currentRowOffset)
-'      ? "NFP: "; nextFlowPosition
+      '      ? "NFP: "; nextFlowPosition
 
       m.direction = direction
       targetTranslation = [0, 0]
@@ -446,7 +447,7 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-'        ? "2.b - no flow pos"
+        '        ? "2.b - no flow pos"
         '      ? " :::::::::::::::::::::"
         targetTranslation = m.viewManager.getTargetTranslation(m.index, direction, m.screenPos)
         offset = row@.getTargetYOffsetForRow(subRowIndex, direction)
@@ -462,7 +463,7 @@ namespace ml
         end if
         isMoveRequired = targetTranslation[1] <> m.container.translation[1]
       else
-'        ? "2.b has flow pos"
+        '        ? "2.b has flow pos"
         isMoveRequired = false
       end if
 
