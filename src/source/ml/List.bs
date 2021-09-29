@@ -280,12 +280,12 @@ namespace ml
       return invalid
     end function
 
-    public function getCellScreenRect(rowIndex as integer, cellIndex as integer, rowScreenPos = invalid as integer, cellScreenPos = invalid as integer)
-      rowScreenRect = m.viewManager.getScreenRect(rowIndex, rowScreenPos)
+    public function getCellScreenRect(rowIndex as integer, cellIndex as integer, direction = 1 as integer, rowScreenPos = invalid as integer, cellScreenPos = invalid as integer)
+      rowScreenRect = m.getRowScreenRect(rowIndex, rowScreenPos, direction)
 
       row = m.getRowRenderer(rowIndex)
       if row <> invalid
-        rect = row@.getScreenRect(cellIndex, cellScreenPos)
+        rect = row@.getScreenRect(cellIndex, cellScreenPos, direction)
         if rect <> invalid
           ' rect.translation[1] += rowScreenRect.screenPos
         else
@@ -339,12 +339,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ? "ON NEXT CHANGE" ; index
+      '      ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
+      '      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
       row = m.getRowRenderer(index)
       if row <> invalid
         m.preprareFocusSettings([index, row.focusedCellIndex], [index, row.focusedCellIndex])
@@ -380,7 +380,7 @@ namespace ml
 
     private function getFocusRect(index as mc.types.array)
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
-      screenRect = m.getCellScreenRect(index[0], index[1])
+      screenRect = m.getCellScreenRect(index[0], index[1], m.itemScroller.direction)
 
       if screenRect = invalid
         return invalid
@@ -461,13 +461,15 @@ namespace ml
 
     private function moveFocusIndicatorToTargetPosition(fraction as float) as void
       if m.sourceFocusRect = invalid or m.targetFocusRect = invalid
-        ? "NO FOCUS RECTS! Ensure m.targetFocusRect and m.sourcefocusR3ct was set!"
+        '      ? "NO FOCUS RECTS! Ensure m.targetFocusRect and m.sourcefocusR3ct was set!"
         return
       end if
 
       if fraction = 1
         m.focusIndicator.translation = m.targetFocusRect.indicatorTranslation
         m.focusIndicator.size = m.targetFocusRect.indicatorSize
+'          ? "ACTIVE FOCUS POS IS NOW "; m.targetFocusRect.indicatorTranslation
+
       else
         translation = mc.interpolateArray(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation, fraction)
         size = mc.interpolateArray(m.sourceFocusRect.indicatorSize, m.targetFocusRect.indicatorSize, fraction)
@@ -484,7 +486,7 @@ namespace ml
 
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
       m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
-      ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
+      '      ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
       m.isDoingFlowFocus = true
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
@@ -494,7 +496,7 @@ namespace ml
       ' m.preprareFocusSettings([targetIndex[0], targetIndex[1]])
 
       if sourceIndex[0] = targetIndex[0] and sourceIndex[1] = targetIndex[1]
-        ? "SAME SKIP"
+        '      ? "SAME SKIP"
         return
       end if
 
@@ -547,7 +549,7 @@ namespace ml
           m.applyFocusSettings(m.activeFocusSettings, true)
           'Consider that we might have gone from none
           m.isDoingFlowFocus = false
-          ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple
+          '      ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple
           if m.itemScroller.targetIndex <> -1 and m.itemScroller.isMovingMultiple
             m.itemScroller.continueScrolling()
           end if
@@ -640,10 +642,10 @@ namespace ml
       m.isIndicatorHidden = false
       if isSelfFocused
         m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings.feedbackStyle <> "none"
-        ? " ON GAINED FOCUS "
+        '      ? " ON GAINED FOCUS "
         row = m.getRowRenderer(m.focusedRowIndex)
         if row <> invalid
-          ? " SETTING FOCUS ONTO ROW "
+          '      ? " SETTING FOCUS ONTO ROW "
           mv.setFocus(row)
         end if
       end if

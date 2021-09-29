@@ -170,7 +170,7 @@ namespace ml
               m.container.appendChild(cell)
               m.cellsById[id] = cell
             else
-              ? ">>ERR no cell for " ; settings.compName
+'              ? ">>ERR no cell for " ; settings.compName
             end if
           end if
           if cell <> invalid
@@ -230,20 +230,22 @@ namespace ml
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
-    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer)
+    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer, ownerOffset as integer)
       ' itemRect = m.rects[rowIndex]
-      ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
-      ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "::::::::::::::::::::::::::::::::::::::::::::::::::"
       ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
       gridRowHeight = m.getHeightOfGridRow()
       rowOffset = m.getRowOffset(rowIndex)
+      rowOffset += ownerOffset
       rowOffset += m.contentGroup.translation[1]
 
       ' ? " m.screenRect.translation[1] "; m.screenRect.translation[1]
-      sStart = m.screenRect.translation[1]
+      sStart = m.contentGroup.translation[1]
+      ' sStart = m.screenRect.translation[1]
+      '  + ownerOffset
       ' ? " gridRowHeight " ; gridRowHeight
       sEnd = sStart + gridRowHeight
-      ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY "; m.screenRect.translation[1] ; m.screenRect.translation[1] ; " sSize " ; gridRowHeight
+      ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY "; m.screenRect.translation[1] ; m.screenRect.translation[1] ; " sSize " ; gridRowHeight ; " oO " ; ownerOffset
 
       if rowOffset <> invalid
         cStart = rowOffset
@@ -254,13 +256,47 @@ namespace ml
           '1. get the pos if scrolling down
           '2. is it on screen? great, that's the position we will use
           '3. is it not on screen? - okay - we need to scroll to it
-          ? "SCREEN POS IN THIS CASE IS "; rowOffset
+          ' ? "SCREEN POS IN THIS CASE IS "; rowOffset
           return rowOffset
         else
-          ? "row "; rowIndex ; " IS NOT ON SCREEN! "
+          ' ? "row "; rowIndex ; " IS NOT ON SCREEN! "
         end if
       end if
       return invalid
+    end function
+
+    function getTargetYOffsetForRow(index as integer, direction as integer) as integer
+
+      rect = m.getScreenRect(index, invalid, direction)
+      screenY = rect.translation[1]
+
+'      ? " >>>>>>>> "; index ; " direction" direction
+      rowPos = m.getRowOffset(index)
+      offset = rowPos - screenY
+'      ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
+      return offset
+      ' if direction = -1
+      '   offset = m.getRowOffset(index)
+      ' else
+      '   'in this case get the position of the max row
+      '   ' offset = (m.settings.rowHeight + m.settings.space) * m.settings.numRows
+      '      ? "GOING DOWN GET BOTTOM EDGE"
+      '   if m.rowOffsets.count() < m.settings.numRows
+      '      ? "LESS THAN NUM ROWS _ GETTING LAST ROW"
+      '     offset = m.rowOffsets[m.rowOffsets.count() - 1]
+      '   else
+      '      ? "GETTING NUM ROWS OFFSET"
+      '     offset = m.rowOffsets[m.settings.numRows - 1]
+      '   end if
+      '   ' offset -= (m.screenRect.size[1] - (m.settings.rowHeight + m.settings.space))
+      ' end if
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>"
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>"
+      '      ? m.container.translation ; " " ; m.contentGroup.translation
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>"
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>"
+      ' offset -= m.container.translation[1]
+      ' return offset
     end function
 
     private function getHeightOfGridRow()
@@ -306,7 +342,7 @@ namespace ml
             '   end if
           end if
         else
-          ? "comp index not set!"
+'          ? "comp index not set!"
         end if
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
@@ -358,14 +394,16 @@ namespace ml
     end function
 
     override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
+      'Super crude for time being
       rect = m.getRect(index, true)
-      if rect <> invalid
-        if screenPos <> invalid
-          rect.translation[1] += screenPos
-        else
-          rect.translation[1] += m.settings.screenPos
-        end if
+      if direction = -1
+        offset = 0
+      else if m.rowOffsets.count() < m.settings.numRows
+        offset = m.rowOffsets[m.rowOffsets.count() - 1]
+      else
+        offset = m.rowOffsets[m.settings.numRows - 1]
       end if
+      rect.translation[1] = offset
 
       return rect
     end function

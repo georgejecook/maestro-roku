@@ -88,9 +88,9 @@ namespace ml
 
     public function moveRowUp() as boolean
       m.log.verbose("moveRowUp")
-      ? "aaaaaa"
+      '      ? "aaaaaa"
       if m.canMoveRow(-1) and m.itemScroller.index > m.content.settings.numColumns - 1
-        ? "bbbbb"
+        '      ? "bbbbb"
         return m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
       end if
       return false
@@ -98,9 +98,9 @@ namespace ml
 
     public function moveRowDown() as boolean
       m.log.verbose("moveRowDown")
-      ? "aaa"
+      '      ? "aaa"
       if m.canMoveRow(1) and m.itemScroller.index < m.content.getChildCount() - m.content.settings.numColumns
-        ? "bbbbb"
+        '      ? "bbbbb"
         return m.itemScroller.moveFromPress(m.content.settings.numColumns, false)
       end if
       return false
@@ -108,7 +108,7 @@ namespace ml
 
     public function canMoveRow(direction as integer)
       canMove = (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((direction = -1 and m.itemScroller.index > 0) or (direction = 1 and m.itemScroller.index < m._content.getChildCount() - 1))
-      ? "CAN MOVE ROW" ; canMove
+      '      ? "CAN MOVE ROW" ; canMove
       return canMove
     end function
 
@@ -135,6 +135,11 @@ namespace ml
     function getIndexByAddingOffset(offset as integer) as integer
       return m.itemScroller.getIndexByAddingOffset(offset)
     end function
+
+    function getTargetYOffsetForRow(index as integer, direction as integer) as integer
+      return m.viewManager.getTargetYOffsetForRow(index, direction)
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public api
@@ -216,10 +221,11 @@ namespace ml
 
     public override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
       rect = m.viewManager.getScreenRect(index, screenPos, direction)
-      ? " RECT " ; index ; " > "; formatJson(rect.translation)
+      '      ? " RECT " ; index ; " > "; formatJson(rect.translation)
       if rect <> invalid
         rect.translation[0] += m.settings.contentOffset[0]
         rect.translation[1] += m.contentGroup.translation[1]
+        '   ' rect.translation[1] = m.getTargetYOffsetForRow(index, direction)
       end if
       return rect
     end function
@@ -232,8 +238,8 @@ namespace ml
       return m.viewManager.getScreenPositionForItem(itemRect, direction, isFixed, screenPos)
     end function
 
-    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer)
-      return m.viewManager.getSubRowFlowScreenPosition(rowIndex, direction)
+    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer, containerOffset as integer)
+      return m.viewManager.getSubRowFlowScreenPosition(rowIndex, direction, containerOffset)
     end function
 
     function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
@@ -247,6 +253,18 @@ namespace ml
     function getRowIndexUpDown(direction as integer) as integer
       return m.getIndexByAddingOffset(direction * m.settings.numColumns)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ list animation hooks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public function setNextMoveIndex(fraction as float, direction as integer, notifyFocusManager = true as boolean)
+      m.itemScroller.setNextMoveIndex(fraction, direction, notifyFocusManager)
+    end function
+
+    public function updateMoveFraction(fraction as float, focusOnRenderer as boolean)
+      m.itemScroller.updateMoveFraction(fraction, focusOnRenderer)
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ header
@@ -332,7 +350,7 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       m.log.verbose(">>>>onLongPressStart", key)
-      ? " ON LONG PRESS START "; key
+      '      ? " ON LONG PRESS START "; key
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         m.itemScroller.isDoingLongPress = true

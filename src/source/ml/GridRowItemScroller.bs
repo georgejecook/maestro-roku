@@ -17,9 +17,9 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveRowUpDown(direction as integer)
-      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
+      '      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
       canMove = m.viewManager.numberOfItems > 0 and ((direction = -1 and m.index >= m.viewManager.numCols) or (direction = 1 and m.index < m.viewManager.numberOfItems - m.viewManager.numCols))
-      ? "CAN MOVE ROW UP DOWN" ; canMove
+      '      ? "CAN MOVE ROW UP DOWN" ; canMove
       return canMove
     end function
 
@@ -102,52 +102,82 @@ namespace ml
       else
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
-
     end function
 
     override function continueScrolling() as void
-      ? "CONTINUE - " ; m.direction
+      '      ? "CONTINUE - " ; m.direction
       if m.isDoingLongPress
         m.move(m.direction)
       end if
     end function
 
-    override function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
+    ' override function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
 
-      index = m.index + offset
+    '   index = m.index + offset
 
-      if offset > 0
-        if m.index = m.viewManager.numberOfItems - 1
-          m.log.info("already at end")
-          return false
-        end if
-        direction = 1
-      else
-        if index = -1
-          m.log.info("already at start")
-          return false
-        end if
-        direction = -1
+    '   if offset > 0
+    '     if m.index = m.viewManager.numberOfItems - 1
+    '       m.log.info("already at end")
+    '       return false
+    '     end if
+    '     direction = 1
+    '   else
+    '     if index = -1
+    '       m.log.info("already at start")
+    '       return false
+    '     end if
+    '     direction = -1
+    '   end if
+
+    '   if m.direction = direction and m.viewManager.isScrolling and not m.isDoingLongPress
+    '     ? "+++DOING REPEAT SCROLL - ignoring"
+    '     'TODO - we might want to detect this at the list, and have a cache of next move there
+    '     m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
+    '     return false
+    '   end if
+
+    '   index = m.getValidTargetIndex(index, direction)
+
+    '   m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
+
+    '   if index <> -1
+    '     m.moveToIndex(index, animated, fast, direction, forceSequential)
+    '   end if
+
+    '   return true
+    ' end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ list animation hooks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public function setNextMoveIndex(index as integer, direction as integer, notifyFocusManager = true as boolean)
+      m.direction = direction
+      m.setNextIndex(index)
+      m.toggleScrolling(true)
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      '      ? "==================================="
+      '      ? "Setting next move index " ; index ; " d "; direction
+      '      ? "==================================="
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      if notifyFocusManager
+        m.focusManager.setFocusPosition(m.index, 0, index, 0, direction)
       end if
-
-      if m.direction = direction and m.viewManager.isScrolling and not m.isDoingLongPress
-        ? "+++DOING REPEAT SCROLL - ignoring"
-        'TODO - we might want to detect this at the list, and have a cache of next move there
-        m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
-        return false
-      end if
-
-      index = m.getValidTargetIndex(index, direction)
-
-      m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
-
-      if index <> -1
-        m.moveToIndex(index, animated, fast, direction, forceSequential)
-      end if
-
-      return true
     end function
 
+    public function updateMoveFraction(fraction as float, focusOnRenderer as boolean)
+      ' ? "+>+>+ updateMoveFraction " ; fraction ; " " ; m.index ; " > " ; m.nextIndex
+      if fraction = 1
+        '      ? "FINISHED LIST CONTROLLED MOVE "
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.setIndex(m.nextIndex)
+        if focusOnRenderer
+          m.setFocusOnRenderer(false)
+        end if
+        m.toggleScrolling(false)
+      else
+        m.focusManager.onFocusAnimationUpdate(fraction)
+      end if
+    end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ private impl
