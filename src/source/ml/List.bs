@@ -281,6 +281,7 @@ namespace ml
     end function
 
     public function getCellScreenRect(rowIndex as integer, cellIndex as integer, direction = 1 as integer, rowScreenPos = invalid as integer, cellScreenPos = invalid as integer)
+      ? " getCellScreenRect " ; rowIndex ; "," ; cellIndex ; " d " ; direction
       rowScreenRect = m.getRowScreenRect(rowIndex, rowScreenPos, direction)
 
       row = m.getRowRenderer(rowIndex)
@@ -468,7 +469,7 @@ namespace ml
       if fraction = 1
         m.focusIndicator.translation = m.targetFocusRect.indicatorTranslation
         m.focusIndicator.size = m.targetFocusRect.indicatorSize
-'          ? "ACTIVE FOCUS POS IS NOW "; m.targetFocusRect.indicatorTranslation
+        '          ? "ACTIVE FOCUS POS IS NOW "; m.targetFocusRect.indicatorTranslation
 
       else
         translation = mc.interpolateArray(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation, fraction)
@@ -570,6 +571,11 @@ namespace ml
 
     private function onKeyPressUp() as boolean
       m.log.verbose("onKeyPressUp")
+      if m.itemScroller.direction = -1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
+        m.log.info("was already scrolling - ignoring")
+        return true
+      end if
+
       if m.itemScroller.canMove(-1)
         ' return m.itemScroller.move(-1)
         return m.itemScroller.moveFromPress(-1)
@@ -592,6 +598,11 @@ namespace ml
 
     private function onKeyPressDown() as boolean
       m.log.verbose("onKeyPressDown")
+      if m.itemScroller.direction = 1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
+        m.log.info("was already scrolling - ignoring")
+        return true
+      end if
+
       if m.itemScroller.canMove(1)
         return m.itemScroller.moveFromPress(1)
       else

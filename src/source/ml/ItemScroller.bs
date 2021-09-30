@@ -323,6 +323,22 @@ namespace ml
           m.log.error("cannot move! translation invalid for index", index)
           return false
         end if
+
+        row = m.viewManager.visibleComponents[index]
+        offset = 0
+        if row <> invalid and row.isMultiRow
+          ' ? "Moving into a multi-row"
+          if direction = -1
+            subRowIndex = row@.getMaxSubRowIndex() -1
+            offset = row@.getTargetYOffsetForRow(subRowIndex, direction)
+          else
+            'will focus on row 0
+          end if
+          'TODO - set the focus?
+        end if
+
+        ' ? " adding offset to translation "; offset
+        targetTranslation[1] -= offset
         isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
       else
         '      ? "***FLOW POS"
@@ -416,9 +432,9 @@ namespace ml
       currentSubRowIndex = row@.getRowIndex()
       nextSubRowIndex = currentSubRowIndex + direction
       nextSubIndex = row@.getRowIndexUpDown(direction)
-      '      ? "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
-      '      ? "SUB INDEX MOVE TO INDEX: I"; m.index; " "; "NI:"; nextSubRowIndex
-      '      ? " CSRI" ; currentSubRowIndex ; " NSRI " ; nextSubRowIndex ; " NSI " ; nextSubIndex
+      ' ? "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+      ' ? "SUB INDEX MOVE TO INDEX: I"; m.index; " "; "NI:"; nextSubRowIndex
+      ' ? " CSRI" ; currentSubRowIndex ; " NSRI " ; nextSubRowIndex ; " NSI " ; nextSubIndex
       nextFlowPosition = invalid
       m.isMovingMultiple = abs(subRowIndex - currentSubRowIndex) > 1 or abs(index - m.index) > 1
 
@@ -438,7 +454,7 @@ namespace ml
 
       '      ? " GETTING FLOW POS RT " ; row.translation[1] ; " CT " ;m.container.translation[1] ; " currentRowOffset "; currentRowOffset
       nextFlowPosition = row@.getSubRowFlowScreenPosition(nextSubRowIndex, direction, currentRowOffset)
-      '      ? "NFP: "; nextFlowPosition
+      ' ? "NFP: "; nextFlowPosition
 
       m.direction = direction
       targetTranslation = [0, 0]
@@ -447,13 +463,13 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-        '        ? "2.b - no flow pos"
+        ? "2.b - no flow pos"
         '      ? " :::::::::::::::::::::"
-        targetTranslation = m.viewManager.getTargetTranslation(m.index, direction, m.screenPos)
-        offset = row@.getTargetYOffsetForRow(subRowIndex, direction)
-        '      ? " target translation is "; targetTranslation
-        '      ? " WE ARE ADDING ON THIS OFFSET FOR ROW " ; offset
-        '      ? " :::::::::::::::::::::"
+        targetTranslation = m.viewManager.getTargetTranslation(m.index, direction)
+        offset = row@.getTargetYOffsetForRow(nextSubRowIndex, direction)
+        ? " target translation is " ; m.index; " sp " ; m.screenPos ; " >> "; formatJson(targetTranslation)
+        ? " WE ARE ADDING ON THIS OFFSET FOR ROW " ; offset
+        ? " :::::::::::::::::::::"
         'TODO - this should be an offset returned from the row
         targetTranslation[1] -= offset
 
