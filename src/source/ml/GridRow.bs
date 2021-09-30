@@ -225,7 +225,9 @@ namespace ml
       if rect <> invalid
         rect.translation[0] += m.settings.contentOffset[0]
         rect.translation[1] += m.contentGroup.translation[1]
-        '   ' rect.translation[1] = m.getTargetYOffsetForRow(index, direction)
+        if index < m.viewManager.numCols
+          rect.translation[1] += m.getTargetYOffsetForRow(index / m.viewManager.numCols, direction)
+        end if
       end if
       return rect
     end function

@@ -487,8 +487,6 @@ namespace ml
 
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
       m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
-      '      ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
-      m.isDoingFlowFocus = true
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
       '   m.flowFocusDelegate@.onFlowFocusFraction(1)
@@ -501,6 +499,8 @@ namespace ml
         return
       end if
 
+      ' ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
+      m.isDoingFlowFocus = true
       m.sourceFocusRect = m.getFocusRect(sourceIndex)
       m.targetFocusRect = m.getFocusRect(targetIndex)
       m.setActiveFocusSettings(m.targetFocusRect.settings)
@@ -573,6 +573,7 @@ namespace ml
       m.log.verbose("onKeyPressUp")
       if m.itemScroller.direction = -1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
         m.log.info("was already scrolling - ignoring")
+        ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
         return true
       end if
 
