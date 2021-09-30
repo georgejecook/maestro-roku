@@ -165,12 +165,12 @@ namespace ml
 
       subRowIndex = -1
 
-      '      ? " MOVE I " ; m.index ; " O " ; offset
+      ? " MOVE I " ; m.index ; " O " ; offset
       'first check if we are inside a grid
       row = m.viewManager.visibleComponents[m.index]
 
       if row <> invalid and row.isMultiRow
-        '      ? "INSIDE MULTI ROW"
+        ? "INSIDE MULTI ROW"
         if offset > 0
           direction = 1
         else
@@ -285,10 +285,18 @@ namespace ml
         screenPos = 0
       end if
 
+      row = m.viewManager.visibleComponents[index]
+
       nextFlowPosition = invalid
       m.isMovingMultiple = abs(index - m.index) > 1
-      m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
 
+      if row <> invalid and row.isMultiRow
+        m.screenPos = row@.getActiveScreenPos(m.direction)
+      else
+        m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
+      end if
+
+      ? "::::::::::::::::: screenPos" ; m.screenPos
       '////////////////////////////////////////////////////////////////////////
       ' 2. ascertain if the next item is on screen, and can be flow animated to
       '////////////////////////////////////////////////////////////////////////
@@ -324,7 +332,6 @@ namespace ml
         end if
 
         offset = 0
-        row = m.viewManager.visibleComponents[index]
         if row <> invalid and row.isMultiRow
           ' ? "Moving into a multi-row"
           if direction = -1
@@ -344,7 +351,7 @@ namespace ml
         isMoveRequired = false
       end if
 
-      '      ? "SET TARGET INDEX MOVE TO INDEX"
+      ? "SET TARGET INDEX MOVE TO INDEX" ; index
       m.setTargetIndex(index)
       m.scrollStartIndex = m.index
 
@@ -358,6 +365,7 @@ namespace ml
         ' 3. do an animated move
         '////////////////////////////////////////////////////////////////////////
 
+        ? " 3. animating"
         if forceSequential
           m.setNextIndex(m.index + m.direction)
         else
@@ -375,6 +383,7 @@ namespace ml
           ' 3.a it's a flow animation
           '////////////////////////////////////////////////////////////////////////
           m.log.info("already in place - no need to scroll ", m.index, " >", m.nextIndex)
+          ? " IN PLACE "
           m.moveUsingFlowAnim(m.index, m.nextIndex, m.direction)
           return true
         end if
@@ -383,12 +392,10 @@ namespace ml
         ' 3.b it's a regular container animation
         '////////////////////////////////////////////////////////////////////////
 
-        '      ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(targetTranslation)
+        ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(targetTranslation)
         m.toggleScrolling(true)
-        '      ? ":0000"
         m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        '      ? "speed"; m.animSpeed ; " target Trans "; targetTranslation ; " m.moveAnimation.fraction "; m.moveAnimation.interpolator.fraction
         m.isSubMove = false
         m.moveAnimation.animateToWithSpeed(targetTranslation, m.animSpeed)
         m.moveAnimation.start()
@@ -687,8 +694,14 @@ namespace ml
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
-      screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, not m.isFloatingFocus, m.screenPos)
-      '      ? " NEXT INDEX " ; index ; " SP " ; m.screenPos ; " nao " ; screenPos
+
+      row = m.viewManager.visibleComponents[m.nextIndex]
+      if row <> invalid and row.isMultiRow
+        screenPos = row@.getActiveScreenPos(m.direction)
+      else
+        screenPos = m.viewManager.getScreenPositionForItem(nextRect, m.direction, not m.isFloatingFocus, m.screenPos)
+      end if
+
       m.nextActiveOffset = screenPos
       nextTranslation = m.viewManager.getTargetTranslation(index, m.direction, screenPos)
 
@@ -742,7 +755,10 @@ namespace ml
         m.onSubMoveFractionChange(fraction)
         return
       end if
-      if m.direction = -1 and m.subRowIndex = -1
+
+      ? " ACTIVE OFFSET "; m.activeOffset ; " NAO "; m.nextActiveOffset
+
+      if m.direction = -1 'and m.subRowIndex = -1
         position = m.container.translation[m.axes] - m.nextActiveOffset
       else
         position = m.container.translation[m.axes] - m.activeOffset
@@ -750,7 +766,7 @@ namespace ml
 
       index = m.viewManager.getIndexAtPosition(position, m.direction)
       row = m.viewManager.visibleComponents[index]
-      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
+      ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
 
       if row <> invalid and row.isMultiRow = true
         subRowIndex = row@.getSubIndexAtPosition(position, m.direction)
@@ -764,16 +780,20 @@ namespace ml
       end if
 
       if fraction = 1
+        ? "___AAA"
         m.focusManager.onFocusAnimationUpdate(1)
 
         if index <> m.index
+          ? "___BBB"
           m.setFocusIndex(index, false, false)
         end if
         if m.isMovingMultiple and m.targetIndex <> m.index
+          ? "___CCCC"
           '      ? "continue scrolling - ON ANIM FRACTION CHANGE"
           m.continueScrolling()
         else
           '      ? "RESET TARGET INDEX onAnimationFractionChange 1"
+          ? "___DDDD m.index" ; m.index
           m.toggleScrolling(false)
         end if
       else if m.isMovingMultiple or m.isFinishingScroll
