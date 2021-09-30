@@ -286,9 +286,7 @@ namespace ml
       end if
 
       nextFlowPosition = invalid
-      nextIndex = m.index + direction
       m.isMovingMultiple = abs(index - m.index) > 1
-
       m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
 
       '////////////////////////////////////////////////////////////////////////
@@ -297,16 +295,17 @@ namespace ml
 
       'floating focus is not supported outside of grids, at this time
 
-      if false and m.isFloatingFocus
-        '      ? "FLOATING!! " ; forceSequential
-        if forceSequential
-          '      ? "A1 " ; nextIndex ; " " ; direction
-          nextFlowPosition = m.viewManager.getFlowScreenPosition(nextIndex, direction)
-        else
-          '      ? "A2 " ; index ; " " ; direction
-          nextFlowPosition = m.viewManager.getFlowScreenPosition(index, direction)
-        end if
-        '      ? "NFP: "; nextFlowPosition
+      if m.isFloatingFocus
+        m.log.error("floating focus is not supported")
+        ' '      ? "FLOATING!! " ; forceSequential
+        ' if forceSequential
+        '   '      ? "A1 " ; nextIndex ; " " ; direction
+        '   nextFlowPosition = m.viewManager.getFlowScreenPosition(nextIndex, direction)
+        ' else
+        '   '      ? "A2 " ; index ; " " ; direction
+        '   nextFlowPosition = m.viewManager.getFlowScreenPosition(index, direction)
+        ' end if
+        ' '      ? "NFP: "; nextFlowPosition
       end if
 
       m.direction = direction
@@ -316,7 +315,7 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-        '      ? "2.b - no flow pos screenPos "; screenPos
+        ? "2.b - no flow pos screenPos "; screenPos
         targetTranslation = m.viewManager.getTargetTranslation(index, direction, screenPos)
 
         if targetTranslation = invalid
@@ -324,20 +323,20 @@ namespace ml
           return false
         end if
 
-        row = m.viewManager.visibleComponents[index]
         offset = 0
+        row = m.viewManager.visibleComponents[index]
         if row <> invalid and row.isMultiRow
           ' ? "Moving into a multi-row"
           if direction = -1
-            subRowIndex = row@.getMaxSubRowIndex() -1
+            subRowIndex = row@.getMaxSubRowIndex() - 1
             offset = row@.getTargetYOffsetForRow(subRowIndex, direction)
           else
-            'will focus on row 0
+            offset = row@.getTargetYOffsetForRow(0, direction)
           end if
           'TODO - set the focus?
         end if
 
-        ' ? " adding offset to translation "; offset
+        ? " adding offset to translation "; offset
         targetTranslation[1] -= offset
         isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
       else
@@ -463,21 +462,24 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-        ? "2.b - no flow pos"
+        ? "2.b - no flow pos "; subRowIndex
         '      ? " :::::::::::::::::::::"
         targetTranslation = m.viewManager.getTargetTranslation(m.index, direction)
+        if targetTranslation = invalid
+          m.log.error("cannot move! translation invalid for index", m.index)
+          return false
+        end if
+
         offset = row@.getTargetYOffsetForRow(subRowIndex, direction)
-        ? " target translation is " ; m.index; " sp " ; m.screenPos ; " >> "; formatJson(targetTranslation)
+
         ? " WE ARE ADDING ON THIS OFFSET FOR ROW " ; offset
+
         ? " :::::::::::::::::::::"
         'TODO - this should be an offset returned from the row
         targetTranslation[1] -= offset
 
-        if targetTranslation = invalid
-          m.log.error("cannot move! translation invalid for index", index)
-          return false
-        end if
         isMoveRequired = targetTranslation[1] <> m.container.translation[1]
+        ? " target translation is " ; m.index; " sp " ; m.screenPos ; " >> "; formatJson(targetTranslation) ; " IMR "; isMoveRequired
       else
         '        ? "2.b has flow pos"
         isMoveRequired = false
@@ -720,7 +722,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onSubMoveFractionChange(fraction as float) as void
-      '      ? "+>+>+>+ onSubMoveFractionChange" ; fraction
       row = m.viewManager.visibleComponents[m.index]
       row@.updateMoveFraction(fraction, true)
       if fraction = 1

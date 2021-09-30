@@ -281,11 +281,16 @@ namespace ml
     end function
 
     public function getCellScreenRect(rowIndex as integer, cellIndex as integer, direction = 1 as integer, rowScreenPos = invalid as integer, cellScreenPos = invalid as integer)
-      ? " getCellScreenRect " ; rowIndex ; "," ; cellIndex ; " d " ; direction
+      ' ? " getCellScreenRect " ; rowIndex ; "," ; cellIndex ; " d " ; direction
+
       rowScreenRect = m.getRowScreenRect(rowIndex, rowScreenPos, direction)
 
       row = m.getRowRenderer(rowIndex)
       if row <> invalid
+        ' if cellScreenPos = invalid and row.isMultiRow
+        '   cellScreenPos = m.itemScroller.screenPos
+        ' end if
+
         rect = row@.getScreenRect(cellIndex, cellScreenPos, direction)
         if rect <> invalid
           ' rect.translation[1] += rowScreenRect.screenPos
@@ -499,7 +504,7 @@ namespace ml
         return
       end if
 
-      ' ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
+      ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
       m.isDoingFlowFocus = true
       m.sourceFocusRect = m.getFocusRect(sourceIndex)
       m.targetFocusRect = m.getFocusRect(targetIndex)

@@ -158,7 +158,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.peekNextPixels = 0
         row.settings.screenPos = -1
       else if i = 5 or i = 11
-        complexFocusSettings = ml.listMixin.createFocusSettings()4 2 complexFocusSettings.feedbackStyle = "none"
+        complexFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3)
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
         ' row.settings = ml.listMixin.createRowSettings(invalid, complexFocusSettings, 30, invalid, 0, "ComplexRow")
         ' else if i= 6
@@ -291,9 +291,16 @@ class ListScreen extends mv.BaseScreen
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
         ' row.settings.screenPos = -1
+      else if i = 1
+        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 400, 3, 427)
+        ' row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 400, 3, 427)
+        row.settings.contentOffset = [100, 30]
+        ' row.settings.peekNextPixels = 300
+        numItems = 14
       else if i < 4
-        rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
-        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 0, 3, 427)
+        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 0, 3, 427)
         ' row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 400, 3, 427)
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
@@ -308,7 +315,6 @@ class ListScreen extends mv.BaseScreen
       content.push(row)
       row.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
-
     return content
   end function
 
@@ -400,13 +406,13 @@ class ListScreen extends mv.BaseScreen
   end function
 
   function onKeyPressUp() as boolean
-'    ? "FOCUS ON BUTTON"
+    '    ? "FOCUS ON BUTTON"
     m.setFocus(m.button)
     return true
   end function
 
   function onKeyPressDown() as boolean
-'    ? "FOCUS ON LIST"
+    '    ? "FOCUS ON LIST"
     m.setFocus(m.list)
     return true
   end function
@@ -511,7 +517,7 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
-'    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
+    '    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
     rowContent = m.list.content.getChild(rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)

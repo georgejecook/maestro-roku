@@ -231,6 +231,10 @@ namespace ml
     end function
 
     function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer, ownerOffset as integer)
+      if rowIndex = 0 and m.settings.firstRowScreenPos <> 0
+        ' ? " CANNOT DO FLOW TO POS ZERO - DUE TO SCREEN POS"
+        return invalid
+      end if
       ' itemRect = m.rects[rowIndex]
       ' ? "::::::::::::::::::::::::::::::::::::::::::::::::::"
       ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
@@ -239,16 +243,17 @@ namespace ml
       rowOffset += ownerOffset
       rowOffset += m.contentGroup.translation[1]
 
+      screenPos = m.getScreenPos(rowIndex - direction, direction)
+      ' ? " SCREEN POS FOR THIS CHECK "; screenPos
       ' ? " m.screenRect.translation[1] "; m.screenRect.translation[1]
-      sStart = m.contentGroup.translation[1]
+      sStart = m.contentGroup.translation[1] + screenPos
       ' sStart = m.screenRect.translation[1]
       '  + ownerOffset
-      ' ? " gridRowHeight " ; gridRowHeight
       sEnd = sStart + gridRowHeight
       ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY "; m.screenRect.translation[1] ; m.screenRect.translation[1] ; " sSize " ; gridRowHeight ; " oO " ; ownerOffset
 
       if rowOffset <> invalid
-        cStart = rowOffset
+        cStart = rowOffset + screenPos
         cEnd = cStart + m.settings.rowHeight + m.settings.space
         ' ? "rect cS "; cStart ; " cE "; cEnd
         if (cStart >= sStart and cStart <= sEnd) and (cEnd >= sStart and cEnd <= sEnd)
@@ -267,17 +272,25 @@ namespace ml
 
     function getTargetYOffsetForRow(rowIndex as integer, direction as integer) as integer
       ? " getTargetYOffsetForRow "; rowIndex ; " d "; direction
-      if rowIndex = 0 and direction = 1
-        return 0
-      end if
-      ? " GETTING RECT FOR item "; rowIndex * m.numCols
-      rect = m.getScreenRect(rowIndex * m.numCols, invalid, direction)
-      screenY = rect.translation[1]
 
-      ? " >>>>>>>> "; rowIndex ; " direction" direction
+      screenPos = m.getScreenPos(rowIndex, direction)
+      ? " 000 SCREEN POS " ; screenPos
+      if rowIndex = 0 and screenPos <> 0
+        ? "AAA"
+        return - screenPos
+      end if
+      ' if direction <> -1
+      '   ? "BBB"
+      '   return - screenPos
+      ' end if
+      ' ? " GETTING RECT FOR item "; rowIndex * m.numCols
+      screenY = m.getRowYOffset(rowIndex * m.numCols, direction)
+
+      ' ? " >>>>>>>> "; rowIndex ; " direction" direction
       rowPos = m.getRowOffset(rowIndex)
-      offset = rowPos - screenY
-      ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
+      offset = rowPos - screenY + screenPos
+      ' ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
+      ? "CCC"
       return offset
     end function
 
@@ -377,8 +390,26 @@ namespace ml
 
     override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
       rect = m.getRect(index, true)
+      rowIndex = fix(index / m.numCols)
+      rect.translation[1] = m.getRowYOffset(rowIndex, direction)
+
+      ? " RECT " ; index ; " d " ; direction ; " > "; formatJson(rect.translation)
+      if rect <> invalid
+        rect.translation[0] += m.settings.contentOffset[0]
+        rect.translation[1] += m.settings.screenPos
+        rect.translation[1] += m.contentGroup.translation[1]
+        rect.translation[1] += m.getScreenPos(rowIndex, direction)
+        ' if index < m.numCols
+        '   rect.translation[1] += m.getTargetYOffsetForRow(index / m.numCols, direction)
+        ' end if
+      end if
+
+      return rect
+    end function
+
+    private function getRowYOffset(rowIndex as integer, direction as integer)
       'Super crude for time being
-      if index = 0 and direction <> -1
+      if rowIndex = 0 and direction <> -1
         offset = 0
       else if direction = -1
         offset = 0
@@ -387,10 +418,15 @@ namespace ml
       else
         offset = m.rowOffsets[m.settings.numRows - 1]
       end if
-      rect.translation[1] = offset
-
-      return rect
+      return offset
     end function
 
+    private function getScreenPos(rowIndex as integer, direction as integer) as integer
+      if rowIndex = 0
+        return m.settings.firstRowScreenPos
+      else
+        return m.settings.otherRowScreenPos
+      end if
+    end function
   end class
 end namespace
