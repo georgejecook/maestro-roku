@@ -1,0 +1,160 @@
+import "pkg:/source/ml/ItemScroller.bs"
+import "pkg:/source/ml/GridRowItemViewManager.bs"
+
+namespace ml
+  class GridRowItemScroller extends ml.ItemScroller
+
+    public isFloatingFocus = true
+    public isDoingLongPress = false
+    public currentRowIndex = 0
+
+    function new(viewManager as ml.GridRowItemViewManager)
+      super(viewManager, 0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function canMoveRowUpDown(direction as integer)
+      '      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
+      canMove = m.viewManager.numberOfItems > 0 and ((direction = -1 and m.index >= m.viewManager.numCols) or (direction = 1 and m.index < m.viewManager.numberOfItems - m.viewManager.numCols))
+      '      ? "CAN MOVE ROW UP DOWN" ; canMove
+      return canMove
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public override function onViewManagerUpdate()
+      super.onViewManagerUpdate()
+      ' m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
+      'grids are always floating focus
+      m.isFloatingFocus = true
+    end function
+
+    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
+      if not isMoving
+        m.log.info("stopped scrolling on item", m.index)
+      end if
+    end function
+
+    override function getFocusSettings()
+      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+    end function
+
+    protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
+      m.toggleScrolling(true)
+      m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
+      m.flowFocusIndex = nextIndex
+      m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
+    end function
+
+    override function moveToEnd(direction as integer, animated = true as boolean, fast = false as boolean) as boolean
+      if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
+        m.log.info("already at end - ignoring")
+        return false
+      end if
+
+      if direction = -1
+        index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
+        m.moveToIndex(index, animated, fast, -1, true)
+      else
+        index = ((fix(m.index / m.viewManager.numCols) * m.viewManager.numCols) + m.viewManager.numCols) - 1
+        m.moveToIndex(index, animated, fast, 1, true)
+      end if
+      return true
+    end function
+
+    override function finishAnimating() as void
+      super.finishAnimating()
+      m.isMovingMultiple = false
+    end function
+
+    protected override function setIndex(index as integer)
+      super.setIndex(index)
+      m.currentRowIndex = fix(index / m.viewManager.numCols)
+    end function
+
+    override function onFlowFocusFraction(fraction as float)
+      ' ? "on FLow fraction"; fraction ; m.__classname
+      ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
+
+      if fraction = 1
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.setIndex(m.flowFocusIndex)
+        if m.isMovingMultiple and m.targetIndex <> m.index
+          m.log.info("was moving multiple, will keep moving")
+          m.setFocusOnRenderer(false)
+          if m.isScrollCancelled or not m.isDoingLongPress
+            m.log.info("but scrolling was cancelled or finished!")
+            m.stopAnimating()
+          else
+            m.continueScrolling()
+          end if
+        else
+          m.log.info("finished focusing action with this flow")
+          m.setTargetIndex(-1)
+          m.setFocusOnRenderer(true)
+          m.toggleScrolling(false)
+        end if
+      else
+        m.focusManager.onFocusAnimationUpdate(fraction)
+      end if
+    end function
+
+    override function continueScrolling() as void
+      '      ? "CONTINUE - " ; m.direction
+      if m.isDoingLongPress
+        m.move(m.direction)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ list animation hooks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public function setNextMoveIndex(index as integer, direction as integer, notifyFocusManager = true as boolean)
+      m.direction = direction
+      m.setNextIndex(index)
+      m.toggleScrolling(true)
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      '      ? "==================================="
+      '      ? "Setting next move index " ; index ; " d "; direction
+      '      ? "==================================="
+      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      if notifyFocusManager
+        m.focusManager.setFocusPosition(m.index, 0, index, 0, direction)
+      end if
+    end function
+
+    public function updateMoveFraction(fraction as float, focusOnRenderer as boolean)
+      ' ? "+>+>+ updateMoveFraction " ; fraction ; " " ; m.index ; " > " ; m.nextIndex
+      if fraction = 1
+        '      ? "FINISHED LIST CONTROLLED MOVE "
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.setIndex(m.nextIndex)
+        if focusOnRenderer
+          m.setFocusOnRenderer(false)
+        end if
+        m.toggleScrolling(false)
+      else
+        m.focusManager.onFocusAnimationUpdate(fraction)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function ceiling(x as float) as integer
+      i = int(x)
+      if i < x
+        i = i + 1
+      end if
+      return i
+    end function
+
+
+  end class
+end namespace

@@ -249,8 +249,8 @@ namespace mc
 
         if nextPart = invalid and insertAAsForMissingValues
           if (not isIndexNumber and mc.isAACompatible(part)) or (isIndexNumber and (mc.isArray(part) or type(part) = "roSGNode"))
-          nextPart = {}
-          part[index] = nextPart
+            nextPart = {}
+            part[index] = nextPart
           else
             'index type mismatch, gonna have to bail
             return
@@ -377,10 +377,10 @@ namespace mc
       node.id = id
 
       if args <> invalid
-        if mc.isArray(args)
-          arrArgs = []
-          for each a in args
-            arrArgs.push(a)
+        if mc.isArray(args) and args.count() > 0
+          arrArgs = args[0]
+          for i = 1 to args.count() - 1
+            arrArgs.append(args[i])
           end for
           args = arrArgs
         end if
@@ -462,6 +462,19 @@ namespace mc
   function getScene() as mc.types.node
     return m.top.getScene()
   end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ mis utils
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function interpolateArray(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
+    if a <> invalid and b <> invalid
+      return [a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction]
+    else
+      return [0, 0]
+    end if
+  end function
+
 
 end namespace
 

@@ -7,6 +7,15 @@ namespace ml
       super(viewManager, 0)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public override function onViewManagerUpdate()
+      super.onViewManagerUpdate()
+      m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
+    end function
+
+
     override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
       if not isMoving
         m.log.info("stopped scrolling on item", m.index)
@@ -15,6 +24,13 @@ namespace ml
 
     override function getFocusSettings()
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+    end function
+
+    protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
+      m.toggleScrolling(true)
+      m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
+      m.flowFocusIndex = nextIndex
+      m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
     end function
 
   end class

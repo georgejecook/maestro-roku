@@ -115,6 +115,7 @@ namespace ml
 
               cell.initialState = {
                 row: m.row
+                rowIndex: m.row.index
                 list: m.owner
                 size: m.rects[index].size
                 content: item
@@ -136,7 +137,7 @@ namespace ml
               m.container.appendChild(cell)
               m.cellsById[id] = cell
             else
-              ? ">>ERR no cell for " ; settings.compName
+        '      ? ">>ERR no cell for " ; settings.compName
             end if
           end if
           if cell <> invalid
@@ -200,9 +201,12 @@ namespace ml
       rect = super.getScreenRect(index, screenPos, direction)
 
       if rect <> invalid
-        rect.translation[1] += m.settings.screenPos
+        if screenPos <> invalid
+          rect.translation[1] += screenPos
+        else
+          rect.translation[1] += m.settings.screenPos
+        end if
       end if
-
       return rect
     end function
 
@@ -210,7 +214,7 @@ namespace ml
       if m.isFlowSupported = true
         itemRect = m.rects[index]
         if itemRect <> invalid
-          screenPos = m.getScreenPositionForItem(itemRect, direction, screenPos)
+          screenPos = m.getScreenPositionForItem(itemRect, direction, false, screenPos)
         end if
         if direction = -1
           'TODO

@@ -9,7 +9,12 @@ namespace ml
       m.isList = true
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer) as void
+      m.log.info("setFocusOnRenderer", isMoving, index)
       row = invalid
       ' if isMoving
       '   return
@@ -22,7 +27,32 @@ namespace ml
 
       if row <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
         mv.setFocus(row)
+      else
+        m.log.warn("not setting focus on", index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if
     end function
+
+    protected override function setIndex(index as integer)
+      super.setIndex(index)
+      m.setListSubIndex(index)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function setListSubIndex(index as integer)
+      row = m.viewManager.visibleComponents[index]
+      if row <> invalid and row.isMultiRow
+        m.subRowIndex = row@.getRowIndex()
+        m.maxSubRowIndex = row@.getMaxSubRowIndex() -1
+      else
+        m.subRowIndex = -1
+        m.maxSubRowIndex = -1
+      end if
+    end function
+
+
+
   end class
 end namespace

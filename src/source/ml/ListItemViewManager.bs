@@ -37,7 +37,7 @@ namespace ml
       m.isUpdating = true
       ' if m.owner.nextFocusIndex <> invalid
       m.previousFocusedRow = m.itemScroller.focusedItem
-      ? " CONTENT UPDATED"
+'      ? " CONTENT UPDATED"
       ' ? ">>>>> WAS FOCUSED" ; m.previousFocusedRow.title
       m.previousFocusedIndex = m.itemScroller.index
       ' end if
@@ -155,7 +155,7 @@ namespace ml
       m.previousFocusedIndex = 0
       m.previousFocusedRow = invalid
       ' 'TODO need to actually set the focus properly
-      m.itemScroller.moveToIndex(focusIndex[0], invalid, false)
+      m.itemScroller.moveToIndex(focusIndex[0], false)
       m.itemScroller.forceFocusOnIndex(focusIndex[0])
       m.owner.nextFocusIndex = focusIndex
       m.owner.focusedRowIndex = focusIndex[0]
@@ -271,7 +271,11 @@ namespace ml
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true
-        height = m.calculateRowHeight(settings)
+        if settings.subType() = "ml_GridRowSettings"
+          height = m.calculateGridRowHeight(item, settings)
+        else
+          height = m.calculateRowHeight(settings)
+        end if
         screenPos = settings.screenPos
 
         if visible
@@ -323,6 +327,7 @@ namespace ml
     end function
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
+'    ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
         comp = m.components[id.toInt()]
 
@@ -332,8 +337,9 @@ namespace ml
             m.renderedComponents.push(comp)
           end if
           comp.isRendered = comp.renderState = "rendered"
+    '      ? " set comp.isRendered "; comp.isRendered
         else
-          ' ? "ERROR could not find visible comp for "; id
+    '      ? "ERROR could not find visible comp for "; id
         end if
       end for
 
@@ -362,5 +368,18 @@ namespace ml
       return height
     end function
 
+    private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
+      numItems = row.getChildCount()
+      numCols = settings.numColumns
+      numCols = numCols < 1 ? 1 : numCols
+      numRows = numItems / numCols
+      rowHeight = settings.rowHeight
+      height = numRows * rowHeight
+
+      if settings.headerSettings.position <> "none"
+        height += settings.headerSettings.height
+      end if
+      return height
+    end function
   end class
 end namespace
