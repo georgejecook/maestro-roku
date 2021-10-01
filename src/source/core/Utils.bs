@@ -249,8 +249,8 @@ namespace mc
 
         if nextPart = invalid and insertAAsForMissingValues
           if (not isIndexNumber and mc.isAACompatible(part)) or (isIndexNumber and (mc.isArray(part) or type(part) = "roSGNode"))
-          nextPart = {}
-          part[index] = nextPart
+            nextPart = {}
+            part[index] = nextPart
           else
             'index type mismatch, gonna have to bail
             return
@@ -377,10 +377,10 @@ namespace mc
       node.id = id
 
       if args <> invalid
-        if mc.isArray(args)
-          arrArgs = []
-          for each a in args
-            arrArgs.push(a)
+        if mc.isArray(args) and args.count() > 0
+          arrArgs = args[0]
+          for i = 1 to args.count() - 1
+            arrArgs.append(args[i])
           end for
           args = arrArgs
         end if

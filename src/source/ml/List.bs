@@ -589,8 +589,8 @@ namespace ml
       m.log.verbose("onKeyPressUp")
       if m.itemScroller.direction = -1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
         m.log.info("was already scrolling - ignoring")
-        ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
-        return true
+        ' ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
+        return false
       end if
 
       if m.itemScroller.canMove(-1)
@@ -616,11 +616,11 @@ namespace ml
       m.log.verbose("onKeyPressDown")
       if m.itemScroller.direction = 1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
         m.log.info("was already scrolling - ignoring")
-        return true
+        return false
       end if
 
       if m.itemScroller.canMove(1)
-        return m.itemScroller.moveFromPress(1)
+        return not m.itemScroller.moveFromPress(1)
       else
         return false
       end if

@@ -164,7 +164,6 @@ namespace ml
     function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
 
       subRowIndex = -1
-
       ' ? " MOVE I " ; m.index ; " O " ; offset
       'first check if we are inside a grid
       row = m.viewManager.visibleComponents[m.index]
@@ -185,46 +184,36 @@ namespace ml
       end if
 
       index = m.index + offset
-      '      ? "+++MOVE TO " ; index
-
       if offset > 0
-        '      ? "+++MOVE AAAA"
         if m.index = m.viewManager.numberOfItems - 1
           m.log.info("already at end")
-          '      ? "+++MOVE BBBB"
           return false
         end if
         direction = 1
       else
-        '      ? "+++MOVE CCCC"
         if index = -1
           m.log.info("already at start")
-          '      ? "+++MOVE DDDD"
           return false
         end if
-        '      ? "+++MOVE EEEE"
         direction = -1
       end if
 
       'TODO - move this into individual controls
       if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
-        '      ? "+++MOVE FFFF"
         'TODO - we might want to detect this at the list, and have a cache of next move there
         ' m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
         return false
       end if
 
-      '      ? "+++MOVE GGGG"
       index = m.getValidTargetIndex(index, direction)
 
       ' m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
 
       if index <> -1
-        '      ? "+++MOVE HHHH"
-        m.moveToIndex(index, animated, fast, direction, forceSequential)
+        return m.moveToIndex(index, animated, fast, direction, forceSequential)
       end if
 
-      return true
+      return false
     end function
 
     function getValidTargetIndex(index as integer, direction as integer)
@@ -994,7 +983,7 @@ namespace ml
     end function
 
     protected function setSubRowIndex(subRowIndex as integer)
-      ? "SUB INDEX CHANGED " ; m.subRowIndex ; " -> "; subRowIndex
+      ' ? "SUB INDEX CHANGED " ; m.subRowIndex ; " -> "; subRowIndex
       m.subRowIndex = subRowIndex
     end function
 
@@ -1012,13 +1001,14 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMove(direction as integer) as boolean
-      '      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
-
+      ' ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
+      ' ? "AAA"
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(direction)
         return true
       end if
-      return (direction = -1 and m.index > -1) or direction = 1 and m.index < m.viewManager.numberOfItems - 1
+      ' ? "BBB" ; (direction = -1 and m.index > 0) or (direction = 1 and m.index < m.viewManager.numberOfItems - 1)
+      return (direction = -1 and m.index > 0) or (direction = 1 and m.index < m.viewManager.numberOfItems - 1)
     end function
 
   end class

@@ -286,7 +286,8 @@ namespace ml
       '   return - screenPos
       ' end if
       ' ? " GETTING RECT FOR item "; rowIndex * m.numCols
-      screenY = m.getRowYOffset(rowIndex * m.numCols, direction)
+      ' screenY = m.getRowYOffset(rowIndex * m.numCols, direction)
+      screenY = m.getRowYOffset(rowIndex, direction)
 
       ? " >>>>>>>> "; rowIndex ; " direction" direction
       rowPos = m.getRowOffset(rowIndex)
@@ -309,9 +310,9 @@ namespace ml
       end if
     end function
 
-    private function getRowOffset(index as integer) as integer
-      if m.rowOffsets.count() > index
-        return m.rowOffsets[index]
+    private function getRowOffset(rowIndex as integer) as integer
+      if m.rowOffsets.count() > rowIndex
+        return m.rowOffsets[rowIndex]
       else
         return 0
       end if
