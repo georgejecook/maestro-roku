@@ -243,28 +243,33 @@ namespace ml
       rowOffset += ownerOffset
       rowOffset += m.contentGroup.translation[1]
 
+      ' ? " ON SCREEN? " ; rowIndex - direction
       screenPos = m.getScreenPos(rowIndex - direction, direction)
+      if rowIndex - direction > 0
+        ' ? " ADDING ON EXTRA SCREEN POS"
+        ' screenPos += m.settings.firstRowScreenPos '- m.settings.otherRowScreenPos
+      end if
       ' ? " SCREEN POS FOR THIS CHECK "; screenPos
       ' ? " m.screenRect.translation[1] "; m.screenRect.translation[1]
       sStart = m.contentGroup.translation[1] + screenPos
       ' sStart = m.screenRect.translation[1]
       '  + ownerOffset
       sEnd = sStart + gridRowHeight
-      ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY "; m.screenRect.translation[1] ; m.screenRect.translation[1] ; " sSize " ; gridRowHeight ; " oO " ; ownerOffset
+      ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY ";m.screenRect.translation[1] ; " sSize " ; gridRowHeight ; " oO " ; ownerOffset
 
       if rowOffset <> invalid
         cStart = rowOffset + screenPos
         cEnd = cStart + m.settings.rowHeight + m.settings.space
-        ' ? "rect cS "; cStart ; " cE "; cEnd
+        ? "rect cS "; cStart ; " cE "; cEnd
         if (cStart >= sStart and cStart <= sEnd) and (cEnd >= sStart and cEnd <= sEnd)
           'TODO screenPos to pass to this function
           '1. get the pos if scrolling down
           '2. is it on screen? great, that's the position we will use
           '3. is it not on screen? - okay - we need to scroll to it
-          ' ? "SCREEN POS IN THIS CASE IS "; rowOffset
+          ? "SCREEN POS IN THIS CASE IS "; rowOffset
           return rowOffset
         else
-          ' ? "row "; rowIndex ; " IS NOT ON SCREEN! "
+          ? "row "; rowIndex ; " IS NOT ON SCREEN! "
         end if
       end if
       return invalid
@@ -272,21 +277,22 @@ namespace ml
 
     function getTargetYOffsetForRow(rowIndex as integer, direction as integer) as integer
       screenPos = m.getScreenPos(rowIndex, direction)
+      ? "AAA"
       if rowIndex = 0 and screenPos <> 0
         return - screenPos
       end if
       ' if direction <> -1
-      '   ? "BBB"
+      ? "BBB"
       '   return - screenPos
       ' end if
       ' ? " GETTING RECT FOR item "; rowIndex * m.numCols
       screenY = m.getRowYOffset(rowIndex * m.numCols, direction)
 
-      ' ? " >>>>>>>> "; rowIndex ; " direction" direction
+      ? " >>>>>>>> "; rowIndex ; " direction" direction
       rowPos = m.getRowOffset(rowIndex)
-      offset = rowPos - screenY + screenPos
-      ' ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
-      ' ? "CCC"
+      offset = rowPos - screenY - screenPos
+      ? " >>> SY "; screenY ; " RP "; rowPos ; " sp " ; screenPos; "===OFFSET " ; offset
+      ? "CCC"
       return offset
     end function
 
@@ -389,13 +395,17 @@ namespace ml
       rowIndex = fix(index / m.numCols)
       rect.translation[1] = m.getRowYOffset(rowIndex, direction)
 
-      ' ? " getScreenRect " ; index ; " d " ; direction ; " > "; formatJson(rect.translation) ; " RI " ; rowIndex
       if rect <> invalid
         rect.translation[0] += m.settings.contentOffset[0]
         rect.translation[1] += m.settings.screenPos
         rect.translation[1] += m.contentGroup.translation[1]
         screenPos = m.getScreenPos(rowIndex, direction)
+
+        if rowIndex = 0
           rect.translation[1] += screenPos
+        else
+          rect.translation[1] += screenPos
+        end if
       end if
       return rect
     end function
@@ -419,6 +429,7 @@ namespace ml
         return m.settings.firstRowScreenPos
       else
         return m.settings.otherRowScreenPos
+        ' return m.settings.firstRowScreenPos - m.settings.otherRowScreenPos
       end if
     end function
   end class
