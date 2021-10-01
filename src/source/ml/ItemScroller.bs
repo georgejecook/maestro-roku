@@ -165,12 +165,12 @@ namespace ml
 
       subRowIndex = -1
 
-      ? " MOVE I " ; m.index ; " O " ; offset
+      ' ? " MOVE I " ; m.index ; " O " ; offset
       'first check if we are inside a grid
       row = m.viewManager.visibleComponents[m.index]
 
       if row <> invalid and row.isMultiRow
-        ? "INSIDE MULTI ROW"
+        ' ? "INSIDE MULTI ROW"
         if offset > 0
           direction = 1
         else
@@ -255,7 +255,7 @@ namespace ml
 
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
-      ? " MTI " ; index ; " d " ; direction
+      ' ? " MTI " ; index ; " d " ; direction
       m.isFinishingScroll = false
 
       if direction = invalid
@@ -296,7 +296,7 @@ namespace ml
         m.screenPos = m.viewManager.getScreenPositionForItem(itemRect, m.direction, not m.isFloatingFocus, screenPos)
       end if
 
-      ? "::::::::::::::::: screenPos" ; m.screenPos
+      ' ? "::::::::::::::::: screenPos" ; m.screenPos
       '////////////////////////////////////////////////////////////////////////
       ' 2. ascertain if the next item is on screen, and can be flow animated to
       '////////////////////////////////////////////////////////////////////////
@@ -323,7 +323,7 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-        ? "2.b - no flow pos screenPos "; screenPos
+        ' ? "2.b - no flow pos screenPos "; screenPos
         targetTranslation = m.viewManager.getTargetTranslation(index, direction, screenPos)
 
         if targetTranslation = invalid
@@ -343,7 +343,7 @@ namespace ml
           'TODO - set the focus?
         end if
 
-        ? " adding offset to translation "; offset
+        ' ? " adding offset to translation "; offset
         targetTranslation[1] -= offset
         isMoveRequired = targetTranslation[m.axes] <> m.container.translation[m.axes]
       else
@@ -351,7 +351,7 @@ namespace ml
         isMoveRequired = false
       end if
 
-      ? "SET TARGET INDEX MOVE TO INDEX" ; index
+      ' ? "SET TARGET INDEX MOVE TO INDEX" ; index
       m.setTargetIndex(index)
       m.scrollStartIndex = m.index
 
@@ -424,7 +424,7 @@ namespace ml
     function moveToSubRowIndex(index as integer, subRowIndex as integer, direction as integer, animated = true as boolean, fast = false as boolean) as boolean
 
       m.isFinishingScroll = false
-      ? "moveToSubRowIndex "; subRowIndex; " D " ; direction
+      ' ? "moveToSubRowIndex "; subRowIndex; " D " ; direction
 
       'get row at current index
       row = m.viewManager.visibleComponents[m.index]
@@ -469,7 +469,7 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-        ? "2.b - no flow pos "; subRowIndex
+        ' ? "2.b - no flow pos "; subRowIndex
         '      ? " :::::::::::::::::::::"
         targetTranslation = m.viewManager.getTargetTranslation(m.index, direction)
         if targetTranslation = invalid
@@ -479,14 +479,14 @@ namespace ml
 
         offset = row@.getTargetYOffsetForRow(subRowIndex, direction)
 
-        ? " WE ARE ADDING ON THIS OFFSET FOR ROW " ; offset
+        ' ? " WE ARE ADDING ON THIS OFFSET FOR ROW " ; offset
 
-        ? " :::::::::::::::::::::"
+        ' ? " :::::::::::::::::::::"
         'TODO - this should be an offset returned from the row
         targetTranslation[1] -= offset
 
         isMoveRequired = targetTranslation[1] <> m.container.translation[1]
-        ? " target translation is " ; m.index; " sp " ; m.screenPos ; " >> "; formatJson(targetTranslation) ; " IMR "; isMoveRequired
+        ' ? " target translation is " ; m.index; " sp " ; m.screenPos ; " >> "; formatJson(targetTranslation) ; " IMR "; isMoveRequired
       else
         '        ? "2.b has flow pos"
         isMoveRequired = false
@@ -756,7 +756,7 @@ namespace ml
         return
       end if
 
-      ? " ACTIVE OFFSET "; m.activeOffset ; " NAO "; m.nextActiveOffset
+      ' ? " ACTIVE OFFSET "; m.activeOffset ; " NAO "; m.nextActiveOffset
 
       if m.direction = -1 'and m.subRowIndex = -1
         position = m.container.translation[m.axes] - m.nextActiveOffset
@@ -766,34 +766,28 @@ namespace ml
 
       index = m.viewManager.getIndexAtPosition(position, m.direction)
       row = m.viewManager.visibleComponents[index]
-      ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
+      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
 
       if row <> invalid and row.isMultiRow = true
         subRowIndex = row@.getSubIndexAtPosition(position, m.direction)
         if subRowIndex <> invalid and subRowIndex <> m.subRowIndex
-          '      ? "SUB INDEX CHANGED " ; m.subRowIndex ; " -> "; subRowIndex
-          m.subRowIndex = subRowIndex
-          'TODO - manage focus events in the row, in this case
+          m.setSubRowIndex(subRowIndex)
         end if
       else
-        m.subRowIndex = -1
+        m.setSubRowIndex(-1)
       end if
 
       if fraction = 1
-        ? "___AAA"
         m.focusManager.onFocusAnimationUpdate(1)
 
         if index <> m.index
-          ? "___BBB"
           m.setFocusIndex(index, false, false)
         end if
         if m.isMovingMultiple and m.targetIndex <> m.index
-          ? "___CCCC"
           '      ? "continue scrolling - ON ANIM FRACTION CHANGE"
           m.continueScrolling()
         else
           '      ? "RESET TARGET INDEX onAnimationFractionChange 1"
-          ? "___DDDD m.index" ; m.index
           m.toggleScrolling(false)
         end if
       else if m.isMovingMultiple or m.isFinishingScroll
@@ -999,12 +993,17 @@ namespace ml
       end if
     end function
 
+    protected function setSubRowIndex(subRowIndex as integer)
+      ? "SUB INDEX CHANGED " ; m.subRowIndex ; " -> "; subRowIndex
+      m.subRowIndex = subRowIndex
+    end function
+
     protected function setIndex(index as integer)
       m.index = index
     end function
+
     protected function setTargetIndex(index as integer)
       '      ? "setting targetIndex to "; index ; " "; m.__classname
-
       m.targetIndex = index
     end function
 

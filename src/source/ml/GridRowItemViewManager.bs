@@ -271,12 +271,8 @@ namespace ml
     end function
 
     function getTargetYOffsetForRow(rowIndex as integer, direction as integer) as integer
-      ? " getTargetYOffsetForRow "; rowIndex ; " d "; direction
-
       screenPos = m.getScreenPos(rowIndex, direction)
-      ? " 000 SCREEN POS " ; screenPos
       if rowIndex = 0 and screenPos <> 0
-        ? "AAA"
         return - screenPos
       end if
       ' if direction <> -1
@@ -290,7 +286,7 @@ namespace ml
       rowPos = m.getRowOffset(rowIndex)
       offset = rowPos - screenY + screenPos
       ' ? " >>> SY "; screenY ; " RP "; rowPos ; " OFFSET " ; offset
-      ? "CCC"
+      ' ? "CCC"
       return offset
     end function
 
@@ -393,17 +389,14 @@ namespace ml
       rowIndex = fix(index / m.numCols)
       rect.translation[1] = m.getRowYOffset(rowIndex, direction)
 
-      ? " RECT " ; index ; " d " ; direction ; " > "; formatJson(rect.translation)
+      ' ? " getScreenRect " ; index ; " d " ; direction ; " > "; formatJson(rect.translation) ; " RI " ; rowIndex
       if rect <> invalid
         rect.translation[0] += m.settings.contentOffset[0]
         rect.translation[1] += m.settings.screenPos
         rect.translation[1] += m.contentGroup.translation[1]
-        rect.translation[1] += m.getScreenPos(rowIndex, direction)
-        ' if index < m.numCols
-        '   rect.translation[1] += m.getTargetYOffsetForRow(index / m.numCols, direction)
-        ' end if
+        screenPos = m.getScreenPos(rowIndex, direction)
+          rect.translation[1] += screenPos
       end if
-
       return rect
     end function
 
@@ -422,7 +415,6 @@ namespace ml
     end function
 
     private function getScreenPos(rowIndex as integer, direction as integer) as integer
-      ? "HEREHERHEHEHEHEHRHEHERH "; rowIndex
       if rowIndex = 0
         return m.settings.firstRowScreenPos
       else
