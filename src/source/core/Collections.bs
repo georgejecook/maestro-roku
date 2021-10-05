@@ -54,21 +54,45 @@ namespace mc.collections
     return result
   end function
 
-  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer)
+  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer, key = invalid as string)
     if array = invalid or array.count() = 0
       return invalid
     end if
-    index = mc.collections.getArrayIndex(array, item)
+    index = mc.collections.getArrayIndex(array, item, key)
     return array[mc.clamp(index + offset, 0, array.count() - 1)]
   end function
 
-  function getArrayIndex(array as mc.types.array, item as dynamic)
+  function getArrayIndex(array as mc.types.array, item as dynamic, key = invalid as string)
     if array = invalid or array.count() = 0
       return -1
     end if
 
+    itemKey = invalid
+    isNode = false
+    if key <> invalid
+      if item <> invalid
+        itemKey = item[key]
+      else
+        return -1
+      end if
+    else if type(item) = "roAssociativeArray"
+      'use id as default key
+      key = "id"
+      itemKey = item[key]
+    else if type(item) = "roSGNode"
+      isNode = true
+    end if
+
     for i = 0 to array.count() - 1
-      if array[i] = item
+      if isNode
+        if item.isSamenode(array[i])
+          return i
+        end if
+      else if itemKey <> invalid
+        if array[i] <> invalid and array[i][key] = itemKey
+          return i
+        end if
+      else if array[i] = item
         return i
       end if
     end for
