@@ -2,6 +2,13 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
 
 namespace mv.animations.utils
+  function colorTo(target as mc.types.node, duration as float, toValue as integer, start = true as boolean, delay = 0 as float) as mv.animations.Fade
+    anim = new mv.animations.Color(target, duration, target.opacity, toValue, delay)
+    if start
+      anim.start()
+    end if
+    return anim
+  end function
   function fadeTo(target as mc.types.node, duration as float, toValue as float, start = true as boolean, delay = 0 as float) as mv.animations.Fade
     anim = new mv.animations.Fade(target, duration, target.opacity, toValue, delay)
     if start
@@ -427,6 +434,25 @@ namespace mv.animations
 
     public override function clone()
       return new mv.animations.Fade(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+    end function
+  end class
+
+  class Color extends mv.animations.AbstractAnimation
+    function new(target as mc.types.node, duration as float, fromValue as float, toValue as float, delay = 0 as float)
+      super(target, "opacity", duration, fromValue, toValue, "ColorAnimation", delay)
+    end function
+
+    protected override function createInterpolator()
+      m._createInterpolator("ColorFieldInterpolator")
+    end function
+
+    'TODO for now only takes color (int values
+    protected override function isValidValue(value as dynamic) as boolean
+      return mc.isNumber(value)
+    end function
+
+    public override function clone()
+      return new mv.animations.Color(m.target, m.duration, m.fromValue, m.toValue, m.delay)
     end function
   end class
 

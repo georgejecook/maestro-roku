@@ -1,6 +1,4 @@
 namespace tests
-  @nocatch
-  @only
   @suite("ViewUtils tests")
   class ViewUtilsTests extends mv.tests.BaseTestSuite
 
@@ -29,16 +27,16 @@ namespace tests
 
       json = [
         {
-          "id": "1"
+          "id": "v1"
           "height": 1
         },
         {
-          "id": "2"
+          "id": "v2"
           "height": 2
         },
         {
           "type": "Rectangle"
-          "id": "3"
+          "id": "v3"
           "height": 3
         }
       ]
@@ -202,10 +200,9 @@ namespace tests
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function executeCreateViews(json, node, isSetOnM = true)
-      target = {
-        createViewsFromStyleJson: mv.createViewsFromStyleJson
-        log: m.log
-      }
+      target = new TestviewTarget()
+      target.log = m.log
+
       'bs:disable-next-line
       target.createViewsFromStyleJson(json, node, isSetOnM)
       return target
@@ -222,5 +219,14 @@ namespace tests
         m.assertInvalid(targetM[idName], `${idName} was not meant to be assigned on m; but it was`)
       end if
     end function
+  end class
+
+  class TestViewTarget
+    private v1 as mc.types.node
+    private v2 as mc.types.node
+    private v3 as mc.types.node
+    private v4 as mc.types.node
+    createViewsFromStyleJson = mv.createViewsFromStyleJson
+
   end class
 end namespace
