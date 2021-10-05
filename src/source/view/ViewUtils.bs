@@ -78,18 +78,23 @@ namespace mv
                 mv.createViewsFromStyleJson(children, view, assignViewsToM, mTarget)
               end if
               if assignViewsToM and id <> invalid
+                if not mTarget.doesExist(id)
+                  m.log.error("CREATE VIEW FROM STYLE JSON: Target view did not have field declared for id", id)
+                else if mTarget[id] <> invalid
+                  m.log.error("CREATE VIEW FROM STYLE JSON: Target view already had a view set for id", id)
+                end if
                 mTarget[id] = view
               end if
             else
-              m.log.error("could not create view ", id, "with type", nodeType)
+              m.log.error("CREATE VIEW FROM STYLE JSON: Could not create view ", id, "with type", nodeType)
             end if
           end if
         end for
       else
-        m.log.error("could not create views from style Json. Node was invalid")
+        m.log.error("CREATE VIEW FROM STYLE JSON: Could not create views from style Json: Target node was invalid")
       end if
     else
-      m.log.error("could not create view in targetNode", mc.dv(targetNode), "json was invalid")
+      m.log.error("CREATE VIEW FROM STYLE JSON: Could not create view in targetNode", mc.dv(targetNode), "json was invalid")
     end if
   end function
 

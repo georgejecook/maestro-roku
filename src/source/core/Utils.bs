@@ -384,6 +384,31 @@ namespace mc
           end for
           args = arrArgs
         end if
+        'built in observer support
+        if mc.isAACompatible(args.observe)
+          for each key in args.observe
+            func = invalid
+            once = false
+            sendMode = "value"
+            if mc.isArray(args.observe[key]) and args.observe[key].count() > 0
+              func = args.observe[key][0]
+              sendMode = args.observe[key][1]
+              if sendMode = invalid
+                sendMode = "value"
+              end if
+              once = args.observe[key][2] = true
+            else
+              func = args.observe[key]
+            end if
+            if mc.isString(func) and mc.isFunction(m[func])
+              func = m[func]
+            else
+              m.log.error("createSGNode: Could not observe", key, "function", func, "does not exist on m")
+            end if
+            m.observeNodeField(node, key, func, sendMode, once)
+          end for
+          args.delete("observe")
+        end if
         node.setFields(args)
       end if
 

@@ -167,5 +167,149 @@ namespace tests
       ]
       m.assertEqual(mc.collections.getSortedArrayByKey(arr, "id2"), expected)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getArrayIndex")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets node indexes")
+    @params(-1, -1)
+    @params(0, 0)
+    @params(1, 1)
+    @params(2, 2)
+    @params(3, -1)
+    function _(index, expectedIndex)
+      i0 = mc.createSGNode("ContentNode")
+      i1 = mc.createSGNode("ContentNode")
+      i2 = mc.createSGNode("ContentNode")
+      items = [i0, i1, i2]
+      m.assertEqual(mc.collections.getArrayIndex(items, items[index]), expectedIndex)
+    end function
+
+    @it("gets keyed indexes")
+    @params(-1, -1)
+    @params(0, 0)
+    @params(1, 1)
+    @params(2, 2)
+    @params(3, -1)
+    function _(index, expectedIndex)
+      i0 = { "id": "i0" }
+      i1 = { "id": "i1" }
+      i2 = { "id": "i2" }
+      items = [i0, i1, i2]
+      m.assertEqual(mc.collections.getArrayIndex(items, items[index], "id"), expectedIndex)
+    end function
+
+    @it("gets regular values")
+    @params([0, 1, 2], 0, 0)
+    @params([0, 1, 2], 1, 1)
+    @params([0, 1, 2], 2, 2)
+    @params(["a", "b", "c"], "a", 0)
+    @params(["a", "b", "c"], "b", 1)
+    @params(["a", "b", "c"], "c", 2)
+    function _(items, value, expectedIndex)
+      m.assertEqual(mc.collections.getArrayIndex(items, value), expectedIndex)
+    end function
+
+    @it("defaults to index of id, if dealing with aas")
+    @params(-1, -1)
+    @params(0, 0)
+    @params(1, 1)
+    @params(2, 2)
+    @params(3, -1)
+    function _(index, expectedIndex)
+      i0 = { "id": "i0" }
+      i1 = { "id": "i1" }
+      i2 = { "id": "i2" }
+      items = [i0, i1, i2]
+      m.assertEqual(mc.collections.getArrayIndex(items, items[index]), expectedIndex)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getItemAtOffset")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("works with regular values offset")
+    @params([0, 1, 2], 0, 0, 0)
+    @params([0, 1, 2], 0, 1, 1)
+    @params([0, 1, 2], 0, 2, 2)
+    @params([0, 1, 2], 0, 3, 2)
+    @params([0, 1, 2], 0, -1, 0)
+    @params([0, 1, 2], 1, 0, 1)
+    @params([0, 1, 2], 1, 1, 2)
+    @params([0, 1, 2], 1, 2, 2)
+    @params([0, 1, 2], 1, -1, 0)
+    @params([0, 1, 2], 1, -2, 0)
+    @params([0, 1, 2], 2, 1, 2)
+    @params([0, 1, 2], 2, -1, 1)
+    @params([0, 1, 2], 2, -2, 0)
+    @params([0, 1, 2], 2, -3, 0)
+    @params(["a", "b", "c"], "a", 0, "a")
+    @params(["a", "b", "c"], "a", -1, "a")
+    @params(["a", "b", "c"], "a", 1, "b")
+    @params(["a", "b", "c"], "a", 2, "c")
+    @params(["a", "b", "c"], "a", 3, "c")
+    @params(["a", "b", "c"], "b", 0, "b")
+    @params(["a", "b", "c"], "b", 1, "c")
+    @params(["a", "b", "c"], "b", 2, "c")
+    @params(["a", "b", "c"], "b", -1, "a")
+    @params(["a", "b", "c"], "c", -2, "a")
+    @params(["a", "b", "c"], "c", 0, "c")
+    @params(["a", "b", "c"], "c", 1, "c")
+    @params(["a", "b", "c"], "c", -1, "b")
+    @params(["a", "b", "c"], "c", -2, "a")
+    @params(["a", "b", "c"], "c", -3, "a")
+    function _(items, value, offset, expectedValue)
+      m.assertEqual(mc.collections.getItemAtOffset(items, value, offset), expectedValue)
+    end function
+
+    @it("defaults to index of id, if dealing with aas")
+    @params(0, 0, "i0")
+    @params(0, -1, "i0")
+    @params(0, 1, "i1")
+    @params(0, 2, "i2")
+    @params(0, 3, "i2")
+    @params(1, 0, "i1")
+    @params(1, -1, "i0")
+    @params(1, -2, "i0")
+    @params(1, 1, "i2")
+    @params(1, 2, "i2")
+    @params(2, 0, "i2")
+    @params(2, -1, "i1")
+    @params(2, -2, "i0")
+    @params(2, -3, "i0")
+    @params(2, 1, "i2")
+    function _(index, offset, expectedId)
+      i0 = { "id": "i0" }
+      i1 = { "id": "i1" }
+      i2 = { "id": "i2" }
+      items = [i0, i1, i2]
+      m.assertEqual(mc.collections.getItemAtOffset(items, items[index], offset).id, expectedId)
+    end function
+
+    @it("works with nodes")
+    @params(0, 0, "i0")
+    @params(0, -1, "i0")
+    @params(0, 1, "i1")
+    @params(0, 2, "i2")
+    @params(0, 3, "i2")
+    @params(1, 0, "i1")
+    @params(1, -1, "i0")
+    @params(1, -2, "i0")
+    @params(1, 1, "i2")
+    @params(1, 2, "i2")
+    @params(2, 0, "i2")
+    @params(2, -1, "i1")
+    @params(2, -2, "i0")
+    @params(2, -3, "i0")
+    @params(2, 1, "i2")
+    function _(index, offset, expectedId)
+      i0 = mc.createSGNode("ContentNode", invalid, "i0")
+      i1 = mc.createSGNode("ContentNode", invalid, "i1")
+      i2 = mc.createSGNode("ContentNode", invalid, "i2")
+      items = [i0, i1, i2]
+      m.assertEqual(mc.collections.getItemAtOffset(items, items[index], offset).id, expectedId)
+    end function
+
   end class
 end namespace
