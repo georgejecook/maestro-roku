@@ -428,7 +428,7 @@ namespace ml
       end if
 
       m.setActiveFocusSettings(m.targetFocusRect.settings)
-      if m.activeFocusSettings.feedbackStyle = "none"
+      if m.activeFocusSettings = invalid or m.activeFocusSettings.feedbackStyle = "none"
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else if m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"
@@ -668,7 +668,7 @@ namespace ml
       super.onGainedFocus(isSelfFocused)
       m.isIndicatorHidden = false
       if isSelfFocused
-        m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings.feedbackStyle <> "none"
+        m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings <> invalid and m.activeFocusSettings.feedbackStyle <> "none"
         '      ? " ON GAINED FOCUS "
         row = m.getRowRenderer(m.focusedRowIndex)
         if row <> invalid
