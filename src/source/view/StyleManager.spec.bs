@@ -454,5 +454,103 @@ namespace tests
 
     end function
 
+    @it("loads a bundle from disk, then from different locale, using default locale")
+    function _()
+      m.manager.setDefaultLocale("en")
+      englishBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle")
+
+      m.manager.setDefaultLocale("fr")
+      frenchBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle")
+
+      m.manager.setDefaultLocale("de")
+      germanBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle")
+
+      m.assertNotEmpty(englishBundle)
+      m.assertNotEmpty(germanBundle)
+      m.assertNotEmpty(frenchBundle)
+      m.assertNotEqual(englishBundle, frenchBundle)
+      m.assertNotEqual(englishBundle, germanBundle)
+      m.assertNotEqual(frenchBundle, germanBundle)
+
+      expected = lcase(formatJson({
+        "_type": "mv_Poster"
+        "id": "logoPoster"
+        "loadDisplayMode": "limitSize"
+        "loadHeight": 80
+        "loadSync": true
+        "loadWidth": 137
+        "size": [137, 80]
+        "translation": [203, 80]
+        "uri": "pkg:/images/sign-in-logo-$$RES$$.png"
+      }))
+      m.assertEqual(lcase(formatJson(englishBundle.views[0])), expected)
+      m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[0])), lcase(formatJson({
+        "_type": "nba_TextInput"
+        "hintText": "Password"
+        "id": "passwordInput"
+        "isHandlingSelection": false
+        "size": [610, 102]
+        "translation": [200, 482]
+      })))
+      m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[3]._children[1])), lcase(formatJson({
+        "_type": "mv_Label"
+        "color": "#000000"
+        "fontKey": "SystemBold,30"
+        "id": "forgotText_1"
+        "size": [0, 0]
+        "text": "nba.com/forgot"
+      })))
+
+      m.assertEqual(lcase(formatJson(frenchBundle.views[0])), lcase(formatJson({
+        "_type": "mv_Poster",
+        "id": "logoPoster",
+        "loadDisplayMode": "limitSize",
+        "loadHeight": 200,
+        "loadSync": true,
+        "loadWidth": 200,
+        "size": [200, 200],
+        "translation": [203, 80],
+        "uri": "pkg:/images/sign-in-logo-fr-$$RES$$.png"
+      })))
+      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[0])), lcase(formatJson({
+        "_type": "nba_TextInput"
+        "hintText": "le mot de passe"
+        "id": "passwordInput"
+        "isHandlingSelection": false
+        "size": [400, 72]
+        "translation": [200, 482]
+      })))
+      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[3]._children[1])), lcase(formatJson({ "_type": "mv_label", "color": "#000000", "fontkey": "systembold,30", "id": "forgottext_1", "size": [0, 0], "text": "nba.com/forgot-fr"
+      })))
+
+      m.assertEqual(lcase(formatJson(germanBundle.views[0])), lcase(formatJson({ "_type": "mv_poster"
+        "id": "logoposter"
+        "loaddisplaymode": "limitsize"
+        "loadheight": 80
+        "loadsync": true
+        "loadwidth": 137
+        "size": [137, 80]
+        "translation": [203, 80]
+        "uri": "pkg:/images/sign-in-logo-de-$$res$$.png"
+      })))
+      m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[0])), lcase(formatJson({
+        "_type": "nba_TextInput"
+        "hintText": "Passwort"
+        "id": "passwordInput"
+        "isHandlingSelection": false
+        "size": [610, 102]
+        "translation": [200, 482]
+      })))
+      m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[3]._children[1])), lcase(formatJson({
+        "_type": "mv_label"
+        "color": "#000000"
+        "fontkey": "systembold,30"
+        "id": "forgottext_1"
+        "size": [0, 0]
+        "text": "nba.com/forgot-de"
+      })))
+
+    end function
+
   end class
 end namespace
