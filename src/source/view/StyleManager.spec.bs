@@ -196,5 +196,263 @@ namespace tests
       })
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getBundleFilename")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns empty for invalid name")
+    function _()
+      m.assertEmpty(m.manager.getBundleFilename(invalid))
+    end function
+
+    @it("gets valid bundle filenames")
+    @params("pkg:/source/SettingsScreen.bundle", invalid, "pkg:/source/SettingsScreen.bundle/SettingsScreen.json")
+    @params("pkg:/source/screens/SettingsScreen.bundle", invalid, "pkg:/source/screens/SettingsScreen.bundle/SettingsScreen.json")
+    @params("SettingsScreen.bundle", invalid, "SettingsScreen.bundle/SettingsScreen.json")
+    @params("./SettingsScreen.bundle", invalid, "./SettingsScreen.bundle/SettingsScreen.json")
+    @params("pkg:/source/SettingsScreen.bundle", "en", "pkg:/source/SettingsScreen.bundle/SettingsScreen.json")
+    @params("pkg:/source/screens/SettingsScreen.bundle", "en", "pkg:/source/screens/SettingsScreen.bundle/SettingsScreen.json")
+    @params("SettingsScreen.bundle", "en", "SettingsScreen.bundle/SettingsScreen.json")
+    @params("./SettingsScreen.bundle", "en", "./SettingsScreen.bundle/SettingsScreen.json")
+    @params("pkg:/source/SettingsScreen.bundle", "fr", "pkg:/source/SettingsScreen.bundle/SettingsScreen.fr.json")
+    @params("pkg:/source/screens/SettingsScreen.bundle", "fr", "pkg:/source/screens/SettingsScreen.bundle/SettingsScreen.fr.json")
+    @params("SettingsScreen.bundle", "fr", "SettingsScreen.bundle/SettingsScreen.fr.json")
+    @params("./SettingsScreen.bundle", "fr", "./SettingsScreen.bundle/SettingsScreen.fr.json")
+    @params("pkg:/source/SettingsScreen.bundle", "de", "pkg:/source/SettingsScreen.bundle/SettingsScreen.de.json")
+    @params("pkg:/source/screens/SettingsScreen.bundle", "de", "pkg:/source/screens/SettingsScreen.bundle/SettingsScreen.de.json")
+    @params("SettingsScreen.bundle", "de", "SettingsScreen.bundle/SettingsScreen.de.json")
+    @params("./SettingsScreen.bundle", "de", "./SettingsScreen.bundle/SettingsScreen.de.json")
+    function _(path, locale, expectedFilename)
+      m.assertEqual(m.manager.getBundleFilename(path, locale), expectedFilename)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("loadBundle")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if bundle could not be loaded")
+    @params(invalid)
+    @params("en")
+    @params("fr")
+    function _(locale)
+      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], invalid)
+
+      bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
+
+      m.assertInvalid(bundle)
+    end function
+
+    @it("returns cached bundle if already in cache")
+    @params(invalid, "pkg:/screen.bundle_en")
+    @params("en", "pkg:/screen.bundle_en")
+    @params("fr", "pkg:/screen.bundle_fr")
+    function _(locale, key)
+      m.expectNone(m.manager, "loadJson")
+      cachedBundle = { "id": "cachedBundle" }
+
+      m.manager.cachedStyles[key] = cachedBundle
+      bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
+
+      m.assertEqual(bundle, cachedBundle)
+    end function
+
+    @it("caches bundle if it was loaded")
+    @params(invalid, "pkg:/screen.bundle_en")
+    @params("en", "pkg:/screen.bundle_en")
+    function _(locale, key)
+      loadedBundle = { "id": "bundle" }
+      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], loadedBundle)
+
+      bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
+
+      m.assertEqual(bundle, loadedBundle)
+      m.assertEqual(m.manager.cachedStyles[key], loadedBundle)
+    end function
+
+    @it("caches root bundle, if locale bundle was not loaded")
+    @params("fr", "pkg:/screen.bundle_fr", "pkg:/screen.bundle/screen.fr.json")
+    @params("de", "pkg:/screen.bundle_de", "pkg:/screen.bundle/screen.de.json")
+    function _(locale, key, localeFilename)
+      loadedBundle = { "id": "bundle" }
+      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], loadedBundle)
+
+      m.expectOnce(m.manager, "loadJson", [localeFilename], invalid)
+
+      bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
+
+      m.assertEqual(bundle, loadedBundle)
+      m.assertEqual(m.manager.cachedStyles[key], loadedBundle)
+
+    end function
+
+    @it("caches overlaid bundle, if successfully loaded")
+    @params("fr", "pkg:/screen.bundle_fr", "pkg:/screen.bundle/screen.fr.json")
+    @params("de", "pkg:/screen.bundle_de", "pkg:/screen.bundle/screen.de.json")
+    function _(locale, key, localeFilename)
+      loadedBundle = { "id": "bundle" }
+      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], loadedBundle)
+
+      localeBundle = { "id2": "localeBundle" }
+      m.expectOnce(m.manager, "loadJson", [localeFilename], localeBundle)
+
+      bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
+
+      expectedBundle = {
+        "id": "bundle"
+        "id2": "localeBundle"
+      }
+      m.assertEqual(bundle, expectedBundle)
+      m.assertEqual(m.manager.cachedStyles[key], expectedBundle)
+
+    end function
+
+    @it("loads default bundle from disk, then the second time from cache")
+    function _()
+      bundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle")
+      cachedBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle")
+
+      m.assertNotEmpty(bundle)
+      m.assertEqual(bundle, cachedBundle)
+
+      m.assertEqual(bundle.views[0], {
+        "id": "logoPoster",
+        "_type": "mv_Poster",
+        "size": [
+          137,
+          80
+        ],
+        "translation": [
+          203,
+          80
+        ],
+        "loadSync": true,
+        "loadDisplayMode": "limitSize",
+        "loadWidth": 137,
+        "loadHeight": 80,
+        "uri": "pkg:/images/sign-in-logo-$$RES$$.png"
+      })
+      m.assertEqual(bundle.views[2], {
+        "id": "emailInput",
+        "_type": "nba_TextInput",
+        "size": [
+          610,
+          102
+        ],
+        "isHandlingSelection": false,
+        "translation": [
+          200,
+          380
+        ],
+        "hintText": "Email Address"
+      })
+
+    end function
+
+    @it("loads a bundle from disk, then the second time from cache")
+    @params("en")
+    @params("fr")
+    @params("de")
+    function _(locale)
+      bundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle", locale)
+      cachedBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle", locale)
+
+      m.assertNotEmpty(bundle)
+      m.assertEqual(bundle, cachedBundle)
+    end function
+
+    @it("loads a bundle from disk, then from different locale")
+    function _()
+      englishBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle")
+      frenchBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle", "fr")
+      germanBundle = m.manager.loadBundle("pkg:/source/view/SettingsScreen.spec.bundle", "de")
+
+      m.assertNotEmpty(englishBundle)
+      m.assertNotEmpty(germanBundle)
+      m.assertNotEmpty(frenchBundle)
+      m.assertNotEqual(englishBundle, frenchBundle)
+      m.assertNotEqual(englishBundle, germanBundle)
+      m.assertNotEqual(frenchBundle, germanBundle)
+
+
+      expected = lcase(formatJson({
+        "_type": "mv_Poster"
+        "id": "logoPoster"
+        "loadDisplayMode": "limitSize"
+        "loadHeight": 80
+        "loadSync": true
+        "loadWidth": 137
+        "size": [137, 80]
+        "translation": [203, 80]
+        "uri": "pkg:/images/sign-in-logo-$$RES$$.png"
+      }))
+      m.assertEqual(lcase(formatJson(englishBundle.views[0])), expected)
+      m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[0])), lcase(formatJson({
+        "_type": "nba_TextInput"
+        "hintText": "Password"
+        "id": "passwordInput"
+        "isHandlingSelection": false
+        "size": [610, 102]
+        "translation": [200, 482]
+      })))
+      m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[3]._children[1])), lcase(formatJson({
+        "_type": "mv_Label"
+        "color": "#000000"
+        "fontKey": "SystemBold,30"
+        "id": "forgotText_1"
+        "size": [0, 0]
+        "text": "nba.com/forgot"
+      })))
+
+      m.assertEqual(lcase(formatJson(frenchBundle.views[0])), lcase(formatJson({
+        "_type": "mv_Poster",
+        "id": "logoPoster",
+        "loadDisplayMode": "limitSize",
+        "loadHeight": 200,
+        "loadSync": true,
+        "loadWidth": 200,
+        "size": [200, 200],
+        "translation": [203, 80],
+        "uri": "pkg:/images/sign-in-logo-fr-$$RES$$.png"
+      })))
+      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[0])), lcase(formatJson({
+        "_type": "nba_TextInput"
+        "hintText": "le mot de passe"
+        "id": "passwordInput"
+        "isHandlingSelection": false
+        "size": [400, 72]
+        "translation": [200, 482]
+      })))
+      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[3]._children[1])), lcase(formatJson({ "_type": "mv_label", "color": "#000000", "fontkey": "systembold,30", "id": "forgottext_1", "size": [0, 0], "text": "nba.com/forgot-fr"
+      })))
+
+      m.assertEqual(lcase(formatJson(germanBundle.views[0])), lcase(formatJson({ "_type": "mv_poster"
+        "id": "logoposter"
+        "loaddisplaymode": "limitsize"
+        "loadheight": 80
+        "loadsync": true
+        "loadwidth": 137
+        "size": [137, 80]
+        "translation": [203, 80]
+        "uri": "pkg:/images/sign-in-logo-de-$$res$$.png"
+      })))
+      m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[0])), lcase(formatJson({
+        "_type": "nba_TextInput"
+        "hintText": "Passwort"
+        "id": "passwordInput"
+        "isHandlingSelection": false
+        "size": [610, 102]
+        "translation": [200, 482]
+      })))
+      m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[3]._children[1])), lcase(formatJson({
+        "_type": "mv_label"
+        "color": "#000000"
+        "fontkey": "systembold,30"
+        "id": "forgottext_1"
+        "size": [0, 0]
+        "text": "nba.com/forgot-de"
+      })))
+
+    end function
+
   end class
 end namespace

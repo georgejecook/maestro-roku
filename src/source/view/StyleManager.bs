@@ -1,6 +1,8 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/NodeClass.bs"
+import "pkg:/source/core/JsonCombiner.bs"
+import "pkg:/source/core/DebugTimer.bs"
 
 namespace mv
   @node("mv_StyleManager", "Node")
@@ -8,6 +10,7 @@ namespace mv
 
     private styles = {}
     private cachedStyles = {}
+    private jsonCombiner = new mc.JsonCombiner()
 
     function new()
       super("StyleManager")
@@ -22,6 +25,73 @@ namespace mv
         m.styles = {}
       end if
       m.cachedStyles = {} ' we lazily pull out styles and parse them on demand
+    end function
+
+    ' loads the specified bundle file, with the required locale.
+    ' bundle files contain json that can be used for views, with createViewsFromStyleJson method
+    ' and/or other values which a view/screen might use.
+    ' the bundle file contains one root json file, in english and optional additional locale files that override the default values
+    ' the bundle file is a folder with extension .bundle, which contains json files as follows
+    ' e.g. SettingsScreen bundle file
+    ' pkg:/screens/SettingsScreen.bundle
+    '   pkg:/screens/SettingsScreen.bundle/SettingsScreen.json - root style
+    '   pkg:/screens/SettingsScreen.bundle/SettingsScreen.fr.json - overridden values for fr locale
+    '   pkg:/screens/SettingsScreen.bundle/SettingsScreen.de.json - overridden values for de locale
+    '
+    ' @params {string} bundlePath of the root bundle
+    ' @params {string} locale of the bundle, or invalid if the default (english)
+    public function loadBundle(bundlePath as string, locale = "en" as string) as mc.types.assocarray
+
+      if locale = invalid
+        locale = "en"
+      else
+        locale = lcase(locale)
+      end if
+      styleKey = bundlePath + "_" + locale
+
+      style = m.cachedStyles[styleKey]
+      if style <> invalid
+        m.log.info("bundle", styleKey, "was already in cache")
+        return style
+      end if
+
+      timer = new mc.utils.DebugTimer("load bundle :" + styleKey)
+      bundleFilename = m.getBundleFilename(bundlePath)
+      json = m.loadJson(bundleFilename)
+
+      if mc.isAACompatible(json)
+        if locale <> "en"
+          localeBundleFilename = m.getBundleFilename(bundlePath, locale)
+          localeJson = m.loadJson(localeBundleFilename)
+          if mc.isAACompatible(localeJson)
+            m.jsonCombiner.combine(json, localeJson)
+          else
+            m.log.error("Could not load locale (", locale, ") style from ", bundlePath, "missing/corrupt file", localeBundleFilename)
+          end if
+        end if
+        m.cachedStyles[styleKey] = m.resolveNestedStyles(json)
+      else
+        m.log.error("Could not load root bundle json (en) style from ", bundlePath, "missing/corrupt file", bundleFilename)
+      end if
+
+      timer.log("")
+      return json
+    end function
+
+    private function getBundleFilename(path as string, locale = "" as string) as string
+      if path = invalid
+        return ""
+      end if
+
+      if locale = invalid or locale = "en"
+        locale = ""
+      end if
+      if locale <> ""
+        locale = lcase("." + locale)
+      end if
+      parts = path.split("/")
+      lastPart = parts[parts.count() - 1]
+      return path + "/" + lastPart.replace(".bundle", locale + ".json")
     end function
 
     ' /**
@@ -56,6 +126,16 @@ namespace mv
       return style
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function loadJson(path as string) as mc.types.assocarray
+      text = readAsciiFile(path)
+      return text = invalid ? invalid : parseJson(text)
+    end function
+
+
     private function parseStyle(key as string)
       style = mc.getPath(m.styles, key)
 
@@ -71,7 +151,7 @@ namespace mv
           style[key] = m.resolveNestedStyleValue(style[key])
         end for
       else if mc.isArray(style)
-        n = style.count() -1
+        n = style.count() - 1
         for i = 0 to n
           style[i] = m.resolveNestedStyleValue(style[i])
         end for
