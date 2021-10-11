@@ -1,0 +1,108 @@
+namespace tests
+
+  @nocatch
+  @suite("JsonCombinerTests")
+  class JsonCombinerTests extends rooibos.BaseTestSuite
+
+    private combiner
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.combiner = new mc.JsonCombiner()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("combineArray")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("replaces a non array")
+    @params(invalid, ["a", "b"], ["a", "b"])
+    @params("text", ["a", "b"], ["a", "b"])
+    @params(22, ["a", "b"], ["a", "b"])
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combineArray(source, other), expected)
+    end function
+
+    @it("uses replace directive")
+    @params(["z"], ["$replace", "a", "b"], ["a", "b"])
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combineArray(source, other), expected)
+    end function
+
+    @it("uses append directive")
+    @params(["z"], ["$append", "a", "b"], ["z", "a", "b"])
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combineArray(source, other), expected)
+    end function
+
+    @it("defaults to $merge directive with objects")
+    @params([{ "id": "a", "v": 0 }], [{ "id": "a", "v": 1 }], [{ "id": "a", "v": 1 }])
+    @params([{ "id": "a", "v": 0 }, { "id": "b", "v": 0 }], [{ "id": "b", "v": 1 }], [{ "id": "a", "v": 0 }, { "id": "b", "v": 1 }])
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combineArray(source, other), expected)
+    end function
+
+    @it("allows explicit $merge directive with objects")
+    @params([{ "id": "a", "v": 0 }], ["$merge", { "id": "a", "v": 1 }], [{ "id": "a", "v": 1 }])
+    @params([{ "id": "a", "v": 0 }, { "id": "b", "v": 0 }], ["$merge", { "id": "b", "v": 1 }], [{ "id": "a", "v": 0 }, { "id": "b", "v": 1 }])
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combineArray(source, other), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("combine")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns other, if source is invalid")
+    @params(invalid, { "v": 0 }, { "v": 0 })
+    @params("wrong", { "v": 0 }, { "v": 0 })
+    @params(22, { "v": 0 }, { "v": 0 })
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combine(source, other), expected)
+    end function
+
+    @it("returns other, if using replace directive")
+    @params({ "v": 1 }, { "$replace": true, "v": 0 }, { "v": 0 })
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combine(source, other), expected)
+    end function
+
+    @it("deletes keys if indicated with $delete")
+    @params({ "v": 0, "a": [] }, { "v": 0, "a": "$delete" }, { "v": 0 })
+    @params({ "v": 0, "a": {} }, { "v": 0, "a": "$delete" }, { "v": 0 })
+    @params({ "v": 0, "a": 0 }, { "v": 0, "a": "$delete" }, { "v": 0 })
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combine(source, other), expected)
+    end function
+
+    @it("combines arrays")
+    @params({ "v": 0, "a": [1, 2, 3] }, { "v": 0, "a": [3, 4, 5] }, { "v": 0, "a": [3, 4, 5] })
+    @params({ "v": 0, "a": [1, 2, 3] }, { "v": 0, "a": ["$append", 4, 5] }, { "v": 0, "a": [1, 2, 3, 4, 5] })
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combine(source, other), expected)
+    end function
+
+    @it("combines nested arrays")
+    @params({ "v": 0, "a": [{ id: "a", v: 0 }] }, { "v": 0, "a": [{ id: "a", v: 1 }] }, { "v": 0, "a": [{ id: "a", v: 1 }] })
+    @params(
+    { "v": 0, "a": [{ id: "a", v: 0, aa: [1, 2, 3] }] },
+    { "v": 0, "a": [{ id: "a", v: 1, aa: [3, 4, 5] }] },
+    { "v": 0, "a": [{ id: "a", v: 1, aa: [3, 4, 5] }] }
+    )
+    @params(
+    { "v": 0, "a": [{ id: "a", v: 0, aa: [{ "id": "an", a: [0, 1] }] }] },
+    { "v": 0, "a": [{ id: "a", v: 1, aa: [{ "id": "an", a: ["$append", 2, 3] }] }] },
+    { "v": 0, "a": [{ id: "a", v: 1, aa: [{ "id": "an", a: [0, 1, 2, 3] }] }] }
+    )
+    @params(
+    { "v": 0, "a": [{ id: "a", v: 0, aa: [{ "id": "an", a: [0, 1] }, { "id": "no", a: [0, 1] }] }] },
+    { "v": 0, "a": [{ id: "a", v: 1, aa: [{ "id": "an", a: ["$append", 2, 3] }] }] },
+    { "v": 0, "a": [{ id: "a", v: 1, aa: [{ "id": "an", a: [0, 1, 2, 3] }, { "id": "no", a: [0, 1] }] }] }
+    )
+    function _(source, other, expected)
+      m.assertEqual(m.combiner.combine(source, other), expected)
+    end function
+
+
+  end class
+end namespace
