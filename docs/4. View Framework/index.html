@@ -412,6 +412,116 @@
 <p>In addition the view framework contains many base classes that can be used</p>
 <a href="#mixins"><h2 id="mixins">Mixins</h2></a><p>Maestro makes use of many different mixin classes, which handle different aspects of view management (e.g. utils, focus, key handling), and then bundles these together in base classes (views and screens).</p>
 <p>Aggregate views for tab (i.e. iOS style TabController navigation) and stack (i.e. iOS style NavController navigation) are provided</p>
+<a href="#loading-styles-and-bundles"><h2 id="loading-styles-and-bundles">Loading styles and bundles</h2></a><p>A great way of making maestro apps is to use nodeclasses, with json view definitions. It has many benefits:</p>
+<ul>
+<li>easy to extract json from tools like figma/zeplin via plugins</li>
+<li>easy to serve json for your views from a CMS/api</li>
+<li>json views don&#39;t require pre-compile steps, and you control when they get instantiated, giving more performance flexibility</li>
+<li>localizations are super easy</li>
+</ul>
+<a href="#styles-and-style-manager"><h3 id="styles-and-style-manager">Styles and Style manager</h3></a><ul>
+<li>Styles are stored in the style manager. They are loaded from a json file.</li>
+<li>Styles can reference other styles using `&quot;key&quot;: &quot;~other.key&quot; semantics.</li>
+</ul>
+<p>e.g.</p>
+<p>style.json</p>
+<pre><code>{
+  &quot;fonts&quot;: {
+    &quot;app&quot;: {
+      &quot;title&quot;: &quot;SystemBold, 40&quot;,
+      &quot;subtitle&quot;: &quot;SystemBold, 20&quot;,
+    },
+    &quot;menu&quot;: {
+      &quot;normal&quot;: &quot;System, 30&quot;,
+      &quot;focused&quot;: &quot;SystemBold, 30&quot;
+      }
+  }
+}
+</code></pre>
+<a href="#style-references"><h3 id="style-references">Style references</h3></a><p>You can then reference these elements in other json styles.
+e.g.</p>
+<pre><code>MenuButton: {
+  normalFontKey: &quot;~fonts.menu.normal&quot;,
+  focusedFontKey: &quot;~fonts.menu.focused&quot;
+}
+</code></pre>
+<p>Referencing in this way works for <em>any</em> style that is loaded.</p>
+<a href="#loading-styles"><h3 id="loading-styles">Loading styles</h3></a><p>Styles are loaded into style manager with the <code>loadJson</code> method call.
+e.g. - in your initialization</p>
+<pre><code>      styleUrl = &quot;pkg:/meta/Styles.json&quot;
+      m.log.info(&quot;loading styles from&quot;, styleUrl)
+
+      styleManager = mc.createSGNode(&quot;mv_StyleManager&quot;, invalid, &quot;styleManager&quot;)
+      m.setInstance(&quot;styleManager&quot;, styleManager)
+      m.global.addFields({ &quot;styleManager&quot;: styleManager })
+
+      styleJson = m.loadJson(styleUrl)
+      styleManager@.setStyleJson(styleJson)
+</code></pre>
+<a href="#creating-views-from-json"><h3 id="creating-views-from-json">Creating views from json:</h3></a><p>Simply load your style (or any json), and use the maestro view (mv) utility method, as such:</p>
+<pre><code>    private function createViews()
+      style = m.styleManager@.getStyle(&quot;screens.SettingsScreen.views&quot;)
+      m.createViewsFromStyleJson(style, m.top)
+    end function
+</code></pre>
+<p>Note that creation is done view the <code>mc.createViewsFromStyleJson</code> method (which for convenience is in <code>BaseClass</code>, <code>BaseCell</code> and <code>BaseViewModel</code>, to facilitate testing)</p>
+<a href="#rules"><h4 id="rules">Rules</h4></a><ul>
+<li>The json must be an <code>array</code> of assocarray items, that represent each of your views,</li>
+<li>each musth have a <code>_type</code> which conforms to a SG node type, or one of your nodes</li>
+<li>if you use an <code>id</code> field, it will automatically set the same named field on your node class<ul>
+<li>if it can&#39;t be found, you will be warned</li>
+</ul>
+</li>
+</ul>
+<a href="#observing"><h4 id="observing">observing</h4></a><ul>
+<li>you can wire up observes directly in your view json by adding an <code>observe</code> associative array and specifying the field names and function as such:
+`observe: {
+&quot;selected&quot;: &quot;onSelected&quot;
+&quot;focused&quot;: [&quot;onSelected&quot;, &quot;both&quot;, true]
+}</li>
+</ul>
+<p>In the latter case we are using directives to guide how the observe should be setup (in this case, pass both the node and the value, and only fire it once.). The args in that case are:
+`[ handler function name, send mode (both|node|none|value) - default value, fire once (true|false) - default false]</p>
+<a href="#updating-views-from-json"><h3 id="updating-views-from-json">Updating views from json:</h3></a><p>When you update views, you provide an assocarray of views by their id, with the values you wish to change, and call the <code>mc.updateViewsWithStyleJson</code> method (which for convenience is in <code>BaseClass</code>, <code>BaseCell</code> and <code>BaseViewModel</code>, to facilitate testing)</p>
+<pre><code>  m.updateViewsWithStyleJson(m.style.normal)
+</code></pre>
+<p>Note, the format for overriding here (an aa), will soon be updated to use the bundle override format described in the next section.</p>
+<p>One can make it very trivial to update views, in response to certain states.</p>
+<p>e.g. given a Button control:</p>
+<pre><code>    private function applyState(isFocused as boolean, isDisabled as boolean) as void
+      &#39;ensure view is correctly configured
+      m.updateViewsWithStyleJson(m.style.normal)
+
+      if isDisabled
+        m.updateViewsWithStyleJson(m.style.disabled)
+      else if isFocused
+        m.updateViewsWithStyleJson(m.style.focused)
+      end if
+    end function
+</code></pre>
+<a href="#loading-bundles"><h3 id="loading-bundles">Loading bundles</h3></a><p>Bundles are blobs of json that can represent views or other data. They are loaded on a file by file basis, and have the ability to have language overrides (or any key for that matter).
+They are stored in a special folder named NAME.bundle, with specifically named files, e.g:</p>
+<pre><code>
+NAME.bundle/
+NAME.json - root file locale &quot;en&quot;
+NAME.de.json - overrides, in &quot;de&quot; locale
+NAME.fr.json - overrides, in &quot;fr&quot; locale
+</code></pre>
+<p>Note, the locale keys happen to be language codes here; but they could be anything. Casing is important and the naming must follow this convention. See <a href="../../src/source/view/SettingsScreen.spec.bundle">source/view/SettingsScreen.spec.bundle</a> for the exact format.</p>
+<p>To use a bundle in your app, do the following:</p>
+<pre><code>
+private function createViews()
+bundle = m.styleManager@.loadBundle(&quot;pkg:/source/view/SettingsScreen.bundle&quot;, m.locale) &#39; where m.locale is &quot;fr&quot;|&quot;en&quot;, etc
+m.createViewsFromStyleJson(bundle.views, m.top)
+end function
+</code></pre>
+<a href="#notes"><h4 id="notes">Notes</h4></a><ul>
+<li>Once a bundle is loaded, it is cached.</li>
+<li>Multiple bundles overrides can be held in cache at any time (to support user language switching)</li>
+<li>the default locale is &quot;en&quot;</li>
+<li>&quot;en&quot; is considered the root json file in a bundle, and does not have a file extension</li>
+<li>Bundles can use style references, for <em>any</em> loaded style that is stored in the StyleManager</li>
+</ul>
             <div id="footer">
             </div>
         </div>
