@@ -9,6 +9,7 @@ namespace mv
   class StyleManager extends mv.NodeClass
 
     private styles = {}
+    private defaultLocale = "en"
     private cachedStyles = {}
     private jsonCombiner = new mc.JsonCombiner()
 
@@ -16,6 +17,10 @@ namespace mv
       super("StyleManager")
       m.log = new log.Logger("StyleManager")
       m.setStyleJson(invalid)
+    end function
+
+    public function setDefaultLocale(locale = "en" as string)
+      m.defaultLocale = locale
     end function
 
     public function setStyleJson(json as mc.types.assocarray)
@@ -40,10 +45,10 @@ namespace mv
     '
     ' @params {string} bundlePath of the root bundle
     ' @params {string} locale of the bundle, or invalid if the default (english)
-    public function loadBundle(bundlePath as string, locale = "en" as string) as mc.types.assocarray
+    public function loadBundle(bundlePath as string, locale = invalid as string) as mc.types.assocarray
 
       if locale = invalid
-        locale = "en"
+        locale = m.defaultLocale
       else
         locale = lcase(locale)
       end if
@@ -56,7 +61,7 @@ namespace mv
       end if
 
       timer = new mc.utils.DebugTimer("load bundle :" + styleKey)
-      bundleFilename = m.getBundleFilename(bundlePath)
+      bundleFilename = m.getBundleFilename(bundlePath, "en")
       json = m.loadJson(bundleFilename)
 
       if mc.isAACompatible(json)
@@ -64,7 +69,7 @@ namespace mv
           localeBundleFilename = m.getBundleFilename(bundlePath, locale)
           localeJson = m.loadJson(localeBundleFilename)
           if mc.isAACompatible(localeJson)
-            m.jsonCombiner.combine(json, localeJson)
+            json = m.jsonCombiner.combine(json, localeJson)
           else
             m.log.error("Could not load locale (", locale, ") style from ", bundlePath, "missing/corrupt file", localeBundleFilename)
           end if
@@ -78,17 +83,23 @@ namespace mv
       return json
     end function
 
-    private function getBundleFilename(path as string, locale = "" as string) as string
+    private function getBundleFilename(path as string, locale = invalid as string) as string
       if path = invalid
         return ""
       end if
 
-      if locale = invalid or locale = "en"
+      if locale = invalid
+        locale = m.defaultLocale
+      end if
+
+      if locale = "en"
         locale = ""
       end if
+
       if locale <> ""
         locale = lcase("." + locale)
       end if
+
       parts = path.split("/")
       lastPart = parts[parts.count() - 1]
       return path + "/" + lastPart.replace(".bundle", locale + ".json")

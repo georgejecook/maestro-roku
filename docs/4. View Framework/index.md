@@ -28,7 +28,7 @@ A great way of making maestro apps is to use nodeclasses, with json view definit
 - easy to extract json from tools like figma/zeplin via plugins
 - easy to serve json for your views from a CMS/api
 - json views don't require pre-compile steps, and you control when they get instantiated, giving more performance flexibility
-- localizations are super easy
+- localizations are super easy, simply call `setDefaultLocale(locale)` on your `StyleManager`
 
 ### Styles and Style manager
 
@@ -160,13 +160,18 @@ Note, the locale keys happen to be language codes here; but they could be anythi
 
 To use a bundle in your app, do the following:
 ```
-
 private function createViews()
-bundle = m.styleManager@.loadBundle("pkg:/source/view/SettingsScreen.bundle", m.locale) ' where m.locale is "fr"|"en", etc
+bundle = m.styleManager@.loadBundle("pkg:/source/view/SettingsScreen.bundle")
 m.createViewsFromStyleJson(bundle.views, m.top)
 end function
 
 ```
+
+#### Bundle locales
+
+ - the default locale is `en`
+ - use `StyleManager.setDefaultLocale` to set a different locale for bundles
+ - the `loadBundle` method takes an optional second parameter to override the locale
 
 #### Notes
  - Once a bundle is loaded, it is cached.
