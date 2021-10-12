@@ -72,9 +72,6 @@ function pop(animated = true as boolean)
 
   updatePublicFields()
 
-  if m.top.numberOfViews = 0
-    m.top.isLastViewPopped = true
-  end if
 
   transitionToView(nextView, animated)
 
@@ -90,16 +87,16 @@ function replace(newView = invalid as mc.types.node, animated = false as boolean
   end if
 
   if newView <> invalid
-    m.viewStack.push(newView)
+    m.log.info("replacing with ", newView.subType())
+    m.viewStack.Push(newView)
+    newView.navController = m.top
+  else
+    m.log.warn("replace invalid view passed in : ignoring")
   end if
+
   updatePublicFields()
 
   transitionToView(newView, animated)
-
-  if m.top.numberOfViews = 0
-    m.top.isLastViewPopped = true
-  end if
-
 
   return previousView
 end function
@@ -112,6 +109,12 @@ end function
 function updatePublicFields()
   m.top.numberOfViews = m.viewStack.count()
   m.top.viewStack = m.viewStack
+
+  if m.top.numberOfViews = 0
+    m.top.isLastViewPopped = true
+  else
+    m.top.isLastViewPopped = false
+  end if
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
