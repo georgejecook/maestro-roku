@@ -158,9 +158,25 @@ namespace mv
 
     private function resolveNestedStyles(style as string)
       if mc.isAACompatible(style)
-        for each key in style
-          style[key] = m.resolveNestedStyleValue(style[key])
-        end for
+        if style["$extends"] <> invalid
+          baseStyle = m.getStyle(style["$extends"])
+          if baseStyle <> invalid
+            newStyle = {}
+            newStyle.append(baseStyle)
+            for each key in style
+              if key <> "$extends"
+                newStyle[key] = m.resolveNestedStyleValue(style[key])
+              end if
+            end for
+            return newStyle
+          else
+            m.log.warn("Could not find extended style", style["$extends"])
+          end if
+        else
+          for each key in style
+            style[key] = m.resolveNestedStyleValue(style[key])
+          end for
+        end if
       else if mc.isArray(style)
         n = style.count() - 1
         for i = 0 to n
