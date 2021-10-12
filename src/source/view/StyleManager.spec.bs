@@ -138,7 +138,29 @@ namespace tests
           "highlightedTextStyle": "~broken.primary"
           "subtitleTextStyle": "~text.broken-nested"
           "translation": [100, 100]
+        },
+        "extends": {
+          "base1": {
+            "id": "base1",
+            "translation": [0, 0]
+            "base": true
+          },
+          "extend1": {
+            "$extends": "extends.base1"
+            "e": 1
+            "translation": [100, 100]
+          }
+          "extend2": {
+            "$extends": "extends.base1"
+            "e": 2
+            "translation": [200, 200]
+          }
+          "extend3": {
+            "$extends": "extends.extend2"
+            "translation": [300, 300]
+          }
         }
+
       }
 
 
@@ -180,6 +202,38 @@ namespace tests
         }
       })
 
+    end function
+
+    @it("allows for extending styles")
+    function _()
+      baseStyle = m.manager.getStyle("extends.base1")
+      e1Style = m.manager.getStyle("extends.extend1")
+      e2Style = m.manager.getStyle("extends.extend2")
+      e3Style = m.manager.getStyle("extends.extend3")
+
+      m.assertEqual(baseStyle, {
+        "base": true
+        "id": "base1"
+        "translation": [0, 0]
+      })
+      m.assertEqual(e1Style, {
+        "base": true
+        "e": 1
+        "id": "base1"
+        "translation": [100, 100]
+      })
+      m.assertEqual(e2Style, {
+        "base": true
+        "e": 2
+        "id": "base1"
+        "translation": [200, 200]
+      })
+      m.assertEqual(e3Style, {
+        "base": true
+        "e": 2
+        "id": "base1"
+        "translation": [300, 300]
+      })
     end function
 
     @it("logs warning when nested styles are missing - but leaves key intact")
