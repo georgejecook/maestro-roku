@@ -208,23 +208,23 @@ namespace mx
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as mc.types.node)
+    protected function push(view as mc.types.node, animated = true as boolean)
 
       if mc.isString(view)
         view = m.getViewById(view)
       end if
       'bs:disable-next-line
-      push(view)
+      push(view, animated)
     end function
 
-    protected function pop() as mc.types.node
+    protected function pop(animated = true as boolean) as mc.types.node
       'bs:disable-next-line
-      return(pop())
+      return(pop(animated))
     end function
 
-    protected function dismiss(state as string)
+    protected function dismiss(state as string, animated = true as boolean)
       if m.getTopField("navController") <> invalid
-        m.pop()
+        m.pop(animated)
       end if
 
       if state <> invalid
@@ -243,14 +243,19 @@ namespace mx
       return view
     end function
 
-    protected function resetNavControllerToRoot()
+    protected function resetNavControllerToRoot(animated = true as boolean)
       'bs:disable-next-line
-      resetNavControllerToRoot()
+      resetNavControllerToRoot(animated)
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer)
+    protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
-      resetNavController(newFirstScreen, endIndex)
+      resetNavController(newFirstScreen, endIndex, animated)
+    end function
+
+    function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+      'bs:disable-next-line
+      replaceNavControllerScreen(targetScreen, animated)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
