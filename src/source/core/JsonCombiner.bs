@@ -62,7 +62,11 @@ namespace mc
         if mode = "$merge"
           for each item in other
             if mc.isAACompatible(item)
-              index = mc.collections.getArrayIndex(source, item, "id")
+              if item.id <> invalid and item.id <> ""
+                index = mc.collections.getArrayIndex(source, item, "id")
+              else
+                index = -1
+              end if
               if index <> -1
                 source[index] = m.combine(source[index], item)
               else
