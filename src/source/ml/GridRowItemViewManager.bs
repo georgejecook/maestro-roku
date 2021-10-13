@@ -171,7 +171,7 @@ namespace ml
               m.container.appendChild(cell)
               m.cellsById[id] = cell
             else
-              '              ? ">>ERR no cell for " ; settings.compName
+                           ? ">>ERR no cell for " ; settings.compName
             end if
           end if
           if cell <> invalid
@@ -237,9 +237,9 @@ namespace ml
         return invalid
       end if
       ' itemRect = m.rects[rowIndex]
-      ? "::::::::::::::::::::::::::::::::::::::::::::::::::"
-      ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
-      ? " rowIndex " ; rowIndex ; " D "; direction
+      ' ? "::::::::::::::::::::::::::::::::::::::::::::::::::"
+      ' ? "++++++++++++++++++++++++++++++++++++++++++++++++++"
+      ' ? " rowIndex " ; rowIndex ; " D "; direction
       gridRowHeight = m.getHeightOfGridRow()
       rowOffset = m.getRowOffset(rowIndex)
       rowOffset += ownerOffset
@@ -247,31 +247,31 @@ namespace ml
 
       ' nextRowIndex = rowIndex + direction
       nextRowIndex = rowIndex
-      ? " ON SCREEN?  NRI " ; nextRowIndex
+      ' ? " ON SCREEN?  NRI " ; nextRowIndex
       screenPos = m.getScreenPos(nextRowIndex, direction)
       ' if nextRowIndex > 0
       ' ? " ADDING ON EXTRA SCREEN POS"
       screenPos += screenPos
       ' end if
-      ? " SCREEN POS FOR THIS CHECK "; screenPos
+      ' ? " SCREEN POS FOR THIS CHECK "; screenPos
       sStart = m.contentGroup.translation[1] + screenPos
       ' sStart = m.screenRect.translation[1]
       sEnd = sStart + gridRowHeight
-      ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY ";m.screenRect.translation[1] ; " sSize " ; gridRowHeight ; " oO " ; ownerOffset
+      ' ? "MRFSP sS "; sStart ; " sE "; sEnd ; " offset" ; rowOffset ; " sY ";m.screenRect.translation[1] ; " sSize " ; gridRowHeight ; " oO " ; ownerOffset
 
       if rowOffset <> invalid
         cStart = rowOffset + screenPos
         cEnd = cStart + m.settings.rowHeight + m.settings.space
-        ? "rect cS "; cStart ; " cE "; cEnd
+        ' ? "rect cS "; cStart ; " cE "; cEnd
         if (cStart >= sStart and cStart <= sEnd) and (cEnd >= sStart and cEnd <= sEnd)
           'TODO screenPos to pass to this function
           '1. get the pos if scrolling down
           '2. is it on screen? great, that's the position we will use
           '3. is it not on screen? - okay - we need to scroll to it
-          ? "SCREEN POS IN THIS CASE IS "; rowOffset
+          ' ? "SCREEN POS IN THIS CASE IS "; rowOffset
           return rowOffset
         else
-          ? "row "; rowIndex ; " IS NOT ON SCREEN! "
+          ' ? "row "; rowIndex ; " IS NOT ON SCREEN! "
         end if
       end if
       return invalid
@@ -279,12 +279,12 @@ namespace ml
 
     function getTargetYOffsetForRow(rowIndex as integer, direction as integer) as integer
       screenPos = m.getScreenPos(rowIndex, direction)
-      ? "AAA"
+      ' ? "AAA"
       if rowIndex = 0 and screenPos <> 0
         return - screenPos
       end if
       ' if direction <> -1
-      ? "BBB"
+      ' ? "BBB"
       '   return - screenPos
       ' end if
       ' ? " GETTING RECT FOR item "; rowIndex * m.numCols
@@ -292,11 +292,11 @@ namespace ml
       if screenY = invalid
         screenY = 0
       end if
-      ? " >>>>>>>> "; rowIndex ; " direction" direction
+      ' ? " >>>>>>>> "; rowIndex ; " direction" direction
       rowPos = m.getRowOffset(rowIndex)
       offset = rowPos - screenY - screenPos
-      ? " >>> SY "; screenY ; " RP "; rowPos ; " sp " ; screenPos; "===OFFSET " ; offset
-      ? "CCC"
+      ' ? " >>> SY "; screenY ; " RP "; rowPos ; " sp " ; screenPos; "===OFFSET " ; offset
+      ' ? "CCC"
       return offset
     end function
 
@@ -343,7 +343,7 @@ namespace ml
             '   end if
           end if
         else
-          '          ? "comp index not set!"
+                   ? "comp index not set!"
         end if
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
@@ -397,9 +397,9 @@ namespace ml
     override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
       rect = m.getRect(index, true)
       rowIndex = fix(index / m.numCols)
-      ? ":+:+:+:+::+:+:+:+:+:+:"
+      ' ? ":+:+:+:+::+:+:+:+:+:+:"
       rect.translation[1] = m.getRowYOffset(rowIndex, direction)
-      ? "getScreenRect I  "; index ; " RI " ; rowIndex ; " yOFFSET "; rect.translation[1]
+      ' ? "getScreenRect I  "; index ; " RI " ; rowIndex ; " yOFFSET "; rect.translation[1]
 
       if rect <> invalid
         rect.translation[0] += m.settings.contentOffset[0]
@@ -407,36 +407,38 @@ namespace ml
         rect.translation[1] += m.contentGroup.translation[1]
         screenPos = m.getScreenPos(rowIndex, direction)
 
-        ? "screenPos" ; screenPos
-        ? "111RECT Y" ; rect.translation[1]
+        ' ? "screenPos" ; screenPos
+        ' ? "111RECT Y" ; rect.translation[1]
         if rowIndex = 0
           rect.translation[1] += screenPos
         else
           rect.translation[1] += screenPos
         end if
-        ? "2222RECT Y" ; rect.translation[1]
+        ' ? "2222RECT Y" ; rect.translation[1]
       end if
       return rect
     end function
 
     private function getRowYOffset(rowIndex as integer, direction as integer)
       offset = 0
-      ? "(+(+(+(+(+(+(+(+("
-      ? "getRowYOffset" ; rowIndex ; " D "; direction
+      ' ? "(+(+(+(+(+(+(+(+("
+      ' ? "getRowYOffset" ; rowIndex ; " D "; direction
       'Super crude for time being
       if rowIndex = 0
         offset = 0
+      else if direction = -1
+          offset = 0
       else
         if rowIndex >= m.rowOffsets.count()
-          ? " LIMITING BASED ON ROW OFFSETS " ;m.rowOffsets.count()
+          ' ? " LIMITING BASED ON ROW OFFSETS " ;m.rowOffsets.count()
           rowIndex = m.rowOffsets.count() - 1
         end if
 
         if rowIndex >= m.settings.numRows
-          ? " LIMITING BASED ON numRows " ; m.settings.numRows
+          ' ? " LIMITING BASED ON numRows " ; m.settings.numRows
           rowIndex = m.settings.numRows - 1
         end if
-        ? "ROw " ; rowIndex ; " offsets" ; formatJson(m.rowOffsets)
+        ' ? "ROw " ; rowIndex ; " offsets" ; formatJson(m.rowOffsets)
         offset = m.rowOffsets[rowIndex]
       end if
       return offset
