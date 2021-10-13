@@ -88,9 +88,7 @@ namespace ml
 
     public function moveRowUp() as boolean
       m.log.verbose("moveRowUp")
-      '      ? "aaaaaa"
       if m.canMoveRow(-1) and m.itemScroller.index > m.content.settings.numColumns - 1
-        '      ? "bbbbb"
         return m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
       end if
       return false
@@ -221,6 +219,10 @@ namespace ml
 
     public override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
       return m.viewManager.getScreenRect(index, screenPos, direction)
+    end function
+
+    public override function getItemSize(index as integer) as mc.types.array
+      return m.viewManager.getItemSize(index)
     end function
 
     public override function onFlowFocusFraction(fraction as float)

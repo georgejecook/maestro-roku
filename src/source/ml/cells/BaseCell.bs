@@ -13,6 +13,8 @@ namespace ml
 
     public index = -1
 
+    @observe("onDebugMChange")
+    public __debugM = false
 
     ' any item in a list will have this set whenever it gets recycled
     @observer("onInitialStateChange")
@@ -38,6 +40,11 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function onDebugMChange()
+      mc.setOrAddNodeField(m.top, "__m", m)
+    end function
+
     protected function onIsPrebaked(value as boolean)
       'can do things like:
       ' m.createViews()
@@ -62,9 +69,7 @@ namespace ml
       m.size = state.size
       m.content = state.content
       m.isRecyclePending = true
-      if m.isViewCreated
-        m._onContentChange(state.content)
-      end if
+      m.recycle()
     end function
 
     public function recycle()

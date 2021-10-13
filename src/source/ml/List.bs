@@ -297,6 +297,34 @@ namespace ml
       return invalid
     end function
 
+    'when we know we are doing a floating rect, we can just get the cell position
+    public function getOnScreenCellRect(rowIndex as integer, cellIndex as integer)
+      row = m.getRowRenderer(rowIndex)
+      size = row@.getItemSize(cellIndex)
+      return m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
+    end function
+
+    'when we know we are doing a floating rect, we can just get the cell position
+    public function getOnScreenRowRect(rowIndex as integer)
+      rowSettings = ml.listMixin.getRowSettings(m.content, rowIndex)
+      return m.convertBoundToScreenRect(rowIndex, m.getRowRenderer(rowIndex), [m.width, rowSettings.height])
+    end function
+
+    private function convertBoundToScreenRect(index as integer, cell as mc.types.node, size as mc.types.array)
+      if cell <> invalid and size <> invalid
+        'bs:disable-next-line
+        bounds = cell.sceneBoundingRect()
+        return {
+          size: size
+          translation: [bounds.x, bounds.y]
+          index: index
+          screenPos: 0
+        }
+      else
+        return invalid
+      end if
+    end function
+
     public function getRowScreenRect(rowIndex as integer, screenPos = invalid as integer, direction = 0 as integer)
       return m.viewManager.getScreenRect(rowIndex, screenPos, direction)
     end function
@@ -394,10 +422,13 @@ namespace ml
     '++ Focus settings Managements
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function getFocusRect(index as mc.types.array)
+    private function getFocusRect(index as mc.types.array, isFloating = false as boolean)
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
-      screenRect = m.getCellScreenRect(index[0], index[1], m.itemScroller.direction)
-
+      if isFloating
+        screenRect = m.getOnScreenCellRect(index[0], index[1])
+      else
+        screenRect = m.getCellScreenRect(index[0], index[1], m.itemScroller.direction, invalid, invalid)
+      end if
       if screenRect = invalid
         return invalid
       end if
@@ -517,8 +548,8 @@ namespace ml
 
       ' ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
       m.isDoingFlowFocus = true
-      m.sourceFocusRect = m.getFocusRect(sourceIndex)
-      m.targetFocusRect = m.getFocusRect(targetIndex)
+      m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
+      m.targetFocusRect = m.getFocusRect(targetIndex, true)
       m.setActiveFocusSettings(m.targetFocusRect.settings)
       m.focusScreenPosition = m.targetFocusRect.indicatorTranslation
 
@@ -534,8 +565,8 @@ namespace ml
       if m.viewManager.isRendering or m.content = invalid
         return
       end if
-      m.targetFocusRect = m.getFocusRect(targetIndex)
-      m.sourceFocusRect = m.getFocusRect(sourceIndex)
+      m.targetFocusRect = m.getFocusRect(targetIndex, true)
+      m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
 
       if m.targetFocusRect = invalid
         m.focusIndicator.visible = false
