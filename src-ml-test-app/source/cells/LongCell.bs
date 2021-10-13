@@ -1,0 +1,55 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/ml/cells/BaseCell.bs"
+import "pkg:/source/view/Animation.bs"
+
+@node("LongCell", "ml_BaseCell")
+class LongCell extends ml.BaseCell
+  private poster as mc.types.node
+  private bgRect as mc.types.node
+  private label as mc.types.node
+
+  function new()
+    super()
+  end function
+
+  protected override function createViews() as void
+    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [1192, 144]
+      color: "#000000"
+    })
+    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+      translation: [24, 16]
+      loadingBitmapUri: "http://via.placeholder.com/80x80"
+      failedBitmapUri: "http://via.placeholder.com/80x80"
+      uri: "http://via.placeholder.com/80x80"
+      loadWidth: 80
+      loadHeight: 80
+      size: [80, 80]
+      loadDisplayMode: "zoomToFill"
+    })
+    m.label = mc.createSGNode("mv_Label", m.top, "label", {
+      fontKey: "mediumBold,50"
+      horizAlign: "left"
+      vertAlign: "center"
+      color: "#ffffff"
+      translation: [120, 32]
+      size: [984, 48]
+    })
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    m.poster.uri = content.HDGRIDPOSTERURL
+    m.label.text = `${m.top.translation[0]} : ${m.index}`
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+end class
