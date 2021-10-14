@@ -106,10 +106,10 @@ namespace mc
       end if
     end function
 
-    function readSerializable(section as string, key as string, serializable as object) as boolean
-      if mc.utils.Serialization.isSerializable(serializable)
+    function readSerializable(section as string, key as string, serializable = invalid as object) as boolean
+      if mc.utils.Serialization.isSerializable(serializable) or serializable = invalid
         data = m.read(section, key)
-        return mc.utils.Serialization.deSerialize(serializable, data)
+        return mc.utils.Serialization.deSerialize(data, serializable)
       else
         m.log.warn("asked to read into non-serializebale object")
       end if
