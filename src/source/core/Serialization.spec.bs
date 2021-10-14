@@ -1,0 +1,313 @@
+namespace tests
+
+  @suite("Serialization tests")
+  class SerializationTests extends tests.BaseTestSuite
+
+    private Serialization
+
+    protected override function setup()
+      super.setup()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("isSerializable")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("correctly identifies non serializable objects")
+    @params(invalid)
+    @params([])
+    @params(1)
+    @params("1")
+    @params({})
+    @params({ isSerializable: false })
+    @params({ isSerializable: true })
+    @params({ isSerializable: true, serialize: "thing" })
+    @params({ isSerializable: true, deSerialize: "thing" })
+    @params("#RBSNode")
+    function _(value)
+      m.assertFalse(mc.utils.Serialization.isSerializable(value))
+
+    end function
+
+    @it("correctly identifies serializable aas")
+    function _()
+      value = new tests.TestSerializable("test")
+      m.assertTrue(mc.utils.Serialization.isSerializable(value))
+    end function
+
+    @it("correctly identifies serializable nodes")
+    function _()
+      node = mc.createSGNode("ContentNode")
+      mc.setOrAddNodeField(node, "isSerializable", true)
+      m.assertTrue(mc.utils.Serialization.isSerializable(node))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("serialize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid for non serializable types")
+    @params(invalid)
+    @params([])
+    @params(1)
+    @params("1")
+    @params({})
+    @params({ isSerializable: false })
+    @params({ isSerializable: true })
+    @params({ isSerializable: true, serialize: "thing" })
+    @params({ isSerializable: true, deSerialize: "thing" })
+    @params("#RBSNode")
+    function _(value)
+      m.assertInvalid(mc.utils.Serialization.serialize(value))
+    end function
+
+    @it("serializes an aa")
+    function _()
+      value = new tests.TestSerializable("test")
+      json = mc.utils.Serialization.serialize(value)
+
+      m.assertEqual(json, {
+        "name": "test"
+      })
+    end function
+
+    @it("serializes an a map")
+    function _()
+      value = mc.createSGNode("mc_Map")
+      value.id = "parent"
+      value@.set("one", "1")
+      value@.set("two", "2")
+      json = mc.utils.Serialization.serialize(value)
+
+      m.assertEqual(json, {
+        _serializationType: "mc_Map"
+        "id": "parent"
+        "one": "1"
+        "two": "2"
+      })
+    end function
+
+    @it("serializes an array")
+    function _()
+      value = mc.createSGNode("mc_Array")
+      value.id = "parent"
+      value@.push("one")
+      value@.push("two")
+      json = mc.utils.Serialization.serialize(value)
+
+      m.assertEqual(json, {
+        id: "parent"
+        items: ["one", "two"]
+        _serializationType: "mc_Array"
+      })
+    end function
+
+    @it("serializes a map containing nodes")
+    function _()
+      value = mc.createSGNode("mc_Map")
+      value.id = "parent"
+      childValue = mc.createSGNode("mc_Map")
+      childValue.id = "child"
+      childValue@.set("one", "1")
+      childValue@.set("two", "2")
+      value@.set("child", childValue)
+
+      json = mc.utils.Serialization.serialize(value)
+
+      m.assertEqual(json, {
+        _serializationtype: "mc_Map"
+        id: "parent"
+        child: {
+          id: "child"
+          one: "1"
+          _serializationtype: "mc_Map"
+          two: "2"
+        }
+      })
+    end function
+
+    @it("serializes an array contaning a node")
+    function _()
+      value = mc.createSGNode("mc_Array")
+      value.id = "parent"
+      childValue = mc.createSGNode("mc_Map")
+      childValue@.push("one")
+      childValue@.push("two")
+      childValue.id = "child"
+      value@.push(childValue)
+      json = mc.utils.Serialization.serialize(value)
+
+      m.assertEqual(json, {
+        _serializationtype: "mc_Array"
+        id: "parent"
+        items: [
+          {
+            _serializationtype: "mc_Map"
+            id: "child"
+          }
+        ]
+      })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("deSerialize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid for deserializing into non serializable types")
+    @params(invalid)
+    @params([])
+    @params(1)
+    @params("1")
+    @params({})
+    @params({ isSerializable: false })
+    @params({ isSerializable: true })
+    @params({ isSerializable: true, serialize: "thing" })
+    @params({ isSerializable: true, deSerialize: "thing" })
+    @params("#RBSNode")
+    function _(value)
+      data = {}
+      m.assertInvalid(mc.utils.Serialization.deSerialize(data, value))
+    end function
+
+    @it("returns invalid for invalid data")
+    @params(invalid)
+    @params([])
+    @params(1)
+    @params("1")
+    @params({})
+    @params({ isSerializable: false })
+    @params({ isSerializable: true })
+    @params({ isSerializable: true, serialize: "thing" })
+    @params({ isSerializable: true, deSerialize: "thing" })
+    @params("#RBSNode")
+    function _(data)
+      m.assertInvalid(mc.utils.Serialization.deSerialize(data))
+    end function
+
+    @it("deserializes INTO an existing mc_Map")
+    function _()
+      value = mc.createSGNode("mc_Map")
+      value.id = "parent"
+      childValue = mc.createSGNode("mc_Map")
+      childValue.id = "child"
+      childValue@.set("one", "1")
+      childValue@.set("two", "2")
+      value@.set("child", childValue)
+
+      newValue = mc.createSGNode("mc_Map")
+      newValue.id = "parent"
+      json = mc.utils.Serialization.serialize(value)
+      deserialized = mc.utils.Serialization.deSerialize(json, newValue)
+      m.assertSubType(deserialized, "mc_Map")
+      m.assertEqual(deserialized.id, "parent")
+      m.assertEqual(deserialized, newValue)
+
+      deserializedChild = deserialized@.get("child")
+      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertEqual(deserializedChild.id, "child")
+
+      m.assertEqual(deserializedChild@.get("one"), "1")
+      m.assertEqual(deserializedChild@.get("two"), "2")
+      m.assertInvalid(deserializedChild@.get("_serializationType"))
+    end function
+
+    @it("deserializes creates a map, when required")
+    function _()
+      value = mc.createSGNode("mc_Map")
+      value.id = "parent"
+      childValue = mc.createSGNode("mc_Map")
+      childValue.id = "child"
+      childValue@.set("one", "1")
+      childValue@.set("two", "2")
+      value@.set("child", childValue)
+
+      json = mc.utils.Serialization.serialize(value)
+      deserialized = mc.utils.Serialization.deSerialize(json)
+      m.assertSubType(deserialized, "mc_Map")
+      m.assertEqual(deserialized.id, "parent")
+
+      deserializedChild = deserialized@.get("child")
+      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertEqual(deserializedChild.id, "child")
+
+      m.assertEqual(deserializedChild@.get("one"), "1")
+      m.assertEqual(deserializedChild@.get("two"), "2")
+      m.assertInvalid(deserializedChild@.get("_serializationType"))
+    end function
+
+    @it("deserializes INTO an existing mc_Array")
+    function _()
+      value = mc.createSGNode("mc_Array")
+      value.id = "parent"
+      childValue = mc.createSGNode("mc_Map")
+      childValue.id = "child"
+      childValue@.set("one", "1")
+      childValue@.set("two", "2")
+      value@.push(childValue)
+
+      newValue = mc.createSGNode("mc_Array")
+      newValue.id = "parent"
+      json = mc.utils.Serialization.serialize(value)
+      deserialized = mc.utils.Serialization.deSerialize(json, newValue)
+      m.assertSubType(deserialized, "mc_Array")
+      m.assertEqual(deserialized.id, "parent")
+      m.assertEqual(deserialized, newValue)
+
+      deserializedChild = deserialized@.get(0)
+      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertEqual(deserializedChild.id, "child")
+
+      m.assertEqual(deserializedChild@.get("one"), "1")
+      m.assertEqual(deserializedChild@.get("two"), "2")
+      m.assertInvalid(deserializedChild@.get("_serializationType"))
+    end function
+
+    @it("deserializes creates an Array, when required")
+    function _()
+      value = mc.createSGNode("mc_Array")
+      value.id = "parent"
+      childValue = mc.createSGNode("mc_Map")
+      childValue.id = "child"
+      childValue@.set("one", "1")
+      childValue@.set("two", "2")
+      value@.push(childValue)
+
+      json = mc.utils.Serialization.serialize(value)
+      deserialized = mc.utils.Serialization.deSerialize(json)
+      m.assertSubType(deserialized, "mc_Array")
+      m.assertEqual(deserialized.id, "parent")
+
+      deserializedChild = deserialized@.get(0)
+      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertEqual(deserializedChild.id, "child")
+
+      m.assertEqual(deserializedChild@.get("one"), "1")
+      m.assertEqual(deserializedChild@.get("two"), "2")
+      m.assertInvalid(deserializedChild@.get("_serializationType"))
+    end function
+
+  end class
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ helper classes
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  class TestSerializable
+    name = ""
+    isSerializable = true
+
+    function new(name)
+      m.name = name
+    end function
+
+    public function serialize() as mc.types.assocarray
+      return {
+        name: m.name
+      }
+    end function
+
+    public function deserialize(data as mc.types.assocarray)
+      m.name = data.name
+    end function
+
+  end class
+end namespace
