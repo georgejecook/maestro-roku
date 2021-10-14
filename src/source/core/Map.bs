@@ -61,8 +61,22 @@ namespace mc.collections
       return m.data[key] <> invalid
     end function
 
-    public function getValues() as mc.types.assocarray
+    public function getAA() as mc.types.assocarray
       return m.data
+    end function
+
+    ' @returns{array} - array of values
+    function getValues() as mc.types.array
+      values = []
+      for each key in m.data
+        values.push(m.data[key])
+      end for
+      return values
+    end function
+
+    ' @returns{array} - array of values
+    function getKeys() as mc.types.array
+      return m.data.keys()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
