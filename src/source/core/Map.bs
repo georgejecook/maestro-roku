@@ -84,35 +84,36 @@ namespace mc.collections
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function serialize() as mc.types.assocarray
-      serialized = {}
+      data = {}
       for each key in m.data
         item = m.data[key]
-        deSerializedItem = mc.utils.Serialization.serialize(item)
-        if deSerializedItem <> invalid
-          serialized[key] = deSerializedItem
+        serializedItem = mc.utils.Serialization.serialize(item)
+        if serializedItem <> invalid
+          data[key] = serializedItem
         else
-          serialized[key] = item
+          data[key] = item
         end if
       end for
-      return serialized
+      return {
+        data: data
+      }
     end function
 
     public function deserialize(data as mc.types.assocarray)
       m.clear()
-      if mc.isAACompatible(data)
-        for each key in data
-          if lcase(key) <> "_serializationtype"
-            if mc.utils.Serialization.isDeSerializableToNode(data[key])
-              item = mc.utils.Serialization.deSerialize(data[key])
-              if item <> invalid
-                m.data[key] = item
-              end if
-            else
-              m.data[key] = data[key]
+      data = mc.getPath(data, "data", {})
+      for each key in data
+        if lcase(key) <> "_serializationtype"
+          if mc.utils.Serialization.isDeSerializableToNode(data[key])
+            item = mc.utils.Serialization.deSerialize(data[key])
+            if item <> invalid
+              m.data[key] = item
             end if
+          else
+            m.data[key] = data[key]
           end if
-        end for
-      end if
+        end if
+      end for
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

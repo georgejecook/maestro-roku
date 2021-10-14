@@ -1,5 +1,4 @@
 namespace tests
-
   @suite("Serialization tests")
   class SerializationTests extends tests.BaseTestSuite
 
@@ -82,8 +81,10 @@ namespace tests
       m.assertEqual(json, {
         _serializationType: "mc_Map"
         "id": "parent"
-        "one": "1"
-        "two": "2"
+        "data": {
+          "one": "1"
+          "two": "2"
+        }
       })
     end function
 
@@ -117,11 +118,15 @@ namespace tests
       m.assertEqual(json, {
         _serializationtype: "mc_Map"
         id: "parent"
-        child: {
-          id: "child"
-          one: "1"
-          _serializationtype: "mc_Map"
-          two: "2"
+        data: {
+          child: {
+            id: "child"
+            _serializationtype: "mc_Map"
+            data: {
+              one: "1"
+              two: "2"
+            }
+          }
         }
       })
     end function
@@ -144,6 +149,8 @@ namespace tests
           {
             _serializationtype: "mc_Map"
             id: "child"
+            data: {
+            }
           }
         ]
       })
