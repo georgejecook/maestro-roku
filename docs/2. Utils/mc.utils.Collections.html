@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        XML binding syntax
+        mc.utils.Collections
     </title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@10.7.2/styles/github.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
@@ -88,13 +88,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../2. Utils">2. Utils</a>
+                            <a class="name entry" href="">2. Utils</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -102,7 +102,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.html">mc (maestro core utils)</a>
+                    <a class="entry" href="mc.html">mc (maestro core utils)</a>
                 
             
                             </div>
@@ -110,7 +110,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.tasks.html">mc.tasks (maestro task utils)</a>
+                    <a class="entry" href="mc.tasks.html">mc.tasks (maestro task utils)</a>
                 
             
                             </div>
@@ -118,7 +118,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.utils.Serialization.html">mc.utils.Serialization</a>
+                    <a class="entry" href="mc.utils.Serialization.html">mc.utils.Serialization</a>
                 
             
                             </div>
@@ -126,7 +126,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.utils.Collections.html">mc.utils.Collections</a>
+                    <a class="entry" href="mc.utils.Collections.html">mc.utils.Collections</a>
                 
             
                             </div>
@@ -271,13 +271,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">5. MVVM Framework</a>
+                            <a class="name entry" href="../5. MVVM Framework">5. MVVM Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../5. MVVM Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -285,7 +285,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="observables-and-vms.html">Observables and Viewmodels</a>
+                    <a class="entry" href="../5. MVVM Framework/observables-and-vms.html">Observables and Viewmodels</a>
                 
             
                             </div>
@@ -293,7 +293,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="xml-bindings.html">XML binding syntax</a>
+                    <a class="entry" href="../5. MVVM Framework/xml-bindings.html">XML binding syntax</a>
                 
             
                             </div>
@@ -417,35 +417,45 @@
 
         </div>
         <div id="content">
-            <a href="#xml-binding-syntax"><h1 id="xml-binding-syntax">XML binding syntax</h1></a><a href="#overview"><h2 id="overview">Overview</h2></a><p>Writing bindings and observers is cumbersome, and requires us to mix view and business logic, with boilerplate code.</p>
-<p>Maestro allows us to follow MVVM pattern, which in turn means less time spent guessing how things end up in our view : We can see in the xml exactly where field values come from, and what field values will end up doing to our view models.</p>
-<p>Here is an example of some bindings in Maestro:</p>
-<p><img src="vm.png" alt="vm bindings" title="Typical bindings"></p>
-<p>In each of the following examples we can see how we use special binding expressions inside the values of our fields.</p>
-<p>When maestro-cli encounters these values it will automatically wire up the code (via the helpers in the previous section) to create the binding.</p>
-<a href="#indicating-binding-mode"><h3 id="indicating-binding-mode">Indicating binding mode</h3></a><p>The bracket type indicates the binding mode:</p>
+            <a href="#overview"><h1 id="overview">Overview</h1></a><p>Maestro contains utility functions to aid with working with collections, and node wrappers for certain types of common collections.</p>
+<a href="#functions"><h2 id="functions">Functions</h2></a><a href="#maparray"><h3 id="maparray">mapArray</h3></a><p>Takes a raw array, and runs it through the mc.Collections.BaseMapper subclass (i.e. CallFuncMapper, FuncMapper, FieldMapper, your own Mapper), returning the result.</p>
+<a href="#getsortedarraybykey"><h2 id="getsortedarraybykey">getSortedArrayByKey</h2></a><p>Sorts the given array by key name.</p>
+<a href="#getitematoffset"><h2 id="getitematoffset">getItemAtOffset</h2></a><p>Ascertains the index of the given item, in the passed in array, and returns whatever item is found offset from that index. By default, will use <code>id</code> field to compare objects; but the key can be specified.</p>
+<a href="#getarrayindex"><h2 id="getarrayindex">getArrayIndex</h2></a><p>Ascertains the index of the given item, in the passed in array. By default, will use <code>id</code> field to compare objects; but the key can be specified.</p>
+<a href="#filterarray"><h2 id="filterarray">filterArray</h2></a><p>Returns the filtered array using a filterPredicate. The filterPredicate can be either a function (taking one item as the argument), or a mc.Collections.AbstractPredicate subclass (i.e. ValuePredicate, FuncPredicate, CallFuncPredicate, or your own predicate)</p>
+<a href="#arraycontains"><h2 id="arraycontains">arrayContains</h2></a><p>Returns true if the array contains the passed in value. By default, will use <code>id</code> field to compare objects; but the key can be specified.</p>
+<a href="#wrapped-types"><h1 id="wrapped-types">Wrapped types</h1></a><p>Associative arrays and arrays are copied whenever they are assigned to nodes. This can be expensive computationally, and undesirable. Maestro offers a solution to this with the following nodes:</p>
 <ul>
-<li><code>nodeAttribute=&#39;{{field}}&#39;</code> - sets node.nodeAttribute to vm.field when vm.field changes</li>
-<li><code>nodeAttribute=&#39;{(field)}&#39;</code> - bound vm field: sets vm.field to node.nodeAttribute, when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback())}&#39;</code> - event: calls vm.callback(), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback(value))}&#39;</code> - event with value: calls vm.callback(value), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback(node))}&#39;</code> - event with node: calls vm.callback(node), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback(value,node))}&#39;</code> - event with value and node: calls vm.callback(value,node), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{[field|callback(value)]}&#39;</code> - twoWay binding: sets node.attributeField to vm.field when vm.field changes and calls the callback when node.node.attribute changes</li>
+<li>mc_Map - a node wrapper for AssociativeArray</li>
+<li>mc_Array - a node wrapper for Array</li>
 </ul>
-<a href="#binding-targets"><h1 id="binding-targets">Binding targets</h1></a><p>Bindings can be set on any attribute of any node <em>that has an id</em> and on any field in the components interface</p>
-<a href="#binding-arguments"><h3 id="binding-arguments">Binding arguments</h3></a><p>a binding is as follows:</p>
-<p><code>{{name:arg1,arg2, ...}</code></p>
+<a href="#mc_map"><h2 id="mc_map">mc_Map</h2></a><p>Has the following api</p>
 <ul>
-<li><code>name</code>, the name of the field on the observable. If this is <em>oneWayTarget</em> binding, then you can provide a function name, and even function <code>()</code> brackets</li>
-<li><code>args</code> are as follows, and all are optional:<ul>
-<li><code>eager</code> - will set the bound value when the vm bindings are configured</li>
-<li><code>lazy</code> - will not set the bound value when the vm bindings are configured (default)</li>
-<li><code>transform=functionName</code> - where <em>functionName</em> of a function <em>which must be in scope</em> which transform ths bound field. See <code>mx.transform_invertBoolean</code> for a sample implementation. This is good for allowing us to do view specific transformations without needing multiple vm fields,</li>
-<li><code>once</code> - will destroy the binding as soon as a value is set (e.g. fire and forget)</li>
+<li>clear()</li>
+<li>remove(key)</li>
+<li>set(key, value)</li>
+<li>append({}) - appends a dictionary</li>
+<li>get(key)</li>
+<li>hasKey(key)</li>
+<li>getAA() - returns a raw dictionary copy</li>
+<li>getValues() - returns an array of this map&#39;s values</li>
+<li>getKeys() - returns an array of this map&#39;s keys</li>
 </ul>
-</li>
+<a href="#serialization-support"><h3 id="serialization-support">Serialization support</h3></a><p>The mc_Map supports maestro serialization, and can therefore be used in the registry&#39;s <code>writeSerializable</code> and <code>readSerializable</code> as well as <code>mc.utils.Serializable</code> methods.</p>
+<a href="#debugging"><h3 id="debugging">Debugging</h3></a><p>You can see the stored values of the collection in RALE by checking the <code>_debug</code> value, which will dump the current values to the <code>__contents</code> field</p>
+<a href="#mc_array"><h2 id="mc_array">mc_Array</h2></a><p>Has the following api</p>
+<ul>
+<li>clear()</li>
+<li>remove(item)</li>
+<li>push(item)</li>
+<li>append([]) - appends an array</li>
+<li>get(index)</li>
+<li>getIndex(item, key = invalid) - gets index of item, the string key can be used to direct the comparison</li>
+<li>hasItem(index, key = invalid) - returns true if the item is present, the string key can be used to direct the comparison</li>
+<li>getValues() - returns a raw array copy</li>
 </ul>
+<a href="#serialization-support-1"><h3 id="serialization-support-1">Serialization support</h3></a><p>The mc_Array supports maestro serialization, and can therefore be used in the registry&#39;s <code>writeSerializable</code> and <code>readSerializable</code> as well as <code>mc.utils.Serializable</code> methods.</p>
+<a href="#debugging-1"><h3 id="debugging-1">Debugging</h3></a><p>You can see the stored values of the collection in RALE by checking the <code>_debug</code> value, which will dump the current values to the <code>__contents</code> field</p>
             <div id="footer">
             </div>
         </div>

@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>
-        XML binding syntax
+        mc.utils.Serialization
     </title>
     <link rel="stylesheet" href="https://unpkg.com/@highlightjs/cdn-assets@10.7.2/styles/github.min.css">
     <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.7.2/highlight.min.js"></script>
@@ -88,13 +88,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="../2. Utils">2. Utils</a>
+                            <a class="name entry" href="">2. Utils</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/index.html">Overview</a>
+                    <a class="entry" href="index.html">Overview</a>
                 
             
                             </div>
@@ -102,7 +102,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.html">mc (maestro core utils)</a>
+                    <a class="entry" href="mc.html">mc (maestro core utils)</a>
                 
             
                             </div>
@@ -110,7 +110,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.tasks.html">mc.tasks (maestro task utils)</a>
+                    <a class="entry" href="mc.tasks.html">mc.tasks (maestro task utils)</a>
                 
             
                             </div>
@@ -118,7 +118,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.utils.Serialization.html">mc.utils.Serialization</a>
+                    <a class="entry" href="mc.utils.Serialization.html">mc.utils.Serialization</a>
                 
             
                             </div>
@@ -126,7 +126,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="../2. Utils/mc.utils.Collections.html">mc.utils.Collections</a>
+                    <a class="entry" href="mc.utils.Collections.html">mc.utils.Collections</a>
                 
             
                             </div>
@@ -271,13 +271,13 @@
                 
                     <div class="folder">
                         
-                            <a class="name entry" href="">5. MVVM Framework</a>
+                            <a class="name entry" href="../5. MVVM Framework">5. MVVM Framework</a>
                         
                         
                             <div class="children">
                                 
                 
-                    <a class="entry" href="index.html">Overview</a>
+                    <a class="entry" href="../5. MVVM Framework/index.html">Overview</a>
                 
             
                             </div>
@@ -285,7 +285,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="observables-and-vms.html">Observables and Viewmodels</a>
+                    <a class="entry" href="../5. MVVM Framework/observables-and-vms.html">Observables and Viewmodels</a>
                 
             
                             </div>
@@ -293,7 +293,7 @@
                             <div class="children">
                                 
                 
-                    <a class="entry" href="xml-bindings.html">XML binding syntax</a>
+                    <a class="entry" href="../5. MVVM Framework/xml-bindings.html">XML binding syntax</a>
                 
             
                             </div>
@@ -417,32 +417,33 @@
 
         </div>
         <div id="content">
-            <a href="#xml-binding-syntax"><h1 id="xml-binding-syntax">XML binding syntax</h1></a><a href="#overview"><h2 id="overview">Overview</h2></a><p>Writing bindings and observers is cumbersome, and requires us to mix view and business logic, with boilerplate code.</p>
-<p>Maestro allows us to follow MVVM pattern, which in turn means less time spent guessing how things end up in our view : We can see in the xml exactly where field values come from, and what field values will end up doing to our view models.</p>
-<p>Here is an example of some bindings in Maestro:</p>
-<p><img src="vm.png" alt="vm bindings" title="Typical bindings"></p>
-<p>In each of the following examples we can see how we use special binding expressions inside the values of our fields.</p>
-<p>When maestro-cli encounters these values it will automatically wire up the code (via the helpers in the previous section) to create the binding.</p>
-<a href="#indicating-binding-mode"><h3 id="indicating-binding-mode">Indicating binding mode</h3></a><p>The bracket type indicates the binding mode:</p>
+            <a href="#overview"><h1 id="overview">Overview</h1></a><p>Maestro supports serialization apis to make it easy to write objects to registry, or to json for other purposes.</p>
+<p>Objects that can be serialized are classes, or nodes, which implement the Serializable interface</p>
+<a href="#implementing-serialization"><h2 id="implementing-serialization">Implementing serialization</h2></a><p>Your node or class must adhere to the Serializable interface</p>
 <ul>
-<li><code>nodeAttribute=&#39;{{field}}&#39;</code> - sets node.nodeAttribute to vm.field when vm.field changes</li>
-<li><code>nodeAttribute=&#39;{(field)}&#39;</code> - bound vm field: sets vm.field to node.nodeAttribute, when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback())}&#39;</code> - event: calls vm.callback(), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback(value))}&#39;</code> - event with value: calls vm.callback(value), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback(node))}&#39;</code> - event with node: calls vm.callback(node), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{(callback(value,node))}&#39;</code> - event with value and node: calls vm.callback(value,node), when node.nodeAttribute changes</li>
-<li><code>nodeAttribute=&#39;{[field|callback(value)]}&#39;</code> - twoWay binding: sets node.attributeField to vm.field when vm.field changes and calls the callback when node.node.attribute changes</li>
+<li>have isSerializable field set to true</li>
+<li>have public functions (i.e. for nodes, a func interface) for:<ul>
+<li>public function serialize() as mc.types.assocarray - returns an aa of the values to serialize the node</li>
+<li>public function deserialize(data as mc.types.assocarray) - takes the values in data, and assigns them to itself</li>
 </ul>
-<a href="#binding-targets"><h1 id="binding-targets">Binding targets</h1></a><p>Bindings can be set on any attribute of any node <em>that has an id</em> and on any field in the components interface</p>
-<a href="#binding-arguments"><h3 id="binding-arguments">Binding arguments</h3></a><p>a binding is as follows:</p>
-<p><code>{{name:arg1,arg2, ...}</code></p>
+</li>
+</ul>
+<a href="#serializing-and-deserializing"><h2 id="serializing-and-deserializing">Serializing and Deserializing</h2></a><a href="#using-mcutilsserialization"><h3 id="using-mcutilsserialization">Using mc.utils.Serialization</h3></a><a href="#serializing"><h4 id="serializing">Serializing</h4></a><p>Objects are serialized with:</p>
+<p>  <code>mc.utils.Serialization.serialize(serializable as object) as mc.types.assocarray</code></p>
+<p>Which returns an associative array, if successful, invalid otherwise
+If the passed in object is a node, then the field <code>_serializationType</code> with the type of the node will be appended to the serialized data</p>
+<a href="#deserializing"><h4 id="deserializing">Deserializing</h4></a><p>Objects can be deserialized with:
+<code>mc.utils.Serialization.deSerialize(data as mc.types.assocarray, serializable = invalid as object) as object</code></p>
+<p>note, one can pass in a target serializable object to serialize into. If an object is not passed in the function will assume that the serialize object is node, and will use the <code>data._serializationType</code> to create an instance of that node, and serialize it.</p>
+<a href="#checking-if-an-object-can-be-deserialized"><h4 id="checking-if-an-object-can-be-deserialized">Checking if an object can be deserialized</h4></a><p><code>mc.utils.Serialization.isSerializable(item as object) as boolean</code></p>
+<a href="#using-mcregistry"><h3 id="using-mcregistry">Using mc.Registry</h3></a><p>You can easily work with serializable objects by using the registry functions:</p>
 <ul>
-<li><code>name</code>, the name of the field on the observable. If this is <em>oneWayTarget</em> binding, then you can provide a function name, and even function <code>()</code> brackets</li>
-<li><code>args</code> are as follows, and all are optional:<ul>
-<li><code>eager</code> - will set the bound value when the vm bindings are configured</li>
-<li><code>lazy</code> - will not set the bound value when the vm bindings are configured (default)</li>
-<li><code>transform=functionName</code> - where <em>functionName</em> of a function <em>which must be in scope</em> which transform ths bound field. See <code>mx.transform_invertBoolean</code> for a sample implementation. This is good for allowing us to do view specific transformations without needing multiple vm fields,</li>
-<li><code>once</code> - will destroy the binding as soon as a value is set (e.g. fire and forget)</li>
+<li><code>readSerializable(section as string, key as string, serializable as object) as boolean</code><ul>
+<li>if the data was successfully read from the registry, returns the serialized object. A target serializable can be passed in to receive the data.</li>
+</ul>
+</li>
+<li><code>writeSerializable(section as string, key as string, serializable as object) as boolean</code><ul>
+<li>returns true if the object was successfully deserialized and written to the registry</li>
 </ul>
 </li>
 </ul>

@@ -115,6 +115,22 @@
             
                             </div>
                         
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../2. Utils/mc.utils.Serialization.html">mc.utils.Serialization</a>
+                
+            
+                            </div>
+                        
+                            <div class="children">
+                                
+                
+                    <a class="entry" href="../2. Utils/mc.utils.Collections.html">mc.utils.Collections</a>
+                
+            
+                            </div>
+                        
                     </div>
                 
             
@@ -417,7 +433,7 @@
 <li>easy to extract json from tools like figma/zeplin via plugins</li>
 <li>easy to serve json for your views from a CMS/api</li>
 <li>json views don&#39;t require pre-compile steps, and you control when they get instantiated, giving more performance flexibility</li>
-<li>localizations are super easy</li>
+<li>localizations are super easy, simply call <code>setDefaultLocale(locale)</code> on your <code>StyleManager</code></li>
 </ul>
 <a href="#styles-and-style-manager"><h3 id="styles-and-style-manager">Styles and Style manager</h3></a><ul>
 <li>Styles are stored in the style manager. They are loaded from a json file.</li>
@@ -509,12 +525,16 @@ NAME.fr.json - overrides, in &quot;fr&quot; locale
 </code></pre>
 <p>Note, the locale keys happen to be language codes here; but they could be anything. Casing is important and the naming must follow this convention. See <a href="../../src/source/view/SettingsScreen.spec.bundle">source/view/SettingsScreen.spec.bundle</a> for the exact format.</p>
 <p>To use a bundle in your app, do the following:</p>
-<pre><code>
-private function createViews()
-bundle = m.styleManager@.loadBundle(&quot;pkg:/source/view/SettingsScreen.bundle&quot;, m.locale) &#39; where m.locale is &quot;fr&quot;|&quot;en&quot;, etc
+<pre><code>private function createViews()
+bundle = m.styleManager@.loadBundle(&quot;pkg:/source/view/SettingsScreen.bundle&quot;)
 m.createViewsFromStyleJson(bundle.views, m.top)
 end function
 </code></pre>
+<a href="#bundle-locales"><h4 id="bundle-locales">Bundle locales</h4></a><ul>
+<li>the default locale is <code>en</code></li>
+<li>use <code>StyleManager.setDefaultLocale</code> to set a different locale for bundles</li>
+<li>the <code>loadBundle</code> method takes an optional second parameter to override the locale</li>
+</ul>
 <a href="#notes"><h4 id="notes">Notes</h4></a><ul>
 <li>Once a bundle is loaded, it is cached.</li>
 <li>Multiple bundles overrides can be held in cache at any time (to support user language switching)</li>
