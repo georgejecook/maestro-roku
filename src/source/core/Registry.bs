@@ -1,4 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "Serialization.bs"
 
 namespace mc
   class Registry
@@ -85,8 +86,6 @@ namespace mc
       registry.flush()
     end function
 
-
-    '
     public function deleteAll() as void
       registry = createObject("roRegistry")
       sections = registry.getSectionList()
@@ -96,51 +95,25 @@ namespace mc
       end for
     end function
 
-
     function writeSerializable(section as string, key as string, serializable as object) as boolean
-      if m.isSerializable(serializable)
-        if type(serializable) = "roSGNode"
-          data = serializable@.serialize()
-        else
-          'bs:disable-next-line
-          data = serializable.serialize()
-        end if
-
+      data = mc.utils.Serialization.serialize(serializable)
+      if data <> invalid
         m.write(section, key, data)
         return true
       else
         m.log.warn("asked to write from non-serializebale object")
+        return false
       end if
-      return false
     end function
 
     function readSerializable(section as string, key as string, serializable as object) as boolean
-      if m.isSerializable(serializable)
+      if mc.utils.Serialization.isSerializable(serializable)
         data = m.read(section, key)
-        if type(serializable) = "roSGNode"
-          serializable@.deserialize(data)
-        else
-          'bs:disable-next-line
-          serializable.deserialize(data)
-        end if
-        return true
+        return mc.utils.Serialization.deSerialize(serializable, data)
       else
         m.log.warn("asked to read into non-serializebale object")
       end if
       return false
     end function
-
-    private function isSerializable(item as object) as boolean
-      if mc.isAACompatible(item)
-        if type(item) = "roSGNode"
-          'we can't tell if a node has a certain function, so we have to guess
-          return true
-        else
-          return item.serialize <> invalid and item.deserialize <> invalid
-        end if
-      end if
-      return false
-    end function
-
   end class
 end namespace

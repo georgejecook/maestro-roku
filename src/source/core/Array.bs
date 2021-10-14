@@ -1,4 +1,6 @@
 import "pkg:/source/core/Collections.bs"
+import "Serialization.bs"
+import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 ' /**
 '  * @member Array
@@ -8,16 +10,29 @@ import "pkg:/source/core/Collections.bs"
 '  * @description light node wrapper around a Set to stop copies
 '  */
 namespace mc.collections
-  @node("Array", "Node")
+  @node("mc_Array", "Node")
   class Array
 
     protected data = []
     public length = 0
 
+    public isSerializable = true
+
     @observer("onDebugChange")
     public _debug = false
 
     public __contents as mc.types.Array
+
+
+    protected log
+
+    function new()
+      m.log = new log.Logger("mc_Map")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function sortByKey(keyName as string, ascending = true as boolean)
       data = mc.collections.getSortedArrayByKey(m.data, keyName, ascending)
@@ -41,16 +56,16 @@ namespace mc.collections
       m.top.length = m.data.count()
     end function
 
-    public function get(key as string)
-      return m.data[key]
+    public function get(index as integer)
+      return m.data[index]
     end function
 
-    public function remove(key as string)
-      m.data.delete(key)
+    public function remove(index as integer)
+      m.data.delete(index)
       m.top.length = m.data.count()
     end function
 
-    public function doesExist(value as dynamic)
+    public function hasItem(value as dynamic, key = invalid as string)
       return m.getIndex(value) <> -1
     end function
 
@@ -58,18 +73,52 @@ namespace mc.collections
       return m.data
     end function
 
-    public function getIndex(value as dynamic)
-      for i = 0 to m.data.count() - 1
-        if m.data[i] = value
-          return i
-        end if
-      end for
-      return -1
+    public function getIndex(value as dynamic, key = invalid as string)
+      return mc.collections.getArrayIndex(m.data, value, key)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onDebugChange(value as dynamic)
       m.top.contents = m.data
     end function
 
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Serializable support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function serialize() as mc.types.assocarray
+      serialized = {
+        items: []
+      }
+      for each item in m.data
+        data = mc.utils.Serialization.serialize(item)
+        if data <> invalid
+          serialized.items.push(data)
+        else
+          serialized.items.push(item)
+        end if
+      end for
+      return serialized
+    end function
+
+    public function deserialize(data as mc.types.assocarray)
+      m.clear()
+      if mc.isAACompatible(data) and mc.isArray(data.items)
+        for each item in data.items
+          if mc.utils.Serialization.isDeSerializableToNode(item)
+            deSerializedItem = mc.utils.Serialization.deSerialize(item)
+            if deSerializedItem <> invalid
+              m.data.push(deSerializedItem)
+            end if
+          else
+            m.data.push(item)
+          end if
+        end for
+      end if
+    end function
   end class
 end namespace
