@@ -49,7 +49,9 @@ Has the following api
  - append({}) - appends a dictionary
  - get(key)
  - hasKey(key)
- - getValues() - returns a raw dictionary copy
+ - getAA() - returns a raw dictionary copy
+ - getValues() - returns an array of this map's values
+ - getKeys() - returns an array of this map's keys
 
 ### Serialization support
 
