@@ -208,10 +208,12 @@ namespace tests
       m.assertSubType(deserialized, "mc_Map")
       m.assertEqual(deserialized.id, "parent")
       m.assertEqual(deserialized, newValue)
+      m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get("child")
       m.assertSubType(deserializedChild, "mc_Map")
       m.assertEqual(deserializedChild.id, "child")
+      m.assertEqual(deserializedChild.length, 2)
 
       m.assertEqual(deserializedChild@.get("one"), "1")
       m.assertEqual(deserializedChild@.get("two"), "2")
@@ -232,10 +234,12 @@ namespace tests
       deserialized = mc.utils.Serialization.deSerialize(json)
       m.assertSubType(deserialized, "mc_Map")
       m.assertEqual(deserialized.id, "parent")
+      m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get("child")
       m.assertSubType(deserializedChild, "mc_Map")
       m.assertEqual(deserializedChild.id, "child")
+      m.assertEqual(deserializedChild.length, 2)
 
       m.assertEqual(deserializedChild@.get("one"), "1")
       m.assertEqual(deserializedChild@.get("two"), "2")
@@ -259,10 +263,12 @@ namespace tests
       m.assertSubType(deserialized, "mc_Array")
       m.assertEqual(deserialized.id, "parent")
       m.assertEqual(deserialized, newValue)
+      m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get(0)
       m.assertSubType(deserializedChild, "mc_Map")
       m.assertEqual(deserializedChild.id, "child")
+      m.assertEqual(deserializedChild.length, 2)
 
       m.assertEqual(deserializedChild@.get("one"), "1")
       m.assertEqual(deserializedChild@.get("two"), "2")
@@ -283,10 +289,12 @@ namespace tests
       deserialized = mc.utils.Serialization.deSerialize(json)
       m.assertSubType(deserialized, "mc_Array")
       m.assertEqual(deserialized.id, "parent")
+      m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get(0)
       m.assertSubType(deserializedChild, "mc_Map")
       m.assertEqual(deserializedChild.id, "child")
+      m.assertEqual(deserializedChild.length, 2)
 
       m.assertEqual(deserializedChild@.get("one"), "1")
       m.assertEqual(deserializedChild@.get("two"), "2")
