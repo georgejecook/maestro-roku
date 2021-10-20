@@ -1,0 +1,142 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Collections.bs"
+import "pkg:/source/core/Utils.bs"
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Public Fields
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'indicates the last change that occurred
+'will be of order:
+'{type:"add",  child:child, index:index}
+'{type:"remove" child:child, index:index}
+'{type:"insert" child:child, index:index}
+'{type:"replace" child:child, index:index, child:oldValue}
+'{type:"append"}, children:[]]
+'{type:"clear"}
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Initialization
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function new()
+  m.log = new log.Logger("mc_Map")
+  m.notifyChanges = true
+  m.pendingChange = []
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Public Methods
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function sortByKey(keyName as string, ascending = true as boolean)
+  children = m.top.getChildren(-1, 0)
+  m.top.removeChildren(m.top.getChildren(-1, 0))
+  sortedChildren = mc.collections.getSortedArrayByKey(children, keyName, ascending)
+  clear()
+  m.append(sortedChildren)
+end function
+
+function clear()
+  m.top.removeChildren(m.top.getChildren(-1, 0))
+end function
+
+function peek() as dynamic
+  return m.top.getChild(m.top.getChildCount() - 1)
+end function
+
+function appendChild(child as object)
+  m.top.appendChild(child)
+  m.addChange({ type: "add", child: child, index: m.top.getChildCount() - 1 })
+end function
+
+function replaceChild(child as object, index as integer)
+  oldValue = m.top.getChild(index)
+  m.top.replaceChild(child, index)
+  m.top.changes = [{ type: "change", child: child, index: index, oldValue: oldValue }]
+end function
+
+function insertChild(child as object, index as integer)
+  m.top.insertChild(child, index)
+  m.top.changes = [{ type: "change", child: child, index: index }]
+end function
+
+function insertChildren(children as mc.types.array, index as integer)
+  m.top.insertChildren(children, index)
+  m.top.changes = [{ type: "change", children: children, index: index }]
+end function
+
+function removeChildIndex(index as integer)
+  if m.top.getChildCount() > 0
+    child = peek()
+    m.top.removeChildIndex(index)
+    m.top.changes = [{ type: "remove", child: child, index: index }]
+  end if
+end function
+
+function appendChildren(children as mc.types.array)
+  m.top.appendChildren(children)
+  m.top.changes = [{ type: "append", children: children, index: m.top.getChildCount() - 1 }]
+end function
+
+function removeChildrenIndex(numberOfItems as integer, index as integer)
+  if index > -1 and index + numberOfItems <= m.top.getChildCount()
+    changes = []
+    for i = index + numberOfItems - 1 to index step -1
+      child = m.top.getChild(i)
+      childIndex = getIndex(child)
+      changes.push({ type: "remove", child: child, index: childIndex })
+    end for
+    m.top.removeChildrenIndex(numberOfItems, index)
+    m.top.changes = changes
+  end if
+end function
+
+function removeChildren(children as mc.types.array)
+  changes = []
+  for each child in children
+    childIndex = getIndex(child)
+    changes.push({ type: "remove", child: child, index: childIndex })
+  end for
+  m.top.removeChildren(children)
+  m.top.changes = changes
+end function
+
+function removeChild(child as mc.types.array)
+  changes = []
+  changes.push({ type: "remove", child: child, index: getIndex(child) })
+  m.top.removeChild(child)
+  m.top.changes = changes
+end function
+
+function hasItem(child as object, key = invalid as string)
+  return getIndex(child) <> -1
+end function
+
+function getIndex(child as object, key = invalid as string)
+  return mc.collections.getArrayIndex(m.top.getChildren(-1, 0), child, key)
+end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Changes
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function addChange(change as mc.types.assocarray)
+  if m.notifyChanges
+    m.changes = [change]
+  else
+    m.pendingChanges.push(change)
+  end if
+end function
+
+function setNotificationsEnabled(active as boolean)
+  m.notifyChanges = active
+  if active
+    m.changes = m.pendingChanges
+    m.pendingChanges = []
+  end if
+end function
+
+function resetPendingChanges()
+  m.pendingChanges = []
+end function
