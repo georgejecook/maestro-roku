@@ -16,14 +16,28 @@ namespace mc.collections
     protected data = []
     public length = 0
 
+    'indicates the last change that occurred
+    'will be of order:
+    '{type:"add",  item:value, index:index}
+    '{type:"remove" item:value, index:index}
+    '{type:"insert" item:value, index:index}
+    '{type:"replace" item:value, index:index, oldItem:oldValue}
+    '{type:"append"}, items:[]]
+    '{type:"clear"}
+    public changes = []
+
     public isSerializable = true
 
     @observer("onDebugChange")
     public _debug = false
 
+    @observer("onDebugAsChildrenChange")
+    public _debugAsChildren = false
+
     public __contents as mc.types.Array
 
-
+    private pendingChanges = []
+    private notifyChanges = true
     protected log
 
     function new()
@@ -40,40 +54,115 @@ namespace mc.collections
       m.append(data)
     end function
 
-    public function clear()
+    function clear()
       m.data = []
       m.top.length = 0
-      m.top._debug = invalid
     end function
 
-    public function push(value as dynamic)
+    function peek() as dynamic
+      return m.data.peek()
+    end function
+
+    function push(value as dynamic)
       m.data.push(value)
       m.top.length = m.data.count()
+      m.addChange({ type: "add", item: value, index: m.data.count() - 1 })
     end function
 
-    public function append(other as mc.types.node)
+    function set(index as integer, value as dynamic)
+      oldValue = m.data[index]
+      m.data[index] = value
+      m.top.changes = [{ type: "change", item: value, index: index, oldValue: oldValue }]
+    end function
+
+    function insert(index as integer, value as dynamic) as void
+      if not mc.isArray(value)
+        value = [value]
+      end if
+      if index >= m.top.length or index < 0
+        m.log.error("cannot insert at index", index, "it is out of bounds")
+        return
+      end if
+      data = []
+
+      for i = 0 to index - 1
+        data.push(m.data[i])
+      end for
+
+      data.append(value)
+
+      for i = index to m.data.count() - 1
+        data.push(m.data[i])
+      end for
+      m.data = data
+      m.top.length = m.data.count()
+
+      m.top.changes = [{ type: "insert", items: value, index: index }]
+    end function
+
+    function pop() as dynamic
+
+      if m.top.length > 0
+        item = m.data.pop()
+        m.top.length = m.data.count()
+        m.top.changes = [{ type: "remove", item: item, index: m.data.count() }]
+        return item
+      end if
+      return invalid
+    end function
+
+    function shift() as dynamic
+
+      if m.top.length > 0
+        item = m.data.shift()
+        m.top.length = m.data.count()
+        m.top.changes = [{ type: "remove", item: item, index: 0 }]
+        return item
+      else
+        return invalid
+      end if
+    end function
+
+    function unshift(value as dynamic)
+      m.data.unshift(value)
+      m.top.length = m.data.count()
+      m.top.changes = [{ type: "add", item: value, index: 0 }]
+    end function
+
+    function append(other as mc.types.assocarray)
+      index = m.top.length - 1
       m.data.append(other)
       m.top.length = m.data.count()
+      m.top.changes = [{ type: "append", items: other, index: index }]
     end function
 
-    public function get(index as integer)
+    function get(index as integer)
       return m.data[index]
     end function
 
-    public function remove(index as integer)
-      m.data.delete(index)
-      m.top.length = m.data.count()
+    function remove(index as integer, numberOfItems = 1 as integer)
+      if index > -1 and index + numberOfItems <= m.top.length
+        changes = []
+        for i = index + numberOfItems - 1 to index step -1
+          item = m.data[i]
+          changes.push({ type: "remove", item: item, index: i })
+          m.data.delete(i)
+        end for
+        m.top.length = m.data.count()
+        m.top.changes = changes
+      end if
     end function
 
-    public function hasItem(value as dynamic, key = invalid as string)
+    function hasItem(value as dynamic, key = invalid as string)
       return m.getIndex(value) <> -1
     end function
 
-    public function getValues()
+    function getValues()
       return m.data
+
     end function
 
-    public function getIndex(value as dynamic, key = invalid as string)
+    function getIndex(value as dynamic, key = invalid as string)
       return mc.collections.getArrayIndex(m.data, value, key)
     end function
 
@@ -82,15 +171,31 @@ namespace mc.collections
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onDebugChange(value as dynamic)
-      m.top.contents = m.data
+      m.top.__contents = m.data
     end function
 
-
+    private function onDebugAsChildrenChange(value as dynamic)
+      m.top.removeChildren(m.top.getChildren(-1, 0))
+      children = []
+      for each item in m.data
+        if type(item) = "roSGNode"
+          if item.isCloneable = true
+            child = item@.clone(true)
+          else
+            child = item.clone(true)
+          end if
+        end if
+        if child <> invalid
+          children.push(item.clone(true))
+        end if
+      end for
+      m.top.appendChildren(children)
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Serializable support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function serialize() as mc.types.assocarray
+    function serialize() as mc.types.assocarray
       serialized = {
         items: []
       }
@@ -105,7 +210,7 @@ namespace mc.collections
       return serialized
     end function
 
-    public function deserialize(data as mc.types.assocarray)
+    function deserialize(data as mc.types.assocarray)
       m.clear()
       if mc.isAACompatible(data) and mc.isArray(data.items)
         for each item in data.items
@@ -121,5 +226,30 @@ namespace mc.collections
       end if
       m.top.length = m.data.count()
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Changes
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function addChange(change as mc.types.assocarray)
+      if m.notifyChanges
+        m.changes = [change]
+      else
+        m.pendingChanges.push(change)
+      end if
+    end function
+
+    function setNotificationsEnabled(active as boolean)
+      m.notifyChanges = active
+      if active
+        m.changes = m.pendingChanges
+        m.pendingChanges = []
+      end if
+    end function
+
+    function resetPendingChanges()
+      m.pendingChanges = []
+    end function
+
   end class
 end namespace

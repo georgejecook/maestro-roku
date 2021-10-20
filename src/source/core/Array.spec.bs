@@ -1,4 +1,5 @@
 namespace tests
+  @only
   @suite("Array tests")
   class ArrayTests extends tests.BaseTestSuite
 
@@ -54,6 +55,46 @@ namespace tests
       m.assertEqual(m.array@.get(2), invalid)
     end function
 
+    @it("deletes multiple items")
+    function _()
+      m.array@.clear()
+      m.array@.push("a")
+      m.array@.push("b")
+      m.array@.push("c")
+      m.array@.push("d")
+      m.array@.push("e")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+        "c"
+        "d"
+        "e"
+      ])
+      m.assertEqual(m.array.length, 5)
+
+      m.array@.remove(1, 2)
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "d"
+        "e"
+      ])
+      m.assertEqual(m.array.length, 3)
+      m.assertEqual(m.array.changes, [
+        { index: 2, item: "c", type: "remove" }
+        { index: 1, item: "b", type: "remove" }
+      ])
+
+      m.array@.remove(0, 2)
+      m.assertEqual(m.array@.getValues(), [
+        "e"
+      ])
+      m.assertEqual(m.array.length, 1)
+      m.assertEqual(m.array.changes, [
+        { index: 1, item: "d", type: "remove" }
+        { index: 0, item: "a", type: "remove" }
+      ])
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("sortByKey")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -85,6 +126,245 @@ namespace tests
       ]
       m.array@.sortByKey("id", false)
       m.assertEqual(m.array@.getValues(), expected)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("set")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets values")
+    function _()
+      m.array@.push({ id: "1" })
+      m.array@.push({ id: "2" })
+
+      m.array@.set(0, "a")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        { id: "2" }
+      ])
+
+      m.array@.set(1, "b")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+      ])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("shift")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    @it("shifts")
+    function _()
+      m.array@.push({ id: "1" })
+      m.array@.push({ id: "2" })
+
+      m.array@.shift()
+      m.assertEqual(m.array@.getValues(), [
+        { id: "2" }
+      ])
+
+      m.array@.shift()
+      m.assertEqual(m.array@.getValues(), [
+      ])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("unshift")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    @it("unshifts")
+    function _()
+      m.array@.push({ id: "1" })
+      m.array@.push({ id: "2" })
+
+      m.array@.unshift("a")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        { id: "1" }
+        { id: "2" }
+      ])
+
+      m.array@.unshift("b")
+      m.assertEqual(m.array@.getValues(), [
+        "b"
+        "a"
+        { id: "1" }
+        { id: "2" }
+
+      ])
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("insert")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("inserts values")
+    function _()
+      m.array@.push({ id: "1" })
+      m.array@.push({ id: "2" })
+      m.array@.push({ id: "3" })
+
+      m.array@.insert(-1, "a")
+      m.assertEqual(m.array@.getValues(), [
+        { id: "1" }
+        { id: "2" }
+        { id: "3" }
+      ])
+
+      m.array@.insert(3, "a")
+      m.assertEqual(m.array@.getValues(), [
+        { id: "1" }
+        { id: "2" }
+        { id: "3" }
+      ])
+
+      m.array@.insert(0, "a")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        { id: "1" }
+        { id: "2" }
+        { id: "3" }
+      ])
+      m.assertEqual(m.array.changes, [
+        { index: 0, items: ["a"], type: "insert" }
+      ])
+
+      m.array@.insert(1, "b")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+        { id: "1" }
+        { id: "2" }
+        { id: "3" }
+      ])
+      m.assertEqual(m.array.changes, [
+        { index: 1, items: ["b"], type: "insert" }
+      ])
+
+      m.array@.insert(3, "c")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+        { id: "1" }
+        "c"
+        { id: "2" }
+        { id: "3" }
+      ])
+      m.assertEqual(m.array.changes, [
+        { index: 3, items: ["c"], type: "insert" }
+      ])
+
+      m.array@.insert(5, ["d", "e", "f"])
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+        { id: "1" }
+        "c"
+        { id: "2" }
+        "d"
+        "e"
+        "f"
+        { id: "3" }
+      ])
+      m.assertEqual(m.array.changes, [
+        { index: 5, items: ["d", "e", "f"], type: "insert" }
+      ])
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("notifications")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("groups notifications when disabled, and later reenabled")
+    function _()
+      m.array@.clear()
+      m.array@.setNotificationsEnabled(false)
+      m.array@.push("a")
+      m.array@.push("b")
+      m.array@.push("c")
+      m.array@.push("d")
+      m.array@.push("e")
+      m.array@.setNotificationsEnabled(true)
+
+      m.assertEqual(m.array.changes, [
+        { index: 0, item: "a", type: "add" }
+        { index: 1, item: "b", type: "add" }
+        { index: 2, item: "c", type: "add" }
+        { index: 3, item: "d", type: "add" }
+        { index: 4, item: "e", type: "add" }
+      ])
+
+      m.array@.push("f")
+      m.assertEqual(m.array.changes, [
+        { index: 5, item: "f", type: "add" }
+      ])
+      m.array@.push("g")
+      m.assertEqual(m.array.changes, [
+        { index: 6, item: "g", type: "add" }
+      ])
+      m.array@.push("h")
+
+      m.assertEqual(m.array.changes, [
+        { index: 7, item: "h", type: "add" }
+      ])
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("pop")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("pops")
+    function _()
+      m.array@.clear()
+      m.array@.push("a")
+      m.array@.push("b")
+      m.array@.push("c")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+        "c"
+      ])
+      m.assertEqual(m.array.length, 3)
+
+      m.assertEqual(m.array@.pop(), "c")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+        "b"
+      ])
+      m.assertEqual(m.array.length, 2)
+      m.assertEqual(m.array.changes, [
+        { index: 2, item: "c", type: "remove" }
+      ])
+      m.assertEqual(m.array@.pop(), "b")
+      m.assertEqual(m.array@.getValues(), [
+        "a"
+      ])
+      m.assertEqual(m.array.length, 1)
+      m.assertEqual(m.array.changes, [
+        { index: 1, item: "b", type: "remove" }
+      ])
+      m.assertEqual(m.array@.pop(), "a")
+      m.assertEqual(m.array@.getValues(), [
+      ])
+      m.assertEqual(m.array.length, 0)
+      m.assertEqual(m.array.changes, [
+        { index: 0, item: "a", type: "remove" }
+      ])
+
+      m.assertInvalid(m.array@.pop())
+      m.assertEqual(m.array@.getValues(), [
+      ])
+      m.assertEqual(m.array.length, 0)
+      m.assertEqual(m.array.changes, [
+        { index: 0, item: "a", type: "remove" }
+      ])
 
     end function
 
