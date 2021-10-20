@@ -31,7 +31,7 @@ namespace ml
     end function
 
 
-    override function createRenderers(content as mc.types.node) as boolean
+    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
       m.cellsById = {}
       return true
@@ -225,6 +225,59 @@ namespace ml
       return invalid
     end function
 
+    private function restorePreviousFocus(previousIndex as integer, item as dynamic)
+      ? "RESTORE FOCUS ";
+
+      focusIndex = 0
+      if item <> invalid
+        cell = m.cellsById[item.id]
+        if cell = invalid
+          index = previousIndex < m.numberOfItems ? previousIndex : m.numberOfItems - 1
+          cell = m.visibleComponents[index]
+        end if
+
+        if cell <> invalid
+          focusIndex = cell.index
+        end if
+      end if
+      ' 'TODO need to actually set the focus properly
+      m.itemScroller.moveToIndex(focusIndex, false)
+      m.itemScroller.forceFocusOnIndex(focusIndex)
+      m.owner.nextFocusIndex = focusIndex
+    end function
+
+    protected override function onContentItemsChange(changes as mc.types.array)
+      m.log.info("updating row renderers due to contents change")
+
+      m.processRemovedCells(changes)
+      m.forceUpdateLayout()
+      m.itemScroller.processChanges(changes)
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function processRemovedCells(changes as mc.types.array)
+      m.log.info("processing removed cells")
+      for each change in changes
+        if change.type = "remove"
+          id = change.index.toStr()
+          m.log.info("removing cell", id)
+
+          cell = m.cellsById[id]
+          if cell <> invalid
+            ' ? "RELEASING " ; id
+            m.componentPool@.releaseComponent(cell)
+            m.cellsById.delete(id)
+          else
+            'this is almost certainly due to trying to release a cell during setting content
+            ? " COULD NOT FIND CELL TO RELEASE" ; change.child.id
+          end if
+        end if
+      end for
+    end function
 
   end class
 end namespace

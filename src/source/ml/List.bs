@@ -17,6 +17,7 @@ namespace ml
     '++ content
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    'must gbe of type ListContent
     @observer("onContentChange")
     public content as mc.types.Node
     private _content
@@ -214,21 +215,24 @@ namespace ml
       m.log.info("onContentChange")
       if m.isInitialized
         if m._content <> invalid and not m._content.isSameNode(m.content)
-          m.unobserveNodeField(m._content, "version", m.onContentUpdated)
+          m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
         end if
         if m._content = invalid or not m._content.isSameNode(m.content)
           m._content = m.content
-          m.observeNodeField(m._content, "version", m.onContentUpdated, "none")
+          if m._content <> invalid
+            m.observeNodeField(m._content, "changes", m.onContentItemsChange)
+          end if
           m.resetState()
         else
-          ' m.log.info("current content has changed in some way!")
+          ' m.log.info("current content has changed in some untracked way!")
+          'TODO check case where the content items mc_Array changes entirely
         end if
       end if
     end function
 
-    private function onContentUpdated()
-      m.log.info("This content has changed in some way")
-      m.viewManager.onContentUpdated()
+    private function onContentItemsChange(changes as mc.types.array)
+      m.log.info("The content items have changed")
+      m.viewManager.onContentItemsChange(changes)
     end function
 
     private function onAnimateToRowIndexChange(index as integer)
@@ -265,6 +269,18 @@ namespace ml
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
       m.itemScroller.move(0)
+    end function
+
+    public function getRow(index as integer) as dynamic
+      return m.content.getChild(index)
+    end function
+
+    public function getItem(rowIndex as integer, index as integer) as dynamic
+      rowItem = m.content.getChild(rowIndex)
+      if rowItem <> invalid
+        return rowItem.getChild(index)
+      end if
+      return invalid
     end function
 
     public function getRowRenderer(index as integer)
@@ -485,7 +501,7 @@ namespace ml
     private function applyFocusSettings(focusSettings as mc.types.node, isFinal as boolean) as void
       ' ? " apply focus setting ";
 
-      if focusSettings = invalid
+      if focusSettings = invalid or m.sourceFocusRect = invalid or m.targetFocusRect = invalid
         return
       end if
       'note - we don't show the focus indicator till we're in place, if the last row was hidden
@@ -550,6 +566,16 @@ namespace ml
       m.isDoingFlowFocus = true
       m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
       m.targetFocusRect = m.getFocusRect(targetIndex, true)
+      if m.sourceFocusRect = invalid
+        'must have removed this item
+        m.sourceFocusRect = m.targetFocusRect
+      end if
+
+      if m.targetFocusRect = invalid
+        ? "COULD NOT ASCERTAIN RECTS"
+        return
+      end if
+
       m.setActiveFocusSettings(m.targetFocusRect.settings)
       m.focusScreenPosition = m.targetFocusRect.indicatorTranslation
 
@@ -620,13 +646,16 @@ namespace ml
       m.log.verbose("onKeyPressUp")
       if m.itemScroller.direction = -1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
         m.log.info("was already scrolling - ignoring")
-        ' ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
+        ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
         return false
       end if
 
       if m.itemScroller.canMove(-1)
-        return m.itemScroller.moveFromPress(-1)
+        result = m.itemScroller.moveFromPress(-1)
+        ? " GOING UP" ; result
+        return result
       else
+        ? " CANNOT GO UP"
         return false
       end if
     end function

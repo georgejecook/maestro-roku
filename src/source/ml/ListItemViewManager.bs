@@ -32,18 +32,6 @@ namespace ml
       super.reset()
     end function
 
-    public override function onContentUpdated()
-      m.log.info("updating row renderers due to contents change")
-      m.isUpdating = true
-      ' if m.owner.nextFocusIndex <> invalid
-      m.previousFocusedRow = m.itemScroller.focusedItem
-'      ? " CONTENT UPDATED"
-      ' ? ">>>>> WAS FOCUSED" ; m.previousFocusedRow.title
-      m.previousFocusedIndex = m.itemScroller.index
-      ' end if
-      m.createRenderers(m.content)
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ async row creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -80,7 +68,7 @@ namespace ml
       m.cancelWaitTimer(m.batchTimer)
     end function
 
-    override function createRenderers(content as mc.types.node) as boolean
+    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
 
       ' ? "CREATE RENDERERS"
       m.visibleComponents = []
@@ -92,7 +80,7 @@ namespace ml
         m.rowsByContentID = {}
         m.components = []
         settings = content.listSettings
-        if settings.rowCreationStrategy = "async" and not m.isUpdating
+        if not forceSync and settings.rowCreationStrategy = "async" and not m.isUpdating
           m.batchSize = settings.rowCreationBatchSize
           m.batchDelay = settings.rowCreationBatchDelay
           m.owner.state = "rendering"
@@ -100,7 +88,7 @@ namespace ml
           m.batchTimer = m.waitAFrame(m.createRendererBatch, 0.15)
         else
           ' ? "USING SYNC MODE"
-          m.batchSize = m.content.getchildCount()
+          m.batchSize = m.content.getChildCount()
           isReady = true
         end if
         m.createRendererBatch()
@@ -135,8 +123,8 @@ namespace ml
 
     private function restorePreviousFocus()
       ' ? "RESTORE FOCUS ";
-      ' ? "PREVOIUS ROW"; m.previousFocusedRow
-      ' ? "PREVOIUS INDEX"; m.previousFocusedIndex
+      ' ? "PREVIOUS ROW"; m.previousFocusedRow
+      ' ? "PREVIOUS INDEX"; m.previousFocusedIndex
 
       focusIndex = [0, 0]
 
@@ -175,7 +163,7 @@ namespace ml
           m.log.info(">>> BEGIN CREATE ROW", i)
           m.creationIndex++
           index = m.creationIndex
-          if m.creationIndex >= m.content.getchildCount()
+          if m.creationIndex >= m.content.getChildCount()
             ' ? "FINISHED RENDERING LIST ROWS"
             m.onRenderersCreated()
             return
@@ -203,15 +191,16 @@ namespace ml
           else
             m.log.error("could not create row for index ")
           end if
-          if rect.visible
-            m.visibleComponents.push(comp)
-          else
-            m.hiddenComponents.push(comp)
-          end if
+          m.visibleComponents.push(comp)
+          ' if rect.visible
+          '   m.visibleComponents.push(comp)
+          ' else
+          '   m.hiddenComponents.push(comp)
+          ' end if
           index++
           m.log.info(">>> END CREATE ROW", i)
         end for
-        if m.creationIndex < m.content.getchildCount()
+        if m.creationIndex < m.content.getChildCount()
           m.waitAFrame(m.createRendererBatch, 0.15)
         end if
       end if
@@ -250,36 +239,43 @@ namespace ml
     end function
 
     override function updateLayout()
-      'TODO - might need this for updating layouts without changing content
-      ' for i = 0 to m.rects.count() - 1
-      '   rect = m.rects[i]
-      '   comp = m.visibleComponents[i]
-      '   comp.translation = rect.translation
-      ' end for
+      m.updateRects()
+      for i = 0 to m.rects.count() - 1
+        rect = m.rects[i]
+        comp = m.visibleComponents[i]
+        if comp <> invalid
+          comp.translation = rect.translation
+          comp.visible = rect.visible
+        end if
+      end for
     end function
 
     override function updateRects() as void
       y = 0
       w = m.owner.width
       m.rects = []
+      m.visibleItems = []
+      m.visibleComponents = []
+      m.hiddenComponents = []
 
       if m.content = invalid
         return
       end if
 
-      for i = 0 to m.content.getchildCount() - 1
+      for i = 0 to m.content.getChildCount() - 1
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true
-        if settings.subType() = "ml_GridRowSettings"
-          height = m.calculateGridRowHeight(item, settings)
-        else
-          height = m.calculateRowHeight(settings)
-        end if
-        screenPos = settings.screenPos
-
+        ? "ITEM " ; i ; " VISIBLE "; visible
         if visible
-          m.visibleItems.push(item)
+          if settings.subType() = "ml_GridRowSettings"
+            height = m.calculateGridRowHeight(item, settings)
+          else
+            height = m.calculateRowHeight(settings)
+          end if
+          screenPos = settings.screenPos
+
+          ' m.visibleItems.push(item)
           translation = [0, y]
           yOffset = 0
           contentOffset = settings.contentOffset
@@ -296,22 +292,37 @@ namespace ml
           end if
 
           y += height
-          m.rects.push({
-            translation: translation
-            size: [w, height]
-            index: i
-            screenPos: screenPos
-            visible: visible
-          })
-
-          #if use_debug_hacks
-            m.hackInfoIntoHeader(comp)
-          #end if
+        else
+          height = 0
+          screenPos = 0
+          translation = [0, 0]
         end if
+
+        m.visibleItems.push(item)
+        m.rects.push({
+          translation: translation
+          size: [w, height]
+          index: i
+          screenPos: screenPos
+          visible: visible
+        })
+        comp = m.rowsByContentID[item.id]
+        if comp <> invalid
+          m.visibleComponents.push(comp)
+        end if
+
+        ' else
+        '   comp = m.rowsByContentID[item.id]
+        '   if comp <> invalid
+        '     m.hiddenComponents.push(comp)
+        '   end if
+
+        ' end if
 
       end for
 
       m.numberOfItems = m.visibleItems.count()
+      m.numberOfVisibleItems = m.visibleComponents.count()
     end function
 
 
@@ -327,7 +338,7 @@ namespace ml
     end function
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-'    ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
+      '    ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
         comp = m.components[id.toInt()]
 
@@ -337,9 +348,9 @@ namespace ml
             m.renderedComponents.push(comp)
           end if
           comp.isRendered = comp.renderState = "rendered"
-    '      ? " set comp.isRendered "; comp.isRendered
+          '      ? " set comp.isRendered "; comp.isRendered
         else
-    '      ? "ERROR could not find visible comp for "; id
+          '      ? "ERROR could not find visible comp for "; id
         end if
       end for
 
@@ -381,5 +392,15 @@ namespace ml
       end if
       return height
     end function
+
+    protected override function onContentItemsChange(changes as mc.types.array)
+      m.log.info("updating row renderers due to contents change")
+      m.isUpdating = true
+      m.previousFocusedRow = m.itemScroller.focusedItem
+      m.previousFocusedIndex = m.itemScroller.index
+      m.createRenderers(m.content)
+    end function
+
+
   end class
 end namespace

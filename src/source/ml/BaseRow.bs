@@ -10,16 +10,12 @@ namespace ml
   class BaseRow extends mv.BaseView
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ content
+    '++ Pubic Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    'Instance of RowContent
     @observer("_onContentChange")
     public content as mc.types.Node
-    private _content
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ private state
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public index = -1
     public renderState = "none"
@@ -34,19 +30,22 @@ namespace ml
     public alwaysNotifyContentChange = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ event delegation
+    '++ Event Delegation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @observer("onListEvent")
     public listEvent as mc.types.Assocarray
     public owner as mc.types.Node
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Protected Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected _content ' use this reference for speed
     protected isInitialized = false
     protected wasHidden = false
     protected wasFocusable = true
     protected settings
-    'debug
-    public _vs = "none"
 
     function new()
       super(m.top.subType())
@@ -69,13 +68,19 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function _onContentChange()
+      ? "ON CONTENT CHANGE "; m.isInitialized
       m.log.info("onContentChange")
       if m.isInitialized
         if m._content = invalid or not m._content.isSameNode(m.content)
+          if m._content <> invalid
+            m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
+          end if
           'was no content or it changed
           m._content = m.content
           m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+          m.observeNodeField(m._content, "changes", m.onContentItemsChange)
           m.onContentChange(m._content)
+
         else if m._content <> invalid
           'is the same content
           isListRefreshNeeded = false
@@ -102,6 +107,10 @@ namespace ml
         end if
 
       end if
+    end function
+
+    protected function onContentItemsChange(changes as mc.types.array)
+      m.log.info("This content has changed in some way")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
