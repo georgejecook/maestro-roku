@@ -129,10 +129,14 @@ function addChange(change as mc.types.assocarray)
   end if
 end function
 
-function setNotificationsEnabled(active as boolean)
+function setNotificationsEnabled(active as boolean, sendUpdatedChange = false as boolean)
   m.notifyChanges = active
   if active
-    m.changes = m.pendingChanges
+    if sendUpdatedChange
+      m.changes = m.pendingChanges
+    else
+      m.changes = [{ type: "updated" }]
+    end if
     m.pendingChanges = []
   end if
 end function
