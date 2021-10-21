@@ -89,7 +89,12 @@ namespace ml
       end if
 
       m.onViewManagerUpdate()
+
       if keepOldFocusIfPossible
+        if index >= m.viewManager.numberOfItems
+          'move to next item
+          index = m.viewManager.numberOfItems - 1
+        end if
         m.setFocusIndex(index, false, true)
         m.moveToIndex(index, false, false, 0)
         m.focusManager.onFocusAnimationUpdate(1)
@@ -98,6 +103,7 @@ namespace ml
         m.moveToIndex(0, false, false, 0)
         m.focusManager.onFocusAnimationUpdate(1)
       end if
+
       if index = invalid or index = -1
         index = 0
       end if
@@ -169,7 +175,7 @@ namespace ml
       row = m.viewManager.visibleComponents[m.index]
 
       if row <> invalid and row.isMultiRow
-        ' ? "INSIDE MULTI ROW"
+        ? "INSIDE MULTI ROW"
         if offset > 0
           direction = 1
         else
@@ -200,6 +206,7 @@ namespace ml
 
       'TODO - move this into individual controls
       if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
+        ? "===A"
         'TODO - we might want to detect this at the list, and have a cache of next move there
         ' m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
         return false
@@ -210,6 +217,7 @@ namespace ml
       ' m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
 
       if index <> -1
+        ? "===B"
         return m.moveToIndex(index, animated, fast, direction, forceSequential)
       end if
 
@@ -232,13 +240,16 @@ namespace ml
         if item = invalid
           exit while
         end if
-        if item.isFocusEnabled = invalid or item.isFocusEnabled = true
-          matchedIndex = index
-          exit while
+        if item.isHidden = invalid or item.isHidden = false
+          if item.isFocusEnabled = invalid or item.isFocusEnabled = true
+            matchedIndex = index
+            exit while
+          end if
         end if
         index += direction
       end while
 
+      ? " GVTI "; index; " MI "; matchedIndex
       return matchedIndex
     end function
 
@@ -996,13 +1007,28 @@ namespace ml
       m.targetIndex = index
     end function
 
+    protected function processChanges(changes as mc.types.array)
+      'override point for handling changes, if necessary
+      isIndexUpdateRequired = m.index >= m.viewManager.numberOfItems
+      ' ? "PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
+
+      if isIndexUpdateRequired
+        wasNotifying = m.focusManager.isNotifying
+        m.focusManager.isNotifying = true
+        m.reset(true)
+        m.focusManager.isNotifying = wasNotifying
+      else
+        m.reset(true)
+      end if
+
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMove(direction as integer) as boolean
       ' ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
-      ' ? "AAA"
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(direction)
         return true
@@ -1010,6 +1036,7 @@ namespace ml
       ' ? "BBB" ; (direction = -1 and m.index > 0) or (direction = 1 and m.index < m.viewManager.numberOfItems - 1)
       return (direction = -1 and m.index > 0) or (direction = 1 and m.index < m.viewManager.numberOfItems - 1)
     end function
+
 
   end class
 end namespace

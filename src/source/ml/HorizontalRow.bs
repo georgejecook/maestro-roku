@@ -87,11 +87,11 @@ namespace ml
     protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       m.configureHeader()
-
       if content = invalid
         m.log.info("row content is set to invalid. resetting")
         m.viewManager.reset()
       else
+        ? "UPDATING CONTENT"
         m.viewManager.reset()
         m.viewManager.setContent(content)
 
@@ -100,6 +100,11 @@ namespace ml
         m.focusManager.isNotifying = true
       end if
       ' end if
+    end function
+
+    protected override function onContentItemsChange(changes as mc.types.array)
+      m.log.info("This content has changed in some way")
+      m.viewManager.onContentItemsChange(changes)
     end function
 
     protected override function onIsRenderedChange()

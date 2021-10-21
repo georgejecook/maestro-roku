@@ -2,17 +2,12 @@ import "pkg:/source/core/Utils.bs"
 
 namespace mc.collections
 
-  ' /**
-  '  * @member mapArray
-  '  * @memberof module:Collections
-  '  * @instance
-  '  * @function
-  '  * @description returns an array with items mapped by the mapper
-  '  * @param {array} array of items to map
-  '  * @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
-  '  * @returns {outputType} items mapped by the mapper
+  ' @description returns an array with items mapped by the mapper
+  ' @param {array} array of items to map
+  ' @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
+  ' @returns {outputType} items mapped by the mapper
   '  */
-  function mapArray(array as mc.types.array, mapper as mc.collections.BaseMapper)
+  function map(array as mc.types.array, mapper as mc.collections.BaseMapper)
     items = []
     if array <> invalid
       isClass = mc.isClass(mapper)
@@ -162,17 +157,10 @@ namespace mc.collections
     end function
   end class
 
-  ' /**
-  '  * @member filterArray
-  '  * @memberof module:Collections
-  '  * @instance
-  '  * @function
-  '  * @description returns an array with items that match the filter predicate
-  '  * @param {array} array of items to filter
-  '  * @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
-  '  * @returns {boolean} items that match the predicate
-  '  */
-  function filterArray(array as mc.types.array, predicate as dynamic)
+  ' @param {array} array of items to filter
+  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+  ' @returns {boolean} items that match the predicate
+  function filter(array as mc.types.array, predicate as dynamic)
     items = []
     if array <> invalid
       isClass = mc.isClass(predicate)

@@ -27,10 +27,7 @@ class ListScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = .6
-  private prefix = "-A- "
-
-  private isSmall = false
+  private scrollSpeed = .3
 
   function new()
     super("ListScreen")
@@ -38,15 +35,8 @@ class ListScreen extends mv.BaseScreen
 
   protected override function initialize()
     super.initialize()
-    if m.isSmall
-      ' translation = [300, 300]
-      ' size = [600, 500]
-      translation = [0, 0]
-      size = [1920, 1080]
-    else
-      translation = [0, 0]
-      size = [1920, 1080]
-    end if
+    translation = [0, 0]
+    size = [1920, 1080]
 
     m.button = m.createSGNode("Button", m.top, "button", {
       title: "focus me"
@@ -75,10 +65,6 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function onResetChange()
-    ? ">>>>>>>>>>>RESET"
-    ? ">>>>>>>>>>>RESET"
-    ? ">>>>>>>>>>>RESET"
-    ? ">>>>>>>>>>>RESET"
     m.list.content = invalid
     ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
     if m.isSmall
@@ -98,13 +84,20 @@ class ListScreen extends mv.BaseScreen
     listSettings.rowCreationBatchSize = 10
     listSettings.rowCreationBatchDelay = 0.1
 
-    ' content = ml.listMixin.createListContent(m.createSimpleData(), m.focusSettings, m.rowSettings, listSettings)
-    ' content = ml.listMixin.createListContent(m.createData(), m.focusSettings, m.rowSettings, listSettings)
-    ' content = ml.listMixin.createListContent(m.createSimpleGridData(), m.focusSettings, m.rowSettings, listSettings)
-    content = ml.listMixin.createListContent(m.createMockScreenData(), m.focusSettings, m.rowSettings, listSettings)
-    ' content = ml.listMixin.createListContent(m.createGridData(), m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+    content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+    ' content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+
+    ' items = m.createSimpleData(),
+    ' items = m.createData(),
+    ' items = m.createSimpleGridData(),
+    items = m.createMockScreenData(),
+    ' items = m.createGridData(),
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
+    content@.appendChildren(items)
     m.list.visible = false
     m.list.content = content
     timer.log("set content")
@@ -208,7 +201,7 @@ class ListScreen extends mv.BaseScreen
       ' row.settings.screenPos = -1
       ' row.settings.peekNextPixels = 0
 
-      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
     return content
   end function
@@ -234,7 +227,7 @@ class ListScreen extends mv.BaseScreen
       end if
       row.title = m.prefix + "ROW " + str(i)
       content.push(row)
-      row.appendChildren(m.makeItems(m.defaultCellType, 5))
+      row@.appendChildren(m.makeItems(m.defaultCellType, 5))
     end for
     return content
   end function
@@ -271,7 +264,7 @@ class ListScreen extends mv.BaseScreen
       end if
       row.title = m.prefix + "ROW " + str(i)
       content.push(row)
-      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
 
     return content
@@ -309,7 +302,7 @@ class ListScreen extends mv.BaseScreen
       end if
       row.title = m.prefix + "ROW " + str(i)
       content.push(row)
-      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
     return content
   end function
@@ -327,7 +320,7 @@ class ListScreen extends mv.BaseScreen
     row.settings.contentOffset = [200, 0]
     numItems = 1
     content.push(row)
-    row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+    row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
 
     row = createObject("roSGNode", "ml_RowContent")
     row.title = "FOLLOWING"
@@ -337,7 +330,7 @@ class ListScreen extends mv.BaseScreen
     row.settings.contentOffset = [200, 0]
     numItems = 20
     content.push(row)
-    row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+    row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
 
     row = createObject("roSGNode", "ml_RowContent")
     row.title = "TEAMS"
@@ -349,16 +342,16 @@ class ListScreen extends mv.BaseScreen
     ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 5, -1)
     ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 4, -1)
     row.settings.contentOffset = [200, 30]
-    numItems = 14
+    numItems = 12
     content.push(row)
-    row.appendChildren(m.makeItems(m.defaultCellType, numItems))
+    row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
   end for
   return content
 end function
 
 private function addItems(cellType as string, number as integer)
   row = m.list.content.getChild(m.list.focusedRowIndex)
-  row.appendChildren(m.makeItems(cellType, number))
+  row@.appendChildren(m.makeItems(cellType, number))
 end function
 
 private function makeItems(cellType as string, number as integer)
@@ -380,12 +373,10 @@ private function makeItem(cellType as string, title as string) as mc.types.node
   return child
 end function
 
-private function onRemoveItems(items as integer)
+private function onRemoveItems(numItems as integer)
   row = m.list.content.getChild(m.list.focusedRowIndex)
-
   startIndex = row.getChildCount() - items
-  children = row.getChildren(items, startIndex)
-  row.removeChildren(children)
+  row@.removeChildrenIndex(startIndex, numItems)
 end function
 
 private function addRow(index as integer)
@@ -404,23 +395,43 @@ private function addRow(index as integer)
   row.title = m.prefix + "NEW ROW " + m.contentId.toStr()
   row.id = rnd(2147483647).toStr()
   m.contentId++
-  row.appendChildren(m.makeItems(m.defaultCellType, 5))
-  m.list.content.insertChild(row, index)
-  m.list.content.version++
+  row@.appendChildren(m.makeItems(m.defaultCellType, 5))
+  m.list.content@.insertChild(row, index)
 end function
 
 private function removeRow(index as integer)
-  m.list.content.removeChild(m.list.content.getChild(index))
-  m.list.content.version++
+  m.list.content@.removeChildIndex(index)
+end function
+
+private function addCell()
+  rowContent = m.list.content.getChild(m.list.focusedRowIndex)
+  rowContent@.appendChildren(m.makeItems(m.defaultCellType, 1))
+  rowContent@.insertChild(m.makeItems(m.defaultCellType, 1), m.list.focusedCellIndex)
+end function
+
+private function removeCell()
+  rowContent = m.list.content.getChild(m.list.focusedRowIndex)
+  ? "REMOVING CHILD AT "; m.list.focusedCellIndex
+  rowContent@.removeChildIndex(m.list.focusedCellIndex)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ keypresses
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+private firstItem = invalid
 private function onKeyPressOptions() as boolean
-  ? " RESETTING DATA"
+  ? "OPTIONS "
+  ' if m.firstItem = invalid
+  '   m.firstItem = m.list.content.getChild(0)
+  '   m.list.content.removeChild(m.firstItem)
+  ' else
+  '   m.list.content.insertChild(m.firstItem, 0)
+  '   m.firstItem = invalid
+  ' end if
 
+  m.firstItem = m.list.content.getChild(0)
+  m.firstItem.isHidden = not m.firstItem.isHidden
+  ' row.isHidden = not row.isHidden
   ' m.prefix = m.prefix = "-A- " ? "-B- " : "-A- "
   ' m.list.content = invalid
   ' m.onResetChange()
@@ -429,13 +440,14 @@ end function
 
 private function onKeyPressRewind() as boolean
   ? "REMOVING "
-  m.removeRow(1)
+  m.removeCell()
   return true
 end function
 
 private function onKeyPressFastForward() as boolean
   ? "ADDING"
-  m.addRow(1)
+  ' m.addRow(1)
+  m.addCell()
   return true
 end function
 
@@ -495,7 +507,6 @@ private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, 
 end function
 
 private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  ' ? "+SCREEN onCellDidGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
   ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
   mioc.setInstance("focusedIndex", {
     row: rowIndex
@@ -550,7 +561,7 @@ private function onRowGainingFocus(rowIndex as integer, direction as integer, fr
 end function
 
 private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-  ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  ' ? "g onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
   ' if direction = 1
   '   row = m.list@.getRowRenderer(rowIndex)
   '   row.opacity = 1 - fraction

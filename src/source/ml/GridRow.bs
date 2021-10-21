@@ -88,8 +88,8 @@ namespace ml
 
     public function moveRowUp() as boolean
       m.log.verbose("moveRowUp")
-      if m.canMoveRow(-1) and m.itemScroller.index > m.content.settings.numColumns - 1
-        return m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
+      if m.canMoveRow(-1) and m.itemScroller.index > m._content.settings.numColumns - 1
+        return m.itemScroller.moveFromPress(- m._content.settings.numColumns, false)
       end if
       return false
     end function
@@ -97,9 +97,9 @@ namespace ml
     public function moveRowDown() as boolean
       m.log.verbose("moveRowDown")
       '      ? "aaa"
-      if m.canMoveRow(1) and m.itemScroller.index < m.content.getChildCount() - m.content.settings.numColumns
+      if m.canMoveRow(1) and m.itemScroller.index < m._content.getChildCount() - m._content.settings.numColumns
         '      ? "bbbbb"
-        return m.itemScroller.moveFromPress(m.content.settings.numColumns, false)
+        return m.itemScroller.moveFromPress(m._content.settings.numColumns, false)
       end if
       return false
     end function
@@ -179,6 +179,11 @@ namespace ml
         m.focusManager.isNotifying = true
       end if
       ' end if
+    end function
+
+    protected override function onContentItemsChange(changes as mc.types.array)
+      m.log.info("This content has changed in some way")
+      m.viewManager.onContentItemsChange(changes)
     end function
 
     protected override function onIsRenderedChange()

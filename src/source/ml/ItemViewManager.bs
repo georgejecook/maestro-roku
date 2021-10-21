@@ -27,6 +27,7 @@ namespace ml
     public visibleComponents = []
     public hiddenComponents = []
     public numberOfItems = 0
+    public numberOfVisibleItems = 0
 
     ' 0 - x, 1 - y, 2 - both
     public axes = 0
@@ -66,6 +67,8 @@ namespace ml
 
     public function reset()
       m.log.info ("resetting base.itemViewManager", m.__classname)
+      ? "RESETTING VIEW MANAGER "; m.__classname
+
       m.content = invalid
       m.components = []
       m.rects = []
@@ -83,6 +86,7 @@ namespace ml
       m.visibleComponents = []
       m.hiddenComponents = []
       m.numberOfItems = 0
+      m.numberOfVisibleItems = 0
 
       m.lastRenderedIndexes = { startIndex: -1, endIndex: -1 }
       m.lastScrollIndex = 0
@@ -111,10 +115,6 @@ namespace ml
       else
         m.onRenderersCreated()
       end if
-    end function
-
-    'call this method when the content has changed in some way
-    function onContentUpdated()
     end function
 
     function _createRenderers(content as mc.types.node) as boolean
@@ -481,8 +481,9 @@ namespace ml
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function createRenderers(items as mc.types.array)
+    function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       m.log.error("You must override this method")
+      return false
     end function
 
     function updateLayout()
@@ -498,6 +499,9 @@ namespace ml
       return invalid
     end function
 
+    protected function onContentItemsChange(changes as mc.types.array)
+      'override me
+    end function
 
   end class
 end namespace

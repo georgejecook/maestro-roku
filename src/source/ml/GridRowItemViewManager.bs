@@ -55,7 +55,7 @@ namespace ml
       super.reset()
     end function
 
-    override function createRenderers(content as mc.types.node) as boolean
+    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
       m.cellsById = {}
       return true
@@ -66,6 +66,7 @@ namespace ml
       m.rects = []
       m.visibleComponents = []
       m.visibleItems = []
+      m.rowOffsets = []
 
       if m.content = invalid
         return
@@ -85,8 +86,10 @@ namespace ml
       rowIndex = 0
       while i < numItems - 1
         m.rowOffsets.push(y)
+        ' ? "LAYING OUT ITEM " ; i
         for col = 0 to m.numCols - 1
           item = children[i]
+          ' ? "ITEM " ; item.title
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y],
@@ -138,10 +141,10 @@ namespace ml
 
       if item <> invalid
         if renderState = "rendered"
-          cell = m.cellsById[id]
+          cell = m.cellsById[item.id]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
+            ? "GETTING CELL " ; item.id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
             if cell <> invalid
@@ -169,20 +172,34 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.cellsById[id] = cell
+              m.cellsById[item.id] = cell
             else
-                           ? ">>ERR no cell for " ; settings.compName
+              m.log.error("could not make cell of type ", settings.compName)
             end if
+          else
+            cell.translation = m.rects[index].translation
+            ' might have changed
+            cell.index = index
+            cell.initialState = {
+              row: m.row
+              list: m.owner
+              size: m.rects[index].size
+              content: item
+            }
+
+            cell.visible = true
           end if
           if cell <> invalid
+            ? " SET cell at index "; index ;" to " ; item.id; " " ; item.title
+            ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
             m.renderedComponents.push(cell)
           end if
         else
-          cell = m.cellsById[id]
+          cell = m.cellsById[item.id]
           if cell <> invalid
             ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(id)
+            m.cellsById.delete(item.id)
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
@@ -192,7 +209,17 @@ namespace ml
     end function
 
     override function getRenderer(index as integer)
-      return m.cellsById[str(index).trim()]
+      if m.content <> invalid
+        item = m.content.getChild(index)
+        if item <> invalid
+          return m.cellsById[item.id]
+        else
+          m.log.error("ERROR could not find renderer for ", index)
+          return invalid
+        end if
+      else
+        return invalid
+      end if
     end function
 
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
@@ -343,7 +370,7 @@ namespace ml
             '   end if
           end if
         else
-                   ? "comp index not set!"
+          ? "comp index not set!"
         end if
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
@@ -427,7 +454,7 @@ namespace ml
       if rowIndex = 0
         offset = 0
       else if direction = -1
-          offset = 0
+        offset = 0
       else
         if rowIndex >= m.rowOffsets.count()
           ' ? " LIMITING BASED ON ROW OFFSETS " ;m.rowOffsets.count()
@@ -452,5 +479,46 @@ namespace ml
         ' return m.settings.firstRowScreenPos - m.settings.otherRowScreenPos
       end if
     end function
+
+    protected override function onContentItemsChange(changes as mc.types.array)
+      m.log.info("updating row renderers due to contents change")
+
+      ? "+++++++++++++++++++++++++++++++++++++++++++"
+      ? "onContentItemsChange"
+      m.processRemovedCells(changes)
+      m.forceUpdateLayout()
+      m.itemScroller.processChanges(changes)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function processRemovedCells(changes as mc.types.array)
+      m.log.info("processing removed cells")
+      for each change in changes
+        if change.type = "remove"
+          m.log.info("removing cell at index", change.index)
+          item = change.child
+
+          if item <> invalid
+            ? " REMOVING CELL", item.id
+            cell = m.cellsById[item.id]
+            if cell <> invalid
+              m.componentPool@.releaseComponent(cell)
+              m.cellsById.delete(item.id)
+            else
+              'this is almost certainly due to trying to release a cell during setting content
+              ? "NO CELL item.id", item.id
+              m.log.error("could not find cell to release", item.id)
+            end if
+          else
+            ? "NO CELL item.id", change.index
+            m.log.error("could not find cell to release")
+          end if
+        end if
+      end for
+    end function
+
   end class
 end namespace
