@@ -124,7 +124,7 @@ namespace ml.sample
       cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
       row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
       row.settings.contentOffset = [200, 0]
-      numItems = 10
+      numItems = 3
       content.push(row)
       m.followingModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -136,7 +136,7 @@ namespace ml.sample
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
       row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 400, 1, 144, 4, 100)
       row.settings.contentOffset = [200, 30]
-      numItems = 12
+      numItems = 5
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -146,7 +146,7 @@ namespace ml.sample
     private function makeItems(cellType as string, number as integer)
       items = []
       for i = 0 to number - 1
-        items.push(m.makeItem(cellType, `Team ${m.contentId} [${i}]`))
+        items.push(m.makeItem(cellType, `Team ${m.contentId}`))
       end for
       return items
     end function
@@ -235,17 +235,12 @@ namespace ml.sample
       ' m.teamsModule@.setNotificationsEnabled(false)
 
       m.followingModule@.removeChildIndex(index)
-      ? "AAA"
       ' m.teamsModule@.appendChild(team)
       m.teamsModule@.insertChild(team, 0)
-      ? "BBB"
-      m.teamsModule@.sortByKey("title")
-      ? "CCC"
+      ' m.teamsModule@.sortByKey("title")
 
       ' m.teamsModule@.setNotificationsEnabled(true, true)
-      ? "DDD"
       ' m.followingModule@.setNotificationsEnabled(true, true)
-      ? "EE"
 
     end function
 

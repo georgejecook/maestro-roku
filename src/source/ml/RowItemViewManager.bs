@@ -52,7 +52,7 @@ namespace ml
 
       offset = 0
       for each item in m.content.getChildren(-1, 0)
-        ? ">>>> laying out ", item.title
+        ' ? ">>>> laying out ", item.title
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
         if m.axes = 0
           translation = [offset, 0]
@@ -238,29 +238,6 @@ namespace ml
       return invalid
     end function
 
-    private function restorePreviousFocus(previousIndex as integer, item as dynamic)
-      ? "RESTORE FOCUS ";
-
-      focusIndex = 0
-      if item <> invalid
-        cell = m.cellsById[item.id]
-        if cell = invalid
-          index = previousIndex < m.numberOfItems ? previousIndex : m.numberOfItems - 1
-          cell = m.visibleComponents[index]
-        end if
-
-        if cell <> invalid
-          focusIndex = cell.index
-        end if
-      end if
-      ' 'TODO need to actually set the focus properly
-      m.itemScroller.moveToIndex(focusIndex, false)
-      m.itemScroller.forceFocusOnIndex(focusIndex, m.row.isFocused)
-      if m.row.isFocused
-        m.owner.nextFocusIndex = focusIndex
-      end if
-    end function
-
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       m.processRemovedCells(changes)
@@ -301,22 +278,17 @@ namespace ml
           m.log.info("removing cell at index", change.index)
           item = change.child
 
-          ? "AAAA"
           if item <> invalid
-            ? "BB"
             cell = m.cellsById[item.id]
             if cell <> invalid
-              ? "CC"
               m.componentPool@.releaseComponent(cell)
               m.cellsById.delete(item.id)
             else
               'this is almost certainly due to trying to release a cell during setting content
-              ? "DD"
               m.log.error("could not find cell to release", item.id)
             end if
           else
             m.log.error("could not find cell to release")
-            ? "EE"
             ? "could not find item to release", change.index
           end if
         end if

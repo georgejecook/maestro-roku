@@ -178,8 +178,20 @@ namespace ml
             end if
           else
             cell.translation = m.rects[index].translation
+            ' might have changed
+            cell.index = index
+            cell.initialState = {
+              row: m.row
+              list: m.owner
+              size: m.rects[index].size
+              content: item
+            }
+
+            cell.visible = true
           end if
           if cell <> invalid
+            ? " SET cell at index "; index ;" to " ; item.id; " " ; item.title
+            ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
             m.renderedComponents.push(cell)
           end if
         else
@@ -471,6 +483,8 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
+      ? "+++++++++++++++++++++++++++++++++++++++++++"
+      ? "onContentItemsChange"
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
       m.itemScroller.processChanges(changes)
@@ -480,7 +494,6 @@ namespace ml
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
@@ -489,15 +502,18 @@ namespace ml
           item = change.child
 
           if item <> invalid
+            ? " REMOVING CELL", item.id
             cell = m.cellsById[item.id]
             if cell <> invalid
               m.componentPool@.releaseComponent(cell)
               m.cellsById.delete(item.id)
             else
               'this is almost certainly due to trying to release a cell during setting content
+              ? "NO CELL item.id", item.id
               m.log.error("could not find cell to release", item.id)
             end if
           else
+            ? "NO CELL item.id", change.index
             m.log.error("could not find cell to release")
           end if
         end if

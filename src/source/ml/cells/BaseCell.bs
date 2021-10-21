@@ -28,7 +28,7 @@ namespace ml
     private isViewCreated = false
     private isRecyclePending = true
 
-    protected content as mc.types.Node
+    public content as mc.types.Node
     protected list
     protected row
     protected size as mc.types.Array
@@ -73,13 +73,10 @@ namespace ml
     end function
 
     public function recycle()
-      ? "RECYCLE"
       if not m.isViewCreated
-        ? "MAKE VIEWS"
         m._createViews()
       end if
       if m.isRecyclePending
-        ? "ON CONTENT CHANGE"
         m._onContentChange(m.content)
       end if
     end function
