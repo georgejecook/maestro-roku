@@ -13,7 +13,7 @@ namespace ml
 
     public index = -1
 
-    @observe("onDebugMChange")
+    @observer("onDebugMChange")
     public __debugM = false
 
     ' any item in a list will have this set whenever it gets recycled
@@ -73,10 +73,13 @@ namespace ml
     end function
 
     public function recycle()
+      ? "RECYCLE"
       if not m.isViewCreated
+        ? "MAKE VIEWS"
         m._createViews()
       end if
       if m.isRecyclePending
+        ? "ON CONTENT CHANGE"
         m._onContentChange(m.content)
       end if
     end function

@@ -19,7 +19,7 @@ import "pkg:/source/core/Utils.bs"
 '++ Initialization
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function new()
+function init()
   m.log = new log.Logger("mc_Map")
   m.notifyChanges = true
   m.pendingChange = []
@@ -34,7 +34,8 @@ function sortByKey(keyName as string, ascending = true as boolean)
   m.top.removeChildren(m.top.getChildren(-1, 0))
   sortedChildren = mc.collections.getSortedArrayByKey(children, keyName, ascending)
   clear()
-  m.append(sortedChildren)
+  m.top.appendChildren(sortedChildren)
+  m.top.changes = [{ type: "sort" }]
 end function
 
 function clear()
@@ -47,7 +48,7 @@ end function
 
 function appendChild(child as object)
   m.top.appendChild(child)
-  m.addChange({ type: "add", child: child, index: m.top.getChildCount() - 1 })
+  addChange({ type: "add", child: child, index: m.top.getChildCount() - 1 })
 end function
 
 function replaceChild(child as object, index as integer)
@@ -68,7 +69,7 @@ end function
 
 function removeChildIndex(index as integer)
   if m.top.getChildCount() > 0
-    child = peek()
+    child = m.top.getChild(index)
     m.top.removeChildIndex(index)
     m.top.changes = [{ type: "remove", child: child, index: index }]
   end if

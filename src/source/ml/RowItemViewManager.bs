@@ -52,6 +52,7 @@ namespace ml
 
       offset = 0
       for each item in m.content.getChildren(-1, 0)
+        ? ">>>> laying out ", item.title
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
         if m.axes = 0
           translation = [offset, 0]
@@ -103,7 +104,7 @@ namespace ml
 
       if item <> invalid
         if renderState = "rendered"
-          cell = m.cellsById[id]
+          cell = m.cellsById[item.id]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
@@ -135,20 +136,22 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.cellsById[id] = cell
+              m.cellsById[item.id] = cell
             else
               '      ? ">>ERR no cell for " ; settings.compName
             end if
+          else
+            cell.translation = m.rects[index].translation
           end if
           if cell <> invalid
             m.renderedComponents.push(cell)
           end if
         else
-          cell = m.cellsById[id]
+          cell = m.cellsById[item.id]
           if cell <> invalid
             ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(id)
+            m.cellsById.delete(item.id)
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
@@ -158,7 +161,17 @@ namespace ml
     end function
 
     override function getRenderer(index as integer)
-      return m.cellsById[str(index).trim()]
+      if m.content <> invalid
+        item = m.content.getChild(index)
+        if item <> invalid
+          return m.cellsById[item.id]
+        else
+          ? "ERROR could not find renderer for ", index
+          return invalid
+        end if
+      else
+        return invalid
+      end if
     end function
 
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
@@ -242,13 +255,14 @@ namespace ml
       end if
       ' 'TODO need to actually set the focus properly
       m.itemScroller.moveToIndex(focusIndex, false)
-      m.itemScroller.forceFocusOnIndex(focusIndex)
-      m.owner.nextFocusIndex = focusIndex
+      m.itemScroller.forceFocusOnIndex(focusIndex, m.row.isFocused)
+      if m.row.isFocused
+        m.owner.nextFocusIndex = focusIndex
+      end if
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
       m.itemScroller.processChanges(changes)
@@ -259,21 +273,51 @@ namespace ml
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    ' private function processRemovedCells(changes as mc.types.array)
+    '   m.log.info("processing removed cells")
+    '   for each change in changes
+    '     if change.type = "remove"
+    '       id = change.index.toStr()
+    '       m.log.info("removing cell", id)
+
+    '       cell = m.cellsById[id]
+    '       if cell <> invalid
+    '         ' ? "RELEASING " ; id
+    '         m.componentPool@.releaseComponent(cell)
+    '         m.cellsById.delete(id)
+    '       else
+    '         'this is almost certainly due to trying to release a cell during setting content
+    '         ? " COULD NOT FIND CELL TO RELEASE" ; change.child.id
+    '       end if
+    '     end if
+    '   end for
+    ' end function
+
+
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
         if change.type = "remove"
-          id = change.index.toStr()
-          m.log.info("removing cell", id)
+          m.log.info("removing cell at index", change.index)
+          item = change.child
 
-          cell = m.cellsById[id]
-          if cell <> invalid
-            ' ? "RELEASING " ; id
-            m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(id)
+          ? "AAAA"
+          if item <> invalid
+            ? "BB"
+            cell = m.cellsById[item.id]
+            if cell <> invalid
+              ? "CC"
+              m.componentPool@.releaseComponent(cell)
+              m.cellsById.delete(item.id)
+            else
+              'this is almost certainly due to trying to release a cell during setting content
+              ? "DD"
+              m.log.error("could not find cell to release", item.id)
+            end if
           else
-            'this is almost certainly due to trying to release a cell during setting content
-            ? " COULD NOT FIND CELL TO RELEASE" ; change.child.id
+            m.log.error("could not find cell to release")
+            ? "EE"
+            ? "could not find item to release", change.index
           end if
         end if
       end for

@@ -66,6 +66,7 @@ namespace ml
       m.rects = []
       m.visibleComponents = []
       m.visibleItems = []
+      m.rowOffsets = []
 
       if m.content = invalid
         return
@@ -85,8 +86,10 @@ namespace ml
       rowIndex = 0
       while i < numItems - 1
         m.rowOffsets.push(y)
+        ' ? "LAYING OUT ITEM " ; i
         for col = 0 to m.numCols - 1
           item = children[i]
+          ' ? "ITEM " ; item.title
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y],
@@ -138,10 +141,10 @@ namespace ml
 
       if item <> invalid
         if renderState = "rendered"
-          cell = m.cellsById[id]
+          cell = m.cellsById[item.id]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
+            ? "GETTING CELL " ; item.id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
             if cell <> invalid
@@ -169,20 +172,22 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.cellsById[id] = cell
+              m.cellsById[item.id] = cell
             else
-              ? ">>ERR no cell for " ; settings.compName
+              m.log.error("could not make cell of type ", settings.compName)
             end if
+          else
+            cell.translation = m.rects[index].translation
           end if
           if cell <> invalid
             m.renderedComponents.push(cell)
           end if
         else
-          cell = m.cellsById[id]
+          cell = m.cellsById[item.id]
           if cell <> invalid
             ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(id)
+            m.cellsById.delete(item.id)
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
@@ -192,7 +197,17 @@ namespace ml
     end function
 
     override function getRenderer(index as integer)
-      return m.cellsById[str(index).trim()]
+      if m.content <> invalid
+        item = m.content.getChild(index)
+        if item <> invalid
+          return m.cellsById[item.id]
+        else
+          m.log.error("ERROR could not find renderer for ", index)
+          return invalid
+        end if
+      else
+        return invalid
+      end if
     end function
 
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
@@ -470,17 +485,20 @@ namespace ml
       m.log.info("processing removed cells")
       for each change in changes
         if change.type = "remove"
-          id = change.index.toStr()
-          m.log.info("removing cell", id)
+          m.log.info("removing cell at index", change.index)
+          item = change.child
 
-          cell = m.cellsById[id]
-          if cell <> invalid
-            ' ? "RELEASING " ; id
-            m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(id)
+          if item <> invalid
+            cell = m.cellsById[item.id]
+            if cell <> invalid
+              m.componentPool@.releaseComponent(cell)
+              m.cellsById.delete(item.id)
+            else
+              'this is almost certainly due to trying to release a cell during setting content
+              m.log.error("could not find cell to release", item.id)
+            end if
           else
-            'this is almost certainly due to trying to release a cell during setting content
-            ? " COULD NOT FIND CELL TO RELEASE" ; change.child.id
+            m.log.error("could not find cell to release")
           end if
         end if
       end for

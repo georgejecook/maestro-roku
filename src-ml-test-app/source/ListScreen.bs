@@ -27,10 +27,7 @@ class ListScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = .6
-  private prefix = "-A- "
-
-  private isSmall = false
+  private scrollSpeed = .3
 
   function new()
     super("ListScreen")
@@ -38,15 +35,8 @@ class ListScreen extends mv.BaseScreen
 
   protected override function initialize()
     super.initialize()
-    if m.isSmall
-      ' translation = [300, 300]
-      ' size = [600, 500]
-      translation = [0, 0]
-      size = [1920, 1080]
-    else
-      translation = [0, 0]
-      size = [1920, 1080]
-    end if
+    translation = [0, 0]
+    size = [1920, 1080]
 
     m.button = m.createSGNode("Button", m.top, "button", {
       title: "focus me"
@@ -517,7 +507,7 @@ private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, 
 end function
 
 private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
   mioc.setInstance("focusedIndex", {
     row: rowIndex
     cell: itemIndex
@@ -530,7 +520,7 @@ private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, d
 end function
 
 private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-  ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+  ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
 
   row = m.list@.getRowRenderer(rowIndex)
   if row <> invalid
@@ -553,7 +543,7 @@ private function onRowDidGainFocus(rowIndex as integer, direction as integer)
 end function
 
 private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-  ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+  ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
 
   ' row = m.list@.getRowRenderer(rowIndex)
   ' if direction = 1
@@ -571,7 +561,7 @@ private function onRowGainingFocus(rowIndex as integer, direction as integer, fr
 end function
 
 private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-  ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  ' ? "g onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
   ' if direction = 1
   '   row = m.list@.getRowRenderer(rowIndex)
   '   row.opacity = 1 - fraction

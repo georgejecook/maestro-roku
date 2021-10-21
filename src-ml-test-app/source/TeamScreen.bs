@@ -1,0 +1,357 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/ml/ListDelegateMixin.bs"
+import "pkg:/source/core/DebugTimer.bs"
+
+namespace ml.sample
+  @node("TeamScreen", "mv_BaseScreen")
+  class TeamScreen extends mv.BaseScreen
+
+    'views
+    private list
+    private listHolder
+    private bgRect
+    private button
+
+    'style
+    private defaultCellType = "ml_SimpleCell"
+
+    'state
+    public componentPool as mc.types.Node
+    private contentId = 0
+    private rowSettings
+    private focusSettings
+    private cellSettings
+    private loadingIndicator
+    private scrollSpeed = m.fastScrollSpeed
+    private favoriteModule as mc.types.node
+    private followingModule as mc.types.node
+    private teamsModule as mc.types.node
+    private scrollSpeed = 0.3
+    private fastScrollSpeed = 0.2
+
+    function new()
+      super("TeamScreen")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+      translation = [0, 0]
+      size = [1920, 1080]
+
+      m.button = m.createSGNode("Button", m.top, "button", {
+        title: "focus me"
+      })
+      m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+        translation: translation
+        size: size
+        color: "#6a307d"
+      })
+      m.listHolder = m.createSGNode("Group", m.top, "listHolder")
+      m.componentPool = m.global.componentPool
+
+      m.list = m.createSGNode("ml_List", m.listHolder, "list", {
+        translation: translation
+        width: size[0]
+        height: size[1]
+      })
+      m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
+        isActive: true
+        width: 1920
+        height: 1080
+        backgroundVisible: false
+      })
+      ml.delegateMixin.setListDelegate(m.list)
+      m.onResetChange()
+    end function
+
+    private function onResetChange()
+      m.list.content = invalid
+      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
+
+      timer = new mc.utils.DebugTimer("list")
+      m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
+      listSettings = ml.listMixin.createListSettings(-1, -1)
+      listSettings.rowCreationStrategy = "async"
+      listSettings.rowCreationBatchSize = 10
+      listSettings.rowCreationBatchDelay = 0.1
+      content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+      items = m.createData(),
+      timer.log("makeData")
+      m.setFocus(m.loadingIndicator)
+      content@.appendChildren(items)
+      m.list.visible = false
+      m.list.content = content
+      timer.log("set content")
+      if m.list.state = "rendered"
+        m.onListRenderState("rendered")
+        m.loadingIndicator.isActive = false
+      else
+        m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
+      end if
+    end function
+
+    private function onListRenderState(state as string)
+      m.log.info("onListRenderState", state)
+      if state = "rendered"
+        m.setFocus(m.list)
+        m.list@.moveToItem([0, 0], false)
+        m.list.nextFocusIndex = [0, 0]
+        m.list.visible = true
+        m.loadingIndicator.isActive = false
+      end if
+    end function
+
+    private function createData()
+      content = []
+      rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
+      showHero = true
+      headerSettings = ml.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
+      row = createObject("roSGNode", "ml_RowContent")
+      row.title = "FAVORITE TEAM"
+      row.id = rnd(2147483647).toStr()
+      cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 30)
+      row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
+      row.settings.contentOffset = [200, 0]
+      numItems = 1
+      content.push(row)
+      m.favoriteModule = row
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+
+      row = createObject("roSGNode", "ml_RowContent")
+      row.title = "FOLLOWING"
+      row.id = rnd(2147483647).toStr()
+      cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
+      row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
+      row.settings.contentOffset = [200, 0]
+      numItems = 10
+      content.push(row)
+      m.followingModule = row
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+
+      row = createObject("roSGNode", "ml_RowContent")
+      row.title = "TEAMS"
+      row.id = rnd(2147483647).toStr()
+      cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
+      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 400, 1, 144, 4, 100)
+      row.settings.contentOffset = [200, 30]
+      numItems = 12
+      content.push(row)
+      m.teamsModule = row
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      return content
+    end function
+
+    private function makeItems(cellType as string, number as integer)
+      items = []
+      for i = 0 to number - 1
+        items.push(m.makeItem(cellType, `Team ${m.contentId} [${i}]`))
+      end for
+      return items
+    end function
+
+    private function makeItem(cellType as string, title as string) as mc.types.node
+      child = createObject("roSGNode", "ContentNode")
+      id = str(m.contentId).trim()
+      ' child.id = rnd(2147483647).toStr()
+      child.id = id
+      child.description = "some really long " + id + "text in here " + id
+      child.HDGRIDPOSTERURL = "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340"
+      child.title = title
+      m.contentId++
+      return child
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ keypresses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressOptions() as boolean
+      ? "OPTIONS "
+      return true
+    end function
+
+    private function onKeyPressRewind() as boolean
+      ? "REWIND "
+      m.removeCell()
+      return true
+    end function
+
+    private function onKeyPressFastForward() as boolean
+      ? "FFWD"
+      m.addCell()
+      return true
+    end function
+
+    private function onKeyPressBack() as boolean
+    end function
+
+    private function onKeyPressUp() as boolean
+      ? "FOCUS ON BUTTON"
+      m.setFocus(m.button)
+      return true
+    end function
+
+    private function onKeyPressDown() as boolean
+      '    ? "FOCUS ON LIST"
+      m.setFocus(m.list)
+      return true
+    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onShow()
+      super.onShow()
+      m.list.isHidden = false
+      m.setFocus(m.list)
+    end function
+
+    protected override function onHide()
+      super.onHide()
+      m.list.isHidden = true
+    end function
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+      m.log.info("onGainedFocus", isSelfFocused)
+
+      if isSelfFocused
+        m.setFocus(m.list)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function unFollowTeam(index as integer)
+
+      team = m.followingModule.getChild(index)
+      ? "unfollow "; team.title
+
+      ' m.followingModule@.setNotificationsEnabled(false)
+      ' m.teamsModule@.setNotificationsEnabled(false)
+
+      m.followingModule@.removeChildIndex(index)
+      ? "AAA"
+      ' m.teamsModule@.appendChild(team)
+      m.teamsModule@.insertChild(team, 0)
+      ? "BBB"
+      m.teamsModule@.sortByKey("title")
+      ? "CCC"
+
+      ' m.teamsModule@.setNotificationsEnabled(true, true)
+      ? "DDD"
+      ' m.followingModule@.setNotificationsEnabled(true, true)
+      ? "EE"
+
+    end function
+
+    private function selectFavorite()
+      team = m.favoriteModule.getChild(0)
+      ? "selected fave:"; team.title
+    end function
+
+    private function followTeam(itemIndex as integer)
+      team = m.teamsModule.getChild(itemIndex)
+
+      ? "follow "; team.title
+      ' m.followingModule@.setNotificationsEnabled(false)
+      ' m.teamsModule@.setNotificationsEnabled(false)
+
+      m.teamsModule@.removeChildIndex(itemIndex)
+      m.followingModule@.insertChild(team, 0)
+
+      ' m.teamsModule@.setNotificationsEnabled(true, true)
+      ' m.followingModule@.setNotificationsEnabled(true, true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ List Delegate
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: itemIndex
+      })
+    end function
+
+    private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: itemIndex
+      })
+    end function
+
+
+    private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    end function
+
+    private function onRowDidGainFocus(rowIndex as integer, direction as integer)
+      ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+
+      row = m.list@.getRowRenderer(rowIndex)
+      if row <> invalid
+        mioc.setInstance("focusedIndex", {
+          row: rowIndex
+          cell: row.focusedCellIndex
+        })
+      else
+        mioc.setInstance("focusedIndex", {
+          row: -1
+          cell: -1
+        })
+
+      end if
+
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1
+      ' end if
+    end function
+
+    private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
+      ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+
+      ' row = m.list@.getRowRenderer(rowIndex)
+      ' if direction = 1
+      '   row.opacity = 0
+      ' end if
+
+    end function
+
+    private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
+      ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = fraction
+      ' end if
+    end function
+
+    private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
+      ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+      ' if direction = 1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1 - fraction
+      ' end if
+
+    end function
+
+    private function onItemSelected(rowIndex as integer, itemIndex as integer)
+      row = m.list.content.getChild(rowIndex)
+      if m.favoriteModule.isSameNode(row)
+        m.selectFavorite()
+      else if m.followingModule.isSameNode(row)
+        m.unFollowTeam(itemIndex)
+      else if m.teamsModule.isSameNode(row)
+        m.followTeam(itemIndex)
+      end if
+    end function
+  end class
+end namespace
