@@ -117,6 +117,9 @@ namespace ml
     public function getRowIndex() as integer
       return m.itemScroller.currentRowIndex
     end function
+    public function getRowForIndex(index as integer) as integer
+      return fix(index / m.viewManager.numCols)
+    end function
 
     public function getMaxSubRowIndex() as integer
       return m.viewManager.rowOffsets.count()
@@ -210,7 +213,7 @@ namespace ml
 
     public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid
-        m.itemScroller.moveToIndex(index, animated)
+        m.owner@.moveToSubRowIndex(m.index, index, 1, animated, true)
       end if
     end function
 

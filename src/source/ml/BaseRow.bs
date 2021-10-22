@@ -29,6 +29,15 @@ namespace ml
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
+
+    @alwaysnotify
+    @observer("onJumpToIndex")
+    public jumpToIndex = -1
+
+    @alwaysnotify
+    @observer("onAnimateToIndexChange")
+    public animateToIndex = -1
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Event Delegation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -85,11 +94,11 @@ namespace ml
 
           changes = []
           if m.wasHidden <> m._content.isHidden
-            changes.push({row: m._content, type: "isHidden", value: m._content.isHidden})
+            changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
             m.wasHidden = m._content.isHidden
           end if
           if m.wasFocusable <> m._content.isFocusEnabled
-            changes.push({row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled})
+            changes.push({ row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled })
             m.wasFocusable = m._content.isFocusEnabled
           end if
 
@@ -110,6 +119,15 @@ namespace ml
 
     protected function onContentItemsChange(changes as mc.types.array)
       m.log.info("This content has changed in some way")
+    end function
+
+
+    public function onJumpToIndex(index as integer)
+      m.jumpToItem(index, false)
+    end function
+
+    public function onAnimateToIndexChange(index as integer)
+      m.jumpToItem(index, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

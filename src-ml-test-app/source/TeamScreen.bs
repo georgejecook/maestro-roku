@@ -240,8 +240,9 @@ namespace ml.sample
       m.teamsModule@.setNotificationsEnabled(true, true)
       m.followingModule.isHidden = m.followingModule.getChildCount() = 0
       m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
-      ? "followingModule : "; m.followingModule.getChildCount()
-      ? "teamsModule : "; m.teamsModule.getChildCount()
+      if m.followingModule.isHidden
+        m.list.jumpToRowIndex = 1
+      end if
     end function
 
     private function selectFavorite()
@@ -259,6 +260,10 @@ namespace ml.sample
       m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
       ? "followingModule : "; m.followingModule.getChildCount()
       ? "teamsModule : "; m.teamsModule.getChildCount()
+      if m.teamsModule.isHidden
+        m.list.jumpToRowIndex = 1
+      end if
+
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
