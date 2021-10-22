@@ -233,6 +233,12 @@ namespace ml
     private function onContentItemsChange(changes as mc.types.array)
       m.log.info("The content items have changed")
       m.viewManager.onContentItemsChange(changes)
+      ' m.viewManager.forceUpdateLayout()
+      ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+
+      'TODO - need to ensure that the current focus and scroll position is valid after an update!
+      ' m.itemScroller.move(0)
+      ' m.viewManager.onContentItemsChange(changes)
     end function
 
     private function onAnimateToRowIndexChange(index as integer)
@@ -258,6 +264,7 @@ namespace ml
         m.moveToItem([m.focusedRowIndex, index], true)
       end if
     end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public api
@@ -305,9 +312,12 @@ namespace ml
       if row <> invalid
         rect = row@.getScreenRect(cellIndex, cellScreenPos, direction)
         if rect = invalid
+          ' ? " NO SCREEN RECT FOR "; cellIndex
           return rowScreenRect
         end if
         return rect
+      else
+        ' ? "NO ROW FOR index "; rowIndex
       end if
 
       return invalid
@@ -347,7 +357,8 @@ namespace ml
 
     public function moveToRow(index as integer, animated as boolean)
       if m.content <> invalid
-        m.itemScroller.moveToIndex(index, animated, false)
+        validIndex = m.itemScroller.getValidTargetIndex(index, m.itemScroller.direction)
+        m.itemScroller.moveToIndex(validIndex, animated, false)
       end if
     end function
 
@@ -379,16 +390,32 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Internal api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function _onContentItemChange(changes as mc.types.array)
+      ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
+        return c.type
+      end function))
+      m.viewManager.forceUpdateLayout()
+      m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+
+      'TODO - need to ensure that the current focus and scroll position is valid after an update!
+      ' m.itemScroller.processChanges(changes)
+      m.moveToRow(m.itemScroller.index, false)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ focus index callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ' ? "ON NEXT CHANGE" ; index
+      ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      '      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
+      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
       row = m.getRowRenderer(index)
       if row <> invalid
         if row.isMultiRow
@@ -499,9 +526,8 @@ namespace ml
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(focusSettings as mc.types.node, isFinal as boolean) as void
-      ' ? " apply focus setting ";
-
       if focusSettings = invalid or m.sourceFocusRect = invalid or m.targetFocusRect = invalid
+        ? " CANNOT APPLY "; focusSettings ; " SFR "; m.sourceFocusRect ; " TFR" ; m.targetFocusRect
         return
       end if
       'note - we don't show the focus indicator till we're in place, if the last row was hidden
@@ -526,7 +552,7 @@ namespace ml
 
     private function moveFocusIndicatorToTargetPosition(fraction as float) as void
       if m.sourceFocusRect = invalid or m.targetFocusRect = invalid
-        '      ? "NO FOCUS RECTS! Ensure m.targetFocusRect and m.sourcefocusR3ct was set!"
+        ? "NO FOCUS RECTS! Ensure m.targetFocusRect and m.sourcefocusR3ct was set!"
         return
       end if
 
@@ -550,6 +576,7 @@ namespace ml
 
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
       m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
+      ? "START FLOW FOCUS"
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
       '   m.flowFocusDelegate@.onFlowFocusFraction(1)
@@ -558,7 +585,7 @@ namespace ml
       ' m.preprareFocusSettings([targetIndex[0], targetIndex[1]])
 
       if sourceIndex[0] = targetIndex[0] and sourceIndex[1] = targetIndex[1]
-        '      ? "SAME SKIP"
+        ? "SAME SKIP"
         return
       end if
 

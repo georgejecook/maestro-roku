@@ -231,17 +231,17 @@ namespace ml.sample
       team = m.followingModule.getChild(index)
       ? "unfollow "; team.title
 
-      ' m.followingModule@.setNotificationsEnabled(false)
-      ' m.teamsModule@.setNotificationsEnabled(false)
+      m.teamsModule@.setNotificationsEnabled(false)
 
       m.followingModule@.removeChildIndex(index)
-      ' m.teamsModule@.appendChild(team)
       m.teamsModule@.insertChild(team, 0)
-      ' m.teamsModule@.sortByKey("title")
+      m.teamsModule@.sortByKey("title")
 
-      ' m.teamsModule@.setNotificationsEnabled(true, true)
-      ' m.followingModule@.setNotificationsEnabled(true, true)
-
+      m.teamsModule@.setNotificationsEnabled(true, true)
+      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      ? "followingModule : "; m.followingModule.getChildCount()
+      ? "teamsModule : "; m.teamsModule.getChildCount()
     end function
 
     private function selectFavorite()
@@ -253,14 +253,12 @@ namespace ml.sample
       team = m.teamsModule.getChild(itemIndex)
 
       ? "follow "; team.title
-      ' m.followingModule@.setNotificationsEnabled(false)
-      ' m.teamsModule@.setNotificationsEnabled(false)
-
       m.teamsModule@.removeChildIndex(itemIndex)
       m.followingModule@.insertChild(team, 0)
-
-      ' m.teamsModule@.setNotificationsEnabled(true, true)
-      ' m.followingModule@.setNotificationsEnabled(true, true)
+      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      ? "followingModule : "; m.followingModule.getChildCount()
+      ? "teamsModule : "; m.teamsModule.getChildCount()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

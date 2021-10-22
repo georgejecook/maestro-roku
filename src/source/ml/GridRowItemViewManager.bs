@@ -62,7 +62,10 @@ namespace ml
     end function
 
     override function updateLayout() as void
-      m.log.info("ROW updateLayout")
+      m.log.info("GRID updateLayout")
+      ' ? ""
+      ' ? "+>+>>+>+>+>+>++>>++>>+>+>+>+>+>+>>+>+>+>+>"
+      ' ? "GRID UPDATE LAYOUT"
       m.rects = []
       m.visibleComponents = []
       m.visibleItems = []
@@ -84,7 +87,15 @@ namespace ml
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
-      while i < numItems - 1
+      ' ? "children" ; formatJson(mc.collections.map(children, function(c as object)
+      ' return c.title
+      ' end function))
+
+      ' ?""
+      ' ?""
+      ' ?""
+      ' ? "LAYING OUT+++++++++++++++++++++++++++++++++"
+      while i < numItems
         m.rowOffsets.push(y)
         ' ? "LAYING OUT ITEM " ; i
         for col = 0 to m.numCols - 1
@@ -144,7 +155,7 @@ namespace ml
           cell = m.cellsById[item.id]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ? "GETTING CELL " ; item.id ; " " ; settings.compName ; " " ; m.__classname
+            ' ? "GETTING CELL " ; item.id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
             if cell <> invalid
@@ -190,8 +201,8 @@ namespace ml
             cell.visible = true
           end if
           if cell <> invalid
-            ? " SET cell at index "; index ;" to " ; item.id; " " ; item.title
-            ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
+            ' ? " SET cell at index "; index ;" to " ; item.id; " " ; item.title
+            ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
             m.renderedComponents.push(cell)
           end if
         else
@@ -215,6 +226,7 @@ namespace ml
           return m.cellsById[item.id]
         else
           m.log.error("ERROR could not find renderer for ", index)
+          ? " GRID COULD NOT GET RENDERER FOR index" ; index
           return invalid
         end if
       else
@@ -370,7 +382,7 @@ namespace ml
             '   end if
           end if
         else
-          ? "comp index not set!"
+          ' ? "comp index not set!"
         end if
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
@@ -483,11 +495,12 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ? "onContentItemsChange"
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "onContentItemsChange"
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
       m.itemScroller.processChanges(changes)
+      m.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -497,23 +510,24 @@ namespace ml
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
+        ' ? "GOT CHANGE TYPE "; change.type
         if change.type = "remove"
           m.log.info("removing cell at index", change.index)
           item = change.child
 
           if item <> invalid
-            ? " REMOVING CELL", item.id
+            ' ? " REMOVING CELL", item.id
             cell = m.cellsById[item.id]
             if cell <> invalid
               m.componentPool@.releaseComponent(cell)
               m.cellsById.delete(item.id)
             else
               'this is almost certainly due to trying to release a cell during setting content
-              ? "NO CELL item.id", item.id
+              ' ? "NO CELL item.id", item.id
               m.log.error("could not find cell to release", item.id)
             end if
           else
-            ? "NO CELL item.id", change.index
+            ' ? "NO CELL item.id", change.index
             m.log.error("could not find cell to release")
           end if
         end if

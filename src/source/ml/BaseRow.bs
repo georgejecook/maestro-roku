@@ -68,7 +68,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function _onContentChange()
-      ? "ON CONTENT CHANGE "; m.isInitialized
+      ' ? "ON CONTENT CHANGE "; m.isInitialized
       m.log.info("onContentChange")
       if m.isInitialized
         if m._content = invalid or not m._content.isSameNode(m.content)
@@ -82,27 +82,26 @@ namespace ml
           m.onContentChange(m._content)
 
         else if m._content <> invalid
-          'is the same content
-          isListRefreshNeeded = false
 
+          changes = []
           if m.wasHidden <> m._content.isHidden
+            changes.push({row: m._content, type: "isHidden", value: m._content.isHidden})
             m.wasHidden = m._content.isHidden
-            isListRefreshNeeded = true
           end if
           if m.wasFocusable <> m._content.isFocusEnabled
+            changes.push({row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled})
             m.wasFocusable = m._content.isFocusEnabled
-            isListRefreshNeeded = true
           end if
 
           if m.alwaysNotifyContentChange
             m.onContentChange(m._content)
           end if
 
-          if isListRefreshNeeded
-            m.owner@.forceUpdate()
+          if changes.count() > 0
+            m.owner@._onContentItemChange(changes)
           end if
+          '   'new content is invalid
         else
-          'new content is invalid
           m._onContentChange(invalid)
         end if
 

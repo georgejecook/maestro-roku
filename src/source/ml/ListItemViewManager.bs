@@ -394,7 +394,12 @@ namespace ml
       m.isUpdating = true
       m.previousFocusedRow = m.itemScroller.focusedItem
       m.previousFocusedIndex = m.itemScroller.index
+      ' ? " GOT CHANGES "; formatJson(mc.collections.map(changes, function(c as object)
+      '   return c.type
+      ' end function))
       m.createRenderers(m.content)
+      m.itemScroller.processChanges(changes)
+      m.itemScroller.move(0)
     end function
 
 

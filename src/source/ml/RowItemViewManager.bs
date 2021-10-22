@@ -52,7 +52,7 @@ namespace ml
 
       offset = 0
       for each item in m.content.getChildren(-1, 0)
-        ' ? ">>>> laying out ", item.title
+        ? ">>>> laying out ", item.title
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
         if m.axes = 0
           translation = [offset, 0]
@@ -166,7 +166,7 @@ namespace ml
         if item <> invalid
           return m.cellsById[item.id]
         else
-          ? "ERROR could not find renderer for ", index
+          ' ? "ERROR could not find renderer for ", index
           return invalid
         end if
       else
@@ -240,8 +240,11 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
+      ' ? "ROW CHANGES"
       m.processRemovedCells(changes)
+      ' ? "FORCING LAYOUT"
       m.forceUpdateLayout()
+      m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
       m.itemScroller.processChanges(changes)
     end function
 
@@ -249,27 +252,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    ' private function processRemovedCells(changes as mc.types.array)
-    '   m.log.info("processing removed cells")
-    '   for each change in changes
-    '     if change.type = "remove"
-    '       id = change.index.toStr()
-    '       m.log.info("removing cell", id)
-
-    '       cell = m.cellsById[id]
-    '       if cell <> invalid
-    '         ' ? "RELEASING " ; id
-    '         m.componentPool@.releaseComponent(cell)
-    '         m.cellsById.delete(id)
-    '       else
-    '         'this is almost certainly due to trying to release a cell during setting content
-    '         ? " COULD NOT FIND CELL TO RELEASE" ; change.child.id
-    '       end if
-    '     end if
-    '   end for
-    ' end function
-
 
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
@@ -289,7 +271,6 @@ namespace ml
             end if
           else
             m.log.error("could not find cell to release")
-            ? "could not find item to release", change.index
           end if
         end if
       end for

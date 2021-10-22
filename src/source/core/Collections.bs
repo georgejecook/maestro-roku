@@ -173,6 +173,26 @@ namespace mc.collections
     return items
   end function
 
+  ' @param {array} array of items to filter
+  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+  ' @returns {boolean} returns the first item that matches, or invalid
+  function find(array as mc.types.array, predicate as dynamic)
+    items = mc.collections.filter(array, predicate)
+    if items.count() = 0
+      return invalid
+    else
+      return items[0]
+    end if
+  end function
+
+  ' @param {array} array of items to filter
+  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+  ' @returns {boolean} returns true if the array matches the predicate
+  function contains(array as mc.types.array, predicate as dynamic) as boolean
+    items = mc.collections.filter(array, predicate)
+    return items.count() > 0
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ filter predicates
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

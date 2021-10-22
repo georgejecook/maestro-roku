@@ -95,20 +95,19 @@ namespace ml
           'move to next item
           index = m.viewManager.numberOfItems - 1
         end if
-        m.setFocusIndex(index, false, true)
-        m.moveToIndex(index, false, false, 0)
-        m.focusManager.onFocusAnimationUpdate(1)
-      else
-        m.setFocusIndex(0, false, true)
-        m.moveToIndex(0, false, false, 0)
-        m.focusManager.onFocusAnimationUpdate(1)
       end if
 
+      notify = m.index <> index
+      notify = true
+      m.setFocusIndex(index, false, true)
+      m.moveToIndex(index, false, true, 0)
+      m.focusManager.onFocusAnimationUpdate(1)
       if index = invalid or index = -1
         index = 0
       end if
+
       'TODO need to actually set the focus properly
-      m.forceFocusOnIndex(index)
+      m.forceFocusOnIndex(index, notify)
     end function
 
     public function cancelScrolling()
@@ -233,6 +232,9 @@ namespace ml
         index = m.viewManager.numberOfItems - 1
       end if
 
+      if direction = 0
+        direction = 1
+      end if
       matchedIndex = -1
       'TODO - check if the item is focusable..
       while true
@@ -240,6 +242,7 @@ namespace ml
         if item = invalid
           exit while
         end if
+        ? " ITEM "; item.title ; " is hidden" ; item.isHidden
         if item.isHidden = invalid or item.isHidden = false
           if item.isFocusEnabled = invalid or item.isFocusEnabled = true
             matchedIndex = index
@@ -1007,22 +1010,29 @@ namespace ml
       m.targetIndex = index
     end function
 
-    protected function processChanges(changes as mc.types.array)
+
+    protected override function processChanges(changes as mc.types.array) as void
       'override point for handling changes, if necessary
       isIndexUpdateRequired = m.index >= m.viewManager.numberOfItems
-      ' ? "PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
+      isIndexUpdateRequired = isIndexUpdateRequired or mc.collections.contains(changes, function(c as mc.types.assocarray)
+        return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
+      end function)
 
+      'all changes result in downward movements
+      ' m.direction = 1
+      ' ? "PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
       if isIndexUpdateRequired
+        ' ? " NOTIFYING FOCUS"
         wasNotifying = m.focusManager.isNotifying
         m.focusManager.isNotifying = true
         m.reset(true)
         m.focusManager.isNotifying = wasNotifying
       else
+        ' ? " not notifying focus"
         m.reset(true)
       end if
 
     end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
