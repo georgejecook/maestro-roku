@@ -204,12 +204,12 @@ namespace ml
       end if
 
       'TODO - move this into individual controls
-      if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
-        ? "===A"
-        'TODO - we might want to detect this at the list, and have a cache of next move there
-        ' m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
-        return false
-      end if
+      ' if m.direction = direction and abs(offset) = 1 and m.viewManager.isScrolling
+      '   ? "===A"
+      '   'TODO - we might want to detect this at the list, and have a cache of next move there
+      '   ' m.log.info("was already scrolling - ignoring", m.viewManager.isScrolling)
+      '   return false
+      ' end if
 
       index = m.getValidTargetIndex(index, direction)
 
@@ -488,8 +488,8 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 2.b - no flow position - where does the view have to animate to?
         '////////////////////////////////////////////////////////////////////////
-        ' ? "2.b - no flow pos "; subRowIndex
-        ' ? " :::::::::::::::::::::"
+        ? "2.b - no flow pos "'; subRowIndex
+        ? " :::::::::::::::::::::"
         targetTranslation = m.viewManager.getTargetTranslation(index, direction)
         if targetTranslation = invalid
           m.log.error("cannot move! translation invalid for index", index)
@@ -1039,7 +1039,6 @@ namespace ml
         if index = -1
           index = 0
         end if
-        ? "index is changing " ; m.index ; " > " ; index
         m.index = index
         isIndexUpdateRequired = true
       end if

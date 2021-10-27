@@ -503,18 +503,28 @@ namespace ml
       m.forceUpdateLayout()
       ' m.itemScroller.processChanges(changes)
       m.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-      ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ? "onContentItemsChange"
-      ? "index is " ; m.itemScroller.index ; " NI " ; m.numberOfItems
+      ' ? "+++++++++++++++++++++++++++++++++++++++++++"
+      ' ? "onContentItemsChange"
+      ' ? "index is " ; m.itemScroller.index ; " NI " ; m.numberOfItems
       if m.itemScroller.index < m.numberOfItems
-        ? "AA"
-        ' m.itemScroller.setNextMoveIndex(m.itemScroller.index, 1, true)
-        ' m.itemScroller.setNextMoveIndex(1, 1, true)
+        '  ? "IN BOUNDS"
+         if m.row.isFocused
+          ' ? "FOCUSED"
+          m.owner@.moveToSubRowIndex(m.row.index, m.itemScroller.index, 1, false, true)
+        else
+          ' ? "NOT FOCUSED"
+          m.itemScroller.setNextMoveIndex(m.itemScroller.index, 1, true)
+        end if
         ' m.itemScroller.moveToSubRowIndex(m.row.index, 1, 1, false)
-        m.owner@.moveToSubRowIndex(m.row.index, m.itemScroller.index, 1, true, true)
       else
-        ? "BB"
-        m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
+        ' ? "OUT BOUNDS"
+        if m.row.isFocused
+          ' ? "FOCUSED"
+          m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
+        else
+          ' ? "NOT FOCUSED"
+          m.itemScroller.setNextMoveIndex(0, 1, true)
+        end if
       end if
       ? "+++++++++++++++++++++++++++++++++++++++++++"
     end function
