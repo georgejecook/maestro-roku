@@ -5,6 +5,7 @@ function init()
   m.top.observeFieldScoped("fontKey", "onFontKeyChange")
   m.top.observeFieldScoped("style", "onStyleChange")
   m.top.observeFieldScoped("size", "onSizeChange")
+  m.top.observeFieldScoped("isHighlighted", "onIsHighlightedChange")
   onFontKeyChange()
 end function
 
@@ -25,3 +26,12 @@ function onSizeChange()
   end if
 end function
 
+function onIsHighlightedChange(event as dynamic)
+  if m.top.highlightedColor <> invalid and m.top.highlightedColor <> ""
+    if event.getData() = true
+      m.top.color = m.top.highlightedColor
+    else
+      m.top.color = m.top.normalColor
+    end if
+  end if
+end function
