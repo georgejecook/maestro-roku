@@ -42,6 +42,44 @@ namespace mv.animations.utils
       return 0
     end if
   end function
+
+
+  function interpolateHexColors(hexColor1 as string, hexColor2 as string)
+    c1 = mv.animations.private.convertHexToNumber(hexColor1)
+    c2 = mv.animations.private.convertHexToNumber(hexColor2)
+    return mv.animations.private.interpolateColors(c1, c2)
+  end function
+end namespace
+
+namespace mv.animations.private
+
+  'FIXME: this is wip - still not correct
+  function convertHexToNumber(hex as string)
+    hex = hex.replace("#", "")
+    return val(hex, 16)
+  end function
+
+  function interpolateColors(color1 as integer, color2 as integer, p as float)
+    rgb1 = mv.animations.private.toRGBArray(color1)
+    rgb2 = mv.animations.private.toRGBArray(color2)
+
+    q = 1 - p
+    rr = cInt(rgb1[0] * p + rgb2[0] * q)
+    rg = cInt(rgb1[1] * p + rgb2[1] * q)
+    rb = cInt(rgb1[0] * p + rgb2[2] * q)
+
+    return (rr << 16) + (rg << 8) + rb
+    ' return Number((rr << 16) + (rg << 8) + rb).toString(16)
+  end function
+
+  function toRGBArray(rgb as integer)
+    r = rgb >> 16
+    g = (rgb >> 8) mod 256
+    b = rgb mod 256
+
+    return [r, g, b]
+  end function
+
 end namespace
 
 namespace mv.animations
