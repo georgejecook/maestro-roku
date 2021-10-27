@@ -114,6 +114,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ list animation hooks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     public function setNextMoveIndex(index as integer, direction as integer, notifyFocusManager = true as boolean)
       m.direction = direction
       m.setNextIndex(index)
@@ -143,23 +144,11 @@ namespace ml
       end if
     end function
 
-    protected override function processChanges(changes as mc.types.array)
-    'override point for handling changes, if necessary
-    isIndexUpdateRequired = m.index >= m.viewManager.numberOfItems
-    ' ? "PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
 
-    if isIndexUpdateRequired
-      wasNotifying = m.focusManager.isNotifying
-      m.focusManager.isNotifying = true
-      m.reset(true)
-      m.focusManager.isNotifying = wasNotifying
-    else
-      m.reset(true)
-    end if
-
-  end function
-
-
+    protected override function processChanges(changes as mc.types.array) as void
+      ' super.processChanges(changes)
+      ' m.moveFromPress(- m.viewManager.content.settings.numColumns, false)
+    end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ private impl

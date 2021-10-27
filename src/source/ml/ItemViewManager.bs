@@ -67,7 +67,7 @@ namespace ml
 
     public function reset()
       m.log.info ("resetting base.itemViewManager", m.__classname)
-      ? "RESETTING VIEW MANAGER "; m.__classname
+      ' ? "RESETTING VIEW MANAGER "; m.__classname
 
       m.content = invalid
       m.components = []
@@ -216,6 +216,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function updateRenderedComponents(direction as integer, index as integer, force = false as boolean) as void
+      ' ? ""
+      ' ? ""
+      ' ? "((((((((((((((((((((((((((((((((((((("
+      ' ? "updateRenderedComponents"
       if not force and not m.shouldUpdateRenderedIndexes(direction, index)
         ' ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
         return
@@ -224,13 +228,14 @@ namespace ml
       renderedIndexes = m.getRenderedIndexes(direction, index)
       ' ? " ++++ renderedIndexes " ; renderedIndexes ; " I " ; index ; " D "; direction ; " " ; m.__classname
 
-      if (m.lastRenderedIndexes <> invalid) and m.lastRenderedIndexes.startIndex = renderedIndexes.startIndex and m.lastRenderedIndexes.endIndex = renderedIndexes.endIndex
+      if not force and (m.lastRenderedIndexes <> invalid) and m.lastRenderedIndexes.startIndex = renderedIndexes.startIndex and m.lastRenderedIndexes.endIndex = renderedIndexes.endIndex
         ' this is the same set of comps as last time
         if m.renderedComponents.count() > 0
           ' and we have seemingly done our initial render; so we can bail.
           return
         end if
       end if
+      ' ? ">>> FINISH UPDATE RENDERED COMPS ))))))))))))))))))))))))))"
 
       ' 'bs:disable-next-line
       ' if m.row <> invalid

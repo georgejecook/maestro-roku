@@ -37,22 +37,64 @@ namespace ml
       m.setListSubIndex(index)
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ private impl
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function setListSubIndex(index as integer)
-      row = m.viewManager.visibleComponents[index]
-      if row <> invalid and row.isMultiRow
-        m.subRowIndex = row@.getRowIndex()
-        m.maxSubRowIndex = row@.getMaxSubRowIndex() -1
-      else
-        m.subRowIndex = -1
-        m.maxSubRowIndex = -1
+    protected override function processChanges(changes as mc.types.array) as void
+      isIndexUpdateRequired = false
+      'override point for handling changes, if necessary
+      if m.index >= m.viewManager.numberOfItems
+        'try down first
+        index = m.getValidTargetIndex(m.index, 1)
+        if index = -1
+          index = m.getValidTargetIndex(m.index, -1)
+        end if
+        if index = -1
+          index = 0
+        end if
+        ? "index is changing " ; m.index ; " > " ; index
+        m.index = index
+        isIndexUpdateRequired = true
       end if
-    end function
+      if not isIndexUpdateRequired
+      isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+        return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
+      end function)
+    end if
+
+    'all changes result in downward movements
+    ' m.direction = 1
+    ? "LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
+    if isIndexUpdateRequired
+      ? " NOTIFYING FOCUS"
+      ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
+      wasNotifying = m.focusManager.isNotifying
+      m.focusManager.isNotifying = true
+      m.reset(true)
+      m.focusManager.isNotifying = wasNotifying
+
+    else
+      ? " not notifying focus"
+      m.reset(true)
+    end if
+
+  end function
 
 
 
-  end class
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ private impl
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function setListSubIndex(index as integer)
+    row = m.viewManager.visibleComponents[index]
+    if row <> invalid and row.isMultiRow
+      m.subRowIndex = row@.getRowIndex()
+      m.maxSubRowIndex = row@.getMaxSubRowIndex() - 1
+    else
+      m.subRowIndex = -1
+      m.maxSubRowIndex = -1
+    end if
+  end function
+
+
+
+end class
 end namespace

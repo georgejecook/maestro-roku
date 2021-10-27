@@ -29,6 +29,15 @@ namespace ml
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
+
+    @alwaysnotify
+    @observer("onJumpToIndex")
+    public jumpToIndex = -1
+
+    @alwaysnotify
+    @observer("onAnimateToIndexChange")
+    public animateToIndex = -1
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Event Delegation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -68,7 +77,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function _onContentChange()
-      ? "ON CONTENT CHANGE "; m.isInitialized
+      ' ? "ON CONTENT CHANGE "; m.isInitialized
       m.log.info("onContentChange")
       if m.isInitialized
         if m._content = invalid or not m._content.isSameNode(m.content)
@@ -82,27 +91,28 @@ namespace ml
           m.onContentChange(m._content)
 
         else if m._content <> invalid
-          'is the same content
-          isListRefreshNeeded = false
 
+          changes = []
           if m.wasHidden <> m._content.isHidden
+            changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
             m.wasHidden = m._content.isHidden
-            isListRefreshNeeded = true
           end if
           if m.wasFocusable <> m._content.isFocusEnabled
+            changes.push({ row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled })
             m.wasFocusable = m._content.isFocusEnabled
-            isListRefreshNeeded = true
           end if
 
           if m.alwaysNotifyContentChange
             m.onContentChange(m._content)
           end if
 
-          if isListRefreshNeeded
-            m.owner@.forceUpdate()
+          if changes.count() > 0
+            m.owner@._onContentItemChange(changes)
           end if
+
+          'potentially update the header
         else
-          'new content is invalid
+          '   'new content is invalid
           m._onContentChange(invalid)
         end if
 
@@ -111,6 +121,15 @@ namespace ml
 
     protected function onContentItemsChange(changes as mc.types.array)
       m.log.info("This content has changed in some way")
+    end function
+
+
+    public function onJumpToIndex(index as integer)
+      m.jumpToItem(index, false)
+    end function
+
+    public function onAnimateToIndexChange(index as integer)
+      m.jumpToItem(index, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

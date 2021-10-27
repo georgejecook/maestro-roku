@@ -49,6 +49,48 @@ namespace mc.collections
     return result
   end function
 
+  function getSortedArrayByFunction(arr as mc.types.array, func as function, ascending = true as boolean) as mc.types.array
+    result = []
+    if mc.isArray(arr) and mc.isFunction(func)
+      dict = {}
+      for each item in arr
+        key = func(item)
+        if mc.isString(key)
+          dict[key] = item
+        end if
+      end for
+      keys = dict.keys()
+      if not ascending
+        keys.reverse()
+      end if
+      for each key in keys
+        result.push(dict[key])
+      end for
+    end if
+    return result
+  end function
+
+  function getSortedArrayByCallFunc(arr as mc.types.array, funcName as string, ascending = true as boolean) as mc.types.array
+    result = []
+    if mc.isArray(arr) and mc.isString(funcName)
+      dict = {}
+      for each item in arr
+        key = item.callFunc(funcName)
+        if mc.isString(key)
+          dict[key] = item
+        end if
+      end for
+      keys = dict.keys()
+      if not ascending
+        keys.reverse()
+      end if
+      for each key in keys
+        result.push(dict[key])
+      end for
+    end if
+    return result
+  end function
+
   function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer, key = invalid as string)
     if array = invalid or array.count() = 0
       return invalid
@@ -171,6 +213,26 @@ namespace mc.collections
       end for
     end if
     return items
+  end function
+
+  ' @param {array} array of items to filter
+  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+  ' @returns {boolean} returns the first item that matches, or invalid
+  function find(array as mc.types.array, predicate as dynamic)
+    items = mc.collections.filter(array, predicate)
+    if items.count() = 0
+      return invalid
+    else
+      return items[0]
+    end if
+  end function
+
+  ' @param {array} array of items to filter
+  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+  ' @returns {boolean} returns true if the array matches the predicate
+  function contains(array as mc.types.array, predicate as dynamic) as boolean
+    items = mc.collections.filter(array, predicate)
+    return items.count() > 0
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

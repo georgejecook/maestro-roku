@@ -107,6 +107,7 @@ namespace ml
 
     private focusIndicator
     private isIndicatorHidden = true
+    private isIndicatorOnTop = true
     private flowFocusDelegate
     private isDoingFlowFocus = false
     private focusPointAnim
@@ -118,7 +119,7 @@ namespace ml
     private isFocusSettingsChangePending = false
     private minFocusChangeFraction = 0.5
     function new()
-      super("mv_List")
+      super("ml_List")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -233,30 +234,32 @@ namespace ml
     private function onContentItemsChange(changes as mc.types.array)
       m.log.info("The content items have changed")
       m.viewManager.onContentItemsChange(changes)
+      ' m.viewManager.forceUpdateLayout()
+      ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+
+      'TODO - need to ensure that the current focus and scroll position is valid after an update!
+      ' m.itemScroller.move(0)
+      ' m.viewManager.onContentItemsChange(changes)
     end function
 
     private function onAnimateToRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
+      if m.content <> invalid and index <> -1 and index <> m.focusedRowIndex
         m.itemScroller.moveToIndex(index)
       end if
     end function
 
     private function onJumpToRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
+      if m.content <> invalid and index <> -1 and index <> m.focusedRowIndex
         m.moveToRow(index, false)
       end if
     end function
 
     private function onJumpToRowItemIndexChange(index as integer)
-      if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
-        m.moveToItem([m.focusedRowIndex, index], false)
-      end if
+      m.moveToRowItem(m.focusedRowIndex, index, false)
     end function
 
     private function onAnimateToItemIndexChange(index as integer)
-      if m.content <> invalid and m.focusedRowIndex <> invalid and m.focusedRowIndex <> -1 and index <> -1
-        m.moveToItem([m.focusedRowIndex, index], true)
-      end if
+      m.moveToRowItem(m.focusedRowIndex, index, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -305,9 +308,12 @@ namespace ml
       if row <> invalid
         rect = row@.getScreenRect(cellIndex, cellScreenPos, direction)
         if rect = invalid
+          ' ? " NO SCREEN RECT FOR "; cellIndex
           return rowScreenRect
         end if
         return rect
+      else
+        ' ? "NO ROW FOR index "; rowIndex
       end if
 
       return invalid
@@ -347,24 +353,23 @@ namespace ml
 
     public function moveToRow(index as integer, animated as boolean)
       if m.content <> invalid
-        m.itemScroller.moveToIndex(index, animated, false)
+        validIndex = m.itemScroller.getValidTargetIndex(index, m.itemScroller.direction)
+        m.itemScroller.moveToIndex(validIndex, animated, false)
       end if
     end function
 
-    public function moveToRowItem(index as integer, animated as boolean) as void
-      if index = -1
-        if m._content <> invalid and index <> -1
-          row = m.getRowRenderer(index)
-          if row <> invalid
-            row@.jumpToItem(index, animated)
-          end if
+    public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
+      if m._content <> invalid and rowIndex <> -1 and index <> -1
+        row = m.getRowRenderer(rowIndex)
+        if row <> invalid
+          row@.jumpToItem(index, animated)
         end if
       end if
     end function
 
     public function moveToItem(indices as mc.types.array, animated as boolean)
       if m.content <> invalid
-        m.itemScroller.moveToIndex(indices[0], animated)
+        m.moveToRow(indices[0], animated)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
           'if animated we will need to set the focus first, I guess?
@@ -378,17 +383,49 @@ namespace ml
       m.itemScroller.onFlowFocusFraction(fraction)
     end function
 
+    public function moveToSubRowIndex(index as integer, subIndex as integer, direction as integer, animated = true as boolean, fast = false as boolean) as boolean
+      row = m.viewManager.visibleComponents[index]
+      if row <> invalid and row.isMultiRow
+        subRowIndex = row@.getRowForIndex(subIndex)
+        ' ? "SUB INDEX "; subIndex ; " results in row " ; subRowIndex
+        return m.itemScroller.moveToSubRowAtSpecificIndex(index, subRowIndex, subIndex, direction, animated, fast)
+      else
+        return false
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Internal api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function _onContentItemChange(changes as mc.types.array)
+      ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
+        return c.type
+      end function))
+      m.viewManager.forceUpdateLayout()
+      m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+
+      'TODO - need to ensure that the current focus and scroll position is valid after an update!
+      m.itemScroller.processChanges(changes)
+      ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
+      m.moveToRow(m.itemScroller.index, false)
+
+      if m.top.isChildFocused or m.top.isFocused
+        m.focusOnCurrentRow()
+      end if
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ focus index callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onNextFocusIndexChange(index as mc.types.array) as void
-      ' ? "ON NEXT CHANGE" ; index
+      ? "ON NEXT CHANGE" ; index
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)
     end function
 
     private function onFocusedRowIndexChange(index as integer)
-      '      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
+      ? "ON ROW INDEX CHANGE" ; index ; m.focusedRowIndex
       row = m.getRowRenderer(index)
       if row <> invalid
         if row.isMultiRow
@@ -439,6 +476,8 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function getFocusRect(index as mc.types.array, isFloating = false as boolean)
+      isHidden = mc.getPath(m.content.getChild(index[0]), "content.isHidden", false)
+
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
       if isFloating
         screenRect = m.getOnScreenCellRect(index[0], index[1])
@@ -457,7 +496,7 @@ namespace ml
       indicatorTranslation = [screenRect.translation[0] + focusSettings.feedbackOffsets[0], screenRect.translation[1] + focusSettings.feedbackOffsets[1]]
       indicatorSize = [screenRect.size[0] + focusSettings.feedbackOffsets[2] - focusSettings.feedbackOffsets[0], screenRect.size[1] + focusSettings.feedbackOffsets[3] - focusSettings.feedbackOffsets[1]]
 
-      focusRect = new ml.FocusRect(screenRect.size, screenRect.translation, screenRect.index, screenRect.screenPos, indicatorTranslation, indicatorSize, focusSettings)
+      focusRect = new ml.FocusRect(screenRect.size, screenRect.translation, screenRect.index, screenRect.screenPos, indicatorTranslation, indicatorSize, focusSettings, isHidden)
       return focusRect
     end function
 
@@ -475,10 +514,10 @@ namespace ml
       end if
 
       m.setActiveFocusSettings(m.targetFocusRect.settings)
-      if m.activeFocusSettings = invalid or m.activeFocusSettings.feedbackStyle = "none"
+      if m.activeFocusSettings = invalid or m.activeFocusSettings.feedbackStyle = "none" or m.targetFocusRect.isHidden
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
-      else if m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"
+      else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.activeFocusSettings.feedbackStyle))
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
@@ -499,9 +538,8 @@ namespace ml
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(focusSettings as mc.types.node, isFinal as boolean) as void
-      ' ? " apply focus setting ";
-
       if focusSettings = invalid or m.sourceFocusRect = invalid or m.targetFocusRect = invalid
+        ' ? " CANNOT APPLY "; focusSettings ; " SFR "; m.sourceFocusRect ; " TFR" ; m.targetFocusRect
         return
       end if
       'note - we don't show the focus indicator till we're in place, if the last row was hidden
@@ -516,6 +554,14 @@ namespace ml
           m.sourceFocusRect.indicatorSize = m.targetFocusRect.indicatorSize
           m.focusIndicator.visible = not m.isIndicatorHidden
         end if
+
+        if m.isIndicatorOnTop and focusSettings.feedbackStyle = "underneath"
+          m.top.insertChild(m.focusIndicator, 0)
+          m.isIndicatorOnTop = false
+        else if not m.isIndicatorHidden and focusSettings.feedbackStyle = "onTop"
+          m.top.appendChild(m.focusIndicator)
+          m.isIndicatorOnTop = true
+        end if
       end if
 
       m.focusIndicator.blendColor = focusSettings.feedbackColor
@@ -526,7 +572,7 @@ namespace ml
 
     private function moveFocusIndicatorToTargetPosition(fraction as float) as void
       if m.sourceFocusRect = invalid or m.targetFocusRect = invalid
-        '      ? "NO FOCUS RECTS! Ensure m.targetFocusRect and m.sourcefocusR3ct was set!"
+        ? "NO FOCUS RECTS! Ensure m.targetFocusRect and m.sourcefocusR3ct was set!"
         return
       end if
 
@@ -550,6 +596,7 @@ namespace ml
 
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
       m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
+      ' ? "START FLOW FOCUS"
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
       '   m.flowFocusDelegate@.onFlowFocusFraction(1)
@@ -558,7 +605,7 @@ namespace ml
       ' m.preprareFocusSettings([targetIndex[0], targetIndex[1]])
 
       if sourceIndex[0] = targetIndex[0] and sourceIndex[1] = targetIndex[1]
-        '      ? "SAME SKIP"
+        ' ? "SAME SKIP"
         return
       end if
 
@@ -580,6 +627,12 @@ namespace ml
       m.focusScreenPosition = m.targetFocusRect.indicatorTranslation
 
       'TODO - finish animation if existing delegate
+      'HACK! TODO - ge the correct offset for the list's location
+      m.sourceFocusRect.indicatorTranslation[1] = m.sourceFocusRect.indicatorTranslation[1] - m.top.translation[1]
+      m.targetFocusRect.indicatorTranslation[1] = m.targetFocusRect.indicatorTranslation[1] - m.top.translation[1]
+      m.sourceFocusRect.indicatorTranslation[0] = m.sourceFocusRect.indicatorTranslation[0] - m.top.translation[0]
+      m.targetFocusRect.indicatorTranslation[0] = m.targetFocusRect.indicatorTranslation[0] - m.top.translation[0]
+
       m.flowFocusDelegate = delegate
       m.focusPointAnim.setFromToValue(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation)
       m.focusPointAnim.animateTo(m.targetFocusRect.indicatorTranslation, speed)
@@ -643,24 +696,30 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onKeyPressUp() as boolean
+      if not m.top.visible
+        return false
+      end if
       m.log.verbose("onKeyPressUp")
       if m.itemScroller.direction = -1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
         m.log.info("was already scrolling - ignoring")
-        ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
+        ' ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
         return false
       end if
 
       if m.itemScroller.canMove(-1)
         result = m.itemScroller.moveFromPress(-1)
-        ? " GOING UP" ; result
+        ' ? " GOING UP" ; result
         return result
       else
-        ? " CANNOT GO UP"
+        ' ? " CANNOT GO UP"
         return false
       end if
     end function
 
     private function onKeyPressOk() as boolean
+      if not m.top.visible
+        return false
+      end if
       m.log.verbose("onKeyPressOk")
       m.itemSelected = [m.focusedRowIndex, m.focusedCellIndex]
       m.listEvent = {
@@ -673,6 +732,9 @@ namespace ml
     end function
 
     private function onKeyPressDown() as boolean
+      if not m.top.visible
+        return false
+      end if
       m.log.verbose("onKeyPressDown")
       if m.itemScroller.direction = 1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
         m.log.info("was already scrolling - ignoring")
@@ -687,6 +749,9 @@ namespace ml
     end function
 
     private function getLongPressIntervalForKey(key as string) as float
+      if not m.top.visible
+        return 0
+      end if
       m.log.verbose("getLongPressIntervalForKey", key)
       if (key = "up" and m.itemScroller.canMove(-1)) or (key = "down" and m.itemScroller.canMove(1))
         return 0.2
@@ -721,6 +786,17 @@ namespace ml
       return false
     end function
 
+    private function focusOnCurrentRow()
+      m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings <> invalid and m.activeFocusSettings.feedbackStyle <> "none"
+      '      ? " ON GAINED FOCUS "
+      row = m.getRowRenderer(m.focusedRowIndex)
+      if row <> invalid
+        '      ? " SETTING FOCUS ONTO ROW "
+        mv.setFocus(row)
+      end if
+
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ lifecycle
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -728,13 +804,7 @@ namespace ml
       super.onGainedFocus(isSelfFocused)
       m.isIndicatorHidden = false
       if isSelfFocused
-        m.focusIndicator.visible = m.rowHasIndicator and m.activeFocusSettings <> invalid and m.activeFocusSettings.feedbackStyle <> "none"
-        '      ? " ON GAINED FOCUS "
-        row = m.getRowRenderer(m.focusedRowIndex)
-        if row <> invalid
-          '      ? " SETTING FOCUS ONTO ROW "
-          mv.setFocus(row)
-        end if
+        m.focusOnCurrentRow()
       end if
     end function
 

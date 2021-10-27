@@ -134,7 +134,7 @@ namespace ml.sample
       row.id = rnd(2147483647).toStr()
       cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 400, 1, 144, 4, 100)
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 800, 1, 144, 4, 70)
       row.settings.contentOffset = [200, 30]
       numItems = 5
       content.push(row)
@@ -231,17 +231,19 @@ namespace ml.sample
       team = m.followingModule.getChild(index)
       ? "unfollow "; team.title
 
-      ' m.followingModule@.setNotificationsEnabled(false)
-      ' m.teamsModule@.setNotificationsEnabled(false)
+      m.teamsModule@.setNotificationsEnabled(false)
 
       m.followingModule@.removeChildIndex(index)
-      ' m.teamsModule@.appendChild(team)
       m.teamsModule@.insertChild(team, 0)
-      ' m.teamsModule@.sortByKey("title")
+      m.teamsModule@.sortByKey("title")
 
-      ' m.teamsModule@.setNotificationsEnabled(true, true)
-      ' m.followingModule@.setNotificationsEnabled(true, true)
-
+      m.teamsModule@.setNotificationsEnabled(true, true)
+      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      if m.followingModule.isHidden
+        m.list.jumpToRowIndex = 1
+        m.list.jumpToRowItemIndex = 1
+      end if
     end function
 
     private function selectFavorite()
@@ -253,14 +255,16 @@ namespace ml.sample
       team = m.teamsModule.getChild(itemIndex)
 
       ? "follow "; team.title
-      ' m.followingModule@.setNotificationsEnabled(false)
-      ' m.teamsModule@.setNotificationsEnabled(false)
-
       m.teamsModule@.removeChildIndex(itemIndex)
       m.followingModule@.insertChild(team, 0)
+      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      ? "followingModule : "; m.followingModule.getChildCount()
+      ? "teamsModule : "; m.teamsModule.getChildCount()
+      ' if m.teamsModule.isHidden
+      '   m.list.jumpToRowIndex = 1
+      ' end if
 
-      ' m.teamsModule@.setNotificationsEnabled(true, true)
-      ' m.followingModule@.setNotificationsEnabled(true, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
