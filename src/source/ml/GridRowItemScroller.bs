@@ -46,6 +46,7 @@ namespace ml
 
     protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
       m.toggleScrolling(true)
+      ? "GRID MOVE USING FLOW ANIM " ; m.animSpeed
       m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
       m.flowFocusIndex = nextIndex
       m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
@@ -69,7 +70,6 @@ namespace ml
 
     override function finishAnimating() as void
       super.finishAnimating()
-      m.isMovingMultiple = false
     end function
 
     protected override function setIndex(index as integer)
@@ -78,34 +78,20 @@ namespace ml
     end function
 
     override function onFlowFocusFraction(fraction as float)
-      ' ? "on FLow fraction"; fraction ; m.__classname
-      ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
-
       if fraction = 1
+        ? "FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex ; " i  "; m.index ; " FFI "; m.flowFocusIndex
         m.focusManager.onFocusAnimationUpdate(1)
         m.setIndex(m.flowFocusIndex)
-        if m.isMovingMultiple and m.targetIndex <> m.index
-          m.log.info("was moving multiple, will keep moving")
-          m.setFocusOnRenderer(false)
-          if m.isScrollCancelled or not m.isDoingLongPress
-            m.log.info("but scrolling was cancelled or finished!")
-            m.stopAnimating()
-          else
-            m.continueScrolling()
-          end if
-        else
-          m.log.info("finished focusing action with this flow")
-          m.setTargetIndex(-1)
-          m.setFocusOnRenderer(true)
-          m.toggleScrolling(false)
-        end if
+        m.setTargetIndex(-1)
+        m.setFocusOnRenderer(true)
+        m.toggleScrolling(false)
       else
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
     end function
 
     override function continueScrolling() as void
-      '      ? "CONTINUE - " ; m.direction
+      ? "CONTINUE - " ; m.direction ; " " ; m.isDoingLongPress
       if m.isDoingLongPress
         m.move(m.direction)
       end if

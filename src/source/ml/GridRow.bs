@@ -86,7 +86,7 @@ namespace ml
     '++ row movement
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function moveRowUp() as boolean
+    public function moveRowUp(isMultiple as boolean) as boolean
       m.log.verbose("moveRowUp")
       if m.canMoveRow(-1) and m.itemScroller.index > m._content.settings.numColumns - 1
         return m.itemScroller.moveFromPress(- m._content.settings.numColumns, false)
@@ -94,7 +94,7 @@ namespace ml
       return false
     end function
 
-    public function moveRowDown() as boolean
+    public function moveRowDown(isMultiple as boolean) as boolean
       m.log.verbose("moveRowDown")
       '      ? "aaa"
       if m.canMoveRow(1) and m.itemScroller.index < m._content.getChildCount() - m._content.settings.numColumns
@@ -139,21 +139,6 @@ namespace ml
 
     function getTargetYOffsetForRow(rowIndex as integer, direction as integer) as integer
       return m.viewManager.getTargetYOffsetForRow(rowIndex, direction)
-    end function
-
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public api
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function moveRowFromPress(direction as integer) as boolean
-      if direction = -1
-        return m.moveRowUp()
-      else if direction = 1
-        return m.moveRowDown()
-      end if
-
-      return false
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

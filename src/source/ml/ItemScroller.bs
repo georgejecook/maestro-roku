@@ -15,7 +15,9 @@ namespace ml
     public focusManager ' this MUST be set before doing anything
     public moveAnimation
     public isMovingMultiple = false
+    public isMoveToEnd = false
     public isFinishingScroll = false
+    public isDoingFlowFocus = false
 
     'rendered component maps
     public RCMap = {}
@@ -30,6 +32,7 @@ namespace ml
     public nextIndex = 0
     public nextPosition = 0
     public targetIndex = 0
+    public targetSubIndex = 0
     public scrollStartIndex = 0
     public container as mc.types.node
     public direction = 0
@@ -111,6 +114,8 @@ namespace ml
     end function
 
     public function cancelScrolling()
+      ? ">>> CANCEL SCROLLING"
+
       'this will force the scrolling to stop repeating if we move to another row
       if m.viewManager.isScrolling
         m.finishAnimating()
@@ -123,6 +128,8 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+      ? ">>>>>>>>>> MOVE TO END"
+      m.isMoveToEnd = true
       if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
         m.log.info("already at end - ignoring")
         return false
@@ -133,22 +140,24 @@ namespace ml
       else
         index = m.viewManager.numberOfItems - 1
       end if
-      '      ? "+++moveToEnd" ; m.__classname ; " I " ; m.index; " D "; direction
+      ? "+++moveToEnd" ; m.__classname ; " I " ; m.index; " D "; direction
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(direction)
-        '      ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-        '      ? "Starting with a multi row move" ; row@.getRowIndex()
-        '      ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        ? "Starting with a multi row move" ; row@.getRowIndex()
+        ? "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         subRowIndex = row@.getRowIndex() + direction
         m.moveToSubRowIndex(m.index, subRowIndex, direction, animated, fast)
       else
-        '      ? "Starting with a regular move"
+        ? "Starting with a regular move"
         m.moveToIndex(index, animated, fast)
       end if
       return true
     end function
 
     function moveFromPress(offset as integer, forceSequential = true as boolean) as boolean
+      ? "+A++++++++++++++++"
+      ' m.isMoveToEnd = false
       return m.move(offset, true, true, forceSequential)
     end function
 
@@ -427,7 +436,7 @@ namespace ml
     function moveToSubRowIndex(index as integer, subRowIndex as integer, direction as integer, animated = true as boolean, fast = false as boolean) as boolean
 
       m.isFinishingScroll = false
-      ? "moveToSubRowIndex "; subRowIndex; " D " ; direction ; " A " ; animated
+      ? "moveToSubRowIndex "; m.__classname ; " SRI " ; subRowIndex; " D " ; direction ; " A " ; animated
 
 
       '////////////////////////////////////////////////////////////////////////
@@ -533,7 +542,7 @@ namespace ml
           ' 3.a it's a flow animation
           '////////////////////////////////////////////////////////////////////////
 
-          ? "3.a flow sub-index animation"
+          ? "3.a flow sub-index animation " ; m.__classname
           m.log.info("already in place - no need to scroll ", m.index, ",", currentSubRowIndex, " >", m.nextIndex)
           if m.direction = -1
             return row@.moveRowUp()
@@ -583,20 +592,21 @@ namespace ml
       fromSubRowIndex = fromItem.focusedCellIndex
       toItem = m.viewManager.getRenderer(nextIndex)
 
+      ? " DOING FLOW ANIM " ;m.animSpeed
       'we want to ask the row - "what is your index, coming from this direction?"
       toSubRowIndex = toItem.focusedCellIndex
       m.viewManager.owner@.startFlowFocus([index, fromSubRowIndex], [nextIndex, toSubRowIndex], m.animSpeed, mc.getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
-      '      ? "on FLow fraction"; fraction ; m.__classname
+      ? "on FLow fraction"; fraction ; m.__classname
       ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
 
       if fraction = 1
-        '      ? "FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
+        ? "FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
         m.focusManager.onFocusAnimationUpdate(1)
         m.setIndex(m.flowFocusIndex)
-        if m.isMovingMultiple and m.targetIndex <> m.index
+        if (m.isMovingMultiple or m.isMoveToEnd) and m.targetIndex <> m.index
           m.log.info("was moving multiple, will keep moving")
           '      ? "moving multiple to "; m.targetIndex
           m.setFocusOnRenderer(false)
@@ -619,13 +629,6 @@ namespace ml
 
     end function
 
-    ' function finishAnimating() as void
-    '   m.isScrollCancelled = true
-    '   'ensure that we will stop
-    '   ' m.setTargetIndex( m.nextIndex)
-    ' end function
-
-
     function finishAnimating() as void
       m.finishMovingToIndex()
     end function
@@ -635,6 +638,13 @@ namespace ml
       itemRect = m.viewManager.rects[index]
       '      ? "isMovingMultiple false - finishMovingToIndex"
       m.isMovingMultiple = false
+      ? "+B++++++++++++++++"
+      m.isMoveToEnd = false
+
+      if m.isDoingFlowFocus
+        m.isDoingFlowFocus = false
+        return false
+      end if
 
       if itemRect = invalid
         return false
@@ -743,6 +753,7 @@ namespace ml
     function toggleScrolling(active as boolean)
       m.viewManager.setIsScrolling(active, m.isMovingMultiple, m.index)
       if not active
+        ? " toggleScrolling FINISHED!!"
         m.setTargetIndex(-1)
         m.isMovingMultiple = false
       end if
@@ -755,13 +766,19 @@ namespace ml
 
     private function onSubMoveFractionChange(fraction as float) as void
       row = m.viewManager.visibleComponents[m.index]
+      ' ? " ON SUB MOVE FRACTION 1 "; m.__classname ; " IME "; m.isMoveToEnd; " ti "; m.targetIndex ; " i " ; m.index
       row@.updateMoveFraction(fraction, true)
       if fraction = 1
-        if m.isMovingMultiple and (m.targetIndex <> m.index or row@.canMoveRowUpDown(m.direction))
-          '      ? "continue scrolling - ON ANIM FRACTION CHANGE"
+        ? " ON SUB MOVE FRACTION 1 "; m.__classname ; " IME "; m.isMoveToEnd; " ti "; m.targetIndex ; " i " ; m.index
+        if m.isMoveToEnd and (m.targetIndex <> m.index or row@.canMoveRowUpDown(m.direction))
+          ' if m.isMovingMultiple and (m.targetIndex <> m.index or row@.canMoveRowUpDown(m.direction))
+          ? "continue scrolling - ON ANIM FRACTION CHANGE"
           m.continueScrolling()
         else
-          '      ? "GOT TO END OF SCROLLING"
+          ? "GOT TO END OF SCROLLING"
+          ? "+C++++++++++++++++"
+          m.isMoveToEnd = false
+
           m.toggleScrolling(false)
         end if
       end if
@@ -802,14 +819,14 @@ namespace ml
         if index <> m.index
           m.setFocusIndex(index, false, false)
         end if
-        if m.isMovingMultiple and m.targetIndex <> m.index
+        if (m.isMovingMultiple or m.isMoveToEnd) and m.targetIndex <> m.index
           '      ? "continue scrolling - ON ANIM FRACTION CHANGE"
           m.continueScrolling()
         else
           '      ? "RESET TARGET INDEX onAnimationFractionChange 1"
           m.toggleScrolling(false)
         end if
-      else if m.isMovingMultiple or m.isFinishingScroll
+      else if (m.isMovingMultiple or m.isMoveToEnd) or m.isFinishingScroll
         ' ? " D " ; m.direction ; " m.I " ; m.index ; " I "; index ; " DIFF " ; abs(m.index - index)
 
         if (m.direction = -1 and (index >= m.index)) or (m.direction = 1 and (index < m.index))
@@ -844,19 +861,19 @@ namespace ml
     end function
 
     function continueScrolling() as void
-      '      ? "Continuing previous scrolling to index "; m.targetIndex ; " DIR " ; m.direction
-      if m.targetIndex = -1
-        '      ? "ILLEGAL - aborting"
+      ? "Continuing previous scrolling to index "; m.targetIndex ; " DIR " ; m.direction
+      if m.targetIndex = -1 or not m.isMoveToEnd
+        ? "ILLEGAL - aborting"
         return
       end if
       ' m.move(m.direction)?
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(m.direction)
         subRowIndex = row@.getRowIndex() + m.direction
-        '      ? "continuing multi row move to next index" ; subRowIndex
+        ? "continuing multi row move to next index" ; subRowIndex
         m.moveToSubRowIndex(m.targetIndex, subRowIndex, m.direction, true)
       else
-        '      ? "continuing regular move"
+        ? "continuing regular move"
         m.moveToIndex(m.targetIndex, true, true)
       end if
     end function

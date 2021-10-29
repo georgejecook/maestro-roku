@@ -326,6 +326,19 @@ namespace ml
       return m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
     end function
 
+    public function isCellOnScreen(rowIndex as integer, cellIndex as integer)
+      row = m.getRowRenderer(rowIndex)
+      if row <> invalid
+        size = row@.getItemSize(cellIndex)
+        rect = m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
+        return rect <> invalid and rect.translation[1] > 0 and rect.translation[1] + size[1] < m.height
+      else
+        return false
+      end if
+
+    end function
+
+
     'when we know we are doing a floating rect, we can just get the cell position
     public function getOnScreenRowRect(rowIndex as integer)
       rowSettings = ml.listMixin.getRowSettings(m.content, rowIndex)
@@ -479,7 +492,7 @@ namespace ml
       isHidden = mc.getPath(m.content.getChild(index[0]), "content.isHidden", false)
 
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
-      if isFloating
+      if isFloating or m.isCellOnScreen(index[0], index[1])
         screenRect = m.getOnScreenCellRect(index[0], index[1])
       else
         screenRect = m.getCellScreenRect(index[0], index[1], m.itemScroller.direction, invalid, invalid)
@@ -611,6 +624,7 @@ namespace ml
 
       ' ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
       m.isDoingFlowFocus = true
+      m.itemScroller.isDoingFlowFocus = true
       m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
       m.targetFocusRect = m.getFocusRect(targetIndex, true)
       if m.sourceFocusRect = invalid
@@ -635,6 +649,12 @@ namespace ml
 
       m.flowFocusDelegate = delegate
       m.focusPointAnim.setFromToValue(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation)
+      ? " >>>>>>>>:::>>>>>>>>>>>>>>"
+      ? " >>>>>>>>:::>>>>>>>>>>>>>>"
+      ? speed
+      ? " >>>>>>>>:::>>>>>>>>>>>>>>"
+      ? " >>>>>>>>:::>>>>>>>>>>>>>>"
+
       m.focusPointAnim.animateTo(m.targetFocusRect.indicatorTranslation, speed)
       m.focusPointAnim.start()
     end function
@@ -662,6 +682,7 @@ namespace ml
       m.isDoingFlowFocus = false
       m.focusPointAnim.pause()
       m.focusPoint.translation = [0, 0]
+      m.itemScroller.isDoingFlowFocus = false
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
@@ -676,9 +697,12 @@ namespace ml
           m.applyFocusSettings(m.activeFocusSettings, true)
           'Consider that we might have gone from none
           m.isDoingFlowFocus = false
-          '      ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple
-          if m.itemScroller.targetIndex <> -1 and m.itemScroller.isMovingMultiple
-            m.itemScroller.continueScrolling()
+          m.itemScroller.isDoingFlowFocus = false
+          if not m.top.isSameNode(m.flowFocusDelegate)
+            ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
+            if m.itemScroller.targetIndex <> -1 and (m.itemScroller.isMovingMultiple or m.itemScroller.isMoveToEnd)
+              m.itemScroller.continueScrolling()
+            end if
           end if
         end if
       else
@@ -686,6 +710,7 @@ namespace ml
         if fraction = 1
           m.applyFocusSettings(m.activeFocusSettings, true)
           m.isDoingFlowFocus = false
+          m.itemScroller.isDoingFlowFocus = false
         end if
       end if
     end function
