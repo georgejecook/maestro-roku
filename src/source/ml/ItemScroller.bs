@@ -267,7 +267,7 @@ namespace ml
 
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
-      ' ? " MTI " ; index ; " d " ; direction
+      ? " MTI " ; index ; " d " ; direction
       m.isFinishingScroll = false
 
       if direction = invalid
@@ -812,16 +812,17 @@ namespace ml
       end if
 
       if fraction = 1
+        ? " REGULAR MOVE: FRACTION 1 "
         m.focusManager.onFocusAnimationUpdate(1)
 
         if index <> m.index
           m.setFocusIndex(index, false, false)
         end if
-        if (m.isMovingMultiple or m.isMoveToEnd) and m.targetIndex <> m.index
-          '      ? "continue scrolling - ON ANIM FRACTION CHANGE"
+        if (m.isMovingMultiple or m.isMoveToEnd) and (m.targetIndex <> m.index or row@.canMoveRowUpDown(m.direction))
+          ? "continue scrolling - ON ANIM FRACTION CHANGE"
           m.continueScrolling()
         else
-          '      ? "RESET TARGET INDEX onAnimationFractionChange 1"
+          ? "RESET TARGET INDEX onAnimationFractionChange 1"
           m.toggleScrolling(false)
         end if
       else if (m.isMovingMultiple or m.isMoveToEnd) or m.isFinishingScroll
@@ -859,20 +860,23 @@ namespace ml
     end function
 
     function continueScrolling() as void
-      ' ? "Continuing previous scrolling to index "; m.targetIndex ; " DIR " ; m.direction
+      ? "Continuing previous scrolling to index "; m.targetIndex ; " DIR " ; m.direction
       if m.targetIndex = -1 or not m.isMoveToEnd
-        ' ? "ILLEGAL - aborting"
+        ? "ILLEGAL - aborting"
         return
       end if
       ' m.move(m.direction)?
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(m.direction)
         subRowIndex = row@.getRowIndex() + m.direction
-        ' ? "continuing multi row move to next index" ; subRowIndex
+        ? "continuing multi row move to next index" ; subRowIndex
         m.moveToSubRowIndex(m.targetIndex, subRowIndex, m.direction, true)
-      else
-        ' ? "continuing regular move"
+      else if m.targetIndex <> m.index
+        ? "continuing regular move"
         m.moveToIndex(m.targetIndex, true, true)
+      else
+        ? " ARRIVED AT DESTINATION"
+        m.toggleScrolling(false)
       end if
     end function
 
