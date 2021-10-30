@@ -609,7 +609,7 @@ namespace ml
 
     public function startFlowFocus(sourceIndex as mc.types.array, targetIndex as mc.types.array, speed as float, delegate as mc.types.node) as void
       m.log.info("starting flow focus from ", sourceIndex[0], sourceIndex[1], "to", targetIndex[0], targetIndex[1])
-      ' ? "START FLOW FOCUS"
+      ? "START FLOW FOCUS"
       ' if source = invalid or target = invalid
       '   m.log.error("error in flow focus animation")
       '   m.flowFocusDelegate@.onFlowFocusFraction(1)
@@ -648,6 +648,7 @@ namespace ml
       m.targetFocusRect.indicatorTranslation[0] = m.targetFocusRect.indicatorTranslation[0] - m.top.translation[0]
 
       m.flowFocusDelegate = delegate
+      ? ">>>> ANIMATE FLOW FOCUS"
       m.focusPointAnim.setFromToValue(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation)
       m.focusPointAnim.animateTo(m.targetFocusRect.indicatorTranslation, speed)
       m.focusPointAnim.start()
@@ -680,18 +681,25 @@ namespace ml
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
+      ? "+>+>+>+>+ OFFFC" ; fraction
+
       if m.flowFocusDelegate <> invalid
+        ? "+>+>+>+> AA"
         m.moveFocusIndicatorToTargetPosition(fraction)
         if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
+          ? "+>+>+>+> BBB"
           m.applyFocusSettings(m.activeFocusSettings, false)
         end if
 
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
+
         if fraction = 1
+          ? "+>+>+>+> CCC"
           m.applyFocusSettings(m.activeFocusSettings, true)
-          'Consider that we might have gone from none
           m.isDoingFlowFocus = false
           m.itemScroller.isDoingFlowFocus = false
+
+          'If we were in a sub-row-index, situation, then we want to keep on moving
           if not m.top.isSameNode(m.flowFocusDelegate)
             ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
             if m.itemScroller.targetIndex <> -1 and (m.itemScroller.isMovingMultiple or m.itemScroller.isMoveToEnd)
@@ -701,10 +709,16 @@ namespace ml
         end if
       else
         m.moveFocusIndicatorToTargetPosition(fraction)
+        ? "+>+>+>+> DDD"
         if fraction = 1
+          ? "+>+>+>+> DDD"
+          ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
           m.applyFocusSettings(m.activeFocusSettings, true)
           m.isDoingFlowFocus = false
           m.itemScroller.isDoingFlowFocus = false
+          if m.itemScroller.targetIndex <> -1 and (m.itemScroller.isMovingMultiple or m.itemScroller.isMoveToEnd)
+            m.itemScroller.continueScrolling()
+          end if
         end if
       end if
     end function
@@ -796,6 +810,7 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
+      ? " ON LONG PRESS FINISH "; key
       if key = "up" or key = "down"
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.finishAnimating()
@@ -810,7 +825,7 @@ namespace ml
       '      ? " ON GAINED FOCUS "
       row = m.getRowRenderer(m.focusedRowIndex)
       if row <> invalid
-            '  ? " SETTING FOCUS ONTO ROW "
+        '  ? " SETTING FOCUS ONTO ROW "
         mv.setFocus(row)
       end if
 
