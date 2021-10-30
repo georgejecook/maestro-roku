@@ -33,7 +33,7 @@ namespace mc.tasks
       mc.tasks.cleanNodeObserver(timer, "fire")
       timer.isWaitTimer = false
       timer.control = "stop"
-      mc.private.releaseMaestroPoooleComponent(timer)
+      mc.private.releaseMaestroPooledComponent(timer)
       if timer.getParent() <> invalid
         timer.getParent().removeChild(timer)
       end if
@@ -199,7 +199,7 @@ namespace mc.tasks
         ' ? "++ +removing CONTEXT "; key
         mc.tasks.cleanNodeObserver(node, fieldName)
         if node.isFrameTimer = true
-          mc.private.releaseMaestroPoooleComponent(node)
+          mc.private.releaseMaestroPooledComponent(node)
           node.getParent().removeChild(node)
         else if node.removeOnObserve = true and node.getParent() <> invalid
           node.getParent().removeChild(node)
