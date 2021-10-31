@@ -26,8 +26,8 @@ namespace ml.sample
     private favoriteModule as mc.types.node
     private followingModule as mc.types.node
     private teamsModule as mc.types.node
-    private scrollSpeed = 3
-    private fastScrollSpeed = 2
+    private scrollSpeed = 1
+    private fastScrollSpeed = 0.75
 
     function new()
       super("TeamScreen")
@@ -74,7 +74,8 @@ namespace ml.sample
       listSettings.rowCreationStrategy = "async"
       listSettings.rowCreationBatchSize = 10
       listSettings.rowCreationBatchDelay = 0.1
-      content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+      focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed)
+      content = ml.listMixin.createListContent(focusSettings, m.rowSettings, listSettings)
       items = m.createData(),
       timer.log("makeData")
       m.setFocus(m.loadingIndicator)
@@ -135,7 +136,7 @@ namespace ml.sample
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
       row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 70)
       row.settings.contentOffset = [200, 30]
-      numItems = 5
+      numItems = 20
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))

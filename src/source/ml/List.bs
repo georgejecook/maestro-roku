@@ -659,8 +659,9 @@ namespace ml
       m.sourceFocusRect.indicatorTranslation[0] = m.sourceFocusRect.indicatorTranslation[0] - m.top.translation[0]
       m.targetFocusRect.indicatorTranslation[0] = m.targetFocusRect.indicatorTranslation[0] - m.top.translation[0]
 
+      speed *= 4
       m.flowFocusDelegate = delegate
-      ? ">>>> ANIMATE FLOW FOCUS"
+      ? ">>>> ANIMATE FLOW FOCUS " ; speed
       m.focusPointAnim.setFromToValue(m.sourceFocusRect.indicatorTranslation, m.targetFocusRect.indicatorTranslation)
       m.focusPointAnim.animateTo(m.targetFocusRect.indicatorTranslation, speed)
       m.focusPointAnim.start()
@@ -738,13 +739,21 @@ namespace ml
         return false
       end if
       m.log.verbose("onKeyPressUp")
-      if m.itemScroller.direction = -1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
+      ? " UP"
+
+      'FIXME - add ability to change of direction, mid-animation
+      isScrolling = m.viewManager.isScrolling or m.isDoingFlowFocus
+      ' if m.itemScroller.direction = -1 and isScrolling
+      if isScrolling
         m.log.info("was already scrolling - ignoring")
-        ' ? " CANNOT SCROLL isSCrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
-        return false
+        ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
+        return true
       end if
 
       if m.itemScroller.canMove(-1)
+        ' if isScrolling
+        '   m.itemScroller.cancelScrollingDuringPress()
+        ' end if
         result = m.itemScroller.moveFromPress(-1, false)
         ' ? " GOING UP" ; result
         return result
@@ -774,12 +783,21 @@ namespace ml
         return false
       end if
       m.log.verbose("onKeyPressDown")
-      if m.itemScroller.direction = 1 and (m.viewManager.isScrolling or m.isDoingFlowFocus)
+
+      'FIXME - add ability to change of direction, mid-animation
+      isScrolling = m.viewManager.isScrolling or m.isDoingFlowFocus
+      ' if m.itemScroller.direction = 1 and isScrolling
+      if isScrolling
+        ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
         m.log.info("was already scrolling - ignoring")
-        return false
+        return true
       end if
 
       if m.itemScroller.canMove(1)
+        ' if isScrolling
+        '   m.itemScroller.cancelScrollingDuringPress()
+        ' end if
+
         return not m.itemScroller.moveFromPress(1, false)
       else
         return false

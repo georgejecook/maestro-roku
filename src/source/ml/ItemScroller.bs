@@ -19,6 +19,7 @@ namespace ml
     public moveToEndIndex = -1
     public isFinishingScroll = false
     public isDoingFlowFocus = false
+    public isNextTouchScrollCancelled = false
 
     'rendered component maps
     public RCMap = {}
@@ -115,13 +116,25 @@ namespace ml
     end function
 
     public function cancelScrolling()
-      ' ? ">>> CANCEL SCROLLING"
+      ? ">>> CANCEL SCROLLING"
 
       'this will force the scrolling to stop repeating if we move to another row
       if m.viewManager.isScrolling
         m.finishAnimating()
         m.toggleScrolling(false)
       end if
+    end function
+
+    public function cancelScrollingDuringPress()
+      ? ">>> CANCEL SCROLLING DURING PRESS"
+
+      ? " TI "; m.targetIndex ; " MI "; m.index
+      m.isNextTouchScrollCancelled = true
+      'this will force the scrolling to stop repeating if we move to another row
+      ' if m.viewManager.isScrolling
+      '   m.finishAnimating()
+      '   m.toggleScrolling(false)
+      ' end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -200,6 +213,10 @@ namespace ml
 
         if row@.canMoveRowUpDown(direction)
           '      ? "Doing a multi row move here"
+          if m.isNextTouchScrollCancelled
+            m.isNextTouchScrollCancelled = false
+            row@.cancelScrollingDuringPress()
+          end if
           subRowIndex = row@.getRowIndex() + direction
           return m.moveToSubRowIndex(m.index, subRowIndex, direction, animated, fast)
         end if
@@ -413,7 +430,7 @@ namespace ml
         ' 3.b it's a regular container animation
         '////////////////////////////////////////////////////////////////////////
 
-        ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(targetTranslation)
+        ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(targetTranslation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
         m.toggleScrolling(true)
         m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
@@ -562,7 +579,7 @@ namespace ml
         ' 3.b it's a regular container animation
         '////////////////////////////////////////////////////////////////////////
         ? "3.b regular container anim"
-        ? ">>>> START ANIM ; regular container anim - move to subRowindex"
+        ? ">>>> START ANIM ; regular container anim - move to subRowindex SPEED " ; m.animSpeed ; " " ; m.__classname
         m.toggleScrolling(true)
 
         row@.setNextMoveIndex(nextSubRowIndex, m.direction, true)
@@ -803,7 +820,7 @@ namespace ml
 
       index = m.viewManager.getIndexAtPosition(position, m.direction)
       row = m.viewManager.visibleComponents[index]
-      ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
+      ' ? ">> AFC " ; fraction ; " pos " ; position ; " AO " ; m.activeOffset ; " i " ; index ; " t " ; m.targetIndex ; " MI "; m.index
 
       if row <> invalid and row.isMultiRow = true
         subRowIndex = row@.getSubIndexAtPosition(position, m.direction)
@@ -815,7 +832,7 @@ namespace ml
       end if
 
       if fraction = 1
-        ? " REGULAR MOVE: FRACTION 1 FINAL INDEX " ; index ; " m.i "; m.index
+        ' ? " REGULAR MOVE: FRACTION 1 FINAL INDEX " ; index ; " m.i "; m.index
         m.focusManager.onFocusAnimationUpdate(1)
 
         if index <> m.index
@@ -825,10 +842,10 @@ namespace ml
         canMoveMultiRowMore = row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(m.direction)
 
         if m.isMoveToEnd and (m.moveToEndIndex <> m.index or canMoveMultiRowMore)
-          ? "continue scrolling - ON ANIM FRACTION CHANGE"
+          ' ? "continue scrolling - ON ANIM FRACTION CHANGE"
           m.continueScrolling()
         else
-          ? "RESET TARGET INDEX onAnimationFractionChange 1"
+          ' ? "RESET TARGET INDEX onAnimationFractionChange 1"
           m.toggleScrolling(false)
         end if
       else if (m.isMoveToEnd) or m.isFinishingScroll
@@ -840,7 +857,7 @@ namespace ml
         end if
 
         if m.subRowIndex <> -1
-          'TODO - manage the focus events in the row, in this case
+          'TODO - managliste the focus events in the row, in this case
         else
           actualPos = m.container.translation[m.axes]
           fraction = m.focusManager.onContainerPositionChange(actualPos)
