@@ -326,8 +326,12 @@ namespace ml
       return m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
     end function
 
-    public function isCellOnScreen(rowIndex as integer, cellIndex as integer)
+    public function isCellOnScreen(rowIndex as integer, cellIndex as integer, isSource as boolean)
       row = m.getRowRenderer(rowIndex)
+      if not isSource and m.itemScroller.direction = -1 and cellIndex < 2 and row <> invalid and row.isMultiRow = true
+        return false
+      end if
+
       if row <> invalid
         size = row@.getItemSize(cellIndex)
         rect = m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
@@ -488,11 +492,11 @@ namespace ml
     '++ Focus settings Managements
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function getFocusRect(index as mc.types.array, isFloating = false as boolean)
+    private function getFocusRect(index as mc.types.array, isSource as boolean, isFloating = false as boolean)
       isHidden = mc.getPath(m.content.getChild(index[0]), "content.isHidden", false)
 
       focusSettings = ml.listMixin.getFocusSettings(m.content, m.content.getChild(index[0]))
-      if isFloating or m.isCellOnScreen(index[0], index[1])
+      if isFloating or m.isCellOnScreen(index[0], index[1], isSource)
         screenRect = m.getOnScreenCellRect(index[0], index[1])
       else
         screenRect = m.getCellScreenRect(index[0], index[1], m.itemScroller.direction, invalid, invalid)
@@ -518,14 +522,22 @@ namespace ml
       if m.viewManager.isRendering or m.content = invalid
         return
       end if
-      m.sourceFocusRect = m.getFocusRect(sourceIndex)
-      m.targetFocusRect = m.getFocusRect(targetIndex)
+
+      m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
+      m.targetFocusRect = m.getFocusRect(targetIndex, false)
 
       if m.targetFocusRect = invalid
         m.focusIndicator.visible = false
         return
       end if
 
+
+      if m.sourceFocusRect <> invalid
+        ' ? " GOT SOURCE RECT "; formatJson (sourceIndex) ; "  " ; m.sourceFocusRect.indicatorTranslation[1]
+      end if
+      if m.targetFocusRect <> invalid
+        ' ? " GOT TARGET RECT "; formatJson (targetIndex) ; "  " ; m.targetFocusRect.indicatorTranslation[1]
+      end if
       m.setActiveFocusSettings(m.targetFocusRect.settings)
       if m.activeFocusSettings = invalid or m.activeFocusSettings.feedbackStyle = "none" or m.targetFocusRect.isHidden
         m.rowHasIndicator = false
@@ -625,8 +637,8 @@ namespace ml
       ' ? "START FLOW" ; sourceIndex[0]; sourceIndex[1]; " - "; targetIndex[0]; targetIndex[1]
       m.isDoingFlowFocus = true
       m.itemScroller.isDoingFlowFocus = true
-      m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
-      m.targetFocusRect = m.getFocusRect(targetIndex, true)
+      m.sourceFocusRect = m.getFocusRect(sourceIndex, true, true)
+      m.targetFocusRect = m.getFocusRect(targetIndex, false, true)
       if m.sourceFocusRect = invalid
         'must have removed this item
         m.sourceFocusRect = m.targetFocusRect
@@ -659,8 +671,8 @@ namespace ml
       if m.viewManager.isRendering or m.content = invalid
         return
       end if
-      m.targetFocusRect = m.getFocusRect(targetIndex, true)
-      m.sourceFocusRect = m.getFocusRect(sourceIndex, true)
+      m.sourceFocusRect = m.getFocusRect(sourceIndex, true, true)
+      m.targetFocusRect = m.getFocusRect(targetIndex, false, true)
 
       if m.targetFocusRect = invalid
         m.focusIndicator.visible = false
@@ -681,27 +693,22 @@ namespace ml
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
-      ? "+>+>+>+>+ OFFFC" ; fraction
-
       if m.flowFocusDelegate <> invalid
-        ? "+>+>+>+> AA"
         m.moveFocusIndicatorToTargetPosition(fraction)
         if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
-          ? "+>+>+>+> BBB"
           m.applyFocusSettings(m.activeFocusSettings, false)
         end if
 
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
 
         if fraction = 1
-          ? "+>+>+>+> CCC"
           m.applyFocusSettings(m.activeFocusSettings, true)
           m.isDoingFlowFocus = false
           m.itemScroller.isDoingFlowFocus = false
 
           'If we were in a sub-row-index, situation, then we want to keep on moving
           if not m.top.isSameNode(m.flowFocusDelegate)
-            ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
+            ' ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
             if m.itemScroller.targetIndex <> -1 and (m.itemScroller.isMovingMultiple or m.itemScroller.isMoveToEnd)
               m.itemScroller.continueScrolling()
             end if
@@ -709,10 +716,8 @@ namespace ml
         end if
       else
         m.moveFocusIndicatorToTargetPosition(fraction)
-        ? "+>+>+>+> DDD"
         if fraction = 1
-          ? "+>+>+>+> DDD"
-          ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
+          ' ? "FLOW FINISHED I " ; m.itemScroller.__classname ; " > " ; m.itemScroller.index; " > "; m.itemScroller.targetIndex; " " m.itemScroller.subIndex ; " IMM? " ; m.itemScroller.isMovingMultiple; m.itemScroller.isMoveToEnd
           m.applyFocusSettings(m.activeFocusSettings, true)
           m.isDoingFlowFocus = false
           m.itemScroller.isDoingFlowFocus = false
@@ -740,7 +745,7 @@ namespace ml
       end if
 
       if m.itemScroller.canMove(-1)
-        result = m.itemScroller.moveFromPress(-1)
+        result = m.itemScroller.moveFromPress(-1, false)
         ' ? " GOING UP" ; result
         return result
       else
@@ -775,7 +780,7 @@ namespace ml
       end if
 
       if m.itemScroller.canMove(1)
-        return not m.itemScroller.moveFromPress(1)
+        return not m.itemScroller.moveFromPress(1, false)
       else
         return false
       end if

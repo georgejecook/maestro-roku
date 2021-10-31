@@ -414,19 +414,29 @@ namespace ml
     function getIndexAtPosition(position as integer, direction as integer)
       p = abs(position)
       i = 0
+      skipped = 1
       for i = 0 to m.numberOfItems
         itemRect = m.rects[i]
-        'the offset is already factored in
-        itemPos = m.getOffsetForScreenPosition(itemRect, 0)
-        if itemPos > p
+        if itemRect <> invalid and itemRect.visible
+          'the offset is already factored in
+          itemPos = m.getOffsetForScreenPosition(itemRect, 0)
           ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
-          ' ? "+++++!!! MATCHED ITEM INDEX "; i -1
-          return mc.clamp(i - 1, 0, m.numberOfItems - 1)
+          if itemPos > p
+            ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
+            return mc.clamp(i - skipped, 0, m.numberOfItems - 1)
+          end if
+          skipped = 1
+        else
+          ' ? " SKIPPING HIDDEN ITEM "; i
+          skipped ++
         end if
       end for
+      ' end ifk
 
       'we must be at the end! -return last item
-      return mc.clamp(i - 1, 0, m.numberOfItems -1)
+      index = mc.clamp(i - skipped, 0, m.numberOfItems - 1)
+      ? "+++++!!! MATCHED ITEM INDEX "; index
+      return index
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
