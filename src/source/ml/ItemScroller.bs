@@ -131,10 +131,10 @@ namespace ml
       ? " TI "; m.targetIndex ; " MI "; m.index
       m.isNextTouchScrollCancelled = true
       'this will force the scrolling to stop repeating if we move to another row
-      ' if m.viewManager.isScrolling
-      '   m.finishAnimating()
-      '   m.toggleScrolling(false)
-      ' end if
+      if m.viewManager.isScrolling
+        m.finishAnimating()
+        m.toggleScrolling(false)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -421,7 +421,7 @@ namespace ml
           ' 3.a it's a flow animation
           '////////////////////////////////////////////////////////////////////////
           m.log.info("already in place - no need to scroll ", m.index, " >", m.nextIndex)
-          ? " IN PLACE "
+          ? " IN PLACE " ; m.__classname
           m.moveUsingFlowAnim(m.index, m.nextIndex, m.direction)
           return true
         end if
@@ -663,21 +663,24 @@ namespace ml
       index = m.nextIndex
       itemRect = m.viewManager.rects[index]
       m.isMovingMultiple = false
-      ? "+FINISH MOVING TO INDEX"
+      ? "+FINISH MOVING TO INDEX " ;
       m.isMoveToEnd = false
 
       if m.isDoingFlowFocus
         m.isDoingFlowFocus = false
+        m.toggleScrolling(false)
         return false
       end if
 
       row = m.viewManager.visibleComponents[m.index]
       if row <> invalid and row.isMultiRow
         ? "   Ended on multiRow"
+        m.toggleScrolling(false)
         return false
       end if
 
       if itemRect = invalid
+        m.toggleScrolling(false)
         return false
       end if
 
@@ -692,6 +695,7 @@ namespace ml
 
       if targetTranslation = invalid
         m.log.error("cannot move! translation invalid for index", index)
+        m.toggleScrolling(false)
         return false
       end if
 
@@ -707,6 +711,7 @@ namespace ml
       if not isMoveRequired
         if m.focusedIndex = index
           m.log.info("already in place")
+          m.toggleScrolling(false)
           return false
         end if
         m.log.info("already in place - no need to scroll ", index, " >", m.nextIndex)
@@ -772,8 +777,9 @@ namespace ml
 
     function toggleScrolling(active as boolean)
       m.viewManager.setIsScrolling(active, m.isMovingMultiple, m.index)
+      ? " toggleScrolling " ; active ; " " ; m.__classname
+
       if not active
-        ? " toggleScrolling FINISHED!!"
         m.setTargetIndex(-1)
         m.isMovingMultiple = false
       end if
@@ -898,14 +904,17 @@ namespace ml
       end if
 
       row = m.viewManager.visibleComponents[m.index]
+      isContinued = false
       if row <> invalid and row.isMultiRow and row@.canMoveRowUpDown(m.direction)
         subRowIndex = row@.getRowIndex() + m.direction
         ? "continuing multi row move to next index" ; subRowIndex
-        m.moveToSubRowIndex(m.index, subRowIndex, m.direction, true)
+        isContinued = m.moveToSubRowIndex(m.index, subRowIndex, m.direction, true)
       else if m.targetIndex <> m.index
         ? "continuing regular move"
-        m.moveToIndex(m.targetIndex, true, true, m.direction)
-      else
+        isContinued = m.moveToIndex(m.targetIndex, true, true, m.direction)
+      end if
+
+      if not isContinued
         ? " ARRIVED AT DESTINATION"
         m.toggleScrolling(false)
       end if

@@ -67,11 +67,7 @@ class ListScreen extends mv.BaseScreen
   private function onResetChange()
     m.list.content = invalid
     ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
-    if m.isSmall
-      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [80, 50], 30)
-    else
-      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
-    end if
+    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
 
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
@@ -93,8 +89,8 @@ class ListScreen extends mv.BaseScreen
     ' items = m.createSimpleData(),
     ' items = m.createData(),
     ' items = m.createSimpleGridData(),
-    items = m.createMockScreenData(),
-    ' items = m.createGridData(),
+    ' items = m.createMockScreenData(),
+    items = m.createGridData(),
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
@@ -174,7 +170,7 @@ class ListScreen extends mv.BaseScreen
       ' row.settings.peekNextPixels = 200
       ' row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
       ' row.settings.contentOffset = [100, 30]
-      row.title = m.prefix + "ROW " + str(i)
+      row.title = "ROW " + str(i)
       content.push(row)
       if i = 1
         ' row.settings.screenPos = 730
@@ -225,7 +221,7 @@ class ListScreen extends mv.BaseScreen
         ' row.settings.peekNextPixels = 300
         ' row.settings.screenPos = -1
       end if
-      row.title = m.prefix + "ROW " + str(i)
+      row.title = "ROW " + str(i)
       content.push(row)
       row@.appendChildren(m.makeItems(m.defaultCellType, 5))
     end for
@@ -252,7 +248,7 @@ class ListScreen extends mv.BaseScreen
         ' row.settings.screenPos = -1
       else if i = 1
         rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
-        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 3, 427)
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 4, 427)
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
         numItems = 20
@@ -262,7 +258,7 @@ class ListScreen extends mv.BaseScreen
         ' row.settings.peekNextPixels = 300
         ' row.settings.screenPos = -1
       end if
-      row.title = m.prefix + "ROW " + str(i)
+      row.title = "ROW " + str(i)
       content.push(row)
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
@@ -300,7 +296,7 @@ class ListScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
         row.settings.contentOffset = [100, 30]
       end if
-      row.title = m.prefix + "ROW " + str(i)
+      row.title = "ROW " + str(i)
       content.push(row)
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for
@@ -392,7 +388,7 @@ private function addRow(index as integer)
   row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
   row.settings.contentOffset = [100, 0]
 
-  row.title = m.prefix + "NEW ROW " + m.contentId.toStr()
+  row.title = "NEW ROW " + m.contentId.toStr()
   row.id = rnd(2147483647).toStr()
   m.contentId++
   row@.appendChildren(m.makeItems(m.defaultCellType, 5))
@@ -432,7 +428,6 @@ private function onKeyPressOptions() as boolean
   m.firstItem = m.list.content.getChild(0)
   m.firstItem.isHidden = not m.firstItem.isHidden
   ' row.isHidden = not row.isHidden
-  ' m.prefix = m.prefix = "-A- " ? "-B- " : "-A- "
   ' m.list.content = invalid
   ' m.onResetChange()
   return true

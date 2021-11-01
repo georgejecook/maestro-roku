@@ -53,11 +53,13 @@ namespace ml
     end function
 
     override function moveToEnd(direction as integer, animated = true as boolean, fast = false as boolean) as boolean
+
       if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
         m.log.info("already at end - ignoring")
         return false
       end if
 
+      m.isDoingLongPress = true
       if direction = -1
         index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
         m.moveToIndex(index, animated, fast, -1, true)
@@ -82,9 +84,15 @@ namespace ml
         ' ? "FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex ; " i  "; m.index ; " FFI "; m.flowFocusIndex
         m.focusManager.onFocusAnimationUpdate(1)
         m.setIndex(m.flowFocusIndex)
-        m.setTargetIndex(-1)
-        m.setFocusOnRenderer(true)
-        m.toggleScrolling(false)
+        if m.isDoingLongPress
+          ' m.isDoingLongPress = m.move(m.direction)
+          ' m.moveUsingFlowAnim(m.flowFocusIndex, m.index + m.direction, m.direction)
+          m.continueScrolling()
+        else
+          m.setTargetIndex(-1)
+          m.setFocusOnRenderer(true)
+          m.toggleScrolling(false)
+        end if
       else
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
@@ -93,7 +101,24 @@ namespace ml
     override function continueScrolling() as void
       ' ? "CONTINUE - " ; m.direction ; " " ; m.isDoingLongPress
       if m.isDoingLongPress
-        m.move(m.direction)
+        if m.direction = -1
+          index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
+        else
+          index = ((fix(m.index / m.viewManager.numCols) * m.viewManager.numCols) + m.viewManager.numCols) - 1
+        end if
+
+        if m.index = index
+          m.isDoingLongPress = false
+        end if
+
+        if m.isDoingLongPress
+          m.isDoingLongPress = m.move(m.direction)
+        end if
+        if not m.isDoingLongPress
+          m.setTargetIndex(-1)
+          m.setFocusOnRenderer(true)
+          m.toggleScrolling(false)
+        end if
       end if
     end function
 
@@ -105,8 +130,8 @@ namespace ml
       m.direction = direction
       m.setNextIndex(index)
       m.toggleScrolling(true)
-          '  ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-          '  ? "==================================="
+      '  ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      '  ? "==================================="
       '      ? "Setting next move index " ; index ; " d "; direction
       '      ? "==================================="
       '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
@@ -134,6 +159,11 @@ namespace ml
     protected override function processChanges(changes as mc.types.array) as void
       ' super.processChanges(changes)
       ' m.moveFromPress(- m.viewManager.content.settings.numColumns, false)
+    end function
+
+    public override function cancelScrolling()
+      m.isDoingLongPress = false
+      super.cancelScrolling()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

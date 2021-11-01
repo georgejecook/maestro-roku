@@ -755,10 +755,10 @@ namespace ml
         '   m.itemScroller.cancelScrollingDuringPress()
         ' end if
         result = m.itemScroller.moveFromPress(-1, false)
-        ' ? " GOING UP" ; result
+        ? " GOING UP" ; result
         return result
       else
-        ' ? " CANNOT GO UP"
+        ? " CANNOT GO UP"
         return false
       end if
     end function
@@ -767,6 +767,14 @@ namespace ml
       if not m.top.visible
         return false
       end if
+      isScrolling = m.viewManager.isScrolling or m.isDoingFlowFocus or m.isScrolling
+      ' if m.itemScroller.direction = -1 and isScrolling
+      if isScrolling
+        m.log.info("Cannot select while scrolling")
+        ? " CANNOT select while view is scrolling "; m.viewManager.isScrolling ; " FF " ; m.isDoingFlowFocus
+        return true
+      end if
+
       m.log.verbose("onKeyPressOk")
       m.itemSelected = [m.focusedRowIndex, m.focusedCellIndex]
       m.listEvent = {
