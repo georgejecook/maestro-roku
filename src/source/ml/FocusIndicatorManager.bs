@@ -34,52 +34,49 @@ namespace ml
 
     private nextFocusIndex as mc.types.Array
 
+
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ internal event tracking
+    '++ Internal event tracking
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    public isDoingFlowFocus = false
     public focusScreenPosition = [0, 0]
 
-    public _focusedRenderer as mc.types.Node
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ managers and internal state
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private focusManager as ml.ItemFocusManager
-    private sourceFocusRect as object
-    private targetFocusRect as object
-
-    private isInitialized = false
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ views
+    '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPoint as mc.types.node
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ focusIndicator
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
     private focusIndicator as mc.types.node
     private dummyFocusView as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Animations
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private focusPointAnim
+    private dummyFocusAnim
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ State
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     private isIndicatorHidden = true
     private isIndicatorOnTop = true
     private direction = 0
 
     private flowFocusDelegate as mc.types.node
-    private isDoingFlowFocus = false
 
-    private focusPointAnim
-    private dummyFocusAnim
-    private activeFocusSettings
-    private previousFocusSettings
+    private sourceFocusRect as object
+    private targetFocusRect as object
+
+    private activeFocusSettings as mc.types.node
+    private previousFocusSettings as mc.types.node
     private activeScreenPos = 0
     private rowHasIndicator = true
     private isFocusSettingsChangePending = false
     private minFocusChangeFraction = 0.5
-
 
     function new()
       super("ml_FocusIndicatorManager")
@@ -93,7 +90,6 @@ namespace ml
       super.initialize()
       m.createViews()
       m.createAnims()
-      m.isInitialized = true
     end function
 
     private function createViews()
@@ -131,7 +127,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function getRowRenderer(index as integer)
-      return m.list@.getRenderer(index)
+      return m.list@.getRowRenderer(index)
     end function
 
     private function getCellRenderer(rowIndex as integer, cellIndex as integer)

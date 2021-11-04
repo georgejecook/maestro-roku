@@ -408,7 +408,7 @@ namespace ml
         return true
       end if
 
-      if m.itemScroller.canMove(-1)
+      if m.itemScroller.canMoveInDirection(-1)
         result = m.itemScroller.moveFromPress(-1, false)
         ? " GOING UP" ; result
         return result
@@ -456,7 +456,7 @@ namespace ml
         return true
       end if
 
-      if m.itemScroller.canMove(1)
+      if m.itemScroller.canMoveInDirection(1)
         ' if isScrolling
         '   m.itemScroller.cancelScrollingDuringPress()
         ' end if
@@ -472,7 +472,7 @@ namespace ml
         return 0
       end if
       m.log.verbose("getLongPressIntervalForKey", key)
-      if (key = "up" and m.itemScroller.canMove(-1)) or (key = "down" and m.itemScroller.canMove(1))
+      if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
         return 0.2
       else
         return 0
@@ -482,7 +482,7 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
-      if (key = "up" and m.itemScroller.canMove(-1)) or (key = "down" and m.itemScroller.canMove(1))
+      if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
         if key = "up"
           m.log.verbose("long press started on key", key, "going to animate to start of list")
           return m.itemScroller.moveToEnd(-1)
