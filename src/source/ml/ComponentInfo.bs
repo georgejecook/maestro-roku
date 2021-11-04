@@ -1,0 +1,54 @@
+namespace ml
+  class ComponentPosition
+    public position = 0
+    public screenPosition = 0
+    function new(position as integer, screenPosition as integer)
+      m.position = position
+      m.screenPosition = screenPosition
+    end function
+  end class
+
+  class ComponentInfo
+    public index = 0
+    public component as mc.types.node
+    public focusSettings as mc.types.node
+    public contentIndex = 0
+    public componentIndex = 0
+    public direction = 0
+    public positionsByDirection = []
+    public isFloatAllowed = false
+
+    public function new(focusSettings as mc.types.node, positions as mc.types.array, isFloatAllowed = false as boolean, componentIndex = 0 as integer)
+      m.focusSettings = focusSettings
+      m.positionsByDirection = positions
+      m.isFloatAllowed = isFloatAllowed
+      m.componentIndex = componentIndex
+    end function
+
+    public function getActivePosition() as ml.ComponentPosition
+      return m.positionsByDirection[m.direction + 1]
+    end function
+
+    public function getPositionForDirection(direction as integer) as ml.ComponentPosition
+      return m.positionsByDirection[direction + 1]
+    end function
+
+    public function getScrollOffsetForDirection(direction as integer) as integer
+      position = m.positionsByDirection[direction + 1]
+      return -position.position + position.screenPosition
+    end function
+
+    public function getScreenPositionForDirection(direction as integer) as integer
+      position = m.positionsByDirection[direction + 1]
+      return position.screenPosition
+    end function
+
+  end class
+
+end namespace
+
+namespace ml.ComponentInfoUtils
+  function ComponentInfoFromAA(info as mc.types.assocarray)
+    return new ml.ComponentInfo(info.focusSettings, info.positionsByDirection, info.isFloatAllowed)
+  end function
+end namespace

@@ -27,7 +27,10 @@ class ListScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = .3
+  private scrollSpeed = 1.2
+  private fastScrollSpeed = 1.2
+  ' private scrollSpeed = 2.5
+  ' private fastScrollSpeed = 2.5
 
   function new()
     super("ListScreen")
@@ -67,12 +70,12 @@ class ListScreen extends mv.BaseScreen
   private function onResetChange()
     m.list.content = invalid
     ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
-    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
+    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 200], 30)
 
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-50, -50, 50, 50])
+    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-50, -50, 50, 50])
     ' listSettings = ml.listMixin.createListSettings(3000, 2000)
     listSettings = ml.listMixin.createListSettings(-1, -1)
     ' listSettings.rowCreationStrategy = "all"
@@ -110,7 +113,6 @@ class ListScreen extends mv.BaseScreen
     if state = "rendered"
       m.setFocus(m.list)
       m.list@.moveToItem([0, 0], false)
-      m.list.nextFocusIndex = [0, 0]
       m.list.visible = true
       m.loadingIndicator.isActive = false
     end if
@@ -118,19 +120,19 @@ class ListScreen extends mv.BaseScreen
 
   private function createData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
     numItems = 20
     for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       if i = 0
-        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
       else if i = 1 or i = 15 or i = 8
-        row1FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [30, 30, -30, -30])
+        row1FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [30, 30, -30, -30])
         ' row1FocusSettings.feedbackUri = "pkg:/images/circle.png"
         row1FocusSettings.feedbackColor = "#F4D42A"
         headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
@@ -140,7 +142,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.screenPos = 150
         ' row.settings.peekNextPixels = 150
       else if i = 3 or i = 16 or i = 9
-        rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 3, 425)
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
@@ -151,7 +153,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.peekNextPixels = 0
         row.settings.screenPos = -1
       else if i = 5 or i = 11
-        complexFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3)
+        complexFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed)
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
         ' row.settings = ml.listMixin.createRowSettings(invalid, complexFocusSettings, 30, invalid, 0, "ComplexRow")
         ' else if i= 6
@@ -179,7 +181,7 @@ class ListScreen extends mv.BaseScreen
         ' if i mod 9 = 0
         '   row.addFields({ "focusType": "fixed" })
         '   ' row.addFields({ "focusType": "floatingWrap" })
-        '   row.title += " floating"
+        '   row.title += " fixed"
         ' else
         '   row.addFields({ "focusType": "fixed" })
         '   row.title += " fixed"
@@ -204,12 +206,12 @@ class ListScreen extends mv.BaseScreen
 
   private function createSimpleData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
     for i = 0 to 10
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       if false and i = 0
-        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
@@ -230,37 +232,41 @@ class ListScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    ' rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    ' rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
     showHero = false
 
     'TODO - add normal rows around this
-    for i = 0 to 3
+    for i = 0 to 8
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
       if showHero and i = 0
-        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
+        prefix = "HERO"
         ' row.settings.screenPos = -1
-      else if i = 1
-        rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
-        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 4, 427)
+      else if i = 1 or i = 4
+        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, 4, 427)
         row.settings.contentOffset = [100, 30]
+        prefix = "GRID"
         ' row.settings.peekNextPixels = 300
         numItems = 20
       else
-        row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings)
+        focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
+        row.settings = ml.listMixin.createRowSettings(m.cellSettings, focusSettings)
         row.settings.contentOffset = [100, 30]
+        prefix = "HORIZ"
         ' row.settings.peekNextPixels = 300
         ' row.settings.screenPos = -1
       end if
       row.title = "ROW " + str(i)
       content.push(row)
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row@.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
     end for
 
     return content
@@ -268,7 +274,7 @@ class ListScreen extends mv.BaseScreen
 
   private function createSimpleGridData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
     showHero = true
 
     'TODO - add normal rows around this
@@ -277,18 +283,18 @@ class ListScreen extends mv.BaseScreen
       row.id = rnd(2147483647).toStr()
       numItems = 5
       if showHero and i = 0
-        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20], "none")
+        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20], "none")
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 400], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
       else if i = 1
-        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 400, 3, 427, 2, 100)
         row.settings.contentOffset = [100, 30]
         numItems = 14
       else if i < 4
-        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 0, 3, 427)
         row.settings.contentOffset = [100, 30]
         numItems = 14
@@ -305,7 +311,7 @@ class ListScreen extends mv.BaseScreen
 
   private function createMockScreenData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
     showHero = true
     headerSettings = ml.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
     row = createObject("roSGNode", "ml_RowContent")
@@ -332,7 +338,7 @@ class ListScreen extends mv.BaseScreen
     row.title = "TEAMS"
     row.id = rnd(2147483647).toStr()
     cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
-    gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "floating", [-20, -20, 20, 20])
+    gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
     row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 400, 1, 144, 4, 100)
     ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 400, 1, 144, 2, -1)
     ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 5, -1)
@@ -350,10 +356,10 @@ private function addItems(cellType as string, number as integer)
   row@.appendChildren(m.makeItems(cellType, number))
 end function
 
-private function makeItems(cellType as string, number as integer)
+private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
   items = []
   for i = 0 to number - 1
-    items.push(m.makeItem(cellType, `Item ${m.contentId} [${i}]`))
+    items.push(m.makeItem(cellType, `${prefix} ${m.contentId} [${i}]`))
   end for
   return items
 end function
@@ -380,11 +386,11 @@ private function addRow(index as integer)
   ? ">>>ADD ROW"
   ? ">>>ADD ROW"
   ? ">>>ADD ROW"
-  rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, .3, "fixed", [-20, -20, 20, 20])
+  rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
   row = createObject("roSGNode", "ml_RowContent")
   rowFocusSettings.feedbackColor = "#F4D42A"
   headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
-  cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 100)
+  cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 200], 100)
   row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
   row.settings.contentOffset = [100, 0]
 

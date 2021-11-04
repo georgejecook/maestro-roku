@@ -1,4 +1,5 @@
 import "pkg:/source/ml/ItemViewManager.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   class GridRowItemViewManager extends ml.ItemViewManager
@@ -11,6 +12,7 @@ namespace ml
     public isFlowSupported = false
 
     private rowOffsets = []
+    private rowInfos as mc.types.array
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, 0, minPos, maxPos)
@@ -42,6 +44,20 @@ namespace ml
       return mc.clamp(i - 1, 0, numRows)
     end function
 
+    function getRowInfos(yPosition as integer) as mc.types.array
+      if m.rowInfos = invalid
+        m.rowInfos = []
+
+        height = m.owner.height
+
+        for i = 0 to m.rowOffsets.count() - 1
+          ' ? "LAYING OUT ITEM " ; i
+          m.rowInfos.push(m.getRowInfo(i, m.rowOffsets[i], yPosition, height))
+        end for
+      end if
+      return m.rowInfos
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -70,6 +86,7 @@ namespace ml
       m.visibleComponents = []
       m.visibleItems = []
       m.rowOffsets = []
+      m.rowInfos = invalid
 
       if m.content = invalid
         return
@@ -95,9 +112,10 @@ namespace ml
       ' ?""
       ' ?""
       ' ? "LAYING OUT+++++++++++++++++++++++++++++++++"
+
       while i < numItems
         m.rowOffsets.push(y)
-        ' ? "LAYING OUT ITEM " ; i
+
         for col = 0 to m.numCols - 1
           item = children[i]
           ' ? "ITEM " ; item.title
@@ -122,6 +140,43 @@ namespace ml
       end while
 
       m.numberOfItems = m.visibleItems.count()
+    end function
+
+    private function getRowInfo(rowIndex as integer, yOffset as integer, y as integer, height as integer) as ml.ComponentInfo
+
+      yOffset += y
+      ySpace = m.settings.rowSpace
+      rowHeight = m.settings.rowHeight
+      maxPos = height - rowHeight - ySpace
+
+      if rowIndex = 0
+        screenPos = m.settings.firstRowScreenPos
+        isFloatAllowed = false
+
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'fixed
+          new ml.ComponentPosition(yOffset, screenPos) 'down
+        ]
+      else if rowIndex = 1 and m.settings.otherRowScreenPos <> m.settings.firstRowScreenPos
+        screenPos = m.settings.otherRowScreenPos
+        isFloatAllowed = false
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'fixed
+          new ml.ComponentPosition(yOffset, screenPos) 'down
+        ]
+      else
+        screenPos = m.settings.otherRowScreenPos
+        isFloatAllowed = true
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'fixed
+          new ml.ComponentPosition(yOffset, maxPos) 'down
+        ]
+
+      end if
+      return new ml.ComponentInfo(m.settings, positions, isFloatAllowed, rowIndex)
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
@@ -509,7 +564,7 @@ namespace ml
       ' ? "index is " ; m.itemScroller.index ; " NI " ; m.numberOfItems
       if m.itemScroller.index < m.numberOfItems
         '  ? "IN BOUNDS"
-         if m.row.isFocused
+        if m.row.isFocused
           ' ? "FOCUSED"
           m.owner@.moveToSubRowIndex(m.row.index, m.itemScroller.index, 1, false, true)
         else

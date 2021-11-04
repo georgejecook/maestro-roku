@@ -3,6 +3,7 @@ import "pkg:/source/ml/GridRowItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   ' displays items in a grid, with:
@@ -23,6 +24,7 @@ namespace ml
     public focusedRowIndex = 0
 
     public isScrolling = false
+    private isDoingFlowFocus = false
     private isScrollingEnabled = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -228,6 +230,7 @@ namespace ml
     end function
 
     public override function onFlowFocusFraction(fraction as float)
+      m.isDoingFlowFocus = fraction <> 1
       m.itemScroller.onFlowFocusFraction(fraction)
     end function
 
@@ -249,6 +252,10 @@ namespace ml
 
     function getRowIndexUpDown(direction as integer) as integer
       return m.getIndexByAddingOffset(direction * m.settings.numColumns)
+    end function
+
+    public override function getRowInfos() as mc.types.array
+      return m.viewManager.getRowInfos(m.top.translation[1])
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -319,6 +326,9 @@ namespace ml
     private function onKeyPressLeft() as boolean
       m.log.verbose("onKeyPressLeft")
       m.itemScroller.isDoingLongPress = false
+      if m.isAlreadyScrolling()
+        return true
+      end if
       if m.canScroll("left")
         return m.itemScroller.moveFromPress(-1)
       end if
@@ -327,6 +337,10 @@ namespace ml
 
     private function onKeyPressRight() as boolean
       m.log.verbose("onKeyPressRight")
+      if m.isAlreadyScrolling()
+        return true
+      end if
+
       m.itemScroller.isDoingLongPress = false
       if m.canScroll("right")
         return m.itemScroller.moveFromPress(1)
@@ -344,9 +358,17 @@ namespace ml
     end function
 
     private function canScroll(key as string)
+
+      if m.isAlreadyScrolling()
+        return false
+      end if
       index = m.itemScroller.index
       normalizedColumn = index mod m.viewManager.numCols
       return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
+    end function
+
+    private function isAlreadyScrolling() as boolean
+      return m.viewManager.isScrolling or m.isDoingFlowFocus
     end function
 
     private function onLongPressStart(key as string) as boolean

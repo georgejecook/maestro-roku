@@ -4,6 +4,7 @@ import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   @node("ml_BaseRow", "mv_BaseView")
@@ -55,6 +56,7 @@ namespace ml
     protected wasHidden = false
     protected wasFocusable = true
     protected settings
+    protected rowInfos as mc.types.array
 
     function new()
       super(m.top.subType())
@@ -161,6 +163,30 @@ namespace ml
     public function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer) as object
       'implement me
       return invalid
+    end function
+
+    public function getRowInfos() as mc.types.array
+      focusSettings = ml.listMixin.getRowSettings(m.owner.content, m.content)
+      screenPos = focusSettings.screenPos
+      yPos = m.top.translation[1]
+      if screenPos <> -1
+        positions = [
+          new ml.ComponentPosition(yPos, screenPos) 'up
+          new ml.ComponentPosition(yPos, screenPos) 'fixed
+          new ml.ComponentPosition(yPos, screenPos) 'down
+        ]
+      else
+        positions = [
+          new ml.ComponentPosition(yPos, 0) 'up
+          new ml.ComponentPosition(yPos, 0) 'fixed
+          new ml.ComponentPosition(yPos, 0) 'down
+        ]
+      end if
+
+      'TODO - can create third set of positions for when vertical scrolling is flow
+
+      rowInfo = new ml.ComponentInfo(focusSettings, positions)
+      return [rowInfo]
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

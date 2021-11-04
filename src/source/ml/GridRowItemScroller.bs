@@ -4,7 +4,6 @@ import "pkg:/source/ml/GridRowItemViewManager.bs"
 namespace ml
   class GridRowItemScroller extends ml.ItemScroller
 
-    public isFloatingFocus = true
     public isDoingLongPress = false
     public currentRowIndex = 0
 
@@ -29,15 +28,7 @@ namespace ml
 
     public override function onViewManagerUpdate()
       super.onViewManagerUpdate()
-      ' m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
-      'grids are always floating focus
       m.isFloatingFocus = true
-    end function
-
-    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
-      if not isMoving
-        m.log.info("stopped scrolling on item", m.index)
-      end if
     end function
 
     override function getFocusSettings()

@@ -5,6 +5,8 @@ import "pkg:/source/view/Animation.bs"
 namespace ml
   class ItemFocusManager extends mc.BaseClass
 
+    public focusIndicatorManager as mc.types.node
+
     public viewManager = invalid
     public itemScroller = invalid
     public nextCell = invalid
@@ -26,6 +28,8 @@ namespace ml
 
     function new(viewManager as ml.ItemViewManager, scroller as ml.ItemScroller, ownerDelegate = invalid as object, rowIndex = -1 as float)
       super("ItemFocusManager")
+      m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
+
       m.rowIndex = rowIndex
       m.viewManager = viewManager
       m.itemScroller = scroller
@@ -131,12 +135,12 @@ namespace ml
       end if
 
       if m.isRow
-        m.viewManager.owner.focusedCellPercent = fraction
+        m.focusIndicatorManager.focusedCellPercent = fraction
       else
-        m.viewManager.owner.focusedRowPercent = fraction
+        m.focusIndicatorManager.focusedRowPercent = fraction
       end if
 
-       m.sendEvents(name, nextName, fraction)
+      m.sendEvents(name, nextName, fraction)
     end function
 
     function sendEvents(name as string, nextName as string, fraction as float)
@@ -177,11 +181,13 @@ namespace ml
 
     function setOwnerNextFocusIndex()
       if m.isRow
-        m.viewManager.owner.nextFocusIndex = [m.viewManager.row.index, m.nextIndex]
+        m.focusIndicatorManager@.setNextFocusIndex([m.viewManager.row.index, m.nextIndex], m.direction)
+        ' m.focusIndicatorManager.nextFocusIndex = [m.viewManager.row.index, m.nextIndex]
       else
         comp = m.viewManager.getRenderer(m.nextIndex)
         if comp <> invalid
-          m.viewManager.owner.nextFocusIndex = [comp.index, comp.focusedCellIndex]
+          m.focusIndicatorManager@.setNextFocusIndex([comp.index, comp.focusedCellIndex], m.direction)
+          ' m.focusIndicatorManager.nextFocusIndex = [comp.index, comp.focusedCellIndex]
         end if
       end if
 
@@ -189,13 +195,13 @@ namespace ml
 
     function setOwnerIndexes()
       if m.isRow
-        m.viewManager.owner.focusedCellIndex = m.nextIndex
+        m.focusIndicatorManager.focusedCellIndex = m.nextIndex
         m.viewManager.row.focusedCellIndex = m.nextIndex
       else
-        m.viewManager.owner.focusedRowIndex = m.nextIndex
+        m.focusIndicatorManager.focusedRowIndex = m.nextIndex
         comp = m.viewManager.getRenderer(m.nextIndex)
         if comp <> invalid
-          m.viewManager.owner.focusedCellIndex = comp.focusedCellIndex
+          m.focusIndicatorManager.focusedCellIndex = comp.focusedCellIndex
         end if
       end if
 

@@ -141,7 +141,8 @@ namespace ml
       ' 'TODO need to actually set the focus properly
       m.itemScroller.moveToIndex(focusIndex[0], false)
       m.itemScroller.forceFocusOnIndex(focusIndex[0])
-      m.owner.nextFocusIndex = focusIndex
+      m.owner@.setNextFocusIndex(focusIndex, m.direction)
+      ' m.owner.nextFocusIndex = focusIndex
       m.owner.focusedRowIndex = focusIndex[0]
     end function
 
@@ -312,18 +313,6 @@ namespace ml
 
       m.numberOfItems = m.visibleItems.count()
       m.numberOfVisibleItems = m.visibleComponents.count()
-    end function
-
-
-    private function hackInfoIntoHeader(comp as mc.types.node)
-      if comp.subType() = "ml_HorizontalRow"
-
-        header = comp.getChild(2).getChild(0)
-        if header <> invalid
-          label = header.getChild(1)
-          label.text = `I ${comp.index} POS ${comp.translation[1]} SP ${comp.content.settings.screenPos}`
-        end if
-      end if
     end function
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)

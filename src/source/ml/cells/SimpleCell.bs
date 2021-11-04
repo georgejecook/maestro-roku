@@ -123,9 +123,7 @@ namespace ml
       ' ? "SC: onCellDidLoseFocus " ; " " ; direction
       m.label.fontKey = "medium,40"
       m.label.color = "#aaaaaa"
-      if direction = 1
-        m.setScale(1, false)
-      end if
+      m.setScale(1, false)
     end function
 
     private function onGainingFocus(direction as integer, fraction as float)
@@ -135,25 +133,23 @@ namespace ml
 
     private function onLosingFocus(direction as integer, fraction as float)
       ' ? "SC: onLosingFocus " ; " " ; direction ; " " ; fraction
-      if direction = 1
-        m.setScale(fraction, false)
-      end if
+      m.setScale(fraction, false)
     end function
 
     private function setScale(fraction as float, isGaining as boolean) as void
-      ' if isGaining
-      '   m.scale = (fraction + 1)
-      ' else
-      '   m.scale = 2 - (fraction + 1)
-      ' end if
-      ' m.poster.width = m.posterSize[0] * m.scale
-      ' m.poster.height = m.posterSize[1] * m.scale
+      if isGaining
+        m.scale = (fraction + 1.2)
+      else
+        m.scale = 1.2 - (fraction + 1.2)
+      end if
+      m.poster.width = m.posterSize[0] * m.scale
+      m.poster.height = m.posterSize[1] * m.scale
 
-      ' if isGaining
-      '   m.poster.opacity = 0.3 + fraction
-      ' else
-      '   m.poster.opacity = 0.3 + (1 - fraction)
-      ' end if
+      if isGaining
+        m.poster.opacity = 0.3 + fraction
+      else
+        m.poster.opacity = 0.3 + (1 - fraction)
+      end if
     end function
   end class
 end namespace
