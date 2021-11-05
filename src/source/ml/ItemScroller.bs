@@ -6,8 +6,6 @@ import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 
-#const use_debug_hacks = false
-
 namespace ml
   class ItemScroller extends mc.BaseClass
 
@@ -105,18 +103,18 @@ namespace ml
     end function
 
     public function cancelScrolling()
-      ? ">>> CANCEL SCROLLING ___ IS"
+      ' ? ">>> CANCEL SCROLLING ___ IS"
 
       'this will force the scrolling to stop repeating if we move to another row
       if m.viewManager.isScrolling
-        ? "FINISH ANIM"
+        ' ? "FINISH ANIM"
         m.finishAnimating()
         m.toggleScrolling(false)
       end if
     end function
 
     public function cancelScrollingDuringPress()
-      ? ">>> CANCEL SCROLLING DURING PRESS"
+      ' ? ">>> CANCEL SCROLLING DURING PRESS"
 
       ? " TI "; m.targetIndex ; " MI "; m.index
       'this will force the scrolling to stop repeating if we move to another row
@@ -513,9 +511,6 @@ namespace ml
         index = 0
       end if
       m.nextIndex = index
-      #if use_debug_hacks
-        mioc.setInstance("_nextIndex", m.nextIndex)
-      #end if
       m.viewManager.updateScrolling(index)
 
       nextRect = m.viewManager.rects[m.nextIndex]
@@ -642,11 +637,6 @@ namespace ml
       end if
 
       m.focusedItem = m.viewManager.visibleItems[index]
-
-      #if use_debug_hacks
-        mioc.setInstance("_index", m.index)
-        mioc.setInstance("_nextIndex", m.nextIndex)
-      #end if
 
       'TODO -note - we need to know what screenPos WAS in a floating scenario!!
       m.indexPosition = m.viewManager.getTargetTranslation(m.index, m.direction, m.screenPos)[m.axes]

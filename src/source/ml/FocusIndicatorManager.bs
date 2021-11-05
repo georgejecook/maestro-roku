@@ -7,8 +7,6 @@ import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusRect.bs"
 
-#const use_debug_hacks = false
-
 namespace ml
   @node("ml_FocusIndicatorManager", "mv_BaseView")
   class FocusIndicatorManager extends mv.BaseView
@@ -62,7 +60,7 @@ namespace ml
     '++ State
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private isIndicatorHidden = true
+    private isIndicatorHidden = false
     private isIndicatorOnTop = true
     private direction = 0
 
@@ -199,14 +197,14 @@ namespace ml
     end function
 
     public function getRowScreenRect(rowIndex as integer, screenPos = invalid as integer, direction = 0 as integer)
-      return m.list.getRowScreenRect(rowIndex, screenPos, direction)
+      return m.list@.getRowScreenRect(rowIndex, screenPos, direction)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ focus index callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function setNextFocusIndex(index as mc.types.array, direction as integer) as void
+    public function setNextFocusIndex(index as mc.types.array, direction as integer) as void
       ' ? "ON NEXT CHANGE" ; index
       m.direction = direction
       m.preprareFocusSettings([m.focusedRowIndex, m.focusedCellIndex], index)

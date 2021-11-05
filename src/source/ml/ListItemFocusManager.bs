@@ -1,40 +1,30 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/view/Animation.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/ListItemScroller.bs"
 
 namespace ml
-  class ItemFocusManager extends mc.BaseClass
+  class ListItemFocusManager extends mc.BaseClass
 
     public focusIndicatorManager as mc.types.node
 
     public viewManager = invalid
     public itemScroller = invalid
-    public nextCell = invalid
-    public cell = invalid
-    public index = 0
-    public indexPosition = 0
-    public nextIndex = 0
-    public nextPosition = 0
+    public componentInfo as ml.ComponentInfo
+    public nextComponentInfo as ml.ComponentInfo
     public direction = 0
     public didStart = false
     public didFinish = false
-    public isRow = false
     public isNotifying = true
 
-    private container
     private moveAnimation
-    private rowIndex
     private delegates
 
-    function new(viewManager as ml.ItemViewManager, scroller as ml.ItemScroller, ownerDelegate = invalid as object, rowIndex = -1 as float)
+    function new(viewManager as ml.ItemViewManager, ownerDelegate = invalid as object)
       super("ItemFocusManager")
       m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
 
-      m.rowIndex = rowIndex
       m.viewManager = viewManager
-      m.itemScroller = scroller
-      m.itemScroller.focusManager = m
-      m.container = viewManager.container
-      m.moveAnimation = scroller.moveAnimation
       m.delegates = [viewManager.owner]
 
       if ownerDelegate <> invalid
@@ -46,23 +36,22 @@ namespace ml
       if owner.delegate <> invalid
         m.delegates.push(owner.delegate)
       end if
-
     end function
 
-    function setFocusPosition(index as integer, indexPosition as integer, nextIndex as integer, nextPosition as integer, direction as integer) as void
-      m.log.info(index, indexPosition, nextIndex, nextPosition, direction)
+    function setItemScroller(itemScroller as ml.ListItemScroller)
+      m.itemScroller = itemScroller
+      m.moveAnimation = itemScroller.moveAnimation
+    end function
+
+    function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer) as void
       ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++++"
       ' ? "SFP I: "; index ; " NI "; nextIndex ; " D "; direction
-      if m.index = index and m.nextIndex = nextIndex and m.direction = direction
+      if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
         return
       end if
-      m.index = index
-      m.indexPosition = indexPosition
-      m.nextIndex = nextIndex
-      m.nextPosition = nextPosition
+      m.componentInfo = componentInfo
+      m.nextComponentInfo = nextComponentInfo
       m.direction = direction
-      m.cell = m.viewManager.getRenderer(m.index)
-      m.nextCell = m.viewManager.getRenderer(m.nextIndex)
       m.didStart = false
       m.didFinish = false
       m.onFocusUpdate(0)
@@ -74,22 +63,6 @@ namespace ml
       if m.didStart and not m.didFinish
         m.onFocusUpdate(fraction)
       end if
-    end function
-
-    function onContainerPositionChange(offset as integer)
-      ' ? "OCPC " ; offset
-      distance = abs(m.nextPosition - m.indexPosition)
-      currentPos = abs(m.indexPosition - offset)
-      if distance <> 0
-        fraction = currentPos / distance
-      else
-        fraction = 0
-      end if
-      ' ? " IP " ; m.indexPosition ;" > NIP "; m.nextPosition
-      ' ? "offset:" ; offset ; " CP: " ; currentPos ; " P " ; m.indexPosition ;" > "; m.nextPosition ; " D:" ; distance ; " C:" ; " F: ";fraction
-
-      m.onFocusUpdate(mc.clamp(fraction, 0, 1))
-      return fraction
     end function
 
     function onFocusUpdate(fraction as float) as void
@@ -124,11 +97,7 @@ namespace ml
         nextName = "gainingFocus"
       end if
 
-      if m.isRow
-        m.focusIndicatorManager.focusedCellPercent = fraction
-      else
-        m.focusIndicatorManager.focusedRowPercent = fraction
-      end if
+      m.focusIndicatorManager.focusedRowPercent = fraction
 
       m.sendEvents(name, nextName, fraction)
     end function
@@ -138,28 +107,24 @@ namespace ml
         direction: m.direction
         fraction: fraction
         name: name
-        index: m.index
+        index: m.componentInfo.component
       }
       nextEvent = {
         direction: m.direction
         fraction: fraction
         name: nextName
-        index: m.nextIndex
+        index: m.nextComponentInfo.contentIndex
       }
-      isSendingFromEvent = m.nextIndex <> m.index
-      if isSendingFromEvent
-        event.rowIndex = m.rowIndex
-      end if
-      nextEvent.rowIndex = m.rowIndex
+      isSendingFromEvent = m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex
+      event.rowIndex = -1
+      nextEvent.rowIndex = -1
 
       'let components know, so they can react
-      if isSendingFromEvent and m.cell <> invalid
-        m.cell.listEvent = event
+      if isSendingFromEvent
+        m.componentInfo.component.listEvent = event
       end if
 
-      if m.nextCell <> invalid
-        m.nextCell.listEvent = nextEvent
-      end if
+      m.nextComponentInfo.component.listEvent = nextEvent
 
       for each delegate in m.delegates
         if isSendingFromEvent
@@ -170,31 +135,17 @@ namespace ml
     end function
 
     function setOwnerNextFocusIndex()
-      if m.isRow
-        m.focusIndicatorManager@.setNextFocusIndex([m.viewManager.row.index, m.nextIndex], m.direction)
-        ' m.focusIndicatorManager.nextFocusIndex = [m.viewManager.row.index, m.nextIndex]
-      else
-        comp = m.viewManager.getRenderer(m.nextIndex)
-        if comp <> invalid
-          m.focusIndicatorManager@.setNextFocusIndex([comp.index, comp.focusedCellIndex], m.direction)
-          ' m.focusIndicatorManager.nextFocusIndex = [comp.index, comp.focusedCellIndex]
-        end if
+      if m.nextComponentInfo <> invalid
+        index = [m.nextComponentInfo.contentIndex, m.nextComponentInfo.component.focusedCellIndex]
+        m.focusIndicatorManager@.setNextFocusIndex(index, m.direction)
       end if
-
     end function
 
     function setOwnerIndexes()
-      if m.isRow
-        m.focusIndicatorManager.focusedCellIndex = m.nextIndex
-        m.viewManager.row.focusedCellIndex = m.nextIndex
-      else
-        m.focusIndicatorManager.focusedRowIndex = m.nextIndex
-        comp = m.viewManager.getRenderer(m.nextIndex)
-        if comp <> invalid
-          m.focusIndicatorManager.focusedCellIndex = comp.focusedCellIndex
-        end if
+      m.focusIndicatorManager.focusedRowIndex = m.nextComponentInfo.contentIndex
+      if m.nextComponentInfo <> invalid
+        m.focusIndicatorManager.focusedCellIndex = m.nextComponentInfo.component.focusedCellIndex
       end if
-
     end function
 
   end class

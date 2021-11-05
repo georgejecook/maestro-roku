@@ -30,8 +30,8 @@ namespace ml
         color: "#555555"
       })
       m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+        scaleRotateCenter: [m.posterSize[0] / 2, m.posterSize[1] / 2]
         translation: [0, 0]
-        scaleRotateCenter: [0, 0]
         loadingBitmapUri: "http://via.placeholder.com/370x300"
         failedBitmapUri: "http://via.placeholder.com/370x300"
         uri: "http://via.placeholder.com/370x300"
@@ -138,10 +138,11 @@ namespace ml
 
     private function setScale(fraction as float, isGaining as boolean) as void
       if isGaining
-        m.scale = (fraction + 1.2)
+        m.scale = (fraction + 1.05)
       else
-        m.scale = 1.2 - (fraction + 1.2)
+        m.scale = 1.05 - (fraction + 1.05)
       end if
+      m.scale = m.scale * 0.8
       m.poster.width = m.posterSize[0] * m.scale
       m.poster.height = m.posterSize[1] * m.scale
 

@@ -1,13 +1,11 @@
 import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/ListItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/ml/ListItemFocusManager.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusRect.bs"
-
-#const use_debug_hacks = false
 
 namespace ml
   @node("ml_List", "mv_BaseView")
@@ -85,7 +83,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private viewManager as ml.ListItemViewManager
-    private focusManager as ml.ItemFocusManager
     private itemScroller as ml.ListItemScroller
     private sourceFocusRect as object
     private targetFocusRect as object
@@ -130,12 +127,8 @@ namespace ml
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
 
-      #if use_debug_hacks
-        mioc.setInstance("listContainer", m.rowsGroup)
-      #end if
-      m.itemScroller = new ml.ListItemScroller(m.viewManager)
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.rowEvents)
-      m.focusManager.name = "LIST FM"
+      focusManager = new ml.ListItemFocusManager(m.viewManager, m.rowEvents)
+      m.itemScroller = new ml.ListItemScroller(m.viewManager, focusManager)
       m.content = invalid
     end function
 

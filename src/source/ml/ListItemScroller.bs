@@ -7,8 +7,6 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 
-#const use_debug_hacks = false
-
 namespace ml
   class ListItemScroller extends mc.BaseClass
 
@@ -37,7 +35,6 @@ namespace ml
     public focusedItem as mc.types.node
 
     public index = 0
-    public indexPosition = 0
     public nextIndex = 0
 
     public focusedIndex = 0
@@ -62,10 +59,11 @@ namespace ml
     'flow focus state
     private flowFocusInfo = -1
 
-    function new(viewManager as ml.ItemViewManager)
+    function new(viewManager as ml.ItemViewManager, focusManager as ml.ListItemFocusManager)
       super("ItemScroller")
       m.viewManager = viewManager
       viewManager.itemScroller = m
+
       m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
       m.container = m.viewManager.container
 
@@ -73,6 +71,9 @@ namespace ml
       m.viewPortEventNotifier = new ml.ViewPortEventNotifier(viewManager)
       m.moveAnimation = new mv.animations.Move(m.container, 1, m.container.translation, m.container.translation)
       m.moveAnimation.observeFraction(m.onAnimationFractionChange, m)
+
+      focusManager.setItemScroller(m)
+      m.focusManager = focusManager
     end function
 
     public function onViewManagerUpdate()
@@ -268,7 +269,6 @@ namespace ml
 
       m.isFinishingMove = false
 
-
       if m.componentInfos.count() = 0
         return false
       end if
@@ -371,7 +371,7 @@ namespace ml
       else
         fraction = 0
       end if
-      ' ? ">>> F " ; fraction ; " Ss " ; m.activeScrollLocation ; " Ts " ; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position
+      ' ? ">>> F " ; fraction ; " ASL "  ; m.componentInfo.index ; ": " ; m.activeScrollLocation ; " NSL " ; m.nextComponentInfo.index ; ": "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position
       return fraction
     end function
 
@@ -379,6 +379,7 @@ namespace ml
     function onAnimationFractionChange(fraction as float) as void
       if fraction = 1
         m.focusManager.onFocusAnimationUpdate(1)
+        ? " FINISHED AT NEXT INDEX " ; m.nextIndex
         m.setFocusIndex(m.nextIndex, false, false)
         m.toggleScrolling(false)
       else if (m.isMovingMultiple) or m.isFinishingMove
@@ -386,6 +387,7 @@ namespace ml
 
         if fraction >= 1
           m.focusManager.onFocusAnimationUpdate(1)
+          ? " SCROLLED TO NEXT INDEX " ; m.index + m.direction
           m.setFocusIndex(m.index + m.direction, true)
         else
           m.focusManager.onFocusAnimationUpdate(fraction)
@@ -474,7 +476,7 @@ namespace ml
 
       m.toggleScrolling(true)
       'TODO - make the focus manager take component info objects
-      m.focusManager.setFocusPosition(fromInfo.contentIndex, 0, toInfo.contentIndex, 0, direction)
+      m.focusManager.setComponentInfo(fromInfo, toInfo, direction)
       m.flowFocusInfo = toInfo
       fromComponent = fromInfo.component
       fromSubRowIndex = fromComponent.focusedCellIndex
@@ -519,7 +521,6 @@ namespace ml
         m.activeOffset = 0
         m.activeScrollLocation = 0
       end if
-      ' m.activeOffset = m.nextActiveOffset
     end function
 
     function setNextComponentInfo(info as ml.ComponentInfo) as void
@@ -545,8 +546,10 @@ namespace ml
     function setTargetComponentInfo(info as ml.ComponentInfo) as void
       m.targetComponentInfo = info
       if info <> invalid
+        ? " >>>>>>>>>>>>>>>> Target is " ; info.index
         m.targetIndex = info.index
       else
+        ? " >>>>>>>>>>>>>>>> Target is invalid "
         m.targetIndex = -1
       end if
     end function
@@ -587,16 +590,14 @@ namespace ml
 
       m.focusedItem = m.viewManager.visibleItems[m.componentInfo.contentIndex]
 
-      'TODO -note - we need to know what screenPos WAS in a floating scenario!!
-      m.indexPosition = m.viewManager.getTargetTranslation(m.index, m.direction, m.screenPos)[m.axes]
-
       m.viewManager.updateRenderedComponents(m.direction, m.index)
 
       m.viewPortEventNotifier.notifyViewportEvents(m.index, m.nextIndex, m.direction, m.screenPos, true)
 
       if notifyFocusManager
-        m.focusManager.setFocusPosition(m.index, m.indexPosition, m.nextIndex, m.nextPosition, m.direction)
+        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.direction)
       end if
+
       if isMoving
         m.setFocusOnRenderer(true, m.nextIndex)
       else
@@ -610,13 +611,11 @@ namespace ml
       ' m.activeOffset = m.nextActiveOffset
       m.setNextComponentInfo(m.componentInfos[index])
 
-      m.indexPosition = m.viewManager.getTargetTranslation(m.index, m.direction, m.screenPos)[m.axes]
-
       ' m.viewManager.updateRenderedComponents(m.direction, m.index)
       ' m.notifyViewportEvents(true)
 
       if notifyFocusManager
-        m.focusManager.setFocusPosition(m.index, m.indexPosition, m.nextIndex, m.nextPosition, m.direction)
+        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.direction)
       end if
       m.focusManager.onFocusAnimationUpdate(1)
 
