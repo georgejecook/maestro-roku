@@ -50,9 +50,6 @@ namespace ml
     public moveAnimation
     private animSpeed = 0
 
-    private activeOffset = 0
-    private nextActiveOffset = 0
-
     private activeScrollLocation = 0
     private nextScrollLocation = 0
 
@@ -309,7 +306,8 @@ namespace ml
       ? "//// 2. Ascertain offset"
       '////////////////////////////////////////////////////////////////////////
       translation = m.container.translation
-      translation[m.axes] = targetComponentInfo.getScrollOffsetForDirection(direction)
+      ' translation[m.axes] = targetComponentInfo.getScrollOffsetForDirection(direction)
+      translation[m.axes] = targetComponentInfo.getScrollOffset()
 
       m.scrollStartIndex = m.index
 
@@ -378,21 +376,24 @@ namespace ml
 
     function onAnimationFractionChange(fraction as float) as void
       if fraction = 1
-        m.focusManager.onFocusAnimationUpdate(1)
         ? " FINISHED AT NEXT INDEX " ; m.nextIndex
+        m.focusManager.onFocusAnimationUpdate(1)
         m.setFocusIndex(m.nextIndex, false, false)
         m.toggleScrolling(false)
       else if (m.isMovingMultiple) or m.isFinishingMove
         fraction = m.getCurrentIndexFraction(m.container.translation[m.axes])
 
         if fraction >= 1
+          ? "CCCC "
           m.focusManager.onFocusAnimationUpdate(1)
-          ? " SCROLLED TO NEXT INDEX " ; m.index + m.direction
-          m.setFocusIndex(m.index + m.direction, true)
+          ? " SCROLLED TO NEXT INDEX " ; m.nextIndex ; " D " ; m.direction' + m.direction
+          m.setFocusIndex(m.nextIndex, true)
         else
+          ? "DDDDD " ; fraction ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
           m.focusManager.onFocusAnimationUpdate(fraction)
         end if
       else
+        ? "EEEE "
         'simple one keypress case
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
@@ -427,7 +428,8 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = componentInfo.getScrollOffsetForDirection(m.direction)
+      translation[m.axes] = componentInfo.getScrollOffset()
+      ' translation[m.axes] = componentInfo.getScrollOffsetForDirection(m.direction)
 
       isMoveRequired = translation[m.axes] <> m.container.translation[m.axes]
       'can only be animated
@@ -514,11 +516,10 @@ namespace ml
       m.componentInfo = info
       if info <> invalid
         m.index = info.index
-        m.activeOffset = info.getScreenPositionForDirection(m.direction)
-        m.activeScrollLocation = info.getScrollOffsetForDirection(m.direction)
+        m.activeScrollLocation = info.getScrollOffset()
+        ' m.activeScrollLocation = info.getScrollOffsetForDirection(m.direction)
       else
         m.index = -1
-        m.activeOffset = 0
         m.activeScrollLocation = 0
       end if
     end function
@@ -527,17 +528,21 @@ namespace ml
       if info = invalid
         m.nextComponentInfo = invalid
         m.nextIndex = -1
-        m.nextActiveOffset = 0
         m.nextScrollLocation = 0
         return
       end if
 
-      'FIXME - This is probably wrong
-      if info.contentIndex <> m.nextIndex
-        m.nextActiveOffset = info.getScreenPositionForDirection(m.direction)
+      if info.index <> m.nextIndex
         m.nextIndex = info.index
-        m.nextScrollLocation = info.getScrollOffsetForDirection(m.direction)
-        m.viewManager.updateScrolling(info.contentIndex)
+        m.nextScrollLocation = info.getScrollOffset()
+        ' m.nextScrollLocation = info.getScrollOffsetForDirection(m.direction)
+
+        if m.nextComponentInfo = invalid or info.contentIndex <> m.nextComponentInfo.contentIndex
+          m.viewManager.updateScrolling(info.contentIndex)
+        else
+          'we scrolled to a sub-row
+          ? "setNextComponentInfo - not (yet) reporting subrow move on CI "; info.contentIndex ; " SI "; info.componentIndex
+        end if
       end if
 
       m.nextComponentInfo = info
@@ -575,7 +580,6 @@ namespace ml
 
       if index = -1
         m.setComponentInfo(m.componentInfos[0])
-        ' m.activeOffset = m.nextActiveOffset
         m.setNextComponentInfo(m.componentInfos[0])
         ' m.setNextIndex(0)
       else
@@ -584,7 +588,6 @@ namespace ml
         end if
 
         m.setComponentInfo(m.componentInfos[index])
-        ' m.activeOffset = m.nextActiveOffset
         m.setNextComponentInfo(m.componentInfos[m.index + m.direction])
       end if
 
@@ -608,7 +611,6 @@ namespace ml
     function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean) as void
       index = mc.clamp(index, 0, m.numberOfComponents)
       m.setComponentInfo(m.componentInfos[index])
-      ' m.activeOffset = m.nextActiveOffset
       m.setNextComponentInfo(m.componentInfos[index])
 
       ' m.viewManager.updateRenderedComponents(m.direction, m.index)
@@ -630,18 +632,16 @@ namespace ml
 
     function setFocusOnRenderer(isMoving as boolean, index = invalid as integer) as void
       m.log.info("setFocusOnRenderer", isMoving, index)
-      component = invalid
       ' if isMoving
       '   return
       ' end if
-      if index <> invalid
-        component = m.viewManager.getRenderer(index)
-      else
-        component = m.viewManager.getRenderer(m.index)
+      if index = invalid
+        index = m.index
       end if
+      componentInfo = m.componentInfos[index]
 
-      if component <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
-        mv.setFocus(component)
+      if componentInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
+        mv.setFocus(componentInfo.component)
       else
         m.log.warn("not setting focus on", index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if

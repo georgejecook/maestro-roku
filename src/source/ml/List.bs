@@ -390,23 +390,20 @@ namespace ml
         return false
       end if
       m.log.verbose("onKeyPressUp")
-      ? " UP"
 
       'FIXME - add ability to change of direction, mid-animation
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
-      ' if m.itemScroller.direction = -1 and isScrolling
       if isScrolling
         m.log.info("was already scrolling - ignoring")
         ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        'TODO - improve this
         return true
       end if
 
       if m.itemScroller.canMoveInDirection(-1)
         result = m.itemScroller.moveFromPress(-1, false)
-        ? " GOING UP" ; result
         return result
       else
-        ? " CANNOT GO UP"
         return false
       end if
     end function
@@ -415,11 +412,12 @@ namespace ml
       if not m.top.visible
         return false
       end if
+      'FIXME - add ability to change of direction, mid-animation
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus or m.isScrolling
-      ' if m.itemScroller.direction = -1 and isScrolling
       if isScrolling
         m.log.info("Cannot select while scrolling")
         ? " CANNOT select while view is scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        'TODO - improve this
         return true
       end if
 

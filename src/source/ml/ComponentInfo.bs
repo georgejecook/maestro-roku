@@ -35,12 +35,22 @@ namespace ml
 
     public function getScrollOffsetForDirection(direction as integer) as integer
       position = m.positionsByDirection[direction + 1]
-      return -position.position + position.screenPosition
+      return - position.position + position.screenPosition
     end function
 
     public function getScreenPositionForDirection(direction as integer) as integer
       position = m.positionsByDirection[direction + 1]
       return position.screenPosition
+    end function
+
+    public function getScrollScreenPosition() as integer
+      position = m.positionsByDirection[0]
+      return position.screenPosition
+    end function
+
+    public function getScrollOffset() as integer
+      position = m.positionsByDirection[0]
+      return - position.position + position.screenPosition
     end function
 
   end class
@@ -49,6 +59,6 @@ end namespace
 
 namespace ml.ComponentInfoUtils
   function ComponentInfoFromAA(info as mc.types.assocarray)
-    return new ml.ComponentInfo(info.focusSettings, info.positionsByDirection, info.isFloatAllowed)
+    return new ml.ComponentInfo(info.focusSettings, info.positionsByDirection, info.isFloatAllowed, info.componentIndex)
   end function
 end namespace
