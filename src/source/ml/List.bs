@@ -1,11 +1,11 @@
 import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/ListItemViewManager.bs"
-import "pkg:/source/ml/ListItemFocusManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
-import "pkg:/source/ml/FocusRect.bs"
+import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
 namespace ml
   @node("ml_List", "mv_BaseView")
@@ -127,7 +127,7 @@ namespace ml
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
 
-      focusManager = new ml.ListItemFocusManager(m.viewManager, m.rowEvents)
+      focusManager = new ml.ItemFocusManager(m.viewManager, m.rowEvents)
       m.itemScroller = new ml.ListItemScroller(m.viewManager, focusManager)
       m.content = invalid
     end function
@@ -215,7 +215,7 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public api
+    '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function forceUpdate()
@@ -236,92 +236,6 @@ namespace ml
         return rowItem.getChild(index)
       end if
       return invalid
-    end function
-
-    public function getRowRenderer(index as integer)
-      return m.viewManager.getRenderer(index)
-    end function
-
-    public function getCellRenderer(rowIndex as integer, cellIndex as integer)
-      row = m.getRowRenderer(rowIndex)
-
-      if row <> invalid
-        return row@.getRenderer(cellIndex)
-      end if
-
-      return invalid
-    end function
-
-    public function getCellScreenRect(rowIndex as integer, cellIndex as integer, direction = 1 as integer, rowScreenPos = invalid as integer, cellScreenPos = invalid as integer)
-
-      rowScreenRect = m.getRowScreenRect(rowIndex, rowScreenPos, direction)
-
-      row = m.getRowRenderer(rowIndex)
-      if row <> invalid
-        rect = row@.getScreenRect(cellIndex, cellScreenPos, direction)
-        if rect = invalid
-          ' ? " NO SCREEN RECT FOR "; cellIndex
-          return rowScreenRect
-        end if
-        return rect
-      else
-        ' ? "NO ROW FOR index "; rowIndex
-      end if
-
-      return invalid
-    end function
-
-    'when we know we are doing a floating rect, we can just get the cell position
-    public function getOnScreenCellRect(rowIndex as integer, cellIndex as integer)
-      row = m.getRowRenderer(rowIndex)
-      size = row@.getItemSize(cellIndex)
-      return m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
-    end function
-
-    public function isCellOnScreen(rowIndex as integer, cellIndex as integer, isSource as boolean)
-      row = m.getRowRenderer(rowIndex)
-      if not isSource and m.itemScroller.direction = -1 and cellIndex < 2 and row <> invalid and row.isMultiRow = true
-        return false
-      end if
-
-      if row <> invalid
-        size = row@.getItemSize(cellIndex)
-        rect = m.convertBoundToScreenRect(cellIndex, m.getCellRenderer(rowIndex, cellIndex), size)
-        ' if isSource or (rect <> invalid and rect.screenPos = m.activeScreenPos)
-        if isSource or (rect <> invalid)
-          return rect <> invalid and rect.translation[1] > 0 and rect.translation[1] + size[1] < m.height
-        else
-          return false
-        end if
-      else
-        return false
-      end if
-
-    end function
-
-    'when we know we are doing a floating rect, we can just get the cell position
-    public function getOnScreenRowRect(rowIndex as integer)
-      rowSettings = ml.listMixin.getRowSettings(m.content, rowIndex)
-      return m.convertBoundToScreenRect(rowIndex, m.getRowRenderer(rowIndex), [m.width, rowSettings.height])
-    end function
-
-    private function convertBoundToScreenRect(index as integer, cell as mc.types.node, size as mc.types.array)
-      if cell <> invalid and size <> invalid
-        'bs:disable-next-line
-        bounds = cell.sceneBoundingRect()
-        return {
-          size: size
-          translation: [bounds.x, bounds.y]
-          index: index
-          screenPos: 0
-        }
-      else
-        return invalid
-      end if
-    end function
-
-    public function getRowScreenRect(rowIndex as integer, screenPos = invalid as integer, direction = 0 as integer)
-      return m.viewManager.getScreenRect(rowIndex, screenPos, direction)
     end function
 
     public function moveToRow(index as integer, animated as boolean)
@@ -350,6 +264,24 @@ namespace ml
           m.focusIndicatorManager@.setNextIndex(indices, 0)
         end if
       end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Renderer Helpers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function getRowRenderer(index as integer)
+      return m.viewManager.getRenderer(index)
+    end function
+
+    public function getCellRenderer(rowIndex as integer, cellIndex as integer)
+      row = m.getRowRenderer(rowIndex)
+
+      if row <> invalid
+        return row@.getRenderer(cellIndex)
+      end if
+
+      return invalid
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

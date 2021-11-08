@@ -4,7 +4,11 @@ namespace ml
     public screenPosition = 0
     function new(position as integer, screenPosition as integer)
       m.position = position
-      m.screenPosition = screenPosition
+      if screenPosition = invalid or screenPosition = -1
+        m.screenPosition = 0
+      else
+        m.screenPosition = screenPosition
+      end if
     end function
   end class
 
@@ -53,12 +57,29 @@ namespace ml
       return - position.position + position.screenPosition
     end function
 
+    public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer) as boolean
+      if not m.isFloatAllowed
+        return false
+      end if
+
+      if direction = -1 or direction = 0
+        lastViableOffset = m.getScrollOffsetForDirection(-1)
+        ? " IFP UP SO " ; scrollOffset ; " MO "; scrollOffset - maxOffset ; " O "; lastViableOffset
+        return lastViableOffset < scrollOffset
+      else
+        lastViableOffset = m.getScrollOffsetForDirection(1)
+        ? " IFP DOWN SO " ; scrollOffset ; " MO "; scrollOffset + maxOffset ; " O "; lastViableOffset
+        return lastViableOffset > scrollOffset and lastViableOffset < scrollOffset + maxOffset
+      end if
+
+    end function
+
   end class
 
 end namespace
 
 namespace ml.ComponentInfoUtils
-  function ComponentInfoFromAA(info as mc.types.assocarray)
+  function componentInfoFromAA(info as mc.types.assocarray)
     return new ml.ComponentInfo(info.focusSettings, info.positionsByDirection, info.isFloatAllowed, info.componentIndex)
   end function
 end namespace

@@ -3,6 +3,7 @@ import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   @node("ml_HorizontalRow", "ml_BaseRow")
@@ -68,8 +69,8 @@ namespace ml
     private function createManagers()
       m.log.info("createManagers")
       m.viewManager = new ml.RowItemViewManager(m.owner, m.top, m.cellsGroup, m.componentPool, 0, m.width)
-      m.itemScroller = new ml.RowItemScroller(m.viewManager)
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.owner.cellEvents, m.index)
+      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.owner.cellEvents, m.index)
+      m.itemScroller = new ml.RowItemScroller(m.viewManager, m.focusManager)
       m.focusManager.name = "ROW FM "
       m.focusManager.isRow = true
     end function
@@ -146,15 +147,6 @@ namespace ml
 
     public override function getRect(index as integer, useScreenCoords = false as boolean)
       return m.viewManager.getRect(index, useScreenCoords)
-    end function
-
-    public override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = m.viewManager.getScreenRect(index, screenPos, direction)
-      if rect <> invalid
-        rect.translation[0] += m.settings.contentOffset[0]
-        rect.translation[1] += m.contentGroup.translation[1]
-      end if
-      return rect
     end function
 
     public override function onFlowFocusFraction(fraction as float)

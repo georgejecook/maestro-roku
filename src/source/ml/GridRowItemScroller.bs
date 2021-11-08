@@ -1,25 +1,14 @@
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class GridRowItemScroller extends ml.ItemScroller
 
-    public isDoingLongPress = false
     public currentRowIndex = 0
 
-    function new(viewManager as ml.GridRowItemViewManager)
-      super(viewManager, 0)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function canMoveRowUpDown(direction as integer)
-      '      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
-      canMove = m.viewManager.numberOfItems > 0 and ((direction = -1 and m.index >= m.viewManager.numCols) or (direction = 1 and m.index < m.viewManager.numberOfItems - m.viewManager.numCols))
-      '      ? "CAN MOVE ROW UP DOWN" ; canMove
-      return canMove
+    function new(viewManager as ml.GridRowItemViewManager, focusManager as ml.ItemFocusManager)
+      super("GridRowItemScroller", viewManager, focusManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -35,14 +24,7 @@ namespace ml
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
-      m.toggleScrolling(true)
-      ' ? "GRID MOVE USING FLOW ANIM " ; m.animSpeed
-      m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
-      m.flowFocusIndex = nextIndex
-      m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
-    end function
-
+    'For a grid row, we can only move to the end of the current row
     override function moveToEnd(direction as integer, animated = true as boolean, fast = false as boolean) as boolean
 
       if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
@@ -50,7 +32,6 @@ namespace ml
         return false
       end if
 
-      m.isDoingLongPress = true
       if direction = -1
         index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
         m.moveToIndex(index, animated, fast, -1, true)
@@ -61,114 +42,20 @@ namespace ml
       return true
     end function
 
-    override function finishAnimating() as void
-      super.finishAnimating()
-    end function
-
-    protected override function setIndex(index as integer)
-      super.setIndex(index)
-      m.currentRowIndex = fix(index / m.viewManager.numCols)
-    end function
-
-    override function onFlowFocusFraction(fraction as float)
-      if fraction = 1
-        ' ? "FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex ; " i  "; m.index ; " FFI "; m.flowFocusIndex
-        m.focusManager.onFocusAnimationUpdate(1)
-        m.setIndex(m.flowFocusIndex)
-        if m.isDoingLongPress
-          ' m.isDoingLongPress = m.move(m.direction)
-          ' m.moveUsingFlowAnim(m.flowFocusIndex, m.index + m.direction, m.direction)
-          m.continueScrolling()
-        else
-          m.setTargetIndex(-1)
-          m.setFocusOnRenderer(true)
-          m.toggleScrolling(false)
-        end if
+    protected override function setComponentInfo(info as ml.ComponentInfo)
+      super.setComponentInfo(info)
+      if info <> invalid
+        m.currentRowIndex = fix(info.index / m.viewManager.numCols)
       else
-        m.focusManager.onFocusAnimationUpdate(fraction)
+        m.currentRowIndex = -1
       end if
     end function
 
-    override function continueScrolling() as void
-      ' ? "CONTINUE - " ; m.direction ; " " ; m.isDoingLongPress
-      if m.isDoingLongPress
-        if m.direction = -1
-          index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
-        else
-          index = ((fix(m.index / m.viewManager.numCols) * m.viewManager.numCols) + m.viewManager.numCols) - 1
-        end if
-
-        if m.index = index
-          m.isDoingLongPress = false
-        end if
-
-        if m.isDoingLongPress
-          m.isDoingLongPress = m.move(m.direction)
-        end if
-        if not m.isDoingLongPress
-          m.setTargetIndex(-1)
-          m.setFocusOnRenderer(true)
-          m.toggleScrolling(false)
-        end if
-      end if
+    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo) as ml.ComponentInfo
+      colIndex = m.index mod m.viewManager.numCols
+      cellIndex = (componentInfo.componentIndex * m.viewManager.numCols) + colIndex
+      return m.viewManager.cellInfos[cellIndex]
     end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ list animation hooks
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function setNextMoveIndex(index as integer, direction as integer, notifyFocusManager = true as boolean)
-      m.direction = direction
-      m.setNextIndex(index)
-      m.toggleScrolling(true)
-      '  ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      '  ? "==================================="
-      '      ? "Setting next move index " ; index ; " d "; direction
-      '      ? "==================================="
-      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      if notifyFocusManager
-        m.focusManager.setFocusPosition(m.index, 0, index, 0, direction)
-      end if
-    end function
-
-    public function updateMoveFraction(fraction as float, focusOnRenderer as boolean)
-      ' ? "+>+>+ updateMoveFraction " ; fraction ; " " ; m.index ; " > " ; m.nextIndex
-      if fraction = 1
-        '      ? "FINISHED LIST CONTROLLED MOVE "
-        m.focusManager.onFocusAnimationUpdate(1)
-        m.setIndex(m.nextIndex)
-        if focusOnRenderer
-          m.setFocusOnRenderer(false)
-        end if
-        m.toggleScrolling(false)
-      else
-        m.focusManager.onFocusAnimationUpdate(fraction)
-      end if
-    end function
-
-
-    protected override function processChanges(changes as mc.types.array) as void
-      ' super.processChanges(changes)
-      ' m.moveFromPress(- m.viewManager.content.settings.numColumns, false)
-    end function
-
-    public override function cancelScrolling()
-      m.isDoingLongPress = false
-      super.cancelScrolling()
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ private impl
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function ceiling(x as float) as integer
-      i = int(x)
-      if i < x
-        i = i + 1
-      end if
-      return i
-    end function
-
 
   end class
 end namespace

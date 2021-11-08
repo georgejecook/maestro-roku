@@ -42,7 +42,9 @@ namespace ml
       m.rects = []
       m.visibleComponents = []
       m.visibleItems = []
+      m.cellInfos = []
 
+      m.rowInfos = invalid
       if m.content = invalid
         return
       end if
@@ -50,26 +52,34 @@ namespace ml
       index = 0
       ' m.contentGroup.translation = [0, 0]
 
-      offset = 0
+      x = 0
       for each item in m.content.getChildren(-1, 0)
         ' ? ">>>> laying out ", item.title
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-        if m.axes = 0
-          translation = [offset, 0]
-        else
-          translation = [0, offset]
-        end if
+        xSpace = settings.space
+
         m.rects.push({
-          translation: translation,
+          translation: [x, 0],
           size: settings.size
           index: index
           rowIndex: m.row.index
           visible: true
         })
+        maxPos = m.maxPos - settings.size[1] - xSpace
+
+        positions = [
+          new ml.ComponentPosition(x, 0) 'left
+          new ml.ComponentPosition(x, 0) 'fixed
+          new ml.ComponentPosition(maxPos, 0) 'right (float)
+        ]
+
+        cellInfo = new ml.ComponentInfo(settings, positions, true, index)
+        m.cellInfos.push(cellInfo)
+
         'TODO - for now, no vis options for rows children..
         m.visibleItems.push(item)
 
-        offset += settings.size[m.axes] + settings.space
+        x += settings.size[m.axes] + xSpace
         index++
       end for
 
@@ -209,34 +219,6 @@ namespace ml
       }
       ' ? "++++ row - listEvent " ; formatJson(m.row.listEvent)
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
-    end function
-
-    override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = super.getScreenRect(index, screenPos, direction)
-
-      if rect <> invalid
-        if screenPos <> invalid
-          rect.translation[1] += screenPos
-        else
-          rect.translation[1] += m.settings.screenPos
-        end if
-      end if
-      return rect
-    end function
-
-    override function getNextFlowScreenPosition(index as integer, direction as integer, screenPos as integer)
-      if m.isFlowSupported = true
-        itemRect = m.rects[index]
-        if itemRect <> invalid
-          screenPos = m.getScreenPositionForItem(itemRect, direction, false, screenPos)
-        end if
-        if direction = -1
-          'TODO
-          return invalid
-        end if
-      end if
-
-      return invalid
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)

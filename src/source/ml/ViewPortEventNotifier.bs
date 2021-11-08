@@ -41,7 +41,9 @@ namespace ml
       m.RCMap = m.viewManager.getComponentsInViewPort(- m.container.translation[m.axes])
 
       if isMoving and nextIndex <> index
-        nextTranslation = m.viewManager.getTargetTranslation(nextIndex, direction, screenPos)
+        'TODO - update to use componentInfos
+        info = m.viewManager.cellInfos[index]
+        nextTranslation = info.getScrollOffsetForDirection(direction)
         m.nextRCMap = m.viewManager.getComponentsInViewPort(- nextTranslation[m.axes])
       else
         m.nextRCMap = {}

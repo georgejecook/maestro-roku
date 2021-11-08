@@ -1,6 +1,7 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ItemScroller.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   class ItemViewManager extends mc.BaseClass
@@ -14,6 +15,8 @@ namespace ml
     public owner = invalid
     public delegate = invalid
     public contentGroup = invalid
+    public cellInfos = []
+    private rowInfos as mc.types.array
 
     'content
     public content = invalid
@@ -260,8 +263,16 @@ namespace ml
       return false
     end function
 
-    function getRenderedIndexes(direction as integer, index as integer)
-      indexPos = abs(m.getTargetTranslation(index, direction)[m.axes])
+    function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
+      'TODO - upgrade to use componentInfos
+      info = m.cellInfos[index]
+      if info = invalid
+        return {
+          startIndex: -1
+          endIndex: -1
+        }
+      end if
+      indexPos = abs(info.getScrollOffsetForDirection(direction))
 
       if direction < 0
         beforePos = indexPos - m.lookAheadDistance
@@ -337,27 +348,6 @@ namespace ml
     '++ itemRect positions
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function getTargetTranslation(index as integer, direction as integer, screenPos = invalid as boolean)
-      itemRect = m.rects[index]
-
-      if itemRect = invalid
-        m.log.warn("no itemRect for index", index)
-        return [-1, -1]
-      end if
-
-      screenPos = m.getScreenPositionForItem(itemRect, direction, not m.itemScroller.isFloatingFocus, screenPos)
-
-      targetPos = m.getOffsetForScreenPosition(itemRect, screenPos)
-      ' ? " POS " ; targetPos ; " dir " ; m.direction ; " sp " ; screenPos ; " it " ; itemRect.translation[m.axes]
-
-      if m.axes = 0
-        return [- targetPos, m.container.translation[1]]
-      else
-        return [m.container.translation[0], - targetPos]
-      end if
-
-    end function
-
     function getFlowScreenPosition(index as integer, direction as integer)
       itemRect = m.rects[index]
 
@@ -378,31 +368,6 @@ namespace ml
       return invalid
     end function
 
-    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, isFixed = true as boolean, screenPos = invalid as integer)
-
-      if itemRect <> invalid and itemRect.screenPos <> invalid and itemRect.screenPos <> -1
-        ' ? " USING ITEM RECT SCREEN POS"
-        screenPos = itemRect.screenPos
-      end if
-      if screenPos = invalid and itemRect <> invalid
-        if m.direction = -1
-          screenPos = m.minPos
-        else if m.direction = 1
-          if isFixed
-            screenPos = m.minPos
-          else
-            screenPos = m.maxPos - itemRect.width
-          end if
-        end if
-      end if
-
-      if screenPos = invalid
-        screenPos = m.minPos
-      end if
-
-      return screenPos
-    end function
-
     function getOffsetForScreenPosition(itemRect as object, screenPos as integer)
       if itemRect <> invalid
         return itemRect.translation[m.axes] - screenPos
@@ -414,27 +379,20 @@ namespace ml
     function getIndexAtPosition(position as integer, direction as integer)
       p = abs(position)
       i = 0
-      skipped = 1
-      for i = 0 to m.numberOfItems
-        itemRect = m.rects[i]
-        if itemRect <> invalid and itemRect.visible
-          'the offset is already factored in
-          itemPos = m.getOffsetForScreenPosition(itemRect, 0)
-          ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
-          if itemPos > p
-            ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
-            return mc.clamp(i - skipped, 0, m.numberOfItems - 1)
-          end if
-          skipped = 1
-        else
-          ' ? " SKIPPING HIDDEN ITEM "; i
-          skipped++
+      for i = 0 to m.cellInfos.count() - 1
+        info = m.cellInfos[i]
+        'the offset is already factored in
+        itemPos = info.getScrollOffset()
+        ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
+        if itemPos > p
+          ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
+          return mc.clamp(i - 1, 0, m.numberOfItems - 1)
         end if
       end for
       ' end ifk
 
       'we must be at the end! -return last item
-      index = mc.clamp(i - skipped, 0, m.numberOfItems - 1)
+      index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
       ' ? "+++++!!! MATCHED ITEM INDEX "; index
       return index
     end function
@@ -467,20 +425,16 @@ namespace ml
       return screenRect
     end function
 
-    function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = m.getRect(index)
-      if rect <> invalid and rect.screenPos <> invalid
-        rect.translation[m.axes] += rect.screenPos
-      end if
-      return rect
-    end function
-
     function getFocusSettings()
-      return m.content.focusSettings
+      if m.settings <> invalid
+        return m.settings.focusSettings
+      else
+        return invalid
+      end if
     end function
 
     function getItemSettings()
-      return m.content.settings
+      return m.settings
     end function
 
     function getItemSize(index as integer) as mc.types.array
@@ -516,6 +470,21 @@ namespace ml
 
     protected function onContentItemsChange(changes as mc.types.array)
       'override me
+    end function
+
+    protected function getRowInfos(yOffset as integer) as mc.types.array
+      if m.rowInfos = invalid
+        focusSettings = m.getFocusSettings()
+
+        screenPos = focusSettings.screenPos
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'fixed
+          new ml.ComponentPosition(yOffset, screenPos) 'down
+        ]
+        m.rowInfos = [new ml.ComponentInfo(focusSettings, positions)]
+      end if
+      return m.rowInfos
     end function
 
   end class

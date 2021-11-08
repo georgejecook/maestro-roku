@@ -5,6 +5,7 @@ import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
 namespace ml
   @node("ml_BaseRow", "mv_BaseView")
@@ -56,7 +57,7 @@ namespace ml
     protected wasHidden = false
     protected wasFocusable = true
     protected settings
-    protected rowInfos as mc.types.array
+    protected rowInfos = []
 
     function new()
       super(m.top.subType())
@@ -127,11 +128,15 @@ namespace ml
 
 
     public function onJumpToIndex(index as integer)
-      m.jumpToItem(index, false)
+      if m.content <> invalid and index <> -1
+        m.jumpToItem(index, false)
+      end if
     end function
 
     public function onAnimateToIndexChange(index as integer)
-      m.jumpToItem(index, true)
+      if m.content <> invalid and index <> -1
+        m.jumpToItem(index, true)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -160,33 +165,37 @@ namespace ml
       return invalid
     end function
 
-    public function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer) as object
-      'implement me
-      return invalid
+    public function getRowInfos() as mc.types.array
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        return m.viewManager.getRowInfos(m.top.translation[1])
+      else
+        focusSettings = m.settings.focusSettings
+
+        screenPos = focusSettings.screenPos
+        yOffset = m.top.translation[1]
+
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'fixed
+          new ml.ComponentPosition(yOffset, screenPos) 'down
+        ]
+        rowInfo = new ml.ComponentInfo(focusSettings, positions)
+        return [rowInfo]
+      end if
     end function
 
-    public function getRowInfos() as mc.types.array
-      focusSettings = ml.listMixin.getRowSettings(m.owner.content, m.content)
-      screenPos = focusSettings.screenPos
-      yPos = m.top.translation[1]
-      if screenPos <> -1
-        positions = [
-          new ml.ComponentPosition(yPos, screenPos) 'up
-          new ml.ComponentPosition(yPos, screenPos) 'fixed
-          new ml.ComponentPosition(yPos, screenPos) 'down
-        ]
+    public function getFocusIndicatorConfig(componentInfoIndex as integer, direction as integer, isFloatingFocus as boolean) as ml.FocusIndicatorConfig
+
+      componentInfo = m.getRowInfos()[componentInfoIndex]
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        return m.itemScroller.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus)
       else
-        positions = [
-          new ml.ComponentPosition(yPos, 0) 'up
-          new ml.ComponentPosition(yPos, 0) 'fixed
-          new ml.ComponentPosition(yPos, 0) 'down
-        ]
+        return new ml.FocusIndicatorConfig([0, 0], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
       end if
-
-      'TODO - can create third set of positions for when vertical scrolling is flow
-
-      rowInfo = new ml.ComponentInfo(focusSettings, positions)
-      return [rowInfo]
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
