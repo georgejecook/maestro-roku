@@ -112,7 +112,7 @@ namespace ml
       index = id.toInt()
       ' isRendered = m.row.isRendered
       item = m.content.getChild(index)
-
+      cell = invalid
       if item <> invalid
         if renderState = "rendered"
           cell = m.cellsById[item.id]
@@ -167,8 +167,12 @@ namespace ml
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
           end if
+          cell = invalid
         end if
       end if
+      'ensure that the componentconfig has a component for a dynamically generated cell index
+      componentConfig = m.cellInfos[index]
+      componentConfig.component = cell
     end function
 
     override function getRenderer(index as integer)

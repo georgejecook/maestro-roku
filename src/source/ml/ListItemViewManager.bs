@@ -109,14 +109,14 @@ namespace ml
       m.componentPool@.releaseComponents(removedRows)
 
       if not m.isUpdating
-        m.itemScroller.reset()
         m.owner.state = "rendered"
+        m.itemScroller.reset()
       else
         m.log.info("was updating, so not updating scroll position")
         'TODO - update the scrolling position if it was on a removed row
         m.isUpdating = false
       end if
-
+      m.itemScroller.getComponentInfos()
       m.restorePreviousFocus()
     end function
 

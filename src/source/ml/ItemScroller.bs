@@ -6,6 +6,7 @@ import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
+import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
 namespace ml
   class ItemScroller extends mc.BaseClass
@@ -29,6 +30,7 @@ namespace ml
 
     public componentInfo as ml.ComponentInfo
     public nextComponentInfo as ml.ComponentInfo
+    public nextFocusIndicatorConfig as ml.FocusIndicatorConfig
     public targetComponentInfo as ml.ComponentInfo
 
     public focusedItem as mc.types.node
@@ -81,7 +83,8 @@ namespace ml
       m.getComponentInfos()
     end function
 
-    public function reset(keepOldFocusIfPossible = false as boolean)
+    public function reset(keepOldFocusIfPossible = false as boolean) as void
+
       if keepOldFocusIfPossible
         index = m.index
       else
@@ -458,8 +461,9 @@ namespace ml
       ? ")))))) moveUsingFlowAnim"
 
       m.toggleScrolling(true)
-      'TODO - make the focus manager take component info objects
-      m.focusManager.setComponentInfo(fromInfo, toInfo, direction, true)
+      m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(toInfo, m.direction, true)
+      'ensure that the component is set
+      m.focusManager.setComponentInfo(fromInfo, toInfo, m.nextFocusIndicatorConfig, direction, true)
       m.flowFocusInfo = toInfo
       m.focusIndicatorManager@.startFlowFocus(toInfo, m.animSpeed, mc.getTop())
     end function
@@ -511,12 +515,14 @@ namespace ml
         m.nextComponentInfo = invalid
         m.nextIndex = -1
         m.nextScrollLocation = 0
+        m.nextFocusIndicatorConfig = invalid
         return
       end if
 
       if info.index <> m.nextIndex
         m.nextIndex = info.index
         m.nextScrollLocation = info.getScrollOffset()
+        m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(info, m.direction, false)
 
         if m.nextComponentInfo = invalid or info.contentIndex <> m.nextComponentInfo.contentIndex
           m.viewManager.updateScrolling(info.contentIndex)
@@ -579,7 +585,7 @@ namespace ml
       m.viewPortEventNotifier.notifyViewportEvents(m.index, m.nextIndex, m.direction, m.screenPos, true)
 
       if notifyFocusManager
-        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
+        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.nextFocusIndicatorConfig, m.direction, false)
       end if
 
       if isMoving
@@ -598,7 +604,7 @@ namespace ml
       ' m.notifyViewportEvents(true)
 
       if notifyFocusManager
-        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
+        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.nextFocusIndicatorConfig, m.direction, false)
       end if
       m.focusManager.onFocusAnimationUpdate(1)
 
@@ -664,7 +670,7 @@ namespace ml
     info = m.getCellComponentInfo(componentInfo)
     size = m.viewManager.getItemSize(info.contentIndex)
 
-    if info = invalid
+    if info = invalid or info.component = invalid
       ? "Cell item info - EMPTY FOCUS SETTINGS"
       return new ml.FocusIndicatorConfig([0, 0], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
     end if

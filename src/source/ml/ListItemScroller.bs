@@ -7,12 +7,12 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/ItemScroller.bs"
-import "pkg:/source/ml/ListItemFocusManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class ListItemScroller extends ml.ItemScroller
 
-    function new(viewManager as ml.ItemViewManager, focusManager as ml.ListItemFocusManager)
+    function new(viewManager as ml.ItemViewManager, focusManager as ml.ItemFocusManager)
       super("ListItemScroller", viewManager, focusManager)
     end function
 
@@ -65,6 +65,10 @@ namespace ml
       else
         m.log.warn("not setting focus on", index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if
+    end function
+
+    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as ml.FocusIndicatorConfig
+      return componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
