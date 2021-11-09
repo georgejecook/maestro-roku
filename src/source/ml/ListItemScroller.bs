@@ -45,7 +45,16 @@ namespace ml
       ? " GOT ITEM INFOS"
     end function
 
+    protected override function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
+      nextComponentInfo.component@.chooseComponentInfoForScrollingIntoRow(m.nextComponentInfo)
 
+      if isFloatingFocus
+        m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextComponentInfo, m.direction, true)
+      end if
+      nextFocusIndicatorConfig = m.nextFocusIndicatorConfig
+      m.focusManager.setComponentInfo(componentInfo, nextComponentInfo, nextFocusIndicatorConfig, direction, isFloatingFocus)
+    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -67,8 +76,9 @@ namespace ml
       end if
     end function
 
-    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as ml.FocusIndicatorConfig
-      return componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus)
+    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG"
+      return componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

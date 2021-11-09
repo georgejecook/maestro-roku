@@ -60,16 +60,17 @@ namespace ml
 
     public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer) as boolean
       if not m.isFloatAllowed
+        ? "pppppp iFFP NO - not allowed for index " ;m.index
         return false
       end if
 
       if direction = -1 or direction = 0
         lastViableOffset = m.getScrollOffsetForDirection(-1)
-        ? " IFP UP SO " ; scrollOffset ; " MO "; scrollOffset - maxOffset ; " O "; lastViableOffset
+        ? "pppppp iFFP UP SO " ; scrollOffset ; " MO "; scrollOffset - maxOffset ; " O "; lastViableOffset
         return lastViableOffset < scrollOffset
       else
         lastViableOffset = m.getScrollOffsetForDirection(1)
-        ? " IFP DOWN SO " ; scrollOffset ; " MO "; scrollOffset + maxOffset ; " O "; lastViableOffset
+        ? "pppppp iFFP DOWN SO " ; scrollOffset ; " MO "; scrollOffset + maxOffset ; " O "; lastViableOffset
         return lastViableOffset > scrollOffset and lastViableOffset < scrollOffset + maxOffset
       end if
 

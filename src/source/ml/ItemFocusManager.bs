@@ -26,7 +26,6 @@ namespace ml
 
     private moveAnimation
     private delegates
-    private isFloatingFocus = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -72,7 +71,6 @@ namespace ml
       m.direction = direction
       m.didStart = false
       m.didFinish = false
-      m.isFloatingFocus = isFloatingFocus
       m.onFocusUpdate(0)
     end function
 
@@ -97,6 +95,11 @@ namespace ml
         ' ? "NOT NOTIFYING"
         return
       end if
+      if m.nextFocusIndicatorConfig = invalid
+        ? " no focus config"
+        return
+      end if
+
       if not m.didStart
         name = "willLoseFocus"
         nextName = "willGainFocus"
@@ -105,16 +108,16 @@ namespace ml
         ' ? " + sending WILL lose " ; m.index ; " / WILL gain" ; m.nextIndex
       else if fraction = 0
         return
-      else if fraction = 1
+      else if fraction >= 1
         if m.didFinish or not m.didStart
           return
         end if
-        ' ? " DID FINISH "; m.nextIndex
+        ? " DID FINISH "; m.nextComponentInfo.index
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
         ' ? " + sending DID lose " ; m.index ; " / DID gain" ; m.nextIndex
-        m.focusIndicatorManager@.setFocusComplete(m.nextComponentInfo)
+        m.focusIndicatorManager@.setFocusComplete(m.nextFocusIndicatorConfig)
       else
         name = "losingFocus"
         nextName = "gainingFocus"

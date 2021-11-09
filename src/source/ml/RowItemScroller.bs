@@ -5,25 +5,21 @@ import "pkg:/source/ml/ItemFocusManager.bs"
 namespace ml
   class RowItemScroller extends ml.ItemScroller
 
-  function new(viewManager as ml.RowItemViewManager, focusManager as ml.ItemFocusManager)
-    super("RowItemScroller", viewManager, focusManager)
-  end function
+    function new(viewManager as ml.RowItemViewManager, focusManager as ml.ItemFocusManager)
+      super("RowItemScroller", viewManager, focusManager)
+    end function
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ overridden
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  public override function onViewManagerUpdate()
-    super.onViewManagerUpdate()
-    m.isFloatingFocus = mc.getPath(m.settings, "horizAnimStyle", "") = "floating"
-  end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  override function getFocusSettings()
-    return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
-  end function
+    override function getFocusSettings()
+      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+    end function
 
-  protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo) as ml.ComponentInfo
-    return m.viewManager.cellInfos[m.index]
-  end function
+    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+      return m.viewManager.cellInfos[m.index]
+    end function
 
-end class
+  end class
 end namespace

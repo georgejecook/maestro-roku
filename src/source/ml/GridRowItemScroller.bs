@@ -9,16 +9,12 @@ namespace ml
 
     function new(viewManager as ml.GridRowItemViewManager, focusManager as ml.ItemFocusManager)
       super("GridRowItemScroller", viewManager, focusManager)
+      m.isOnlyFloatingFocus = true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public override function onViewManagerUpdate()
-      super.onViewManagerUpdate()
-      m.isFloatingFocus = true
-    end function
 
     override function getFocusSettings()
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
@@ -51,36 +47,70 @@ namespace ml
       end if
     end function
 
-    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo) as ml.ComponentInfo
-      colIndex = m.index mod m.viewManager.numCols
-      cellIndex = (componentInfo.componentIndex * m.viewManager.numCols) + colIndex
-      return m.viewManager.cellInfos[cellIndex]
+    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+      if isFromListScroll
+        ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex
+        colIndex = m.index mod m.viewManager.numCols
+        cellIndex = (componentInfo.componentIndex * m.viewManager.numCols) + colIndex
+        ? " GRID CHOSE " ; cellIndex
+        return m.viewManager.cellInfos[cellIndex]
+      else
+        return m.viewManager.cellInfos[componentInfo.index]
+      end if
+    end function
+
+    public override function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+      ? " GRID CHOOSE SCROLLING INTO ROW" ; componentInfo.index; " CI "; componentInfo.componentIndex
+      componentInfo = m.getCellComponentInfo(componentInfo, true)
+      if componentInfo <> invalid
+        m.setComponentInfo(componentInfo)
+        'bs:disable-next-line
+        m.viewManager.row.focusedCellIndex = m.index
+        ? " GRID CHOICE IS MADE index is now "; m.index
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Focus Indicator
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as ml.FocusIndicatorConfig
 
-      info = m.getCellComponentInfo(componentInfo)
-      
-      size = m.viewManager.getItemSize(info.contentIndex)
-
-      if info = invalid or info.component = invalid
-        ? "Cell item info - EMPTY FOCUS SETTINGS"
-        return new ml.FocusIndicatorConfig([0, 0], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
+    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      if info = invalid
+        return [0, 0]
       end if
 
-      translation = m.getFocusIndicatorTranslation(info, componentInfo, direction, isFloatingFocus)
+      if isFloatingFocus
+        screenPos = info.getScreenPositionForDirection(1)
+      else
+        screenPos = info.getScreenPositionForDirection(0)
+      end if
 
-      indicatorTranslation = [translation[0] + m.settings.feedbackOffsets[0], translation[1] + m.settings.feedbackOffsets[1]]
+      ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
 
-      indicatorSize = [size[0] + m.settings.feedbackOffsets[2] - m.settings.feedbackOffsets[0], size[1] + m.settings.feedbackOffsets[3] - m.settings.feedbackOffsets[1]]
+      parentScreenPos = componentInfo.getScreenPositionForDirection(direction)
+      contentOffset = m.viewManager.settings.contentOffset
 
-      isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
+      ? " contentOffset "; formatJson(contentOffset)
+      if m.axes = 0
+        translation = [contentOffset[0] + screenPos, contentOffset[1] + parentScreenPos]
+      else
+        translation = [contentOffset[0] + parentScreenPos, contentOffset[1] + screenPos]
+      end if
 
-      return new ml.FocusIndicatorConfig(size, translation, componentInfo.contentIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
+      if isFloatingFocus
+        'replace with actual screen location
+        cell = m.viewManager.getRenderer(info.contentIndex)
+        'bs:disable-next-line
+        bounds = cell.sceneBoundingRect()
+        translation = [bounds.x, bounds.y]
+      end if
+
+      if m.settings.horizAnimStyle = "fixed"
+        translation[m.axes] = contentOffset[m.axes]
+      end if
+
+      return translation
     end function
 
 

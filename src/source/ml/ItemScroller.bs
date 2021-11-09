@@ -47,6 +47,7 @@ namespace ml
     public screenPos = 0
 
     public isFloatingFocus = false
+    public isOnlyFloatingFocus = false
 
     public moveAnimation
     private animSpeed = 0
@@ -101,26 +102,24 @@ namespace ml
         end if
       end if
 
-      notify = m.index <> index
+      ' notify = m.index <> index
       ' notify = true
       m.setFocusIndex(index, false, true)
       m.moveToIndex(index, false, true, 0)
-      m.focusManager.onFocusAnimationUpdate(1)
-      if index = invalid or index = -1
-        index = 0
-      end if
-
+      'only do this if the row is focused
+      ' m.focusManager.onFocusAnimationUpdate(1)
+      ' if index = invalid or index = -1
+      '   index = 0
+      ' end if
       'TODO need to actually set the focus properly
-      m.forceFocusOnIndex(index, notify)
+      ' m.forceFocusOnIndex(index, notify)
     end function
 
     public function cancelScrolling()
       ? ">>> CANCEL SCROLLING  " ; m.viewManager.isScrolling
       'Tidy up the scrolling in here
       if m.viewManager.isScrolling
-        ? "FINISH ANIM"
         m.finishAnimating()
-        m.toggleScrolling(false)
       end if
     end function
 
@@ -166,17 +165,17 @@ namespace ml
     end function
 
     function canMoveToIndex(index as integer, direction as integer) as boolean
-      ? "CMTI D "; direction; " MI " ; index ; " NC "; m.numberOfComponents
+      ' ? "CMTI D "; direction; " MI " ; index ; " NC "; m.numberOfComponents
       return m.numberOfComponents > 0 and ((direction = -1 and index > -1) or (direction = 1 and index < m.numberOfComponents))
     end function
 
     function moveToContentIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
       info = m.getComponentInfoForContentIndex(index)
       if info <> invalid
-        ? " INFO INDEX IS "; info.index
+        ' ? " INFO INDEX IS "; info.index
         return m.moveToIndex(info.index, animated, fast, direction, forceSequential)
       else
-        ? "+++ cannot move to content index - no info"
+        ' ? "+++ cannot move to content index - no info"
       end if
       return false
     end function
@@ -239,8 +238,8 @@ namespace ml
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
-      ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction
-
+      ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      index = mc.clamp(index, 0, m.numberOfComponents - 1)
       'FIXME - cancel/tidy up a move in progress
 
       m.focusIndicatorManager@.cancelFlowFocus()
@@ -267,13 +266,14 @@ namespace ml
       m.isMovingMultiple = abs(index - m.index) > 1
 
       if forceSequential
-        nextComponentInfo = m.componentInfos[mc.clamp(index + direction, 0, m.numberOfComponents - 1)]
+        nextComponentInfo = m.componentInfos[mc.clamp(m.index + direction, 0, m.numberOfComponents - 1)]
       else
         nextComponentInfo = m.componentInfos[index]
       end if
 
       targetComponentInfo = m.componentInfos[index]
       m.setTargetComponentInfo(targetComponentInfo)
+      ? ":::::::::::::: MOVE TO INDEX SET COMP INFO"
       m.setNextComponentInfo(nextComponentInfo)
 
       ' ? "::::::::::::::::: screenPos" ; m.screenPos
@@ -284,15 +284,17 @@ namespace ml
       ? "//// 2. Ascertain offset"
       '////////////////////////////////////////////////////////////////////////
 
-      isFlowPossible = nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes], m.viewManager.maxPos, direction)
+      isFlowPossible = m.isOnlyFloatingFocus or nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes], m.viewManager.maxPos, direction)
 
-      if isFlowPossible
+      if isFlowPossible and animated
+        ? "///// 2.b flow focus is happening on " ; index
         m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
         return true
       end if
 
       translation = m.container.translation
-      translation[m.axes] = targetComponentInfo.getScrollOffset()
+      ' translation[m.axes] = targetComponentInfo.getScrollOffset()
+      translation[m.axes] = targetComponentInfo.getScrollOffsetForDirection(direction)
 
       m.scrollStartIndex = m.index
 
@@ -339,7 +341,7 @@ namespace ml
         ' m.setNextIndex(index)
         m.viewManager.updateRenderedComponents(m.direction, index)
         ' m.setFocusIndex(index, false)
-        m.forceFocusOnIndex(index)
+        m.forceFocusOnIndex(index, false)
       end if
 
       return true
@@ -354,31 +356,36 @@ namespace ml
       else
         fraction = 0
       end if
-      ' ? ">>> F " ; fraction ; " ASL "  ; m.componentInfo.index ; ": " ; m.activeScrollLocation ; " NSL " ; m.nextComponentInfo.index ; ": "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position
+      ' ? "))))"
+      ' ? ">>> F " ; fraction ; " CI " ; m.componentInfo.index ; ": ASL " ; m.activeScrollLocation ; " >>> NSI " ; m.nextComponentInfo.index ; ": NSL >> "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position ; " D " ; distance ; " CP "; currentPos
+      ' ? "))))"
+      if fraction > 1
+        fraction = 1
+      else if fraction < 0
+        fraction = 0
+      end if
+
       return fraction
     end function
 
-
     function onAnimationFractionChange(fraction as float) as void
-      if fraction = 1
-        ? " FINISHED AT NEXT INDEX " ; m.nextIndex
+      ' ? ">>>+>>>+ OAFC "; fraction
+      if fraction = 1 and not (m.isMovingMultiple or m.isFinishingMove)
+        ? ">>>+>>>+ FINISHED AT NEXT INDEX " ; m.nextIndex
         m.focusManager.onFocusAnimationUpdate(1)
         m.setFocusIndex(m.nextIndex, false, false)
         m.toggleScrolling(false)
       else if (m.isMovingMultiple) or m.isFinishingMove
         fraction = m.getCurrentIndexFraction(m.container.translation[m.axes])
 
+        ' ? "+>>>+>>>>+ DDDDD " ; fraction ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
+        m.focusManager.onFocusAnimationUpdate(fraction)
         if fraction >= 1
-          ? "CCCC "
-          m.focusManager.onFocusAnimationUpdate(1)
-          ? " SCROLLED TO NEXT INDEX " ; m.nextIndex ; " D " ; m.direction' + m.direction
-          m.setFocusIndex(m.nextIndex, true)
-        else
-          ? "DDDDD " ; fraction ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
-          m.focusManager.onFocusAnimationUpdate(fraction)
+          ? ">>>>>>>>>>>>>>>>>>>>>>>>>>"
+          ? " SET NEXT FOCUS INDEX "; m.nextIndex
+          m.setFocusIndex(m.nextIndex, true, true)
         end if
       else
-        ? "EEEE "
         'simple one keypress case
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
@@ -395,10 +402,19 @@ namespace ml
 
     function finishMovingToIndex() as boolean
       ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
+      ? "+++++++FINISH MOVING TO INDEX "
 
       m.isMovingMultiple = false
 
-      if m.isDoingFlowFocus
+      if m.isDoingFlowFocus or m.isOnlyFloatingFocus
         ? "++++++ flow focus will have tidied this up"
         m.isDoingFlowFocus = false
         m.toggleScrolling(false)
@@ -413,8 +429,9 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = componentInfo.getScrollOffset()
+      translation[m.axes] = componentInfo.getScrollOffsetForDirection(m.direction)
 
+      ? " FINAL POS " ; translation[m.axes] ; " --- " ; m.container.translation[m.axes]
       isMoveRequired = translation[m.axes] <> m.container.translation[m.axes]
       'can only be animated
       m.animSpeed = m.settings.animSpeed
@@ -427,7 +444,7 @@ namespace ml
         return true
       end if
 
-      ? "++++++++ START ANIM ; finish moving to index  " ; m.componentInfo.index
+      ? "++++++++ START ANIM ; finish moving to index  " ; componentInfo.index
       'TODO ascertain if this is a sub move
       'we are already scrolling
       m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
@@ -444,8 +461,8 @@ namespace ml
     end function
 
     function toggleScrolling(active as boolean)
+      ? "+>+>+>+> toggleScrolling " ; active ; " " ; m.__classname
       m.viewManager.setIsScrolling(active, m.isMovingMultiple, m.index)
-      ? " toggleScrolling " ; active ; " " ; m.__classname
 
       if not active
         m.setTargetComponentInfo(invalid)
@@ -453,35 +470,51 @@ namespace ml
       end if
     end function
 
+    protected function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
+      if isFloatingFocus
+        m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextComponentInfo, m.direction, true)
+      end if
+      nextFocusIndicatorConfig = m.nextFocusIndicatorConfig
+      m.focusManager.setComponentInfo(componentInfo, nextComponentInfo, nextFocusIndicatorConfig, direction, isFloatingFocus)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Flow Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function moveUsingFlowAnim(fromInfo as ml.ComponentInfo, toInfo as ml.ComponentInfo, direction as integer)
-      ? ")))))) moveUsingFlowAnim"
+      ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
 
       m.toggleScrolling(true)
-      m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(toInfo, m.direction, true)
+      ? ":::::::::::::::: FLOW GET FOCUS INDICATOR CONFIG"
+
+      ' ? ")))))) NFIC I ["; m.nextFocusIndicatorConfig.rowIndex ; "," ; m.nextFocusIndicatorConfig.colIndex ; "] T " ; formatJson(m.nextFocusIndicatorConfig.translation) ; " IT " ; formatJson(m.nextFocusIndicatorConfig.indicatorTranslation) ; " "
       'ensure that the component is set
-      m.focusManager.setComponentInfo(fromInfo, toInfo, m.nextFocusIndicatorConfig, direction, true)
+      m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
       m.flowFocusInfo = toInfo
       m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
-      ? "on FLow fraction"; fraction ; m.__classname
+      ' ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
       ' m.log.info("onFlowFocusFraction", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusInfo)
 
       if fraction = 1
-        ' ? "FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
+        ? "+>+>+>+ FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
         m.focusManager.onFocusAnimationUpdate(1)
         m.setComponentInfo(m.flowFocusInfo)
         m.log.info("finished focusing action with this flow")
-        '      ? "RESET TARGET INDEX onFlowFocusFraction finished"
+
         m.setFocusOnRenderer(true)
-        if m.targetComponentInfo.index = m.flowFocusInfo.index
+        ' ? "+>+>+>+> "; m.targetComponentInfo.index ; m.flowFocusInfo.index ; " MI "; m.index
+        if m.targetComponentInfo = invalid
+          ? "+>+>+ FIXME - target got set to invalid during flow focus"
+          m.toggleScrolling(false)
+        else if m.targetComponentInfo.index = m.flowFocusInfo.index
+          ? "+>+>+ scrolling is finished"
           m.toggleScrolling(false)
         else
+          ? "+>+>+ CONTINUE scrolling to target"
           m.continueScrollingAfterFlowFocus()
         end if
       else
@@ -491,8 +524,8 @@ namespace ml
     end function
 
     protected function continueScrollingAfterFlowFocus() as void
-      ' ? "CONTINUE - " ; m.direction ; " " ; m.isDoingLongPress
-      m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
+      ? "CONTINUE - " ; m.direction ; " " ; m.targetComponentInfo.index
+      ' m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -503,14 +536,15 @@ namespace ml
       m.componentInfo = info
       if info <> invalid
         m.index = info.index
-        m.activeScrollLocation = info.getScrollOffset()
+        ' m.activeScrollLocation = info.getScrollOffset()
+        m.activeScrollLocation = info.getScrollOffsetForDirection(m.direction)
       else
         m.index = -1
         m.activeScrollLocation = 0
       end if
     end function
 
-    function setNextComponentInfo(info as ml.ComponentInfo) as void
+    protected function setNextComponentInfo(info as ml.ComponentInfo) as void
       if info = invalid
         m.nextComponentInfo = invalid
         m.nextIndex = -1
@@ -519,9 +553,12 @@ namespace ml
         return
       end if
 
+      ? m.__classname ; " SET NEXT COMPONENT INFO " ; info.index
+
       if info.index <> m.nextIndex
         m.nextIndex = info.index
-        m.nextScrollLocation = info.getScrollOffset()
+        m.nextScrollLocation = info.getScrollOffsetForDirection(m.direction)
+        ' m.nextScrollLocation = info.getScrollOffset()
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(info, m.direction, false)
 
         if m.nextComponentInfo = invalid or info.contentIndex <> m.nextComponentInfo.contentIndex
@@ -567,6 +604,7 @@ namespace ml
 
       if index = -1
         m.setComponentInfo(m.componentInfos[0])
+        ? " ::::::::::::::: setFocuSIndex SET NEXT COMP INFO"
         m.setNextComponentInfo(m.componentInfos[0])
         ' m.setNextIndex(0)
       else
@@ -575,7 +613,8 @@ namespace ml
         end if
 
         m.setComponentInfo(m.componentInfos[index])
-        index = mc.clamp(m.index + m.direction, 0, m.numberOfComponents)
+        index = mc.clamp(m.index + m.direction, 0, m.numberOfComponents - 1)
+        ? " ::::::::::::::: setFocuSIndex SET NEXT COMP INFO"
         m.setNextComponentInfo(m.componentInfos[index])
       end if
 
@@ -586,7 +625,7 @@ namespace ml
       m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
 
       if notifyFocusManager
-        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.nextFocusIndicatorConfig, m.direction, false)
+        m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
       end if
 
       if isMoving
@@ -597,17 +636,19 @@ namespace ml
     end function
 
     function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean) as void
-      index = mc.clamp(index, 0, m.numberOfComponents)
+      index = mc.clamp(index, 0, m.numberOfComponents - 1)
       m.setComponentInfo(m.componentInfos[index])
+      ? " :::::::::::::: forcEfocusOnIndex setNextCOmpnifo"
       m.setNextComponentInfo(m.componentInfos[index])
 
       ' m.viewManager.updateRenderedComponents(m.direction, m.index)
       ' m.notifyViewportEvents(true)
 
       if notifyFocusManager
-        m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.nextFocusIndicatorConfig, m.direction, false)
+        m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
+        'TODO
+        m.focusManager.onFocusAnimationUpdate(1)
       end if
-      m.focusManager.onFocusAnimationUpdate(1)
 
       'TODO - for cells, do we want to trigger focus events?
       m.setFocusOnRenderer(false, m.index)
@@ -662,13 +703,21 @@ namespace ml
     end if
   end function
 
+  public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+    componentInfo = m.getCellComponentInfo(componentInfo, true)
+    if componentInfo <> invalid
+      m.setComponentInfo(componentInfo)
+      ? " GRID CHOICE IS MADE index is now "; m.index
+    end if
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Focus Indicator
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as ml.FocusIndicatorConfig
+  public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
-    info = m.getCellComponentInfo(componentInfo)
+    info = m.getCellComponentInfo(componentInfo, isFromListScroll)
     size = m.viewManager.getItemSize(info.contentIndex)
 
     if info = invalid or info.component = invalid
@@ -684,11 +733,12 @@ namespace ml
 
     isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
 
+    ? " GET FOCUS CONFIG CI " ; info.contentIndex
     return new ml.FocusIndicatorConfig(size, translation, componentInfo.contentIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
   end function
 
 
-  protected function getCellComponentInfo(componentInfo as ml.ComponentInfo) as ml.ComponentInfo
+  protected function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
     return invalid
   end function
 

@@ -135,8 +135,14 @@ namespace ml
     end function
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+    'TODO - probs move this into ItemFocusManager
+      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
       m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m.list.focusedCellIndex = focusIndicatorConfig.colIndex
+      row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
+      if row <> invalid
+        row.focusedCellIndex = focusIndicatorConfig.colIndex
+      end if
       'We must be already prepared
       m.applyFocusSettings(true)
       m.moveFocusIndicatorToTargetPosition(1)
@@ -271,12 +277,7 @@ namespace ml
     public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
 
       m.log.info("starting flow focus ")
-      ? "START FLOW FOCUS"
-
-      if m.nextConfig = invalid or (m.nextConfig.contentIndex = focusIndicatorConfig.contentIndex)
-        ? "On the same index - skipping"
-        return
-      end if
+      ? "START FLOW FOCUS "; m.__classname
 
       m.isDoingFlowFocus = true
       m.nextConfig = focusIndicatorConfig
@@ -289,7 +290,7 @@ namespace ml
       m.nextConfig.indicatorTranslation[1] = m.nextConfig.indicatorTranslation[1] - m.list.translation[1]
       m.nextConfig.indicatorTranslation[0] = m.nextConfig.indicatorTranslation[0] - m.list.translation[0]
 
-      speed *= 4
+      speed *= 2
       m.flowFocusDelegate = delegate
       ? ">>>> ANIMATE FLOW FOCUS " ; speed
       m.focusPointAnim.setFromToValue(m.focusIndicator.translation, m.nextConfig.indicatorTranslation)

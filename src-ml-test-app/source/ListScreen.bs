@@ -112,7 +112,7 @@ class ListScreen extends mv.BaseScreen
     m.log.info("onListRenderState", state)
     if state = "rendered"
       m.setFocus(m.list)
-      ' m.list@.moveToItem([0, 0], false)
+      m.list@.moveToItem([0, 0], false)
       m.list.visible = true
       m.loadingIndicator.isActive = false
     end if
@@ -252,7 +252,7 @@ class ListScreen extends mv.BaseScreen
         ' row.settings.screenPos = -1
       else if (i = 1 or i = 4)
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
-        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, 4, 427, 3, 150)
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, 1, 427, 3, 150)
         row.settings.contentOffset = [100, 30]
         prefix = "GRID"
         ' row.settings.peekNextPixels = 300
@@ -271,6 +271,7 @@ class ListScreen extends mv.BaseScreen
         else
           row.settings.screenPos = 50
         end if
+        numItems = 20
       end if
       row.title = "ROW " + str(i)
       content.push(row)
