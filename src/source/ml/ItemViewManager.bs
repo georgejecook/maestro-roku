@@ -382,7 +382,7 @@ namespace ml
       for i = 0 to m.cellInfos.count() - 1
         info = m.cellInfos[i]
         'the offset is already factored in
-        itemPos = info.getScrollOffset()
+        itemPos = abs(info.getScrollOffset())
         ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
         if itemPos > p
           ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
@@ -482,7 +482,7 @@ namespace ml
           new ml.ComponentPosition(yOffset, screenPos) 'fixed
           new ml.ComponentPosition(yOffset, screenPos) 'down
         ]
-        m.rowInfos = [new ml.ComponentInfo(focusSettings, positions)]
+        m.rowInfos = [new ml.ComponentInfo(focusSettings, positions, false, 0, 0)]
       end if
       return m.rowInfos
     end function

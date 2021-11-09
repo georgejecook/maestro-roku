@@ -239,7 +239,7 @@ namespace ml
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
-      ? "////// MTI " ; index ; " d " ; direction
+      ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction
 
       'FIXME - cancel/tidy up a move in progress
 
@@ -247,7 +247,7 @@ namespace ml
 
       m.isFinishingMove = false
 
-      if m.componentInfos.count() = 0
+      if m.numberOfComponents = 0
         return false
       end if
 
@@ -267,7 +267,7 @@ namespace ml
       m.isMovingMultiple = abs(index - m.index) > 1
 
       if forceSequential
-        nextComponentInfo = m.componentInfos[mc.clamp(index + direction, 0, m.componentInfos.count())]
+        nextComponentInfo = m.componentInfos[mc.clamp(index + direction, 0, m.numberOfComponents - 1)]
       else
         nextComponentInfo = m.componentInfos[index]
       end if
@@ -465,7 +465,7 @@ namespace ml
       'ensure that the component is set
       m.focusManager.setComponentInfo(fromInfo, toInfo, m.nextFocusIndicatorConfig, direction, true)
       m.flowFocusInfo = toInfo
-      m.focusIndicatorManager@.startFlowFocus(toInfo, m.animSpeed, mc.getTop())
+      m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
@@ -561,7 +561,7 @@ namespace ml
       ' TODO - check if index is actually changed
       '      ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
 
-      if m.componentInfos.count() = 0
+      if m.numberOfComponents = 0
         return
       end if
 
@@ -575,14 +575,15 @@ namespace ml
         end if
 
         m.setComponentInfo(m.componentInfos[index])
-        m.setNextComponentInfo(m.componentInfos[m.index + m.direction])
+        index = mc.clamp(m.index + m.direction, 0, m.numberOfComponents)
+        m.setNextComponentInfo(m.componentInfos[index])
       end if
 
       m.focusedItem = m.viewManager.visibleItems[m.componentInfo.contentIndex]
 
       m.viewManager.updateRenderedComponents(m.direction, m.index)
 
-      m.viewPortEventNotifier.notifyViewportEvents(m.index, m.nextIndex, m.direction, m.screenPos, true)
+      m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
 
       if notifyFocusManager
         m.focusManager.setComponentInfo(m.componentInfo, m.nextComponentInfo, m.nextFocusIndicatorConfig, m.direction, false)
@@ -671,7 +672,7 @@ namespace ml
     size = m.viewManager.getItemSize(info.contentIndex)
 
     if info = invalid or info.component = invalid
-      ? "Cell item info - EMPTY FOCUS SETTINGS"
+      ? "cannot get focus indicator componentInfo or componentInfo.component is invalid"
       return new ml.FocusIndicatorConfig([0, 0], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
     end if
 

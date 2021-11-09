@@ -137,7 +137,7 @@ namespace ml
             new ml.ComponentPosition(x, maxPos) 'down
           ]
 
-          cellInfo = new ml.ComponentInfo(settings, positions, true, i)
+          cellInfo = new ml.ComponentInfo(settings, positions, true, i, i)
           m.cellInfos.push(cellInfo)
           'TODO - for now, no vis options for rows children..
           m.visibleItems.push(item)
@@ -188,7 +188,7 @@ namespace ml
         ]
 
       end if
-      return new ml.ComponentInfo(m.settings, positions, isFloatAllowed, rowIndex)
+      return new ml.ComponentInfo(m.settings, positions, isFloatAllowed, rowIndex, rowIndex)
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
@@ -218,6 +218,7 @@ namespace ml
       ' isRendered = m.row.isRendered
       item = m.content.getChild(index)
 
+      cell = invalid
       if item <> invalid
         if renderState = "rendered"
           cell = m.cellsById[item.id]
@@ -285,6 +286,9 @@ namespace ml
           end if
         end if
       end if
+
+      componentConfig = m.cellInfos[index]
+      componentConfig.component = cell
     end function
 
     override function getRenderer(index as integer)

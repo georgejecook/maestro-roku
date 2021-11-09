@@ -64,8 +64,6 @@ namespace ml
 
     private nextConfig as object
 
-    private targetComponentInfo as ml.ComponentInfo
-
     private nextFocusSettings as mc.types.node
     private previousFocusSettings as mc.types.node
     private previousSize = [0, 0]
@@ -272,11 +270,10 @@ namespace ml
 
     public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
 
-      m.log.info("starting flow focus ", m.targetComponentInfo.componentIndex)
+      m.log.info("starting flow focus ")
       ? "START FLOW FOCUS"
 
-      if m.nextConfig = invalid or (m.nextConfig.rowIndex = focusIndicatorConfig.rowIndex and m.nextConfig.colIndex = focusIndicatorConfig.colIndex)
-        'TODO - might not do this here - might have to check if everything is the same
+      if m.nextConfig = invalid or (m.nextConfig.contentIndex = focusIndicatorConfig.contentIndex)
         ? "On the same index - skipping"
         return
       end if

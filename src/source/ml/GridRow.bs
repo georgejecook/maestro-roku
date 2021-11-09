@@ -17,11 +17,8 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public focusedCellIndex = 0
-    public focusedCellPercent = 0.0
 
     public isMultiRow = true
-    public focusedRowPercent = 0.0
-    public focusedRowIndex = 0
 
     public isScrolling = false
     private isDoingFlowFocus = false
@@ -140,7 +137,7 @@ namespace ml
     end function
 
     public override function jumpToItem(index as integer, animated as boolean)
-      if m._content <> invalid
+      if m._content <> invalid and index <> -1
         m.owner@.moveToSubRowIndex(m.index, index, 1, animated, true)
       end if
     end function
@@ -160,10 +157,6 @@ namespace ml
     public override function onFlowFocusFraction(fraction as float)
       m.isDoingFlowFocus = fraction <> 1
       m.itemScroller.onFlowFocusFraction(fraction)
-    end function
-
-    function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
-      return m.itemScroller.moveUsingFlowAnim(index, nextIndex, direction)
     end function
 
     function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void

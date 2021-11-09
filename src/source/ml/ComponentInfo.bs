@@ -14,19 +14,20 @@ namespace ml
 
   class ComponentInfo
     public index = 0
-    public component as mc.types.node
-    public focusSettings as mc.types.node
     public contentIndex = 0
     public componentIndex = 0
+    public component as mc.types.node
+    public focusSettings as mc.types.node
     public direction = 0
     public positionsByDirection = []
     public isFloatAllowed = false
 
-    public function new(focusSettings as mc.types.node, positions as mc.types.array, isFloatAllowed = false as boolean, componentIndex = 0 as integer)
+    public function new(focusSettings as mc.types.node, positions as mc.types.array, isFloatAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
       m.focusSettings = focusSettings
       m.positionsByDirection = positions
       m.isFloatAllowed = isFloatAllowed
       m.componentIndex = componentIndex
+      m.contentIndex = contentIndex
     end function
 
     public function getActivePosition() as ml.ComponentPosition
@@ -79,7 +80,9 @@ namespace ml
 end namespace
 
 namespace ml.ComponentInfoUtils
-  function componentInfoFromAA(info as mc.types.assocarray)
-    return new ml.ComponentInfo(info.focusSettings, info.positionsByDirection, info.isFloatAllowed, info.componentIndex)
+  function componentInfoFromAA(otherInfo as mc.types.assocarray)
+    info = new ml.ComponentInfo(otherInfo.focusSettings, otherInfo.positionsByDirection, otherInfo.isFloatAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
+    info.index = otherInfo.index
+    return info
   end function
 end namespace

@@ -57,5 +57,32 @@ namespace ml
       return m.viewManager.cellInfos[cellIndex]
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Focus Indicator
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as ml.FocusIndicatorConfig
+
+      info = m.getCellComponentInfo(componentInfo)
+      
+      size = m.viewManager.getItemSize(info.contentIndex)
+
+      if info = invalid or info.component = invalid
+        ? "Cell item info - EMPTY FOCUS SETTINGS"
+        return new ml.FocusIndicatorConfig([0, 0], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
+      end if
+
+      translation = m.getFocusIndicatorTranslation(info, componentInfo, direction, isFloatingFocus)
+
+      indicatorTranslation = [translation[0] + m.settings.feedbackOffsets[0], translation[1] + m.settings.feedbackOffsets[1]]
+
+      indicatorSize = [size[0] + m.settings.feedbackOffsets[2] - m.settings.feedbackOffsets[0], size[1] + m.settings.feedbackOffsets[3] - m.settings.feedbackOffsets[1]]
+
+      isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
+
+      return new ml.FocusIndicatorConfig(size, translation, componentInfo.contentIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
+    end function
+
+
   end class
 end namespace

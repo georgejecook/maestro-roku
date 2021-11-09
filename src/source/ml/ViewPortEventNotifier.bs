@@ -36,15 +36,16 @@ namespace ml
     end function
 
 
-    function notifyViewportEvents(index as integer, nextIndex as integer, direction as integer, screenPos as integer, isMoving as boolean)
+    function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
+      if nextComponentInfo = invalid
+        return
+      end if
       'maintain a collection of controls that are in bounds right now:
       m.RCMap = m.viewManager.getComponentsInViewPort(- m.container.translation[m.axes])
 
-      if isMoving and nextIndex <> index
-        'TODO - update to use componentInfos
-        info = m.viewManager.cellInfos[index]
-        nextTranslation = info.getScrollOffsetForDirection(direction)
-        m.nextRCMap = m.viewManager.getComponentsInViewPort(- nextTranslation[m.axes])
+      if isMoving and nextComponentInfo.index <> componentInfo.index
+        nextOffset = nextComponentInfo.getScrollOffsetForDirection(direction)
+        m.nextRCMap = m.viewManager.getComponentsInViewPort(nextOffset)
       else
         m.nextRCMap = {}
       end if
