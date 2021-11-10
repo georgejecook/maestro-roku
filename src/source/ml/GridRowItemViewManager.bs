@@ -49,9 +49,18 @@ namespace ml
 
         height = m.owner.height
 
+        ySpace = m.settings.rowSpace
+        rowHeight = m.settings.rowHeight
+        if m.rowOffsets.count() > 2
+          offset = m.settings.otherRowScreenPos
+        else
+          offset = m.settings.firstRowScreenPos
+        end if
+        maxPos = m.settings.numRows * (rowHeight + ySpace) + offset
+
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
         for i = 0 to m.rowOffsets.count() - 1
-          m.rowInfos.push(m.getRowInfo(i, m.rowOffsets[i], yPosition, height))
+          m.rowInfos.push(m.getRowInfo(i, [0, rowHeight], m.rowOffsets[i], yPosition, height, maxPos))
           ? "LAYING OUT ITEM " ; i ; "RO " ; m.rowOffsets[i]
         end for
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
@@ -138,7 +147,7 @@ namespace ml
             new ml.ComponentPosition(0, x) 'float-scroll
           ]
 
-          cellInfo = new ml.ComponentInfo(settings, positions, true, i, i)
+          cellInfo = new ml.ComponentInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
           cellInfo.index = i
           m.cellInfos.push(cellInfo)
           'TODO - for now, no vis options for rows children..
@@ -156,13 +165,9 @@ namespace ml
       m.numberOfItems = m.visibleItems.count()
     end function
 
-    private function getRowInfo(rowIndex as integer, yOffset as integer, y as integer, height as integer) as ml.ComponentInfo
+    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.ComponentInfo
 
       yOffset += y
-      ySpace = m.settings.rowSpace
-      rowHeight = m.settings.rowHeight
-      ' maxPos = height - rowHeight - ySpace
-      maxPos = m.settings.numRows * (rowHeight + ySpace)
 
       if rowIndex = 0
         screenPos = m.settings.firstRowScreenPos
@@ -188,7 +193,8 @@ namespace ml
         ]
 
       end if
-      return new ml.ComponentInfo(m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
+      'note - col width is irrelevant
+      return new ml.ComponentInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)

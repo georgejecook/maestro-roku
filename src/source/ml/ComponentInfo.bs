@@ -13,6 +13,7 @@ namespace ml
   end class
 
   class ComponentInfo
+    public size = [0,0]
     public index = 0
     public contentIndex = 0
     public componentIndex = 0
@@ -22,12 +23,21 @@ namespace ml
     public positionsByDirection = []
     public isFlowFocusAllowed = false
 
-    public function new(focusSettings as mc.types.node, positions as mc.types.array, isFlowFocusAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
+    public function new(size as mc.types.array, focusSettings as mc.types.node, positions as mc.types.array, isFlowFocusAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
+      m.size = size
       m.focusSettings = focusSettings
       m.positionsByDirection = positions
       m.isFlowFocusAllowed = isFlowFocusAllowed
       m.componentIndex = componentIndex
       m.contentIndex = contentIndex
+    end function
+
+    public function getPosition(direction as integer) as integer
+      if direction < 1
+        direction = 0
+      end if
+      position = m.positionsByDirection[direction]
+      return position.position
     end function
 
     public function getScrollOffsetForFlowFocus(direction as integer) as integer
@@ -56,21 +66,24 @@ namespace ml
       return - position.position + position.screenPosition
     end function
 
-    public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer) as boolean
+    public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer, axes as integer) as boolean
       if not m.isFlowFocusAllowed
         ? "pppppp iFFP NO - not allowed for index " ;m.index
         return false
       end if
 
-      if direction = -1 or direction = 0
-        lastViableOffset = m.getScrollOffsetForFlowFocus(direction)
-        ? "pppppp iFFP UP SO " ; scrollOffset ; " MO "; scrollOffset - maxOffset ; " O "; lastViableOffset
-        return lastViableOffset < scrollOffset
-      else
-        lastViableOffset = m.getScrollOffsetForFlowFocus(1)
-        ? "pppppp iFFP DOWN SO " ; scrollOffset ; " MO "; scrollOffset + maxOffset ; " O "; lastViableOffset
-        return lastViableOffset > scrollOffset and lastViableOffset < scrollOffset + maxOffset
-      end if
+      scrollPos = - scrollOffset
+      maxPos = scrollPos + maxOffset
+      'TODO - put the size in here, too!
+      ' if direction = -1 or direction = 0
+      '   position = m.getPosition(direction)
+      '   ? "pppppp iFFP UP SP " ; scrollPos ; " MO "; scrollPos - maxOffset ; " O "; position
+      '   return position > scrollPos
+      ' else
+      position = m.getPosition(direction)
+      ? "pppppp iFFP DOWN SP " ; scrollPos ; " P "; position ; " M "; maxPos
+      return position >= scrollPos and position + m.size[axes] <= maxPos
+      ' end if
 
     end function
 
@@ -80,7 +93,7 @@ end namespace
 
 namespace ml.ComponentInfoUtils
   function componentInfoFromAA(otherInfo as mc.types.assocarray)
-    info = new ml.ComponentInfo(otherInfo.focusSettings, otherInfo.positionsByDirection, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
+    info = new ml.ComponentInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positionsByDirection, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
     info.index = otherInfo.index
     return info
   end function

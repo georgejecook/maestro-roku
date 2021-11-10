@@ -201,8 +201,6 @@ namespace ml
         return false
       end if
 
-      ' m.log.info(`move I ${m.index} o ${offset}, i ${index}, animated ${animated}, fast ${fast}`)
-
       if index <> -1
         ' ? "===B"
         return m.moveToIndex(index, animated, fast, direction, forceSequential)
@@ -239,6 +237,7 @@ namespace ml
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
+      ? ">?>?>?>?>?////////////////////////////////////////////////////////"
       ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
       index = mc.clamp(index, 0, m.numberOfComponents - 1)
       'FIXME - cancel/tidy up a move in progress
@@ -284,11 +283,8 @@ namespace ml
       ? "//// 2. Ascertain offset"
       '////////////////////////////////////////////////////////////////////////
 
-      ? "2.b IS FLOW POSSIBLE ???"
-      ? "2.b IS FLOW POSSIBLE ???"
-      ? "2.b IS FLOW POSSIBLE ???"
-      ? "2.b IS FLOW POSSIBLE ???"
-      isFlowPossible = m.isOnlyFloatingFocus or nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes] + m.activeScreenPos, m.viewManager.maxPos, direction)
+      ? "2.b IS FLOW POSSIBLE ??? "
+      isFlowPossible = m.isOnlyFloatingFocus or nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes], m.viewManager.maxPos, direction, m.axes)
 
       if not isFlowPossible and nextComponentInfo.isFlowFocusAllowed
         'check on the renderer
@@ -296,10 +292,10 @@ namespace ml
         isFlowPossible = m.viewManager.getIsOnScreen(nextComponentInfo)
       end if
 
-      ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.activeScreenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
+      ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.activeScreenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
       if isFlowPossible and animated
-        ? "///// 2.b flow focus is happening on " ; index
+        ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
         return true
       end if
@@ -308,7 +304,8 @@ namespace ml
 
       translation = m.container.translation
       ' translation[m.axes] = targetComponentInfo.getScrollOffset()
-      if nextComponentInfo.isFlowFocusAllowed
+      if targetComponentInfo.isFlowFocusAllowed
+      ' if nextComponentInfo.isFlowFocusAllowed
         translation[m.axes] = targetComponentInfo.getScrollOffsetForFlowFocus(direction)
       else
         translation[m.axes] = targetComponentInfo.getScrollOffset(direction)
@@ -364,6 +361,22 @@ namespace ml
 
     function getCurrentIndexFraction(position as float)
       ' ? "OCPC " ; offset
+
+      if m.componentInfo.isFlowFocusAllowed
+        m.activeScrollLocation = m.componentInfo.getScrollOffsetForFlowFocus(m.direction)
+        m.activeScreenPos = m.componentInfo.getScreenPositionForFlowFocus(m.direction)
+      else
+        m.activeScrollLocation = m.componentInfo.getScrollOffset(m.direction)
+        m.activeScreenPos = m.componentInfo.getScreenPosition(m.direction)
+      end if
+
+      if m.nextComponentInfo.isFlowFocusAllowed
+        m.nextScrollLocation = m.nextComponentInfo.getScrollOffsetForFlowFocus(m.direction)
+      else
+        m.nextScrollLocation = m.nextComponentInfo.getScrollOffset(m.direction)
+      end if
+
+
       distance = abs(m.nextScrollLocation - m.activeScrollLocation)
       currentPos = abs(m.activeScrollLocation - position)
       if distance <> 0
@@ -371,10 +384,11 @@ namespace ml
       else
         fraction = 0
       end if
-      ' ? "))))"
-      ' ? ">>> F " ; fraction ; " CI " ; m.componentInfo.index ; ": ASL " ; m.activeScrollLocation ; " >>> NSI " ; m.nextComponentInfo.index ; ": NSL >> "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position ; " D " ; distance ; " CP "; currentPos
-      ' ? "))))"
+      ? "))))"
+      ? ">>> F " ; fraction ; " CI " ; m.componentInfo.index ; ": ASL " ; m.activeScrollLocation ; " >>> NSI " ; m.nextComponentInfo.index ; ": NSL >> "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position ; " D " ; distance ; " CP "; currentPos
+      ? "))))"
       if fraction > 1
+        ? " CHANGED FRACTION"
         fraction = 1
       else if fraction < 0
         fraction = 0
@@ -417,9 +431,7 @@ namespace ml
 
     function finishMovingToIndex() as boolean
       m.isMovingMultiple = false
-      ? "+++++++++++++++++++++++++++ FINISH MOVING TO INDEX "
       if m.isDoingFlowFocus or m.isOnlyFloatingFocus
-        ? "++++++ flow focus will have tidied this up"
         m.isDoingFlowFocus = false
         m.toggleScrolling(false)
         return false
@@ -438,7 +450,12 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = componentInfo.getScrollOffset(m.direction)
+      ' translation[m.axes] = targetComponentInfo.getScrollOffset()
+      if componentInfo.isFlowFocusAllowed
+        translation[m.axes] = componentInfo.getScrollOffsetForFlowFocus(m.direction)
+      else
+        translation[m.axes] = componentInfo.getScrollOffset(m.direction)
+      end if
 
       ? " FINAL POS " ; translation[m.axes] ; " --- " ; m.container.translation[m.axes]
       isMoveRequired = translation[m.axes] <> m.container.translation[m.axes]
@@ -498,7 +515,6 @@ namespace ml
       ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
 
       m.toggleScrolling(true)
-      ? ":::::::::::::::: FLOW GET FOCUS INDICATOR CONFIG"
 
       m.isDoingFlowFocus = true
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
@@ -512,6 +528,7 @@ namespace ml
 
       if fraction = 1
         ? "+>+>+>+ FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
+        m.isDoingFlowFocus = false
         m.focusManager.onFocusAnimationUpdate(1)
         m.setComponentInfo(m.flowFocusInfo)
         m.log.info("finished focusing action with this flow")
@@ -548,8 +565,13 @@ namespace ml
       if info <> invalid
         m.index = info.index
         ' m.activeScrollLocation = info.getScrollOffset()
-        m.activeScrollLocation = info.getScrollOffset(m.direction)
-        m.activeScreenPos = info.getScreenPosition(m.direction)
+        if info.isFlowFocusAllowed
+          m.activeScrollLocation = info.getScrollOffsetForFlowFocus(m.direction)
+          m.activeScreenPos = info.getScreenPositionForFlowFocus(m.direction)
+        else
+          m.activeScrollLocation = info.getScrollOffset(m.direction)
+          m.activeScreenPos = info.getScreenPosition(m.direction)
+        end if
       else
         m.index = -1
         m.activeScrollLocation = 0
@@ -570,7 +592,11 @@ namespace ml
 
       if info.index <> m.nextIndex
         m.nextIndex = info.index
-        m.nextScrollLocation = info.getScrollOffset(m.direction)
+        if info.isFlowFocusAllowed
+          m.nextScrollLocation = info.getScrollOffsetForFlowFocus(m.direction)
+        else
+          m.nextScrollLocation = info.getScrollOffset(m.direction)
+        end if
         ' m.nextScrollLocation = info.getScrollOffset()
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(info, m.direction, false)
 
