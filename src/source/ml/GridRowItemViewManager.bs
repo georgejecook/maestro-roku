@@ -120,6 +120,9 @@ namespace ml
 
         for col = 0 to m.numCols - 1
           item = children[i]
+          if item = invalid
+            exit for
+          end if
           ' ? "ITEM " ; item.title
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
@@ -129,12 +132,12 @@ namespace ml
             gridRow: rowIndex
             visible: true
           })
-          maxPos = m.maxPos - settings.size[1] - xSpace
+          ' maxPos = m.maxPos - settings.size[1] - xSpace
 
           positions = [
-            new ml.ComponentPosition(x, 0) 'up
-            new ml.ComponentPosition(x, 0) 'fixed
-            new ml.ComponentPosition(x, maxPos) 'down
+            new ml.ComponentPosition(0, x) 'left
+            new ml.ComponentPosition(0, x) 'fixed
+            new ml.ComponentPosition(0, x) 'right
           ]
 
           cellInfo = new ml.ComponentInfo(settings, positions, true, i, i)

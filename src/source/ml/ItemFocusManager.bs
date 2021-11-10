@@ -26,6 +26,7 @@ namespace ml
 
     private moveAnimation
     private delegates
+    private targetField
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -43,6 +44,7 @@ namespace ml
         m.delegates.push(ownerDelegate)
       else
         m.log.error("There was no delegate passed to this focus manager - events wont be handled")
+        ? " NO OWNER DELEGATE!!!!!"
       end if
       owner = viewManager.owner
       if owner.delegate <> invalid
@@ -133,7 +135,7 @@ namespace ml
         direction: m.direction
         fraction: fraction
         name: name
-        index: m.componentInfo.component
+        index: m.componentInfo.componentIndex
       }
       nextEvent = {
         direction: m.direction
@@ -141,6 +143,11 @@ namespace ml
         name: nextName
         index: m.nextComponentInfo.contentIndex
       }
+      ' ? ">>>>>>>>>>>>>>>"
+      ' ? ">>>>>>>>>>>>>>>"
+      ' ? " sending "; name  ; " to " ; m.componentInfo.componentIndex
+      ' ? " sending "; nextName  ; " to " ; m.nextComponentInfo.componentIndex
+      ' ? ">>>>>>>>>>>>>>>"
       isSendingFromEvent = m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex
       event.rowIndex = m.rowIndex
       nextEvent.rowIndex = m.rowIndex

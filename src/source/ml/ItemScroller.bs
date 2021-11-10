@@ -50,10 +50,11 @@ namespace ml
     public isOnlyFloatingFocus = false
 
     public moveAnimation
-    private animSpeed = 0
+    private animSpeed = 0.1
 
     private activeScrollLocation = 0
     private nextScrollLocation = 0
+    private activeScreenPos = 0
 
     private flowFocusInfo as ml.ComponentInfo
 
@@ -284,7 +285,7 @@ namespace ml
       ? "//// 2. Ascertain offset"
       '////////////////////////////////////////////////////////////////////////
 
-      isFlowPossible = m.isOnlyFloatingFocus or nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes], m.viewManager.maxPos, direction)
+      isFlowPossible = m.isOnlyFloatingFocus or nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes] + m.activeScreenPos, m.viewManager.maxPos, direction)
 
       if isFlowPossible and animated
         ? "///// 2.b flow focus is happening on " ; index
@@ -305,11 +306,8 @@ namespace ml
         ? "/////// 3. animated move"
         '////////////////////////////////////////////////////////////////////////
 
-        if fast
-          m.animSpeed = m.settings.fastAnimSpeed
-        else
-          m.animSpeed = m.settings.animSpeed
-        end if
+        ' m.animSpeed = m.settings.animSpeed
+        ' m.animSpeed = 5
 
         if translation[m.axes] = m.container.translation[m.axes]
           '////////////////////////////////////////////////////////////////////////
@@ -434,13 +432,14 @@ namespace ml
       ? " FINAL POS " ; translation[m.axes] ; " --- " ; m.container.translation[m.axes]
       isMoveRequired = translation[m.axes] <> m.container.translation[m.axes]
       'can only be animated
-      m.animSpeed = m.settings.animSpeed
+      ' m.animSpeed = m.settings.animSpeed
       m.isFinishingMove = true
 
       if not isMoveRequired
         m.log.info("already in place - no need to scroll ", m.componentInfo.rowIndex, " >", m.nextIndex)
         ? "+++++++ IN PLACE"
-        m.moveUsingFlowAnim(m.componentInfo, m.componentInfo, m.direction)
+        ' m.moveUsingFlowAnim(m.componentInfo, m.componentInfo, m.direction)
+        m.toggleScrolling(false)
         return true
       end if
 
@@ -525,7 +524,7 @@ namespace ml
 
     protected function continueScrollingAfterFlowFocus() as void
       ? "CONTINUE - " ; m.direction ; " " ; m.targetComponentInfo.index
-      ' m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
+      m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -538,9 +537,11 @@ namespace ml
         m.index = info.index
         ' m.activeScrollLocation = info.getScrollOffset()
         m.activeScrollLocation = info.getScrollOffsetForDirection(m.direction)
+        m.activeScreenPos = info.getScreenPositionForDirection(m.direction)
       else
         m.index = -1
         m.activeScrollLocation = 0
+        m.activeScreenPos = 0
       end if
     end function
 

@@ -95,7 +95,7 @@ namespace ml.listMixin
       cellSettings: invalid
       contentOffset: [0, 0]
       headerSettings: ml.listMixin.createEmptyHeaderSettings()
-      focusSettings: ml.listMixin.createFocusSettings(3, 1, "fixed", invalid, "none")
+      focusSettings: ml.listMixin.createFocusSettings(1.2, "fixed", invalid, "none")
     })
 
     return settings
@@ -150,14 +150,13 @@ namespace ml.listMixin
     return settings
   end function
 
-  function createFocusSettings(animSpeed = 3 as float, fastAnimSpeed = 1 as float, horizAnimStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string)
+  function createFocusSettings(animSpeed = 3 as float, horizAnimStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string)
     settings = createObject("roSGNode", "ml_FocusSettings")
     if offsets = invalid
       offsets = [0, 0, 0, 0]
     end if
     settings.update({
       animSpeed: animSpeed / 10.0
-      fastAnimSpeed: fastAnimSpeed / 10.0
       horizAnimStyle: horizAnimStyle
       feedbackOffsets: offsets
       feedbackStyle: feedbackStyle
