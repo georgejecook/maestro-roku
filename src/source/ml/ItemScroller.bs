@@ -362,21 +362,6 @@ namespace ml
     function getCurrentIndexFraction(position as float)
       ' ? "OCPC " ; offset
 
-      if m.componentInfo.isFlowFocusAllowed
-        m.activeScrollLocation = m.componentInfo.getScrollOffsetForFlowFocus(m.direction)
-        m.activeScreenPos = m.componentInfo.getScreenPositionForFlowFocus(m.direction)
-      else
-        m.activeScrollLocation = m.componentInfo.getScrollOffset(m.direction)
-        m.activeScreenPos = m.componentInfo.getScreenPosition(m.direction)
-      end if
-
-      if m.nextComponentInfo.isFlowFocusAllowed
-        m.nextScrollLocation = m.nextComponentInfo.getScrollOffsetForFlowFocus(m.direction)
-      else
-        m.nextScrollLocation = m.nextComponentInfo.getScrollOffset(m.direction)
-      end if
-
-
       distance = abs(m.nextScrollLocation - m.activeScrollLocation)
       currentPos = abs(m.activeScrollLocation - position)
       if distance <> 0
@@ -386,6 +371,8 @@ namespace ml
       end if
       ? "))))"
       ? ">>> F " ; fraction ; " CI " ; m.componentInfo.index ; ": ASL " ; m.activeScrollLocation ; " >>> NSI " ; m.nextComponentInfo.index ; ": NSL >> "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position ; " D " ; distance ; " CP "; currentPos
+      ? " ASP " ; m.activeScreenPos
+
       ? "))))"
       if fraction > 1
         ? " CHANGED FRACTION"
