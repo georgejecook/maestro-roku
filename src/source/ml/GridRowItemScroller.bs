@@ -48,6 +48,9 @@ namespace ml
     end function
 
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+      if componentInfo = invalid
+        return invalid
+      end if
       if isFromListScroll
         ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex
         colIndex = m.index mod m.viewManager.numCols

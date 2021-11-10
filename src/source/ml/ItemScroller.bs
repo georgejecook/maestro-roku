@@ -50,11 +50,14 @@ namespace ml
     public isOnlyFloatingFocus = false
 
     public moveAnimation
+
     private animSpeed = 0.1
 
     private activeScrollLocation = 0
     private nextScrollLocation = 0
     private activeScreenPos = 0
+    private isDoingHop = false
+    private postHopIndex = 0
 
     private flowFocusInfo as ml.ComponentInfo
 
@@ -274,7 +277,23 @@ namespace ml
       targetComponentInfo = m.componentInfos[index]
       m.direction = direction
 
+      ? ">>>>>>>>>>>>>>>????????????DOING HOP?? "
+      m.isDoingHop = m.index <= 1 and m.isMovingMultiple' and direction = 1
+      if m.isDoingHop
+        ? " >>>>>> DOING HOP"
+        ? " >>>>>> DOING HOP"
+        ? " >>>>>> DOING HOP"
+        ? " >>>>>> DOING HOP"
+        ? " >>>>>> DOING HOP"
+        ? " >>>>>> DOING HOP"
+        ? " >>>>>> DOING HOP"
+        m.isMovingMultiple = false
+        targetComponentInfo = nextComponentInfo
+        m.postHopIndex = index
+        index = 2
+      end if
       m.setTargetComponentInfo(targetComponentInfo)
+
       ? ":::::::::::::: MOVE TO INDEX SET COMP INFO"
       m.setNextComponentInfo(nextComponentInfo)
 
@@ -305,7 +324,7 @@ namespace ml
       translation = m.container.translation
       ' translation[m.axes] = targetComponentInfo.getScrollOffset()
       if targetComponentInfo.isFlowFocusAllowed
-      ' if nextComponentInfo.isFlowFocusAllowed
+        ' if nextComponentInfo.isFlowFocusAllowed
         translation[m.axes] = targetComponentInfo.getScrollOffsetForFlowFocus(direction)
       else
         translation[m.axes] = targetComponentInfo.getScrollOffset(direction)
@@ -369,11 +388,11 @@ namespace ml
       else
         fraction = 0
       end if
-      ? "))))"
-      ? ">>> F " ; fraction ; " CI " ; m.componentInfo.index ; ": ASL " ; m.activeScrollLocation ; " >>> NSI " ; m.nextComponentInfo.index ; ": NSL >> "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position ; " D " ; distance ; " CP "; currentPos
-      ? " ASP " ; m.activeScreenPos
+      ' ? "))))"
+      ' ? ">>> F " ; fraction ; " CI " ; m.componentInfo.index ; ": ASL " ; m.activeScrollLocation ; " >>> NSI " ; m.nextComponentInfo.index ; ": NSL >> "; m.nextScrollLocation ; " T " ; m.container.translation[m.axes] ; " p "; position ; " D " ; distance ; " CP "; currentPos
+      ' ? " ASP " ; m.activeScreenPos
 
-      ? "))))"
+      ' ? "))))"
       if fraction > 1
         ? " CHANGED FRACTION"
         fraction = 1
@@ -390,7 +409,13 @@ namespace ml
         ? ">>>+>>>+ FINISHED AT NEXT INDEX " ; m.nextIndex
         m.focusManager.onFocusAnimationUpdate(1)
         m.setFocusIndex(m.nextIndex, false, false)
-        m.toggleScrolling(false)
+        if m.isDoingHop
+          m.isDoingHop = false
+          ? "was doing a hop"
+          m.moveToIndex(m.postHopIndex)
+        else
+          m.toggleScrolling(false)
+        end if
       else if m.isMovingMultiple
         fraction = m.getCurrentIndexFraction(m.container.translation[m.axes])
 
@@ -744,7 +769,6 @@ namespace ml
   public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
     info = m.getCellComponentInfo(componentInfo, isFromListScroll)
-    size = m.viewManager.getItemSize(info.contentIndex)
 
     rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
     if info = invalid or info.component = invalid
@@ -752,6 +776,7 @@ namespace ml
       return new ml.FocusIndicatorConfig([0, 0], [0, 0], rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
     end if
 
+    size = m.viewManager.getItemSize(info.contentIndex)
     translation = m.getFocusIndicatorTranslation(info, componentInfo, direction, isFloatingFocus)
 
     indicatorTranslation = [translation[0] + m.settings.feedbackOffsets[0], translation[1] + m.settings.feedbackOffsets[1]]
@@ -785,6 +810,9 @@ namespace ml
     else
       parentScreenPos = componentInfo.getScreenPosition(direction)
     end if
+
+    ? "DFDDFDFDFDFD " ; m.__classname ; " SCREEN POS" ; screenPos ; " PSP " ; parentScreenPos
+    ? "SDFSDFDSSFDSFD " ; formatJson(componentInfo.positions)
 
     contentOffset = m.viewManager.settings.contentOffset
 

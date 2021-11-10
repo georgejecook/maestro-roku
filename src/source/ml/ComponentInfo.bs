@@ -20,13 +20,13 @@ namespace ml
     public component as mc.types.node
     public focusSettings as mc.types.node
     public direction = 0
-    public positionsByDirection = []
+    public positions = []
     public isFlowFocusAllowed = false
 
     public function new(size as mc.types.array, focusSettings as mc.types.node, positions as mc.types.array, isFlowFocusAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
       m.size = size
       m.focusSettings = focusSettings
-      m.positionsByDirection = positions
+      m.positions = positions
       m.isFlowFocusAllowed = isFlowFocusAllowed
       m.componentIndex = componentIndex
       m.contentIndex = contentIndex
@@ -36,7 +36,7 @@ namespace ml
       if direction < 1
         direction = 0
       end if
-      position = m.positionsByDirection[direction]
+      position = m.positions[direction]
       return position.position
     end function
 
@@ -44,7 +44,7 @@ namespace ml
       if direction < 1
         direction = 0
       end if
-      position = m.positionsByDirection[direction]
+      position = m.positions[direction]
       return - position.position + position.screenPosition
     end function
 
@@ -52,17 +52,17 @@ namespace ml
       if direction < 1
         direction = 0
       end if
-      position = m.positionsByDirection[direction]
+      position = m.positions[direction]
       return position.screenPosition
     end function
 
     public function getScreenPosition(direction as integer) as integer
-      position = m.positionsByDirection[0]
+      position = m.positions[0]
       return position.screenPosition
     end function
 
     public function getScrollOffset(direction as integer) as integer
-      position = m.positionsByDirection[0]
+      position = m.positions[0]
       return - position.position + position.screenPosition
     end function
 
@@ -93,7 +93,7 @@ end namespace
 
 namespace ml.ComponentInfoUtils
   function componentInfoFromAA(otherInfo as mc.types.assocarray)
-    info = new ml.ComponentInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positionsByDirection, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
+    info = new ml.ComponentInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
     info.index = otherInfo.index
     return info
   end function

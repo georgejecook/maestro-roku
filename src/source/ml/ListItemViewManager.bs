@@ -11,6 +11,7 @@ namespace ml
     private isUpdating = false
     private previousFocusedRow as mc.types.node
     private previousFocusedIndex = 0
+    public componentBufferMode = "rendered"
 
     public override function reset()
       m.log.info ("resetting viewManager. numItems: ", m.numberOfItems)
@@ -195,7 +196,8 @@ namespace ml
     function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, rect as mc.types.assocarray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'TODO - measure height to ascertain how many
-      isRendered = index < 4
+      ' isRendered = index < 4
+      isRendered = true
       row = m.componentPool@.getComponent(compName, 1)
       m.rowsByContentID[rowContent.id] = row
 
