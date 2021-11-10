@@ -51,7 +51,7 @@ namespace ml
 
       index = 0
       ' m.contentGroup.translation = [0, 0]
-
+      focusSettings = m.settings.focusSettings
       x = 0
       for each item in m.content.getChildren(-1, 0)
         ' ? ">>>> laying out ", item.title
@@ -65,16 +65,14 @@ namespace ml
           rowIndex: m.row.index
           visible: true
         })
-        maxPos = m.maxPos - settings.size[1] - xSpace
+        maxPos = m.maxPos - settings.size[0] - xSpace
 
         positions = [
-          new ml.ComponentPosition(x, 0) 'left
-          new ml.ComponentPosition(x, 0) 'fixed
-          new ml.ComponentPosition(x, 0) 'right (float)
-          ' new ml.ComponentPosition(x, maxPos) 'right (float)
+          new ml.ComponentPosition(x, 0) 'normal
+          new ml.ComponentPosition(0, maxPos) 'float-scroll
         ]
 
-        cellInfo = new ml.ComponentInfo(settings, positions, true, index, index)
+        cellInfo = new ml.ComponentInfo(focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
         cellInfo.index = index
         m.cellInfos.push(cellInfo)
 

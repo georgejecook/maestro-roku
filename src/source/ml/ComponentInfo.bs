@@ -20,56 +20,54 @@ namespace ml
     public focusSettings as mc.types.node
     public direction = 0
     public positionsByDirection = []
-    public isFloatAllowed = false
+    public isFlowFocusAllowed = false
 
-    public function new(focusSettings as mc.types.node, positions as mc.types.array, isFloatAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
+    public function new(focusSettings as mc.types.node, positions as mc.types.array, isFlowFocusAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
       m.focusSettings = focusSettings
       m.positionsByDirection = positions
-      m.isFloatAllowed = isFloatAllowed
+      m.isFlowFocusAllowed = isFlowFocusAllowed
       m.componentIndex = componentIndex
       m.contentIndex = contentIndex
     end function
 
-    public function getActivePosition() as ml.ComponentPosition
-      return m.positionsByDirection[m.direction + 1]
-    end function
-
-    public function getPositionForDirection(direction as integer) as ml.ComponentPosition
-      return m.positionsByDirection[direction + 1]
-    end function
-
-    public function getScrollOffsetForDirection(direction as integer) as integer
-      position = m.positionsByDirection[direction + 1]
+    public function getScrollOffsetForFlowFocus(direction as integer) as integer
+      if direction < 1
+        direction = 0
+      end if
+      position = m.positionsByDirection[direction]
       return - position.position + position.screenPosition
     end function
 
-    public function getScreenPositionForDirection(direction as integer) as integer
-      position = m.positionsByDirection[direction + 1]
+    public function getScreenPositionForFlowFocus(direction as integer) as integer
+      if direction < 1
+        direction = 0
+      end if
+      position = m.positionsByDirection[direction]
       return position.screenPosition
     end function
 
-    public function getScrollScreenPosition() as integer
+    public function getScreenPosition(direction as integer) as integer
       position = m.positionsByDirection[0]
       return position.screenPosition
     end function
 
-    public function getScrollOffset() as integer
+    public function getScrollOffset(direction as integer) as integer
       position = m.positionsByDirection[0]
       return - position.position + position.screenPosition
     end function
 
     public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer) as boolean
-      if not m.isFloatAllowed
+      if not m.isFlowFocusAllowed
         ? "pppppp iFFP NO - not allowed for index " ;m.index
         return false
       end if
 
       if direction = -1 or direction = 0
-        lastViableOffset = m.getScrollOffsetForDirection(-1)
+        lastViableOffset = m.getScrollOffsetForFlowFocus(direction)
         ? "pppppp iFFP UP SO " ; scrollOffset ; " MO "; scrollOffset - maxOffset ; " O "; lastViableOffset
         return lastViableOffset < scrollOffset
       else
-        lastViableOffset = m.getScrollOffsetForDirection(1)
+        lastViableOffset = m.getScrollOffsetForFlowFocus(1)
         ? "pppppp iFFP DOWN SO " ; scrollOffset ; " MO "; scrollOffset + maxOffset ; " O "; lastViableOffset
         return lastViableOffset > scrollOffset and lastViableOffset < scrollOffset + maxOffset
       end if
@@ -82,7 +80,7 @@ end namespace
 
 namespace ml.ComponentInfoUtils
   function componentInfoFromAA(otherInfo as mc.types.assocarray)
-    info = new ml.ComponentInfo(otherInfo.focusSettings, otherInfo.positionsByDirection, otherInfo.isFloatAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
+    info = new ml.ComponentInfo(otherInfo.focusSettings, otherInfo.positionsByDirection, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
     info.index = otherInfo.index
     return info
   end function

@@ -65,7 +65,9 @@ namespace ml
     end function
 
     private function updateScreenRect()
-      m.screenRect = { translation: m.owner.translation, size: [m.owner.width, m.owner.height] }
+      'bs:disable-next-line
+      bounds = m.owner.sceneBoundingRect()
+      m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.owner.height] }
     end function
 
     public function reset()
@@ -268,7 +270,7 @@ namespace ml
           endIndex: -1
         }
       end if
-      indexPos = abs(info.getScrollOffsetForDirection(direction))
+      indexPos = abs(info.getScrollOffset(direction))
 
       if direction < 0
         beforePos = indexPos - m.lookAheadDistance
@@ -378,7 +380,7 @@ namespace ml
       for i = 0 to m.cellInfos.count() - 1
         info = m.cellInfos[i]
         'the offset is already factored in
-        itemPos = abs(info.getScrollOffset())
+        itemPos = abs(info.getScrollOffset(direction))
         ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
         if itemPos > p
           ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
@@ -442,6 +444,25 @@ namespace ml
       end if
     end function
 
+    function getIsOnScreen(info as ml.componentInfo) as boolean
+      rect = m.rects[info.contentIndex]
+      if rect = invalid
+        return false
+      end if
+      if info.component = invalid
+        info.component = m.components[info.index]
+        if info.component = invalid
+          ? " could not get renderer for this info"
+          return false
+        end if
+      end if
+      'bs:disable-next-line
+      bounds = info.component.sceneBoundingRect()
+      w = rect.size[0]
+      h = rect.size[1]
+
+      return bounds.x >= m.screenRect.translation[0] and bounds.x + w <= m.screenRect.size[0] and bounds.y >= m.screenRect.translation[1] and bounds.y + h <= m.screenRect.size[1]
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -474,9 +495,8 @@ namespace ml
 
         screenPos = focusSettings.screenPos
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'fixed
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new ml.ComponentPosition(yOffset, screenPos) 'normal
+          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
         ]
         m.rowInfos = [new ml.ComponentInfo(focusSettings, positions, false, 0, 0)]
       end if

@@ -284,7 +284,19 @@ namespace ml
       ? "//// 2. Ascertain offset"
       '////////////////////////////////////////////////////////////////////////
 
+      ? "2.b IS FLOW POSSIBLE ???"
+      ? "2.b IS FLOW POSSIBLE ???"
+      ? "2.b IS FLOW POSSIBLE ???"
+      ? "2.b IS FLOW POSSIBLE ???"
       isFlowPossible = m.isOnlyFloatingFocus or nextComponentInfo.isFlowFocusPossible(m.container.translation[m.axes] + m.activeScreenPos, m.viewManager.maxPos, direction)
+
+      if not isFlowPossible and nextComponentInfo.isFlowFocusAllowed
+        'check on the renderer
+        ? "Flow not possible based on component info - checking actual component"
+        isFlowPossible = m.viewManager.getIsOnScreen(nextComponentInfo)
+      end if
+
+      ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.activeScreenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
       if isFlowPossible and animated
         ? "///// 2.b flow focus is happening on " ; index
@@ -292,9 +304,15 @@ namespace ml
         return true
       end if
 
+      ? "2.c NO FLOW!"
+
       translation = m.container.translation
       ' translation[m.axes] = targetComponentInfo.getScrollOffset()
-      translation[m.axes] = targetComponentInfo.getScrollOffsetForDirection(direction)
+      if nextComponentInfo.isFlowFocusAllowed
+        translation[m.axes] = targetComponentInfo.getScrollOffsetForFlowFocus(direction)
+      else
+        translation[m.axes] = targetComponentInfo.getScrollOffset(direction)
+      end if
 
       m.scrollStartIndex = m.index
 
@@ -420,7 +438,7 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = componentInfo.getScrollOffsetForDirection(m.direction)
+      translation[m.axes] = componentInfo.getScrollOffset(m.direction)
 
       ? " FINAL POS " ; translation[m.axes] ; " --- " ; m.container.translation[m.axes]
       isMoveRequired = translation[m.axes] <> m.container.translation[m.axes]
@@ -454,7 +472,9 @@ namespace ml
 
     function toggleScrolling(active as boolean)
       ? "+>+>+>+> toggleScrolling " ; active ; " " ; m.__classname
-      m.viewManager.setIsScrolling(active, m.isMovingMultiple, m.index)
+      if m.viewManager.isScrolling <> active
+        m.viewManager.setIsScrolling(active, m.isMovingMultiple, m.index)
+      end if
 
       if not active
         m.setTargetComponentInfo(invalid)
@@ -480,8 +500,7 @@ namespace ml
       m.toggleScrolling(true)
       ? ":::::::::::::::: FLOW GET FOCUS INDICATOR CONFIG"
 
-      ' ? ")))))) NFIC I ["; m.nextFocusIndicatorConfig.rowIndex ; "," ; m.nextFocusIndicatorConfig.colIndex ; "] T " ; formatJson(m.nextFocusIndicatorConfig.translation) ; " IT " ; formatJson(m.nextFocusIndicatorConfig.indicatorTranslation) ; " "
-      'ensure that the component is set
+      m.isDoingFlowFocus = true
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
       m.flowFocusInfo = toInfo
       m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
@@ -517,7 +536,6 @@ namespace ml
 
     protected function continueScrollingAfterFlowFocus() as void
       ? "CONTINUE - " ; m.direction ; " " ; m.targetComponentInfo.index
-      ? " DISABLED"
       m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
     end function
 
@@ -530,8 +548,8 @@ namespace ml
       if info <> invalid
         m.index = info.index
         ' m.activeScrollLocation = info.getScrollOffset()
-        m.activeScrollLocation = info.getScrollOffsetForDirection(m.direction)
-        m.activeScreenPos = info.getScreenPositionForDirection(m.direction)
+        m.activeScrollLocation = info.getScrollOffset(m.direction)
+        m.activeScreenPos = info.getScreenPosition(m.direction)
       else
         m.index = -1
         m.activeScrollLocation = 0
@@ -552,7 +570,7 @@ namespace ml
 
       if info.index <> m.nextIndex
         m.nextIndex = info.index
-        m.nextScrollLocation = info.getScrollOffsetForDirection(m.direction)
+        m.nextScrollLocation = info.getScrollOffset(m.direction)
         ' m.nextScrollLocation = info.getScrollOffset()
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(info, m.direction, false)
 
@@ -715,7 +733,7 @@ namespace ml
     info = m.getCellComponentInfo(componentInfo, isFromListScroll)
     size = m.viewManager.getItemSize(info.contentIndex)
 
-    rowIndex = m.viewManager.row = invalid ? -1 : m.viewManager.row.index
+    rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
     if info = invalid or info.component = invalid
       ? "cannot get focus indicator componentInfo or componentInfo.component is invalid"
       return new ml.FocusIndicatorConfig([0, 0], [0, 0], rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
@@ -743,8 +761,18 @@ namespace ml
       return [0, 0]
     end if
 
-    screenPos = info.getScreenPositionForDirection(direction)
-    parentScreenPos = componentInfo.getScreenPositionForDirection(direction)
+    if info.isFlowFocusAllowed
+      screenPos = info.getScreenPositionForFlowFocus(direction)
+    else
+      screenPos = info.getScreenPosition(direction)
+    end if
+
+    if componentInfo.isFlowFocusAllowed
+      parentScreenPos = componentInfo.getScreenPositionForFlowFocus(direction)
+    else
+      parentScreenPos = componentInfo.getScreenPosition(direction)
+    end if
+
     contentOffset = m.viewManager.settings.contentOffset
 
     if m.axes = 0

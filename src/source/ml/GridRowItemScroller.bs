@@ -86,13 +86,25 @@ namespace ml
       ' ? " GRID GET FOCUS INDICATOR TRANS"
       ' ? " GRID GET FOCUS INDICATOR TRANS ----- " ; info.contentIndex ; " D "; direction
       if isFloatingFocus
-        screenPos = info.getScreenPositionForDirection(direction)
+        screenPos = info.getScreenPositionForFlowFocus(direction)
       else
-        screenPos = info.getScreenPositionForDirection(direction)
+        screenPos = info.getScreenPosition(direction)
+      end if
+
+      ' if info.isFlowFocusAllowed
+      '   screenPos = info.getScreenPositionForFlowFocus(direction)
+      ' else
+      '   screenPos = info.getScreenPosition(direction)
+      ' end if
+
+      if componentInfo.isFlowFocusAllowed
+        parentScreenPos = componentInfo.getScreenPositionForFlowFocus(direction)
+      else
+        parentScreenPos = componentInfo.getScreenPosition(direction)
       end if
 
 
-      parentScreenPos = componentInfo.getScreenPositionForDirection(direction)
+      ' parentScreenPos = componentInfo.getScreenPosition(direction)
       contentOffset = m.viewManager.settings.contentOffset
 
       ? " PARENT " ; componentInfo.index ; " PSP "; parentScreenPos

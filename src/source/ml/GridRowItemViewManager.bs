@@ -132,12 +132,10 @@ namespace ml
             gridRow: rowIndex
             visible: true
           })
-          ' maxPos = m.maxPos - settings.size[1] - xSpace
 
           positions = [
-            new ml.ComponentPosition(0, x) 'left
-            new ml.ComponentPosition(0, x) 'fixed
-            new ml.ComponentPosition(0, x) 'right
+            new ml.ComponentPosition(0, x) 'normal
+            new ml.ComponentPosition(0, x) 'float-scroll
           ]
 
           cellInfo = new ml.ComponentInfo(settings, positions, true, i, i)
@@ -167,32 +165,29 @@ namespace ml
 
       if rowIndex = 0
         screenPos = m.settings.firstRowScreenPos
-        isFloatAllowed = false
+        isFlowFocusAllowed = false
 
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'fixed
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new ml.ComponentPosition(yOffset, screenPos) 'normal
+          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
         ]
       else if rowIndex = 1 and m.settings.otherRowScreenPos <> m.settings.firstRowScreenPos
         screenPos = m.settings.otherRowScreenPos
-        isFloatAllowed = false
+        isFlowFocusAllowed = false
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'fixed
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new ml.ComponentPosition(yOffset, screenPos) 'normal
+          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
         ]
       else
         screenPos = m.settings.otherRowScreenPos
-        isFloatAllowed = true
+        isFlowFocusAllowed = true
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'fixed
-          new ml.ComponentPosition(yOffset, maxPos) 'down
+          new ml.ComponentPosition(yOffset, screenPos) 'normal
+          new ml.ComponentPosition(yOffset, maxPos) 'float-scroll
         ]
 
       end if
-      return new ml.ComponentInfo(m.settings, positions, isFloatAllowed, rowIndex, rowIndex)
+      return new ml.ComponentInfo(m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
