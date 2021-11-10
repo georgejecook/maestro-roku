@@ -46,15 +46,14 @@ namespace ml
     end function
 
     protected override function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
-      nextComponentInfo.component@.chooseComponentInfoForScrollingIntoRow(m.nextComponentInfo)
+      ? "::::::::::::::::::::::: LIST SET FOCUS MANAGER INFO " ; nextComponentInfo.componentIndex ; " D " ; direction
+      nextComponentInfo.component@.chooseComponentInfoForScrollingIntoRow(nextComponentInfo)
 
-      if isFloatingFocus
-        m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextComponentInfo, m.direction, true)
-      end if
+      m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextComponentInfo, m.direction, isFloatingFocus)
       nextFocusIndicatorConfig = m.nextFocusIndicatorConfig
       m.focusManager.setComponentInfo(componentInfo, nextComponentInfo, nextFocusIndicatorConfig, direction, isFloatingFocus)
     end function
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -77,8 +76,16 @@ namespace ml
     end function
 
     public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG"
+      ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; componentInfo.componentIndex ; " D " ; direction
       return componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, true)
+    end function
+
+    protected override function setComponentInfo(info as ml.ComponentInfo)
+      isSubRowChanged = m.componentInfo = invalid or info.componentIndex <> m.componentInfo.componentIndex
+      super.setComponentInfo(info)
+      if isSubRowChanged
+        m.viewManager.owner.focusedSubRowIndex = info.componentIndex
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

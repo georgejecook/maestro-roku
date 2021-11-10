@@ -54,6 +54,7 @@ class ListScreen extends mv.BaseScreen
       width: size[0]
       height: size[1]
     })
+    mioc.setInstance("list", m.list)
     m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
       isActive: true
       width: 1920
@@ -507,7 +508,7 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
   mioc.setInstance("focusedIndex", {
     row: rowIndex
     cell: itemIndex
@@ -515,7 +516,7 @@ private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, 
 end function
 
 private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
   mioc.setInstance("focusedIndex", {
     row: rowIndex
     cell: itemIndex
@@ -524,11 +525,11 @@ end function
 
 
 private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
 end function
 
 private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-  ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+  ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
 
   row = m.list@.getRowRenderer(rowIndex)
   if row <> invalid
@@ -551,7 +552,7 @@ private function onRowDidGainFocus(rowIndex as integer, direction as integer)
 end function
 
 private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-  ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+  ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
 
   ' row = m.list@.getRowRenderer(rowIndex)
   ' if direction = 1
@@ -561,7 +562,7 @@ private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
 end function
 
 private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-  ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
   ' if direction = -1
   '   row = m.list@.getRowRenderer(rowIndex)
   '   row.opacity = fraction
@@ -569,7 +570,7 @@ private function onRowGainingFocus(rowIndex as integer, direction as integer, fr
 end function
 
 private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-  ? "g onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  ' ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
   ' if direction = 1
   '   row = m.list@.getRowRenderer(rowIndex)
   '   row.opacity = 1 - fraction
@@ -577,7 +578,7 @@ private function onRowLosingFocus(rowIndex as integer, direction as integer, fra
 
 end function
 private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-  ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
+  ' ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
   ' if direction = -1
   '   row = m.list@.getRowRenderer(rowIndex)
   '   row.opacity = fraction
@@ -585,7 +586,7 @@ private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, d
 end function
 
 private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-  ? "g onRowLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
+  ' ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
   ' if direction = 1
   '   row = m.list@.getRowRenderer(rowIndex)
   '   row.opacity = 1 - fraction

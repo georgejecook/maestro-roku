@@ -80,21 +80,23 @@ namespace ml
         return [0, 0]
       end if
 
-      ? " GRID GET FOCUS INDICATOR TRANS"
-      ? " GRID GET FOCUS INDICATOR TRANS"
-      ? " GRID GET FOCUS INDICATOR TRANS"
-      ? " GRID GET FOCUS INDICATOR TRANS"
-      ? " GRID GET FOCUS INDICATOR TRANS ----- " ; info.contentIndex
+      ' ? " GRID GET FOCUS INDICATOR TRANS"
+      ' ? " GRID GET FOCUS INDICATOR TRANS"
+      ' ? " GRID GET FOCUS INDICATOR TRANS"
+      ' ? " GRID GET FOCUS INDICATOR TRANS"
+      ' ? " GRID GET FOCUS INDICATOR TRANS ----- " ; info.contentIndex ; " D "; direction
       if isFloatingFocus
-        screenPos = info.getScreenPositionForDirection(1)
+        screenPos = info.getScreenPositionForDirection(direction)
       else
         screenPos = info.getScreenPositionForDirection(direction)
       end if
 
-      ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
 
       parentScreenPos = componentInfo.getScreenPositionForDirection(direction)
       contentOffset = m.viewManager.settings.contentOffset
+
+      ? " PARENT " ; componentInfo.index ; " PSP "; parentScreenPos
+      ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
 
       ? " contentOffset "; formatJson(contentOffset)
       if m.axes = 0
