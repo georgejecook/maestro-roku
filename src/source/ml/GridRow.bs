@@ -261,7 +261,7 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       m.log.verbose(">>>>onLongPressStart", key)
-      '      ? " ON LONG PRESS START "; key
+      ? " ON LONG PRESS START GRID ROW "; key
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         m.itemScroller.isDoingLongPress = true
@@ -278,7 +278,7 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-
+      ? " ON LONG PRESS FINISH "; key
       m.itemScroller.isDoingLongPress = false
       if key = "left" or key = "right"
         m.log.verbose("long press finished on key", key)
@@ -295,6 +295,7 @@ namespace ml
 
     protected function onWillLoseFocus(direction as integer)
       m.log.verbose("This row will lose focus - disabling scrolling")
+      ? " WILL LOSE FOCUS " ; m.top.id
       m.itemScroller.cancelScrolling()
       m.toggleLongPressTimer(0)
       m.isScrollingEnabled = false
@@ -302,6 +303,7 @@ namespace ml
 
     protected function onWillGainFocus(direction as integer)
       m.log.verbose("This row will gain focus - enabling scrolling")
+      ? " WILL GAIN FOCUS " ; m.top.id
       m.isScrollingEnabled = true
     end function
 

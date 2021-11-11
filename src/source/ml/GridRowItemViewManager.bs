@@ -10,7 +10,7 @@ namespace ml
     public componentBufferMode = "rendered"
     public lastRowIsRendered = "none"
     public isFlowSupported = false
-
+    private maxRowPos = 0
     private rowOffsets = []
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
@@ -20,6 +20,12 @@ namespace ml
 
       m.lookAheadDistance = maxPos * 1.5
       m.lookBehindDistance = maxPos * 1.5
+    end function
+
+    protected override function updateScreenRect()
+      'bs:disable-next-line
+      bounds = m.owner.sceneBoundingRect()
+      m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.maxRowPos] }
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,16 +57,18 @@ namespace ml
 
         ySpace = m.settings.rowSpace
         rowHeight = m.settings.rowHeight
+        contentOffset = m.settings.contentOffset[1]
         if m.rowOffsets.count() > 2
           offset = m.settings.otherRowScreenPos
         else
           offset = m.settings.firstRowScreenPos
         end if
-        maxPos = m.settings.numRows * (rowHeight + ySpace) + offset
+        m.maxRowPos = m.settings.numRows * (rowHeight + ySpace) + offset
+        m.updateScreenRect()
 
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
         for i = 0 to m.rowOffsets.count() - 1
-          m.rowInfos.push(m.getRowInfo(i, [0, rowHeight], m.rowOffsets[i], yPosition, height, maxPos))
+          m.rowInfos.push(m.getRowInfo(i, [0, rowHeight], m.rowOffsets[i] - contentOffset, yPosition, height, m.maxRowPos))
           ? "LAYING OUT ITEM " ; i ; "RO " ; m.rowOffsets[i]
         end for
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"

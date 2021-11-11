@@ -73,6 +73,8 @@ namespace ml
 
     public cellEvents as mc.types.Node
     public rowEvents as mc.types.Node
+    public screenPos =0
+    public nextScreenPos =0
 
     @alwaysnotify
     public listEvent as mc.types.Assocarray
@@ -408,6 +410,7 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
+      ? " ON LONG PRESS START  - LIST" ; key
       if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
         if key = "up"
           m.log.verbose("long press started on key", key, "going to animate to start of list")
@@ -422,27 +425,10 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
-      ? " ON LONG PRESS FINISH "; key
+      ? " ON LONG PRESS FINISH - LIST "; key
       if key = "up" or key = "down"
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
-        m.itemScroller.finishAnimating()
+        m.itemScroller.cancelScrolling()
         return true
       end if
 

@@ -18,7 +18,14 @@ namespace ml
     end function
 
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
-      return m.viewManager.cellInfos[m.index]
+      if isFromListScroll
+        return m.viewManager.cellInfos[m.index]
+      else
+        if componentInfo = invalid
+          return invalid
+        end if
+        return m.viewManager.cellInfos[componentInfo.index]
+      end if
     end function
 
   end class

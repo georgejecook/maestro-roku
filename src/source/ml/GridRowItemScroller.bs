@@ -94,12 +94,6 @@ namespace ml
         screenPos = info.getScreenPosition(direction)
       end if
 
-      ' if info.isFlowFocusAllowed
-      '   screenPos = info.getScreenPositionForFlowFocus(direction)
-      ' else
-      '   screenPos = info.getScreenPosition(direction)
-      ' end if
-
       if componentInfo.isFlowFocusAllowed
         parentScreenPos = componentInfo.getScreenPositionForFlowFocus(direction)
       else
@@ -107,7 +101,6 @@ namespace ml
       end if
 
 
-      ' parentScreenPos = componentInfo.getScreenPosition(direction)
       contentOffset = m.viewManager.settings.contentOffset
 
       ? " PARENT " ; componentInfo.index ; " PSP "; parentScreenPos
@@ -120,6 +113,9 @@ namespace ml
         translation = [contentOffset[0] + parentScreenPos, contentOffset[1] + screenPos]
       end if
 
+      headerOffset = m.viewManager.settings.headerSettings.height
+      translation[1] += headerOffset
+
       if isFloatingFocus
         ? " is float"
         'replace with actual screen location
@@ -128,6 +124,7 @@ namespace ml
         bounds = cell.sceneBoundingRect()
         translation = [bounds.x, bounds.y]
       end if
+
 
       if m.settings.horizAnimStyle = "fixed"
         translation[m.axes] = contentOffset[m.axes]

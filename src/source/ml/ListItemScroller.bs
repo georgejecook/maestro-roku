@@ -58,20 +58,39 @@ namespace ml
     '++ Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer) as void
-      m.log.info("setFocusOnRenderer", isMoving, index)
-      ' if isMoving
-      '   return
-      ' end if
-      if index = invalid
-        index = m.index
+    override function setFocusOnRenderer(isMoving as boolean) as void
+      m.log.info("setFocusOnRenderer", isMoving)
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
+      if isMoving
+        ? "CANCEL IS MOVING"
+        return
       end if
-      componentInfo = m.componentInfos[index]
-
-      if componentInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
-        mv.setFocus(componentInfo.component)
+      if m.componentInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
+        ? " SETTING FOCUS ON " ; mc.dv(m.componentInfo.component)
+        mv.setFocus(m.componentInfo.component)
       else
-        m.log.warn("not setting focus on", index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
+        m.log.warn("not setting focus on", m.componentInfo.index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if
     end function
 
@@ -86,6 +105,7 @@ namespace ml
       if isSubRowChanged
         m.viewManager.owner.focusedSubRowIndex = info.componentIndex
       end if
+      m.viewManager.owner.screenPos = m.activeScreenPos
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

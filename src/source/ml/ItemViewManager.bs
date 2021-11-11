@@ -64,7 +64,7 @@ namespace ml
       m.updateScreenRect()
     end function
 
-    private function updateScreenRect()
+    protected function updateScreenRect()
       'bs:disable-next-line
       bounds = m.owner.sceneBoundingRect()
       m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.owner.height] }
@@ -444,7 +444,7 @@ namespace ml
       end if
     end function
 
-    function getIsOnScreen(info as ml.componentInfo) as boolean
+    function getIsOnScreen(info as ml.componentInfo, screenPos = 0 as integer) as boolean
       rect = m.rects[info.contentIndex]
       if rect = invalid
         return false
@@ -460,7 +460,9 @@ namespace ml
       bounds = info.component.sceneBoundingRect()
       w = rect.size[0]
       h = rect.size[1]
-      return bounds.x >= m.screenRect.translation[0] and bounds.x + w <= m.screenRect.size[0] and bounds.y >= m.screenRect.translation[1] and bounds.y + h <= m.screenRect.size[1]
+      translation = [bounds.x, bounds.y]
+      translation[m.axes] += screenPos
+      return translation[0] >= m.screenRect.translation[0] and translation[0] + w <= m.screenRect.size[0] and translation[1] >= m.screenRect.translation[1] and translation[1] + h <= m.screenRect.size[1]
     end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ abstract methods

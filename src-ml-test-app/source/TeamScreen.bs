@@ -133,7 +133,7 @@ namespace ml.sample
       row.id = rnd(2147483647).toStr()
       cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [-20, -20, 20, 20])
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 70)
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 0)
       row.settings.contentOffset = [200, 30]
       numItems = 20
       content.push(row)
@@ -278,6 +278,14 @@ namespace ml.sample
       })
     end function
 
+    private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      ' ? "+SCREEN onCellWillLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: itemIndex
+      })
+    end function
+
     private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
       ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
       mioc.setInstance("focusedIndex", {
@@ -334,6 +342,23 @@ namespace ml.sample
 
     private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
       ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+      ' if direction = 1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1 - fraction
+      ' end if
+
+    end function
+
+    private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+      ' ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = fraction
+      ' end if
+    end function
+
+    private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+      ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
       ' if direction = 1
       '   row = m.list@.getRowRenderer(rowIndex)
       '   row.opacity = 1 - fraction
