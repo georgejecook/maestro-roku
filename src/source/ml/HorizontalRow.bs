@@ -100,6 +100,10 @@ namespace ml
         m.focusManager.isNotifying = true
       end if
       ' end if
+      if m.itemScroller.numberOfComponents = 0 and content.isHidden <> true
+        ? "force update - no comps left!"
+        m.owner@.forceUpdate()
+      end if
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)

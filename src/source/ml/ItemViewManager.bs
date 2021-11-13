@@ -468,6 +468,21 @@ namespace ml
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+      isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+
+      if not isFlowPossible and info.isFlowFocusAllowed
+        'check on the renderer
+        ' ? "Flow not possible based on component info - checking actual component " ; m.activeScreenPos ; " NI "; info.index
+        isFlowPossible = m.getIsOnScreen(info, activeScreenPos)
+      end if
+      return isFlowPossible
+    end function
+
+    function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+      return true
+    end function
+
     function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       m.log.error("You must override this method")
       return false

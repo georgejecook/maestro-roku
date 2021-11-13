@@ -12,6 +12,7 @@ namespace ml
     public isFlowSupported = false
     private maxRowPos = 0
     private rowOffsets = []
+    private firstFlowIndex = 0
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, 0, minPos, maxPos)
@@ -63,7 +64,13 @@ namespace ml
         else
           offset = m.settings.firstRowScreenPos
         end if
-        m.maxRowPos = m.settings.numRows * (rowHeight + ySpace) + offset
+
+        m.firstFlowIndex = m.settings.firstRowScreenPos <> m.settings.screenPos ? 1 : 0
+
+        if offset > yPosition
+          offset = yPosition
+        end if
+        m.maxRowPos = (m.settings.numRows - 1) * (rowHeight + ySpace) + offset
         m.updateScreenRect()
 
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
@@ -179,6 +186,9 @@ namespace ml
 
       if rowIndex = 0
         screenPos = m.settings.firstRowScreenPos
+        ' if screenPos > yOffset
+        '   screenPos = yOffset
+        ' end if
         isFlowFocusAllowed = false
 
         positions = [
@@ -187,6 +197,9 @@ namespace ml
         ]
       else if rowIndex = 1 and m.settings.otherRowScreenPos <> m.settings.firstRowScreenPos
         screenPos = m.settings.otherRowScreenPos
+        ' if screenPos > yOffset
+        '   screenPos = yOffset
+        ' end if
         isFlowFocusAllowed = false
         positions = [
           new ml.ComponentPosition(yOffset, screenPos) 'normal
@@ -194,6 +207,9 @@ namespace ml
         ]
       else
         screenPos = m.settings.otherRowScreenPos
+        ' if screenPos > yOffset
+        '   screenPos = yOffset
+        ' end if
         isFlowFocusAllowed = true
         positions = [
           new ml.ComponentPosition(yOffset, screenPos) 'normal
@@ -211,6 +227,7 @@ namespace ml
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
       m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
+      ' ? "______________________________ ARSM" ; m.__classname
       m.renderedComponents = []
       if m.row.isRendered
         for each id in renderStateMap
@@ -302,6 +319,10 @@ namespace ml
       end if
 
       componentConfig = m.cellInfos[index]
+      ? " >>>>>>>>>>>>>>>"
+      ? " >>>>>>>>>>>>>>>"
+      ? " >>>>>>>>>>>>>>>"
+      ? " >>>>>>>>>>>>>>> settings comp I " ; index ; " CI " ; componentConfig.index ; " CO "; mc.dv(cell)
       componentConfig.component = cell
     end function
 
@@ -417,34 +438,56 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
+      ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
+      numRows = m.rowOffsets.count()
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
-      ' m.itemScroller.processChanges(changes)
+
+
       m.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-      ' ? "+++++++++++++++++++++++++++++++++++++++++++"
-      ' ? "onContentItemsChange"
-      ' ? "index is " ; m.itemScroller.index ; " NI " ; m.numberOfItems
-      if m.itemScroller.index < m.numberOfItems
-        '  ? "IN BOUNDS"
-        if m.row.isFocused
-          ' ? "FOCUSED"
-          m.owner@.moveToSubRowIndex(m.row.index, m.itemScroller.index, 1, false, true)
-        else
-          ' ? "NOT FOCUSED"
-          ' m.itemScroller.setNextMoveIndex(m.itemScroller.index, 1, true)
-        end if
-        ' m.itemScroller.moveToSubRowIndex(m.row.index, 1, 1, false)
-      else
-        ' ? "OUT BOUNDS"
-        if m.row.isFocused
-          ' ? "FOCUSED"
-          m.itemScroller.moveFromPress(- m.content.settings.numColumns, false)
-        else
-          ' ? "NOT FOCUSED"
-          ' m.itemScroller.setNextMoveIndex(0, 1, true)
-        end if
+
+      m.itemScroller.getComponentInfos()
+      if m.itemScroller.index >= m.itemScroller.numberOfComponents
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
       end if
+      if m.itemScroller.componentInfos.count() <> numRows
+        m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
+        ? "NEED TO TELL LIST!!!"
+        m.owner@.forceUpdate()
+      end if
+
+      m.itemScroller.processChanges(changes)
+      ' if m.row.isFocused
+      '   m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+      '   m.owner.focusedCellIndex = m.itemScroller.index
+      ' end if
+
       ? "+++++++++++++++++++++++++++++++++++++++++++"
+    end function
+
+
+    override function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
+      ? " grid isVerticalFlowFocusPossible "
+
+      ? info.componentIndex ; " NR "; m.settings.numRows ; " FRI " ; m.firstFlowIndex
+
+      if info.componentIndex <= m.firstFlowIndex
+        return false
+      end if
+      rowStartPos = scrollPos + activeScreenPos
+
+      firstRowOnScreen = m.getSubIndexAtPosition(rowStartPos, direction)
+      ? "L>>>>>>"
+      ? "L>>>>>> ; first on screen" ; firstRowOnScreen
+      ? "L>>>>>> ; last row ALLOWED screen "; firstRowOnScreen + (m.settings.numRows -1)
+      ? "L>>>>>> row "; info.componentIndex
+      ? "L>>>>>> SP "; scrollPos ; " ASP "; activeScreenPos
+      if direction = -1
+        return info.componentIndex > firstRowOnScreen
+      else
+        return info.componentIndex <= firstRowOnScreen + (m.settings.numRows -1)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

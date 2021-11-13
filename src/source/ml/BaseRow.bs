@@ -116,7 +116,6 @@ namespace ml
           'potentially update the header
         else
           '   'new content is invalid
-          m._onContentChange(invalid)
         end if
 
       end if
@@ -180,7 +179,7 @@ namespace ml
           new ml.ComponentPosition(yOffset, screenPos) 'normal
           new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
         ]
-        rowInfo = new ml.ComponentInfo([0,0], focusSettings, positions, false, 0, 0)
+        rowInfo = new ml.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)
         return [rowInfo]
       end if
     end function
@@ -202,6 +201,15 @@ namespace ml
         'bs:disable-next-line
         m.itemScroller.chooseComponentInfoForScrollingIntoRow(componentInfo)
       end if
+    end function
+
+    public function isVerticalFlowFocusPossible(componentInfo as ml.ComponentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.isVerticalFlowFocusPossible(componentInfo, direction, activeScreenPos, scrollPos)
+      end if
+      return true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

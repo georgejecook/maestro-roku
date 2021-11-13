@@ -25,7 +25,7 @@ namespace ml
       virtualIndex = 0
       for i = 0 to m.viewManager.visibleItems.count() - 1
         item = m.viewManager.visibleItems[i]
-        if item.isHidden = invalid or item.isHidden = false and item.isFocusEnabled = invalid or item.isFocusEnabled = true
+        if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and item.length > 0
           component = m.viewManager.visibleComponents[i]
           infos = component@.getRowInfos()
 
@@ -42,7 +42,6 @@ namespace ml
         end if
       end for
       m.numberOfComponents = m.componentInfos.count()
-      ? " GOT ITEM INFOS"
     end function
 
     protected override function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
@@ -60,28 +59,6 @@ namespace ml
 
     override function setFocusOnRenderer(isMoving as boolean) as void
       m.log.info("setFocusOnRenderer", isMoving)
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
-      ? "SET FOCUS ON RENDERER " ; m.componentInfo.index
       if isMoving
         ? "CANCEL IS MOVING"
         return
@@ -106,14 +83,27 @@ namespace ml
         m.viewManager.owner.focusedSubRowIndex = info.componentIndex
       end if
       m.viewManager.owner.screenPos = m.activeScreenPos
+      m.focusIndicatorManager.activeScreenPos = m.activeScreenPos
     end function
 
+    protected override function setNextComponentInfo(info as ml.ComponentInfo) as void
+      super.setNextComponentInfo(info)
+      m.focusIndicatorManager.nextScreenPos = m.nextScreenPos
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Managing Content Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function processChanges(changes as mc.types.array) as void
       isIndexUpdateRequired = false
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>PROCESS CHANGES LIST"
+      ? " NC "; m.numberOfComponents ; " I " ; m.index
       if m.numberOfComponents = 0
         ? "THERE ARE NO MORE ITEMS!"
         return

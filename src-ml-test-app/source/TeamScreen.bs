@@ -132,10 +132,13 @@ namespace ml.sample
       row.title = "TEAMS"
       row.id = rnd(2147483647).toStr()
       cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
-      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [-20, -20, 20, 20])
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 0)
+      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", invalid, "underneath")
+      gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
+      gridFocusSettings.feedbackColor = "#aaaaaa"
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, -1, 1, 144, 3, -1)
+      ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 0)
       row.settings.contentOffset = [200, 30]
-      numItems = 20
+      numItems = 10
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -225,9 +228,13 @@ namespace ml.sample
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function unFollowTeam(index as integer)
+    private function unFollowTeam(index as integer) as void
 
       team = m.followingModule.getChild(index)
+      if team = invalid
+        return
+      end if
+
       ? "unfollow "; team.title
 
       m.teamsModule@.setNotificationsEnabled(false)
@@ -237,12 +244,12 @@ namespace ml.sample
       m.teamsModule@.sortByKey("title")
 
       m.teamsModule@.setNotificationsEnabled(true, true)
-      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
-      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
-      if m.followingModule.isHidden
-        m.list.jumpToRowIndex = 1
-        m.list.jumpToRowItemIndex = 1
-      end if
+      ' m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      ' m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      ' if m.followingModule.isHidden
+      '   m.list.jumpToRowIndex = 1
+      '   m.list.jumpToRowItemIndex = 1
+      ' end if
     end function
 
     private function selectFavorite()
@@ -250,14 +257,17 @@ namespace ml.sample
       ? "selected fave:"; team.title
     end function
 
-    private function followTeam(itemIndex as integer)
+    private function followTeam(itemIndex as integer) as void
       team = m.teamsModule.getChild(itemIndex)
+      if team = invalid
+        return
+      end if
 
       ? "follow "; team.title
       m.teamsModule@.removeChildIndex(itemIndex)
       m.followingModule@.insertChild(team, 0)
-      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
-      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      ' m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      ' m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
       ? "followingModule : "; m.followingModule.getChildCount()
       ? "teamsModule : "; m.teamsModule.getChildCount()
       ' if m.teamsModule.isHidden

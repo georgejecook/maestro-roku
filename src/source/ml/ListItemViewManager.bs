@@ -253,7 +253,7 @@ namespace ml
       for i = 0 to m.content.getChildCount() - 1
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
-        visible = item.isHidden <> true
+        visible = item.isHidden <> true and item.length > 0
         ? "ITEM " ; i ; " VISIBLE "; visible
         if visible
           if settings.subType() = "ml_GridRowSettings"
@@ -380,6 +380,27 @@ namespace ml
       m.createRenderers(m.content)
       m.itemScroller.processChanges(changes)
       m.itemScroller.move(0)
+    end function
+
+    override function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+
+
+      if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
+
+        isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
+      else
+
+        isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+
+        if not isFlowPossible and info.isFlowFocusAllowed
+          'check on the renderer
+          ' ? "Flow not possible based on component info - checking actual component " ; m.activeScreenPos ; " NI "; info.index
+          ' isFlowPossible = m.getIsOnScreen(info, activeScreenPos)
+          isFlowPossible = m.getIsOnScreen(info, 0)
+        end if
+      end if
+
+      return isFlowPossible
     end function
 
 

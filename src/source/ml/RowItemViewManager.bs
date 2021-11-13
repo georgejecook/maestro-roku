@@ -228,11 +228,27 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       ' ? "ROW CHANGES"
+      oldNumComponents = m.itemScroller.numberOfComponents
       m.processRemovedCells(changes)
       ' ? "FORCING LAYOUT"
       m.forceUpdateLayout()
+      ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
+      if m.itemScroller.index >= m.content.length
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length -1)
+        ' ? "NEEDED TWEAK TO" ; m.itemScroller.index
+      end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
+      m.itemScroller.getComponentInfos()
       m.itemScroller.processChanges(changes)
+      if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
+        ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
+        m.owner@.forceUpdate()
+      else
+        if m.row.isFocused
+          m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+          m.owner.focusedCellIndex = m.itemScroller.index
+        end if
+      end if
     end function
 
 

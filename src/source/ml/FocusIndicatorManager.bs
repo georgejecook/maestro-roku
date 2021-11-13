@@ -17,6 +17,14 @@ namespace ml
     public isScrolling = false
 
     @alwaysnotify
+    @observer("onActiveScreenPosChange")
+    public activeScreenPos = 0
+
+    @alwaysnotify
+    @observer("onNextScreenPosChange")
+    public nextScreenPos = 0
+
+    @alwaysnotify
     @observer("onFocusedRowIndexChange")
     private focusedRowIndex = 0
 
@@ -42,14 +50,14 @@ namespace ml
 
     private focusPoint as mc.types.node
     private focusIndicator as mc.types.node
-    private dummyFocusView as mc.types.node
+    private activeFocusView as mc.types.node
+    private nextFocusView as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Animations
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPointAnim
-    private dummyFocusAnim
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -97,18 +105,21 @@ namespace ml
         size: [20, 20]
         visible: false
       })
-      m.dummyFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+      m.activeFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#00ff00"
         size: [20, 20]
-        visible: false
+        visible: true
+      })
+      m.nextFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+        color: "#ff0000"
+        size: [20, 20]
+        visible: true
       })
     end function
 
     private function createAnims()
       m.focusPointAnim = new mv.animations.Move(m.focusPoint, 0.2, [0, 0], [0, 0])
       m.focusPointAnim.observeFraction(m.onFlowFocusFractionChange, m)
-      m.dummyFocusAnim = new mv.animations.Size(m.dummyFocusView, 0.5, [0, 0], [0, 0])
-      ' m.dummyFocusAnim.observeFraction(m.updateFocusIndicatorForFraction, m)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -128,7 +139,7 @@ namespace ml
     end function
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer) as void
-      ? "ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.colIndex
+      ? "[[[ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
       m.direction = direction
       m.preprareNextFocusConfig(focusIndicatorConfig)
     end function
@@ -149,6 +160,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onActiveScreenPosChange(y as integer) as void
+      m.activeFocusView.translation = [200, y]
+    end function
+    private function onNextScreenPosChange(y as integer) as void
+      m.nextFocusView.translation = [220, y]
+    end function
 
     private function onFocusedFractionChange(fraction as float) as void
       ' ? "ON ROW Fraction CHANGE" ; fraction " " ; m.focusedRowIndex ; " "; m.isDoingFlowFocus

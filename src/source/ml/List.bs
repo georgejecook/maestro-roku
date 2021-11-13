@@ -73,8 +73,8 @@ namespace ml
 
     public cellEvents as mc.types.Node
     public rowEvents as mc.types.Node
-    public screenPos =0
-    public nextScreenPos =0
+    public screenPos = 0
+    public nextScreenPos = 0
 
     @alwaysnotify
     public listEvent as mc.types.Assocarray
@@ -224,11 +224,31 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function forceUpdate()
+      ? "+>+>+>+> list forceUpdate"
+      ? m.focusedRowIndex ; " " m.focusedCellIndex
+      ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout()
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+      m.itemScroller.getComponentInfos()
 
-      'TODO - need to ensure that the current focus and scroll position is valid after an update!
-      m.itemScroller.move(0)
+      ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
+      if m.itemScroller.numberOfComponents > 0
+        ? "LIST HAS COMPONENTS"
+        if m.itemScroller.index >= m.itemScroller.numberOfComponents
+          index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+          if index >= 0
+            ? "CORRECTING INDEX"; index
+            m.itemScroller.moveToIndex(index, false)
+          end if
+        else
+          ? "MOVING TO ROW "; m.itemScroller.index
+          m.moveToRow(m.itemScroller.index, false)
+          ' m.focusIndicatorManager@.setFocusComplete()
+        end if
+      else
+        ? "LIST HAS NO COMPONENTS "
+        'TODO - hide focus
+      end if
     end function
 
     public function getRow(index as integer) as dynamic
@@ -294,11 +314,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function _onContentItemChange(changes as mc.types.array)
-      ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
-      '   return c.type
-      ' end function))
+      ? "______________________________ _onContentItemChange" ; m.__classname
+      ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
+        return c.type
+      end function))
       m.viewManager.forceUpdateLayout()
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+      m.itemScroller.getComponentInfos()
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
       m.itemScroller.processChanges(changes)
