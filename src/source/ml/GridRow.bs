@@ -112,6 +112,16 @@ namespace ml
       m.viewManager.onContentItemsChange(changes)
     end function
 
+    public override function jumpToItem(index as integer, animated as boolean)
+      if m._content <> invalid and index <> -1
+        ? " DO A MOVE TO INDEX "; index, animated
+        m.itemScroller.moveToIndex(index, animated)
+        m.itemScroller.index = index
+        m.focusedCellIndex = index
+        m.owner.focusedCellIndex = index
+      end if
+    end function
+
     protected override function onIsRenderedChange()
       if m.viewManager <> invalid
         m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index)
@@ -200,6 +210,34 @@ namespace ml
         m.currentHeaderType = invalid
       end if
     end function
+
+    public override function focusOnContentsNow() as void
+      ? "GRID FORCE FOCUS ON CONTENTS"
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        rowIndex = fix(m.itemScroller.componentInfo.index / m.viewManager.numCols)
+        if m.viewManager.rowInfos = invalid
+          return
+        end if
+        rowInfo = m.viewManager.rowInfos[rowIndex]
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        m.focusedCellIndex = m.itemScroller.index
+        m.owner.focusedCellIndex = m.itemScroller.index
+        'bs:disable-next-line
+        ? "MI" ; m.itemScroller.index ; " NC " ; m.itemScroller.numberOfComponents
+
+        'bs:disable-next-line
+        config = m.itemScroller.getFocusIndicatorConfig(rowInfo, m.itemScroller.direction, false, false)
+        if config <> invalid
+          config.colIndex = m.itemScroller.index
+          m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
+          m.owner.focusIndicatorManager@.setFocusComplete(config)
+        else
+          ? " CONFIG INVALID"
+        end if
+      end if
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress

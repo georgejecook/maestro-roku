@@ -135,10 +135,10 @@ namespace ml.sample
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", invalid, "underneath")
       gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
       gridFocusSettings.feedbackColor = "#aaaaaa"
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 4, 0)
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 4, 150)
       ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
       row.settings.contentOffset = [200, 30]
-      numItems = 3
+      numItems = 20
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -247,17 +247,7 @@ namespace ml.sample
       m.followingModule.isHidden = m.followingModule.getChildCount() = 0
       m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
       if m.followingModule.isHidden
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++"
-        ? "+++++++++++++++++++++++++++ HIDDEN"
-        m.list.jumpToRowIndex = 0
-        m.list.jumpToRowItemIndex = 0
+        m.list@.moveToItem([0, 0])
       end if
     end function
 
@@ -272,7 +262,6 @@ namespace ml.sample
         return
       end if
 
-      index = m.list.focusedCellIndex
       ? "follow "; team.title
       m.teamsModule@.removeChildIndex(itemIndex)
       m.followingModule@.insertChild(team, 0)
@@ -282,11 +271,9 @@ namespace ml.sample
       ? "teamsModule : "; m.teamsModule.getChildCount()
       if m.teamsModule.isHidden
         ? " TEAMS IS HIDDEN"
-        m.list.jumpToRowIndex = 1
-        m.list.jumpToRowItemIndex = 0
+        m.list@.moveToItem([1, 0])
       end if
-      ? "+++++++++++++++++++++++ "; index
-      m.list.jumpToRowItemIndex = index
+      ' m.list@.moveToItem([2, index])
 
     end function
 

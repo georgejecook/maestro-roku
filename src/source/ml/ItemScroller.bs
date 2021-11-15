@@ -87,7 +87,7 @@ namespace ml
         m.settings = invalid
       end if
       m.viewPortEventNotifier.onViewManagerUpdate()
-      m.getComponentInfos()
+      m.getComponentInfos(true)
     end function
 
     public function reset(keepOldFocusIfPossible = false as boolean) as void
@@ -110,11 +110,15 @@ namespace ml
         end if
       end if
 
-      ' notify = m.index <> index
-      ' notify = true
-      m.setFocusIndex(index, false, true)
-      m.moveToIndex(index, false, true, 0)
-      m.forceFocusOnIndex(index, mc.getPath(m.componentInfo, "component.isFocused", false))
+      ? "RESET " ; index
+      ? "RESET " ; index
+      ? "RESET " ; index
+      ? "RESET " ; index
+      ? "RESET " ; index
+      ? "RESET " ; index
+      m.setFocusIndex(index, false, false)
+      ' m.moveToIndex(index, false, true, 0)
+      m.viewManager.updateRenderedComponents(m.direction, index)
     end function
 
     public function cancelScrolling()
@@ -134,7 +138,7 @@ namespace ml
     '++ Component Info
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getComponentInfos()
+    public function getComponentInfos(forceRecalculate as boolean)
       m.componentInfos = m.viewManager.cellInfos
       m.numberOfComponents = m.componentInfos.count()
     end function
@@ -327,15 +331,14 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' 4. non-animated move
         '////////////////////////////////////////////////////////////////////////
-
+        m.toggleScrolling(false)
         m.container.translation = translation
-        'TODO -check if jump is bigger than a certain amount
-        ' m.viewManager.updateRenderedComponents(m.direction, m.index)
-        ' m.setNextIndex(index)
-        m.viewManager.updateRenderedComponents(m.direction, index)
-        ' m.setFocusIndex(index, false)
-        m.forceFocusOnIndex(index, false)
+        m.nextScreenPos = targetComponentInfo.getScreenPosition(m.direction)
         m.updateSrollOffsetFraction(1)
+        m.viewManager.updateRenderedComponents(m.direction, index)
+        m.setFocusIndex(index, false, true)
+        m.forceFocusOnIndex(index, true)
+        m.setComponentInfo(targetComponentInfo)
       end if
 
       return true
@@ -378,35 +381,23 @@ namespace ml
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
 
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? "|||"
-        ? m.screenPos
         m.updateSrollOffsetFraction(1)
         m.finishMovingToIndex()
       else if m.isMovingMultiple
 
         if fraction = 1 and (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
-          ? " REGULAR ANIM FINISHED: BUT STILL NOT IN PLACE!"
+          ' ? " REGULAR ANIM FINISHED: BUT STILL NOT IN PLACE!"
           m.updateSrollOffsetFraction(1)
           m.finishMovingToIndex()
         else
 
           f = mc.clamp(m.getCurrentIndexFraction(m.container.translation[m.axes]), 0, 1)
 
-          ? "+>>>+>>>>+ DDDDD " ; f ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
+          ' ? "+>>>+>>>>+ DDDDD " ; f ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
           m.updateSrollOffsetFraction(f)
           if f >= 1
-            ? ">>>>>>>>>>>>>>>>>>>>>>>>>>"
-            ? " SET NEXT FOCUS INDEX "; m.nextIndex ; " " ; m.isScrollCancelled
+            ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>"
+            ' ? " SET NEXT FOCUS INDEX "; m.nextIndex ; " " ; m.isScrollCancelled
             if m.isScrollCancelled
               m.finishMovingToIndex()
             else
@@ -422,7 +413,6 @@ namespace ml
         'simple one keypress case
         m.updateSrollOffsetFraction(fraction)
         m.focusManager.onFocusAnimationUpdate(fraction)
-        ? " SIMPLE KEY PRESSS "; fraction
       end if
 
     end function
@@ -443,10 +433,19 @@ namespace ml
       m.updateSrollOffsetFraction(1)
 
       if m.isScrollCancelled
-        ? "VVVVV SCROLL CANCELLED"
-        m.toggleScrolling(false)
-        m.setFocusIndex(m.nextIndex, false, false)
-        return false
+        ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
+        ' ? " SCREEN POS " ; m.offsetContainer.translation[m.axes] ; " " ; m.nextScreenPos
+        if m.container.translation[m.axes] = m.nextScrollLocation
+          ? " is in position"
+          m.toggleScrolling(false)
+          m.setFocusIndex(m.nextIndex, false, false)
+
+          return false
+        else
+          ? "is not in position yet - finishing"
+          ? "VVVVV Need to move to index " ; m.nextIndex
+          isMoving = m.moveToIndex(m.nextIndex + 1, true, true, m.direction, true, true)
+        end if
       end if
 
       if not m.viewManager.isScrolling
@@ -571,6 +570,7 @@ namespace ml
     protected function setComponentInfo(info as ml.ComponentInfo)
       m.componentInfo = info
       if info <> invalid
+        ? "SCI>>> (" ; m.__classname ; ") " ; info.index ; " CI " ; info.contentIndex
         m.index = info.index
         if info.isFlowFocusAllowed
           m.activeScrollLocation = - info.getPosition(m.direction)
@@ -649,26 +649,32 @@ namespace ml
       ' TODO - check if index is actually changed
       '      ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
 
+      ? "JJJJJJJJ A"
       if m.numberOfComponents = 0
         return
       end if
 
       if index = -1
+        ? "JJJJJJJJ B"
         m.setComponentInfo(m.componentInfos[0])
         ? " ::::::::::::::: setFocuSIndex SET NEXT COMP INFO"
         m.setNextComponentInfo(m.componentInfos[0])
         ' m.setNextIndex(0)
       else
+        ? "JJJJJJJJ C"
         if index >= m.numberOfComponents - 1
+          ? "JJJJJJJJ D"
           index = m.numberOfComponents - 1
         end if
 
+        ? "JJJJJJJJ E"
         m.setComponentInfo(m.componentInfos[index])
         index = mc.clamp(m.index + m.direction, 0, m.numberOfComponents - 1)
         ? " ::::::::::::::: setFocuSIndex SET NEXT COMP INFO"
         m.setNextComponentInfo(m.componentInfos[index])
       end if
 
+      ? "JJJJJJJJ F"
       m.focusedItem = m.viewManager.visibleItems[m.componentInfo.contentIndex]
 
       m.viewManager.updateRenderedComponents(m.direction, m.index)
@@ -688,7 +694,7 @@ namespace ml
       end if
       index = mc.clamp(index, 0, m.numberOfComponents - 1)
       m.setComponentInfo(m.componentInfos[index])
-      ? " :::::::::::::: forcEfocusOnIndex setNextCOmpnifo"
+      ? " :::::::::::::: forceFocusOnIndex setNextCompInfo"
       m.setNextComponentInfo(m.componentInfos[index])
 
       ' m.viewManager.updateRenderedComponents(m.direction, m.index)
@@ -700,6 +706,9 @@ namespace ml
       end if
 
       m.setFocusOnRenderer(false)
+      if m.viewManager.row <> invalid
+        m.viewManager.owner.focusedCellIndex = m.componentInfo.contentIndex
+      end if
     end function
 
 
@@ -739,17 +748,17 @@ namespace ml
 
     'all changes result in downward movements
     ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
-    if isIndexUpdateRequired
-      ? " NOTIFYING FOCUS"
-      ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
-      wasNotifying = m.focusManager.isNotifying
-      m.focusManager.isNotifying = true
+    ' if isIndexUpdateRequired
+    '   ? " NOTIFYING FOCUS"
+    '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
+    '   wasNotifying = m.focusManager.isNotifying
+    '   m.focusManager.isNotifying = true
+    '   m.reset(true)
+    '   m.focusManager.isNotifying = wasNotifying
+    ' else
+    '   ? " not notifying focus"
       m.reset(true)
-      m.focusManager.isNotifying = wasNotifying
-    else
-      ? " not notifying focus"
-      m.reset(true)
-    end if
+    ' end if
   end function
 
   public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)

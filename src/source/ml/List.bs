@@ -212,7 +212,7 @@ namespace ml
     private function onAnimateToSubRowIndexChange(index as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.moveToIndex(index, true, false)
-        m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
+        ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
       end if
     end function
 
@@ -239,7 +239,7 @@ namespace ml
       ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout()
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-      m.itemScroller.getComponentInfos()
+      m.itemScroller.getComponentInfos(true)
 
       ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       if m.itemScroller.numberOfComponents > 0
@@ -279,39 +279,34 @@ namespace ml
     public function moveToRow(index as integer, animated as boolean)
       if m.content <> invalid
         m.itemScroller.moveToContentIndex(index, animated, false)
-        m.itemScroller.forceFocusOnIndex(index, true)
+        ' m.itemScroller.forceFocusOnIndex(index, true)
       end if
     end function
 
     public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
+      ? " MOVE TO ROW ITEM"
+      ? " MOVE TO ROW ITEM"
+      ? " MOVE TO ROW ITEM"
+      ? " MOVE TO ROW ITEM"
+      ? " MOVE TO ROW ITEM"
+      ? " MOVE TO ROW ITEM" ; rowIndex ; " " ; index
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
         if row <> invalid
           if row.subType() = "ml_GridRow"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
-            ? " I AM A GRID ROW"
             rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
             if rowInfo <> invalid
               ? " ROW INFO INDEX " ; rowInfo.index
               m.moveToSubRowIndex(rowInfo.index + index)
-            else
-              row@.jumpToItem(index, animated)
             end if
           end if
+          row@.jumpToItem(index, animated)
+          row@.focusOnContentsNow()
         end if
       end if
     end function
 
-    public function moveToItem(indices as mc.types.array, animated as boolean)
+    public function moveToItem(indices as mc.types.array, animated = false as boolean)
       if m.content <> invalid
         m.moveToRow(indices[0], animated)
         row = m.getRowRenderer(indices[0])
@@ -323,11 +318,17 @@ namespace ml
       end if
     end function
 
-    private function moveToSubRowIndex(index as integer)
+    public function moveToSubRowIndex(index as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.moveToIndex(index, false, false)
-        ? " MOVING TO INDEX " ; index
-        m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
+        ? " MOVING TO SUB ROW INDEX " ; index
+        compInfo = m.itemScroller.componentInfos[index]
+        if compInfo <> invalid
+          compInfo.component.focusedCellIndex = index
+          m.focusedCellIndex = compInfo.component.focusedCellIndex
+        end if
+        ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
+        ? "DONE"
       end if
     end function
 
@@ -360,12 +361,14 @@ namespace ml
       end function))
       m.viewManager.forceUpdateLayout()
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-      m.itemScroller.getComponentInfos()
+      m.itemScroller.getComponentInfos(true)
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
       m.itemScroller.processChanges(changes)
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
-      m.moveToRow(m.itemScroller.index, false)
+      ' m.moveToRow(m.itemScroller.index, false)
+      ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
+      m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
 
       if m.top.isChildFocused or m.top.isFocused
         m.focusOnCurrentRow()

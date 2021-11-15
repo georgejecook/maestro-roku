@@ -238,14 +238,14 @@ namespace ml
         ' ? "NEEDED TWEAK TO" ; m.itemScroller.index
       end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
-      m.itemScroller.getComponentInfos()
+      m.itemScroller.getComponentInfos(true)
       m.itemScroller.processChanges(changes)
       if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
         ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
         m.owner@.forceUpdate()
       else
         if m.row.isFocused
-          m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+          ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
           m.owner.focusedCellIndex = m.itemScroller.index
         end if
       end if

@@ -16,6 +16,7 @@ namespace ml
     private firstFlowIndex = 0
     private otherRowScreenPos = 0
     private perRowHeight = 0
+    private isVerticalFlowFocusAllowed = false
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, 0, minPos, maxPos)
@@ -54,8 +55,11 @@ namespace ml
     end function
 
 
-    protected override function getRowInfos(yPosition as integer) as mc.types.array
-      ' if m.rowInfos = invalid
+    protected override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
+      if forceRecalculate
+        m.rowInfos = invalid
+      end if
+      if m.rowInfos = invalid
         m.rowInfos = []
 
         height = m.owner.height
@@ -89,7 +93,7 @@ namespace ml
           ? "LAYING OUT ITEM " ; i ; "RO " ; m.rowOffsets[i]
         end for
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
-      ' end if
+      end if
       return m.rowInfos
     end function
 
@@ -123,7 +127,7 @@ namespace ml
       m.rowOffsets = []
       m.rowInfos = invalid
       m.cellInfos = []
-
+      m.isVerticalFlowFocusAllowed = m.getFocusSettings().vertAnimStyle = "floating"
 
       if m.content = invalid
         return
@@ -221,21 +225,8 @@ namespace ml
           new ml.ComponentPosition(yOffset, screenPos) 'down
         ]
       else
-        screenPos = m.otherRowScreenPos
-        ' if screenPos > yOffset
-        '   screenPos = yOffset
-        ' end if
-        isFlowFocusAllowed = false
-        ' index = rowIndex
-        ' index = mc.clamp(rowIndex, 0, m.numRows -1)
-        ' rowOffset = ((index) * m.perRowHeight) + screenPos
-        ' overNumRows = rowIndex - m.numRows
-        ' downYOffset = yOffset
-        ' if overNumRows > 0
-        '   ? " over by " ; overNumRows
-        '   downYOffset += (overNumRows * m.perRowHeight)
-        '   ' rowOffset += ((overNumRows + m.numRows) * m.perRowHeight)
-        ' end if
+        screenPos = m.settings.otherRowScreenPos
+        isFlowFocusAllowed = m.isVerticalFlowFocusAllowed
 
         ' ? "ROW SCREEN POS" ; index ; " " ; rowOffset ; " Y " ; yOffset ; " F "; m.firstFlowIndex
         positions = [
@@ -345,10 +336,6 @@ namespace ml
       end if
 
       componentConfig = m.cellInfos[index]
-      ? " >>>>>>>>>>>>>>>"
-      ? " >>>>>>>>>>>>>>>"
-      ? " >>>>>>>>>>>>>>>"
-      ? " >>>>>>>>>>>>>>> settings comp I " ; index ; " CI " ; componentConfig.index ; " CO "; mc.dv(cell)
       componentConfig.component = cell
     end function
 
@@ -472,7 +459,7 @@ namespace ml
 
       m.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
 
-      m.itemScroller.getComponentInfos()
+      m.itemScroller.getComponentInfos(true)
       if m.itemScroller.index >= m.itemScroller.numberOfComponents
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
