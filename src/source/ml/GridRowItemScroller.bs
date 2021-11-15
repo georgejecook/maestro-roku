@@ -55,7 +55,7 @@ namespace ml
         ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex
         colIndex = m.index mod m.viewManager.numCols
         cellIndex = mc.clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
-        ? " GRID CHOSE " ; cellIndex ; " M " ; m.numberOfComponents -1
+        ? " GRID CHOSE " ; cellIndex ; " M " ; m.numberOfComponents - 1
         return m.viewManager.cellInfos[cellIndex]
       else
         return m.viewManager.cellInfos[componentInfo.index]
@@ -83,23 +83,8 @@ namespace ml
         return [0, 0]
       end if
 
-      ' ? " GRID GET FOCUS INDICATOR TRANS"
-      ' ? " GRID GET FOCUS INDICATOR TRANS"
-      ' ? " GRID GET FOCUS INDICATOR TRANS"
-      ' ? " GRID GET FOCUS INDICATOR TRANS"
-      ' ? " GRID GET FOCUS INDICATOR TRANS ----- " ; info.contentIndex ; " D "; direction
-      if isFloatingFocus
-        screenPos = info.getScreenPositionForFlowFocus(direction)
-      else
-        screenPos = info.getScreenPosition(direction)
-      end if
-
-      if componentInfo.isFlowFocusAllowed
-        parentScreenPos = componentInfo.getScreenPositionForFlowFocus(direction)
-      else
-        parentScreenPos = componentInfo.getScreenPosition(direction)
-      end if
-
+      screenPos = info.getScreenPosition(direction)
+      parentScreenPos = componentInfo.getScreenPosition(direction)
 
       contentOffset = m.viewManager.settings.contentOffset
 

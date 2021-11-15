@@ -5,6 +5,7 @@ namespace ml
   class GridRowItemViewManager extends ml.ItemViewManager
     public row = invalid
     public cellsById = {}
+    public numRows = 0
     public numCols = 1
     public componentPool
     public componentBufferMode = "rendered"
@@ -13,6 +14,8 @@ namespace ml
     private maxRowPos = 0
     private rowOffsets = []
     private firstFlowIndex = 0
+    private otherRowScreenPos = 0
+    private perRowHeight = 0
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, 0, minPos, maxPos)
@@ -38,25 +41,25 @@ namespace ml
       p = abs(position)
       i = 0
       ' position -= m.contentGroup.translation[1] 'adjust for header offsets
-      numRows = m.rowOffsets.count() - 1
-      for i = numRows to 0 step -1
+
+      for i = m.numRows to 0 step -1
         itemPos = m.rowOffsets[i]
         if p >= itemPos
-          return mc.clamp(i, 0, numRows)
+          return mc.clamp(i, 0, m.numRows)
         end if
       end for
 
       'we must be at the end! -return last item
-      return mc.clamp(i - 1, 0, numRows)
+      return mc.clamp(i - 1, 0, m.numRows)
     end function
 
+
     protected override function getRowInfos(yPosition as integer) as mc.types.array
-      if m.rowInfos = invalid
+      ' if m.rowInfos = invalid
         m.rowInfos = []
 
         height = m.owner.height
 
-        ySpace = m.settings.rowSpace
         rowHeight = m.settings.rowHeight
         contentOffset = m.settings.contentOffset[1]
         if m.rowOffsets.count() > 2
@@ -65,12 +68,19 @@ namespace ml
           offset = m.settings.firstRowScreenPos
         end if
 
-        m.firstFlowIndex = m.settings.firstRowScreenPos <> m.settings.screenPos ? 1 : 0
+        if m.settings.firstRowScreenPos <> m.settings.screenPos
+          m.firstFlowIndex = 1
+          m.otherRowScreenPos = m.settings.firstRowScreenPos
+        else
+          m.firstFlowIndex = 0
+          m.otherRowScreenPos = m.settings.screenPos
+        end if
+
 
         if offset > yPosition
           offset = yPosition
         end if
-        m.maxRowPos = (m.settings.numRows - 1) * (rowHeight + ySpace) + offset
+        m.maxRowPos = (m.settings.numRows - 1) * (m.perRowHeight) + offset
         m.updateScreenRect()
 
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
@@ -79,7 +89,7 @@ namespace ml
           ? "LAYING OUT ITEM " ; i ; "RO " ; m.rowOffsets[i]
         end for
         ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
-      end if
+      ' end if
       return m.rowInfos
     end function
 
@@ -114,14 +124,14 @@ namespace ml
       m.rowInfos = invalid
       m.cellInfos = []
 
+
       if m.content = invalid
         return
       end if
 
       i = 0
       xSpace = m.settings.space
-      ySpace = m.settings.rowSpace
-      rowHeight = m.settings.rowHeight
+      m.perRowHeight = m.settings.rowHeight + m.settings.rowSpace
 
       x = 0
       y = 0
@@ -158,8 +168,8 @@ namespace ml
           })
 
           positions = [
-            new ml.ComponentPosition(0, x) 'normal
-            new ml.ComponentPosition(0, x) 'float-scroll
+            new ml.ComponentPosition(0, x) 'up
+            new ml.ComponentPosition(0, x) 'down
           ]
 
           cellInfo = new ml.ComponentInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
@@ -173,10 +183,11 @@ namespace ml
         end for
 
         x = 0
-        y += rowHeight + ySpace
+        y += m.perRowHeight
         rowIndex++
       end while
 
+      m.numRows = mc.clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
       m.numberOfItems = m.visibleItems.count()
     end function
 
@@ -186,36 +197,51 @@ namespace ml
 
       if rowIndex = 0
         screenPos = m.settings.firstRowScreenPos
+        ? "EEEEEEEEEEEE"
+        ? " ROW 0 " ; screenPos
         ' if screenPos > yOffset
         '   screenPos = yOffset
         ' end if
         isFlowFocusAllowed = false
 
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'down
         ]
       else if rowIndex = 1 and m.settings.otherRowScreenPos <> m.settings.firstRowScreenPos
         screenPos = m.settings.otherRowScreenPos
+        ? "EEEEEEEEEEEE"
+        ? " ROW 1 " ; screenPos
         ' if screenPos > yOffset
         '   screenPos = yOffset
         ' end if
         isFlowFocusAllowed = false
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'down
         ]
       else
-        screenPos = m.settings.otherRowScreenPos
+        screenPos = m.otherRowScreenPos
         ' if screenPos > yOffset
         '   screenPos = yOffset
         ' end if
-        isFlowFocusAllowed = true
-        positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, maxPos) 'float-scroll
-        ]
+        isFlowFocusAllowed = false
+        ' index = rowIndex
+        ' index = mc.clamp(rowIndex, 0, m.numRows -1)
+        ' rowOffset = ((index) * m.perRowHeight) + screenPos
+        ' overNumRows = rowIndex - m.numRows
+        ' downYOffset = yOffset
+        ' if overNumRows > 0
+        '   ? " over by " ; overNumRows
+        '   downYOffset += (overNumRows * m.perRowHeight)
+        '   ' rowOffset += ((overNumRows + m.numRows) * m.perRowHeight)
+        ' end if
 
+        ' ? "ROW SCREEN POS" ; index ; " " ; rowOffset ; " Y " ; yOffset ; " F "; m.firstFlowIndex
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'up
+          new ml.ComponentPosition(yOffset, screenPos) 'down
+        ]
       end if
       'note - col width is irrelevant
       return new ml.ComponentInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
@@ -378,8 +404,8 @@ namespace ml
     end function
 
     private function getHeightOfGridRow()
-      numRows = mc.clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
-      return numRows * (m.settings.rowHeight + m.settings.space) + m.settings.headerSettings.height
+
+      return m.numRows * (m.settings.rowHeight + m.settings.space) + m.settings.headerSettings.height
     end function
 
     private function getLastRowOffset() as integer
@@ -470,6 +496,7 @@ namespace ml
     override function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
       ? " grid isVerticalFlowFocusPossible "
 
+      return false
       ? info.componentIndex ; " NR "; m.settings.numRows ; " FRI " ; m.firstFlowIndex
 
       if info.componentIndex <= m.firstFlowIndex
@@ -480,13 +507,13 @@ namespace ml
       firstRowOnScreen = m.getSubIndexAtPosition(rowStartPos, direction)
       ? "L>>>>>>"
       ? "L>>>>>> ; first on screen" ; firstRowOnScreen
-      ? "L>>>>>> ; last row ALLOWED screen "; firstRowOnScreen + (m.settings.numRows -1)
+      ? "L>>>>>> ; last row ALLOWED screen "; firstRowOnScreen + (m.settings.numRows)
       ? "L>>>>>> row "; info.componentIndex
       ? "L>>>>>> SP "; scrollPos ; " ASP "; activeScreenPos
       if direction = -1
         return info.componentIndex > firstRowOnScreen
       else
-        return info.componentIndex <= firstRowOnScreen + (m.settings.numRows -1)
+        return info.componentIndex <= firstRowOnScreen + (m.settings.numRows)
       end if
     end function
 

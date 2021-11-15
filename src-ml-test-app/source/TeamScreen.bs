@@ -123,7 +123,7 @@ namespace ml.sample
       cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
       row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
       row.settings.contentOffset = [200, 0]
-      numItems = 10
+      numItems = 2
       content.push(row)
       m.followingModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -135,10 +135,10 @@ namespace ml.sample
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", invalid, "underneath")
       gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
       gridFocusSettings.feedbackColor = "#aaaaaa"
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, -1, 1, 144, 3, -1)
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 4, 0)
       ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
       row.settings.contentOffset = [200, 30]
-      numItems = 10
+      numItems = 3
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -244,12 +244,21 @@ namespace ml.sample
       m.teamsModule@.sortByKey("title")
 
       m.teamsModule@.setNotificationsEnabled(true, true)
-      ' m.followingModule.isHidden = m.followingModule.getChildCount() = 0
-      ' m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
-      ' if m.followingModule.isHidden
-      '   m.list.jumpToRowIndex = 1
-      '   m.list.jumpToRowItemIndex = 1
-      ' end if
+      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      if m.followingModule.isHidden
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++"
+        ? "+++++++++++++++++++++++++++ HIDDEN"
+        m.list.jumpToRowIndex = 0
+        m.list.jumpToRowItemIndex = 0
+      end if
     end function
 
     private function selectFavorite()
@@ -263,16 +272,21 @@ namespace ml.sample
         return
       end if
 
+      index = m.list.focusedCellIndex
       ? "follow "; team.title
       m.teamsModule@.removeChildIndex(itemIndex)
       m.followingModule@.insertChild(team, 0)
-      ' m.followingModule.isHidden = m.followingModule.getChildCount() = 0
-      ' m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
+      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
       ? "followingModule : "; m.followingModule.getChildCount()
       ? "teamsModule : "; m.teamsModule.getChildCount()
-      ' if m.teamsModule.isHidden
-      '   m.list.jumpToRowIndex = 1
-      ' end if
+      if m.teamsModule.isHidden
+        ? " TEAMS IS HIDDEN"
+        m.list.jumpToRowIndex = 1
+        m.list.jumpToRowItemIndex = 0
+      end if
+      ? "+++++++++++++++++++++++ "; index
+      m.list.jumpToRowItemIndex = index
 
     end function
 

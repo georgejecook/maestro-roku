@@ -209,6 +209,13 @@ namespace ml
       end if
     end function
 
+    private function onAnimateToSubRowIndexChange(index as integer)
+      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
+        m.itemScroller.moveToIndex(index, true, false)
+        m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
+      end if
+    end function
+
     private function onJumpToRowItemIndexChange(index as integer)
       if m.content <> invalid and index <> -1
         m.moveToRowItem(m.focusedRowIndex, index, false)
@@ -227,6 +234,7 @@ namespace ml
 
     public function forceUpdate()
       ? "+>+>+>+> list forceUpdate"
+      ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
       ? m.focusedRowIndex ; " " m.focusedCellIndex
       ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout()
@@ -236,21 +244,24 @@ namespace ml
       ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       if m.itemScroller.numberOfComponents > 0
         ? "LIST HAS COMPONENTS"
-        if m.itemScroller.index >= m.itemScroller.numberOfComponents
-          index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
-          if index >= 0
-            ? "CORRECTING INDEX"; index
-            m.itemScroller.moveToIndex(index, false)
-          end if
-        else
-          ? "MOVING TO ROW "; m.itemScroller.index
-          m.moveToRow(m.itemScroller.index, false)
-          ' m.focusIndicatorManager@.setFocusComplete()
-        end if
+        ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
+        '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        '   if index >= 0
+        '     ? "CORRECTING INDEX"; index
+        '     m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+        '   end if
+        ' else
+        '   ? "MOVING TO ROW "; m.itemScroller.index
+        '   m.moveToRow(m.itemScroller.index, false)
+        '   ' m.focusIndicatorManager@.setFocusComplete()
+        ' end if
       else
         ? "LIST HAS NO COMPONENTS "
         'TODO - hide focus
       end if
+
+      ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
+      m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
     end function
 
     public function getRow(index as integer) as dynamic
@@ -268,6 +279,7 @@ namespace ml
     public function moveToRow(index as integer, animated as boolean)
       if m.content <> invalid
         m.itemScroller.moveToContentIndex(index, animated, false)
+        m.itemScroller.forceFocusOnIndex(index, true)
       end if
     end function
 
@@ -275,7 +287,26 @@ namespace ml
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
         if row <> invalid
-          row@.jumpToItem(index, animated)
+          if row.subType() = "ml_GridRow"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            ? " I AM A GRID ROW"
+            rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
+            if rowInfo <> invalid
+              ? " ROW INFO INDEX " ; rowInfo.index
+              m.moveToSubRowIndex(rowInfo.index + index)
+            else
+              row@.jumpToItem(index, animated)
+            end if
+          end if
         end if
       end if
     end function
@@ -285,11 +316,18 @@ namespace ml
         m.moveToRow(indices[0], animated)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
-          'if animated we will need to set the focus first, I guess?
-          row@.jumpToItem(indices[1], animated)
-          m.focusIndicatorManager.focusedCellIndex = indices[1]
-          m.focusIndicatorManager@.setNextIndex(indices, 0)
+          m.moveToRowItem(indices[0], indices[1], animated)
+          ' m.focusIndicatorManager.focusedCellIndex = indices[1]
+          ' m.focusIndicatorManager@.setNextIndex(indices, 0)
         end if
+      end if
+    end function
+
+    private function moveToSubRowIndex(index as integer)
+      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
+        m.itemScroller.moveToIndex(index, false, false)
+        ? " MOVING TO INDEX " ; index
+        m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
       end if
     end function
 

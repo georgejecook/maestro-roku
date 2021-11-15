@@ -57,7 +57,6 @@ namespace ml
     private activeScrollLocation = 0
     private nextScrollLocation = 0
     private activeScreenPos = 0
-    private isDoingHop = false
     private postHopIndex = 0
     private isScrollCancelled = false
     protected previousScreenPos = 0
@@ -249,7 +248,7 @@ namespace ml
       ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
       ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
       index = mc.clamp(index, 0, m.numberOfComponents - 1)
-      index = mc.clamp(index, 0, 3)
+      ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
 
       m.focusIndicatorManager@.cancelFlowFocus()
@@ -285,17 +284,6 @@ namespace ml
 
       'TODO - calculate the next hop index.. - for now we can configure this
 
-      ' m.isDoingHop = m.isMovingMultiple and m.index < 5
-      ' m.isDoingHop = m.axes = 1 and m.isMovingMultiple 'and m.index < 5
-      m.isDoingHop = false
-
-      if m.isDoingHop
-        ? " ///// DOING HOP"
-        m.isMovingMultiple = false
-        targetComponentInfo = nextComponentInfo
-        m.postHopIndex = index
-        index = 2
-      end if
       m.setTargetComponentInfo(targetComponentInfo)
 
       ? ":::::::::::::: MOVE TO INDEX SET COMP INFO"
@@ -319,15 +307,7 @@ namespace ml
         return true
       end if
 
-
       translation = m.container.translation
-      ' translation[m.axes] = targetComponentInfo.getScrollOffset()
-      ' if targetComponentInfo.isFlowFocusAllowed
-      '   ' if nextComponentInfo.isFlowFocusAllowed
-      '   ' translation[m.axes] = targetComponentInfo.getScrollOffsetForFlowFocus(direction)
-      ' else
-      '   ' translation[m.axes] = - targetComponentInfo.getPosition(direction)
-      ' end if
       translation[m.axes] = - targetComponentInfo.getPosition(direction)
 
       ' ? "////// offset is "; translation[m.axes]
@@ -335,22 +315,6 @@ namespace ml
       if animated
         '////////////////////////////////////////////////////////////////////////
         ? "/////// 3. animated move"
-        '////////////////////////////////////////////////////////////////////////
-
-        ' m.animSpeed = m.settings.animSpeed
-        ' m.animSpeed = 5
-
-        ' if translation[m.axes] = m.container.translation[m.axes]
-        '   '////////////////////////////////////////////////////////////////////////
-        '   ? "//// 3.a no move required - do a flow anim "
-        '   '////////////////////////////////////////////////////////////////////////
-        '   m.log.info("already in place - no need to scroll ", m.index, " >", m.nextIndex)
-        '   m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
-        '   return true
-        ' end if
-
-        '////////////////////////////////////////////////////////////////////////
-        ? "//// 3.b regular animation required "
         '////////////////////////////////////////////////////////////////////////
 
         ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
@@ -371,6 +335,7 @@ namespace ml
         m.viewManager.updateRenderedComponents(m.direction, index)
         ' m.setFocusIndex(index, false)
         m.forceFocusOnIndex(index, false)
+        m.updateSrollOffsetFraction(1)
       end if
 
       return true
@@ -491,7 +456,7 @@ namespace ml
         return false
       end if
 
-      if not m.isMovingMultiple and not m.isDoingHop
+      if not m.isMovingMultiple
         ? "VVVVV was a simple move"
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
@@ -500,13 +465,6 @@ namespace ml
       end if
 
       m.setFocusIndex(m.nextIndex, true, true)
-
-      if m.isDoingHop
-        m.isDoingHop = false
-        ? "VVVVV was doing a hop"
-        m.moveToIndex(m.postHopIndex)
-        return false
-      end if
 
       componentInfo = m.nextComponentInfo
       componentInfo = m.componentInfo
@@ -574,7 +532,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function moveUsingFlowAnim(fromInfo as ml.ComponentInfo, toInfo as ml.ComponentInfo, direction as integer)
-      ? "111111111111111111111111111111111111111111111111"
       ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
 
       m.toggleScrolling(true)
@@ -589,15 +546,15 @@ namespace ml
       ' m.log.info("onFlowFocusFraction", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex)
 
       if fraction = 1
-        ? "+>+>+>+ FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
+        ' ? "+>+>+>+ FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
         m.isDoingFlowFocus = false
         m.log.info("finished focusing action with this flow")
 
-        ? "+>+>+>+> "; mc.getPath(m.targetComponentInfo, "index"); " MI "; m.index ; " NI " ; m.nextIndex
+        ' ? "+>+>+>+> "; mc.getPath(m.targetComponentInfo, "index"); " MI "; m.index ; " NI " ; m.nextIndex
         m.updateSrollOffsetFraction(1)
         m.finishMovingToIndex()
       else
-        ? ">>>> FLOW FOCUS "; fraction
+        ' ? ">>>> FLOW FOCUS "; fraction
         m.updateSrollOffsetFraction(fraction)
         m.focusManager.onFocusAnimationUpdate(fraction)
       end if
@@ -615,15 +572,12 @@ namespace ml
       m.componentInfo = info
       if info <> invalid
         m.index = info.index
-        ' m.activeScrollLocation = info.getScrollOffset()
         if info.isFlowFocusAllowed
-          ' m.activeScrollLocation = info.getScrollOffsetForFlowFocus(m.direction)
-          ' m.activeScreenPos = info.getScreenPositionForFlowFocus(m.direction)
           m.activeScrollLocation = - info.getPosition(m.direction)
-          m.activeScreenPos = 0'info.getScreenPositionForFlowFocus(m.direction)
+          m.activeScreenPos = 0
         else
           m.activeScrollLocation = - info.getPosition(m.direction)
-          m.activeScreenPos = 0' info.getScreenPosition(m.direction)
+          m.activeScreenPos = 0
         end if
         m.screenPos = info.getScreenPosition(m.direction)
       else
@@ -649,18 +603,13 @@ namespace ml
       if info.index <> m.nextIndex
         m.nextIndex = info.index
         if info.isFlowFocusAllowed
-          ' m.nextScrollLocation = info.getScrollOffsetForFlowFocus(m.direction)
-          ' m.nextScreenPos = info.getScreenPositionForFlowFocus(m.direction)
           m.nextScrollLocation = - info.getPosition(m.direction)
-          m.nextScreenPos = 0'info.getScreenPositionForFlowFocus(m.direction)
+          m.nextScreenPos = 0
         else
-          ' m.nextScrollLocation = info.getScrollOffset(m.direction)
-          ' m.nextScreenPos = info.getScreenPosition(m.direction)
           m.nextScrollLocation = - info.getPosition(m.direction)
-          m.nextScreenPos = 0'info.getScreenPosition(m.direction)
+          m.nextScreenPos = 0
         end if
         m.nextScreenPos = info.getScreenPosition(m.direction)
-        ' m.nextScrollLocation = info.getScrollOffset()
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(info, m.direction, false)
 
         if m.nextComponentInfo = invalid or info.contentIndex <> m.nextComponentInfo.contentIndex
@@ -747,11 +696,9 @@ namespace ml
 
       if notifyFocusManager
         m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
-        'TODO
         m.focusManager.onFocusAnimationUpdate(1)
       end if
 
-      'TODO - for cells, do we want to trigger focus events?
       m.setFocusOnRenderer(false)
     end function
 
@@ -791,7 +738,7 @@ namespace ml
     'FIXME - this needs revisiting
 
     'all changes result in downward movements
-    ? "LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
+    ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
     if isIndexUpdateRequired
       ? " NOTIFYING FOCUS"
       ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
@@ -849,11 +796,7 @@ namespace ml
       return [0, 0]
     end if
 
-    if info.isFlowFocusAllowed
-      screenPos = info.getScreenPositionForFlowFocus(direction)
-    else
-      screenPos = info.getScreenPosition(direction)
-    end if
+    screenPos = info.getScreenPosition(direction)
 
     contentOffset = m.viewManager.settings.contentOffset
     headerOffset = m.viewManager.settings.headerSettings.height

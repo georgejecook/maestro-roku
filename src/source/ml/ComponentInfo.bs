@@ -13,7 +13,7 @@ namespace ml
   end class
 
   class ComponentInfo
-    public size = [0,0]
+    public size = [0, 0]
     public index = 0
     public contentIndex = 0
     public componentIndex = 0
@@ -40,29 +40,20 @@ namespace ml
       return position.position
     end function
 
-    public function getScrollOffsetForFlowFocus(direction as integer) as integer
-      if direction < 1
-        direction = 0
-      end if
-      position = m.positions[direction]
-      return - position.position + position.screenPosition
-    end function
-
-    public function getScreenPositionForFlowFocus(direction as integer) as integer
-      if direction < 1
-        direction = 0
-      end if
-      position = m.positions[direction]
-      return position.screenPosition
-    end function
-
     public function getScreenPosition(direction as integer) as integer
-      position = m.positions[0]
+      if direction < 1
+        direction = 0
+      end if
+      position = m.positions[direction]
       return position.screenPosition
     end function
 
     public function getScrollOffset(direction as integer) as integer
-      position = m.positions[0]
+      ' position = m.positions[0]
+      if direction < 1
+        direction = 0
+      end if
+      position = m.positions[direction]
       return - position.position + position.screenPosition
     end function
 

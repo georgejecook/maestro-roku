@@ -385,24 +385,28 @@ namespace ml
     override function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
 
 
-      if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
+      ' if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
 
-        isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
-      else
+      '   isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
+      '   ? "L>>>>>> GRID ROW " ; info.index ; " D " ; direction ; isFlowPossible
+      ' else
 
-        isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+      isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
 
-        if not isFlowPossible and info.isFlowFocusAllowed
-          'check on the renderer
-          ' ? "Flow not possible based on component info - checking actual component " ; m.activeScreenPos ; " NI "; info.index
-          ' isFlowPossible = m.getIsOnScreen(info, activeScreenPos)
-          isFlowPossible = m.getIsOnScreen(info, 0)
-        end if
+      if not isFlowPossible and info.isFlowFocusAllowed
+        'check on the renderer
+        ' ? "Flow not possible based on component info - checking actual component " ; m.activeScreenPos ; " NI "; info.index
+        ' isFlowPossible = m.getIsOnScreen(info, activeScreenPos)
+        isFlowPossible = m.getIsOnScreen(info, 0)
       end if
+      ' end if
 
       return isFlowPossible
     end function
 
+    public function getItemInfoForIndex(rowIndex as integer, cellIndex as integer)
+
+    end function
 
   end class
 end namespace
