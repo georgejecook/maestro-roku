@@ -791,10 +791,17 @@ namespace ml
     contentOffset = m.viewManager.settings.contentOffset
     headerOffset = m.viewManager.settings.headerSettings.height
 
+    ? "GFC " ; m.__classname ; " HO "; headerOffset ; formatJson(contentOffset); " SP " ;screenPos ; "iFF "; isFloatingFocus
+
+    ' if m.axes = 0
+    '   translation = [contentOffset[0] + screenPos, contentOffset[1]]
+    ' else
+    '   translation = [contentOffset[0], contentOffset[1] + screenPos]
+    ' end if
     if m.axes = 0
-      translation = [screenPos, contentOffset[1]]
+      translation = [screenPos, 0]
     else
-      translation = [contentOffset[0]]
+      translation = [0, screenPos]
     end if
 
     translation[1] += headerOffset
