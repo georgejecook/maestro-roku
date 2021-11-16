@@ -79,6 +79,12 @@ namespace ml
     '++ Focus Indicator
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      info = m.getCellComponentInfo(componentInfo, isFromListScroll)
+      config = super.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromListScroll)
+      config.gridIndex = info.contentIndex
+      return config
+    end function
 
     protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
       if info = invalid

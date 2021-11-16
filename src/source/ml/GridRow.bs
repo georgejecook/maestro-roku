@@ -129,7 +129,7 @@ namespace ml
     end function
 
     protected override function onListEvent(event as object)
-      ' ? "GRID ON LIST EVENT " ; event
+      ' ? "GRID ON LIST EVENT " ; event.gridIndex ; event.name
       if event.name = "willEnter" or event.name = "didEnter"
         for each component in m.cellsGroup.getChildren(-1, 0)
           if component.doesExist("listEvent")
@@ -137,7 +137,12 @@ namespace ml
           end if
         end for
       end if
-      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      if event.gridIndex <> invalid and event.gridIndex <> -1
+        cell = m.viewManager.getRenderer(event.gridIndex)
+      else
+        cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      end if
+
       if cell <> invalid
         ' ? " PASSING LIST EVENT "; event.name ; " to CI "; m.focusedCellIndex
         ' TODO potentially filter events

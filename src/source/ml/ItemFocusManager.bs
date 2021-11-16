@@ -17,6 +17,7 @@ namespace ml
     private itemScroller = invalid
     private componentInfo as ml.ComponentInfo
     private nextComponentInfo as ml.ComponentInfo
+    private previousFocusIndicatorConfig as ml.FocusIndicatorConfig
     private nextFocusIndicatorConfig as ml.FocusIndicatorConfig
     private direction = 0
     private didStart = false
@@ -62,22 +63,23 @@ namespace ml
     end function
 
     'TODO - add subrow index events
-    function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, rowContentIndex = -1 as integer) as void
-      ' ? "+++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-      ' ? "SFP I: "; index ; " NI "; nextIndex ; " D "; direction
+    function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
       if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
         return
       end if
-      ' ? "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
-      ' ? "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
-      ' ? "LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL"
-      ' ? " CI I " ; componentInfo.index
-      ' ? " NCI I " ; nextComponentInfo.index
-      ' if nextFocusIndicatorConfig <> invalid
-        ' ? " NFI I " ; nextFocusIndicatorConfig.colIndex
-      ' end if
+      ? ">>S> "; m.viewManager.__classname
+      ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.colIndex ; " " ; nextFocusIndicatorConfig.gridIndex
       m.componentInfo = componentInfo
       m.nextComponentInfo = nextComponentInfo
+      if previousFocusIndicatorConfig <> invalid and previousFocusIndicatorConfig.gridIndex <> invalid and previousFocusIndicatorConfig.gridIndex <> -1
+        m.previousFocusIndicatorConfig = previousFocusIndicatorConfig
+      else
+        m.previousFocusIndicatorConfig = m.nextFocusIndicatorConfig
+      end if
+
+      if m.previousFocusIndicatorConfig <> invalid
+        ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
+      end if
       m.nextFocusIndicatorConfig = nextFocusIndicatorConfig
       m.direction = direction
       m.didStart = false
@@ -152,12 +154,27 @@ namespace ml
         name: nextName
         index: m.nextComponentInfo.contentIndex
       }
+
+
+      if m.previousFocusIndicatorConfig <> invalid and m.previousFocusIndicatorConfig.gridIndex <> invalid
+        fromGridIndex = m.previousFocusIndicatorConfig.gridIndex
+        event.gridIndex = fromGridIndex
+        ? "PREV EVENT "; m.previousFocusIndicatorConfig.gridIndex
+      else
+        fromGridIndex = invalid
+      end if
+
+
+      if m.nextFocusIndicatorConfig <> invalid and m.nextFocusIndicatorConfig.gridIndex <> invalid
+        nextEvent.gridIndex = m.nextFocusIndicatorConfig.gridIndex
+      end if
+
       ' ? ">>>>>>>>>>>>>>>"
       ' ? ">>>>>>>>>>>>>>>"
-      ' ? " sending "; name  ; " to " ; m.componentInfo.componentIndex
-      ' ? " sending "; nextName  ; " to " ; m.nextComponentInfo.componentIndex
+      ? " sending "; name  ; " to " ; m.componentInfo.componentIndex ; " GI "; event.gridIndex
+      ? " sending "; nextName  ; " to " ; m.nextComponentInfo.componentIndex ; " GI " ; nextEvent.gridIndex
       ' ? ">>>>>>>>>>>>>>>"
-      isSendingFromEvent = m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex
+      isSendingFromEvent = fromGridIndex <> invalid or (m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex)
       event.rowIndex = m.rowIndex
       nextEvent.rowIndex = m.rowIndex
 
