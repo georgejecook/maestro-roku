@@ -46,6 +46,9 @@ namespace ml
     public scrollingStartIndex = -1
     private isRendering = false
 
+    'TODO - move into settings or calculate this
+    private renderedIndexUpdateInterval = 5
+
     'stored so we can send it with initialstate
     public lastScrollEvent as mc.types.assocarray
     public itemScroller as ml.ItemScroller
@@ -78,13 +81,6 @@ namespace ml
       m.components = []
       m.rects = []
       m.settings = invalid
-
-      'TODO - these need to get reset from our owner on recycle
-      ' m.axes = 0
-      ' m.minPos = 0
-      ' m.maxPos = 1080
-      ' m.lookAheadDistance = 1000
-      ' m.lookBehindDistance = 1000
 
       m.direction = 0
       m.visibleItems = []
@@ -223,25 +219,32 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function updateRenderedComponents(direction as integer, index as integer, force = false as boolean) as void
-      ' ? ""
-      ' ? ""
-      ' ? "((((((((((((((((((((((((((((((((((((("
-      ' ? "updateRenderedComponents"
+      ? ""
+      ? ""
+      ? "((((((((((((((((((((((((((((((((((((("
+      ? "updateRenderedComponents " ; m.__classname
       if not force and not m.shouldUpdateRenderedIndexes(direction, index)
-        ' ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
+        ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
         return
       end if
 
       renderedIndexes = m.getRenderedIndexes(direction, index)
-      ' ? " ++++ renderedIndexes " ; renderedIndexes ; " I " ; index ; " D "; direction ; " " ; m.__classname
+      ? "AAAAA " ; m.__classname
+      ? " ++++ renderedIndexes " ; renderedIndexes ; " I " ; index ; " D "; direction ; " " ; m.__classname
 
       if not force and (m.lastRenderedIndexes <> invalid) and m.lastRenderedIndexes.startIndex = renderedIndexes.startIndex and m.lastRenderedIndexes.endIndex = renderedIndexes.endIndex
         ' this is the same set of comps as last time
         if m.renderedComponents.count() > 0
           ' and we have seemingly done our initial render; so we can bail.
+          ? "BBB " ; m.__classname
+          ? "+++ initial RENDER DONE"
+          ? "+++ initial RENDER DONE"
+          ? "+++ initial RENDER DONE"
+          ? "+++ initial RENDER DONE"
           return
         end if
       end if
+      ? "C " ; m.__classname ; formatJson(renderedIndexes)
       ' 'bs:disable-next-line
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
@@ -251,9 +254,9 @@ namespace ml
     end function
 
     function shouldUpdateRenderedIndexes(direction as integer, index as integer)
-      ' ? "???? I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
-      if direction <> m.lastScrollDirection or abs(index - m.lastScrollIndex) > 10 or index = 0
-        ' ? " LIST SHOULD UPDATE I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
+      ? "???? I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
+      if direction <> m.lastScrollDirection or abs(index - m.lastScrollIndex) > m.renderedIndexUpdateInterval or index = 0
+        ? " LIST SHOULD UPDATE I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
         m.lastScrollIndex = index
         m.lastScrollDirection = direction
         return true

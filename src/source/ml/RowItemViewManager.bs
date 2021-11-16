@@ -13,8 +13,10 @@ namespace ml
       m.componentPool = componentPool
       m.row = row
 
-      m.lookAheadDistance = maxPos * 1.5
-      m.lookBehindDistance = maxPos * 1.5
+      ' m.lookAheadDistance = maxPos * 1.5
+      ' m.lookBehindDistance = maxPos * 1.5
+      m.lookAheadDistance = maxPos * .5
+      m.lookBehindDistance = maxPos * .5
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -173,6 +175,7 @@ namespace ml
       'ensure that the componentconfig has a component for a dynamically generated cell index
       componentConfig = m.cellInfos[index]
       componentConfig.component = cell
+      ? "++++++++++++++++++++++++++++++HERE" ; mc.dv(componentConfig.component)
     end function
 
     override function getRenderer(index as integer)

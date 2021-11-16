@@ -74,12 +74,12 @@ class ListScreen extends mv.BaseScreen
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
     m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
-    ' listSettings = ml.listMixin.createListSettings(3000, 2000)
-    listSettings = ml.listMixin.createListSettings(-1, -1)
+    listSettings = ml.listMixin.createListSettings(3000, 3000)
+    ' listSettings = ml.listMixin.createListSettings(-1, -1)
     ' listSettings.rowCreationStrategy = "all"
     listSettings.rowCreationStrategy = "async"
-    listSettings.rowCreationBatchSize = 10
-    listSettings.rowCreationBatchDelay = 0.1
+    listSettings.rowCreationBatchSize = 5
+    listSettings.rowCreationBatchDelay = 0.3
 
     ' content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     ' content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
@@ -261,6 +261,7 @@ class ListScreen extends mv.BaseScreen
       numItems = 5
       if showHero and i = 0 or i = 10 or i= 18
         row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
+        row0FocusSettings.feedbackStyle = "none"
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
@@ -297,7 +298,7 @@ class ListScreen extends mv.BaseScreen
         else or i = 13
           row.settings.screenPos = 50
         end if
-        numItems = 8
+        numItems = 100
       end if
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
