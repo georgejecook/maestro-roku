@@ -12,6 +12,8 @@ namespace ml
   @node("ml_FocusIndicatorManager", "mv_BaseView")
   class FocusIndicatorManager extends mv.BaseView
 
+    @alwaysnotify
+    @observer("onIsHiddenChange")
     public isHidden = false
     public list as mc.types.node
     public isScrolling = false
@@ -63,7 +65,7 @@ namespace ml
     '++ State
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private isIndicatorHidden = false
+    private shouldShowIndicator = false
     private isIndicatorOnTop = true
     private direction = 0
 
@@ -161,6 +163,12 @@ namespace ml
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    private function onIsHiddenChange(isHidden as boolean)
+      m.isHidden = isHidden
+      ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
+      m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
+    end function
+
     private function onActiveScreenPosChange(y as integer) as void
       m.activeFocusView.translation = [200, y]
     end function
@@ -201,6 +209,8 @@ namespace ml
 
       if m.nextConfig = invalid
         m.focusIndicator.visible = false
+        ? "AAAA"
+        m.shouldShowIndicator = false
         return
       end if
 
@@ -214,6 +224,8 @@ namespace ml
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.nextFocusSettings.feedbackStyle))
+        m.focusIndicator.visible = false
+      else if m.isHidden
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
@@ -238,6 +250,8 @@ namespace ml
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(isFinal as boolean) as void
+      ? "BBBB"
+      m.shouldShowIndicator = false
       if m.nextFocusSettings = invalid or m.nextConfig = invalid
         return
       end if
@@ -248,14 +262,15 @@ namespace ml
       else
         m.rowHasIndicator = true
         ' ? "APPLY FOCUS SETTINGS VIS"
-        if not m.focusIndicator.visible and not m.isIndicatorHidden
-          m.focusIndicator.visible = not m.isIndicatorHidden
+        if not m.focusIndicator.visible and not m.isHidden
+          m.focusIndicator.visible = not m.isHidden
         end if
+        m.shouldShowIndicator = true
 
         if m.isIndicatorOnTop and m.nextFocusSettings.feedbackStyle = "underneath"
           m.list.insertChild(m.focusIndicator, 0)
           m.isIndicatorOnTop = false
-        else if not m.isIndicatorHidden and m.nextFocusSettings.feedbackStyle = "onTop"
+        else if not m.isHidden and m.nextFocusSettings.feedbackStyle = "onTop"
           m.list.appendChild(m.focusIndicator)
           m.isIndicatorOnTop = true
         end if

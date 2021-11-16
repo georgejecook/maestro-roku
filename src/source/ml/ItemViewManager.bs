@@ -20,7 +20,6 @@ namespace ml
 
     'content
     public content = invalid
-    public components = []
     public rects = []
     public settings = invalid
 
@@ -78,7 +77,6 @@ namespace ml
       ' ? "RESETTING VIEW MANAGER "; m.__classname
 
       m.content = invalid
-      m.components = []
       m.rects = []
       m.settings = invalid
 
@@ -119,7 +117,6 @@ namespace ml
     end function
 
     function _createRenderers(content as mc.types.node) as boolean
-      m.components = []
       m.visibleComponents = []
       m.visibleItems = []
 
@@ -454,7 +451,8 @@ namespace ml
         return false
       end if
       if info.component = invalid
-        info.component = m.components[info.index]
+        'TODO - this is wrong - a component might not yet be rendered..
+        info.component = m.visibleComponents[info.index]
         if info.component = invalid
           ? " could not get renderer for this info"
           return false

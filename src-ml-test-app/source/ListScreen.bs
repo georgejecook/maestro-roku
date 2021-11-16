@@ -74,8 +74,8 @@ class ListScreen extends mv.BaseScreen
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
     m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
-    listSettings = ml.listMixin.createListSettings(3000, 3000)
-    ' listSettings = ml.listMixin.createListSettings(-1, -1)
+    ' listSettings = ml.listMixin.createListSettings(3000, 3000)
+    listSettings = ml.listMixin.createListSettings(-1, -1)
     ' listSettings.rowCreationStrategy = "all"
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
@@ -259,7 +259,7 @@ class ListScreen extends mv.BaseScreen
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
-      if showHero and i = 0 or i = 10 or i= 18
+      if showHero and i = 0 or i = 10 or i = 18
         row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
         row0FocusSettings.feedbackStyle = "none"
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
@@ -511,6 +511,18 @@ private function onKeyPressDown() as boolean
   m.setFocus(m.list)
   return true
 end function
+
+private function onKeyPressBack() as boolean
+  ? "FOCUS ON BUTTON"
+  if not m.button.isSameNode(m.focusedControl)
+    m.setFocus(m.button)
+    return true
+  end if
+  ? " EXIT"
+  return false
+end function
+
+
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ lifecycle
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -21,12 +21,12 @@ namespace ml
         m.cancelBatching()
       end if
 
-      if m.components.count() > 0
-        m.log.info("releasing", m.components.count(), "list children")
-        for each component in m.components
+      if m.visibleComponents.count() > 0
+        m.log.info("releasing", m.visibleComponents.count(), "list children")
+        for each component in m.visibleComponents
           component.content = invalid
         end for
-        m.componentPool@.releaseComponents(m.components)
+        m.componentPool@.releaseComponents(m.visibleComponents)
       end if
       m.rowsByContentID = {}
 
@@ -52,7 +52,7 @@ namespace ml
     end function
 
     override function getRenderer(index as integer)
-      return m.components[index]
+      return m.visibleComponents[index]
     end function
 
     private function cancelBatching()
@@ -60,11 +60,11 @@ namespace ml
       m.isUpdating = false
       'ensure that we catch any components if we were half way through a batch, so we can remove them
       allComponents = {}
-      m.components = []
+      m.visibleComponents = []
       allComponents.append(m.previousRowsByContentId)
       allComponents.append(m.rowsByContentID)
       for each id in allComponents
-        m.components.push(allComponents[id])
+        m.visibleComponents.push(allComponents[id])
       end for
       m.cancelWaitTimer(m.batchTimer)
     end function
@@ -79,7 +79,7 @@ namespace ml
         m.creationIndex = -1
         m.previousRowsByContentId = m.rowsByContentID
         m.rowsByContentID = {}
-        m.components = []
+        m.visibleComponents = []
         settings = content.listSettings
         if not forceSync and settings.rowCreationStrategy = "async" and not m.isUpdating
           m.batchSize = settings.rowCreationBatchSize
@@ -174,7 +174,7 @@ namespace ml
 
 
           if comp <> invalid
-            m.components.push(comp)
+            m.visibleComponents.push(comp)
             m.rowsByContentID[rowContent.id] = comp
           else
             m.log.error("could not create row for index ")
@@ -319,7 +319,7 @@ namespace ml
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
       ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
-        comp = m.components[id.toInt()]
+        comp = m.visibleComponents[id.toInt()]
 
         if comp <> invalid and comp.renderState <> renderStateMap[id]
           comp.renderState = renderStateMap[id]
@@ -445,14 +445,14 @@ namespace ml
       end if
 
       ' 'bs:disable-next-line
-      ' indexes = {
-      '   startIndex: m.getIndexAtPosition(beforePos, direction)
-      '   endIndex: m.getIndexAtPosition(afterPos, direction)
-      ' }
       indexes = {
-        startIndex: m.itemScroller.index - 3
-        endIndex: m.itemScroller.index + 5
+        startIndex: m.getIndexAtPosition(beforePos, direction)
+        endIndex: m.getIndexAtPosition(afterPos, direction)
       }
+      ' indexes = {
+      '   startIndex: m.itemScroller.index - 3
+      '   endIndex: m.itemScroller.index + 5
+      ' }
 
       'couple of hacky fixes - need to work out how it get's in this state
       if indexes.startIndex = indexes.endIndex and indexes.startIndex = 0
