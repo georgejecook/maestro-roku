@@ -255,11 +255,11 @@ class ListScreen extends mv.BaseScreen
 
     'TODO - add normal rows around this
     ' for i = 0 to 1
-    for i = 0 to 10
+    for i = 0 to 20
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
-      if showHero and i = 0
+      if showHero and i = 0 or i = 10 or i= 18
         row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
@@ -279,7 +279,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.contentOffset = [100, 30]
         prefix = "GRID"
         ' row.settings.peekNextPixels = 300
-        numItems = 6
+        numItems = 10
       else
         focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
         ' focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [-20, -20, 20, 20])
@@ -288,13 +288,13 @@ class ListScreen extends mv.BaseScreen
         prefix = "HORIZ"
         ' row.settings.peekNextPixels = 300
         row.settings.screenPos = -1
-        if i = 1
+        if i = 1 or i = 19
           row.settings.screenPos = 800
-        else if i = 5
+        else if i = 5 or i = 15
           row.settings.screenPos = 600
         else if i = 3 or i = 7
           row.settings.screenPos = 200
-        else
+        else or i = 13
           row.settings.screenPos = 50
         end if
         numItems = 8

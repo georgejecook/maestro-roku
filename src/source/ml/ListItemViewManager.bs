@@ -11,7 +11,8 @@ namespace ml
     private isUpdating = false
     private previousFocusedRow as mc.types.node
     private previousFocusedIndex = 0
-    public componentBufferMode = "rendered"
+    ' public componentBufferMode = "rendered"
+    public componentBufferMode = "none"
 
     public override function reset()
       m.log.info ("resetting viewManager. numItems: ", m.numberOfItems)
@@ -296,6 +297,9 @@ namespace ml
         })
         comp = m.rowsByContentID[item.id]
         if comp <> invalid
+          if comp.height = 0 or comp.height = -1
+            comp.height = height
+          end if
           m.visibleComponents.push(comp)
         end if
 
@@ -314,7 +318,7 @@ namespace ml
     end function
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-      '    ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
+      ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
         comp = m.components[id.toInt()]
 
@@ -324,9 +328,9 @@ namespace ml
             m.renderedComponents.push(comp)
           end if
           comp.isRendered = comp.renderState = "rendered"
-          '      ? " set comp.isRendered "; comp.isRendered
+          ? " set comp.isRendered "; comp.isRendered
         else
-          '      ? "ERROR could not find visible comp for "; id
+          ? "ERROR could not find visible comp for "; id
         end if
       end for
 
@@ -360,7 +364,7 @@ namespace ml
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
       numRows = numItems / numCols
-      rowHeight = settings.rowHeight
+      rowHeight = settings.rowHeight + settings.rowSpace
       height = numRows * rowHeight
 
       if settings.headerSettings.position <> "none"
