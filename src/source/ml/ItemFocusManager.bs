@@ -171,8 +171,8 @@ namespace ml
 
       ' ? ">>>>>>>>>>>>>>>"
       ' ? ">>>>>>>>>>>>>>>"
-      ? " sending "; name  ; " to " ; m.componentInfo.componentIndex ; " GI "; event.gridIndex
-      ? " sending "; nextName  ; " to " ; m.nextComponentInfo.componentIndex ; " GI " ; nextEvent.gridIndex
+      ? " sending "; name ; " to " ; m.componentInfo.componentIndex ; " GI "; event.gridIndex
+      ? " sending "; nextName ; " to " ; m.nextComponentInfo.componentIndex ; " GI " ; nextEvent.gridIndex
       ' ? ">>>>>>>>>>>>>>>"
       isSendingFromEvent = fromGridIndex <> invalid or (m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex)
       event.rowIndex = m.rowIndex
@@ -183,7 +183,13 @@ namespace ml
         m.componentInfo.component.listEvent = event
       end if
 
-      m.nextComponentInfo.component.listEvent = nextEvent
+      if m.nextComponentInfo <> invalid
+        m.nextComponentInfo.component.listEvent = nextEvent
+      else
+
+        ? "ERROR: missing next component info!"
+        'TODO - lookup the comp info in this case!
+      end if
 
       for each delegate in m.delegates
         if isSendingFromEvent
