@@ -89,9 +89,9 @@ class ListScreen extends mv.BaseScreen
 
     ' items = m.createSimpleData(),
     ' items = m.createData(),
-    ' items = m.createSimpleGridData(),
+    items = m.createSimpleGridData(),
     ' items = m.createMockScreenData(),
-    items = m.createGridData(),
+    ' items = m.createGridData(),
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
@@ -312,10 +312,10 @@ class ListScreen extends mv.BaseScreen
   private function createSimpleGridData()
     content = []
     rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
-    showHero = true
+    showHero = false
 
     'TODO - add normal rows around this
-    for i = 0 to 7
+    for i = 0 to 3
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
@@ -325,14 +325,14 @@ class ListScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
-      else if i = 1
+      else if i = 2
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 400, 3, 427, 2, 100)
         row.settings.contentOffset = [100, 30]
         numItems = 14
-      else if i < 4
+      else if i = 1
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
-        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 0, 3, 427)
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 400, 3, 427)
         row.settings.contentOffset = [100, 30]
         numItems = 14
       else
@@ -340,7 +340,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.contentOffset = [100, 30]
       end if
       row.title = "ROW " + str(i)
-      row.settings.screenPos = 400
+      ' row.settings.screenPos = 400
       content.push(row)
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     end for

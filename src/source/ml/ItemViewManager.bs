@@ -216,32 +216,27 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function updateRenderedComponents(direction as integer, index as integer, force = false as boolean) as void
-      ? ""
-      ? ""
-      ? "((((((((((((((((((((((((((((((((((((("
-      ? "updateRenderedComponents " ; m.__classname
+      ' ? ""
+      ' ? ""
+      ' ? "((((((((((((((((((((((((((((((((((((("
+      ' ? "updateRenderedComponents " ; m.__classname
       if not force and not m.shouldUpdateRenderedIndexes(direction, index)
-        ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
+        ' ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
         return
       end if
 
       renderedIndexes = m.getRenderedIndexes(direction, index)
-      ? "AAAAA " ; m.__classname
-      ? " ++++ renderedIndexes " ; renderedIndexes ; " I " ; index ; " D "; direction ; " " ; m.__classname
+      ' ? " ++++ renderedIndexes " ; renderedIndexes ; " I " ; index ; " D "; direction ; " " ; m.__classname
 
       if not force and (m.lastRenderedIndexes <> invalid) and m.lastRenderedIndexes.startIndex = renderedIndexes.startIndex and m.lastRenderedIndexes.endIndex = renderedIndexes.endIndex
         ' this is the same set of comps as last time
         if m.renderedComponents.count() > 0
           ' and we have seemingly done our initial render; so we can bail.
-          ? "BBB " ; m.__classname
-          ? "+++ initial RENDER DONE"
-          ? "+++ initial RENDER DONE"
-          ? "+++ initial RENDER DONE"
-          ? "+++ initial RENDER DONE"
+          ' ? "+++ initial RENDER DONE" ; m.__classname
           return
         end if
       end if
-      ? "C " ; m.__classname ; formatJson(renderedIndexes)
+      ' ? "C " ; m.__classname ; formatJson(renderedIndexes)
       ' 'bs:disable-next-line
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
@@ -251,9 +246,9 @@ namespace ml
     end function
 
     function shouldUpdateRenderedIndexes(direction as integer, index as integer)
-      ? "???? I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
+      ' ? "???? I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
       if direction <> m.lastScrollDirection or abs(index - m.lastScrollIndex) > m.renderedIndexUpdateInterval or index = 0
-        ? " LIST SHOULD UPDATE I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
+        ' ? " LIST SHOULD UPDATE I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
         m.lastScrollIndex = index
         m.lastScrollDirection = direction
         return true
@@ -301,7 +296,7 @@ namespace ml
       if indexes.startIndex = indexes.endIndex and indexes.startIndex = 1
         indexes.startIndex = 0
       end if
-      ? formatJson(indexes)
+      ' ? formatJson(indexes)
       return indexes
     end function
 
@@ -314,8 +309,8 @@ namespace ml
         return {}
       end if
 
-      ? "++++++++++++++++++++"
-      ? "LRI> " ; m.lastRenderedIndexes ; " " ; m.__classname
+      ' ? "++++++++++++++++++++"
+      ' ? "LRI> " ; m.lastRenderedIndexes ; " " ; m.__classname
       m.updateRenderStateMap(renderedStateMap, m.lastRenderedIndexes.startIndex, m.lastRenderedIndexes.endIndex, m.componentBufferMode)
       m.updateRenderStateMap(renderedStateMap, renderedIndexes.startIndex, renderedIndexes.endIndex, "rendered")
       return renderedStateMap
