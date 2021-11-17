@@ -44,10 +44,10 @@ namespace mv.animations.utils
   end function
 
 
-  function interpolateHexColors(hexColor1 as string, hexColor2 as string)
+  function interpolateHexColors(hexColor1 as string, hexColor2 as string, fraction as float)
     c1 = mv.animations.private.convertHexToNumber(hexColor1)
     c2 = mv.animations.private.convertHexToNumber(hexColor2)
-    return mv.animations.private.interpolateColors(c1, c2)
+    return mv.animations.private.interpolateColors(c1, c2, fraction)
   end function
 end namespace
 
@@ -68,8 +68,7 @@ namespace mv.animations.private
     rg = cInt(rgb1[1] * p + rgb2[1] * q)
     rb = cInt(rgb1[0] * p + rgb2[2] * q)
 
-    return (rr << 16) + (rg << 8) + rb
-    ' return Number((rr << 16) + (rg << 8) + rb).toString(16)
+    return stri((rr << 16) + (rg << 8) + rb, 16)
   end function
 
   function toRGBArray(rgb as integer)
