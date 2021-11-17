@@ -166,7 +166,7 @@ namespace ml
 
     public function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
       'bs:disable-next-line
-      if m.itemScroller <> invalid
+      if m.viewManager <> invalid
         'bs:disable-next-line
         return m.viewManager.getRowInfos(m.top.translation[1], forceRecalculate)
       else
@@ -179,7 +179,7 @@ namespace ml
           new ml.ComponentPosition(yOffset, screenPos) 'normal
           new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
         ]
-        rowInfo = new ml.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)
+        rowInfo = new ml.ComponentInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
         return [rowInfo]
       end if
     end function
@@ -191,7 +191,7 @@ namespace ml
         'bs:disable-next-line
         return m.itemScroller.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromLIstScroll)
       else
-        return new ml.FocusIndicatorConfig([0, 0], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
+        return new ml.FocusIndicatorConfig([m.width, m.height], [0, 0], m.index, -1, [0, 0], [0, 0], m.settings, true)
       end if
     end function
 

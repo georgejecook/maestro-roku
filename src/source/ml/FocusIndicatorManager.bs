@@ -110,12 +110,12 @@ namespace ml
       m.activeFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#00ff00"
         size: [20, 20]
-        visible: true
+        visible: false
       })
       m.nextFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
         color: "#ff0000"
         size: [20, 20]
-        visible: true
+        visible: false
       })
     end function
 
@@ -286,8 +286,10 @@ namespace ml
         return
       end if
 
+
       if fraction = 1
-        m.focusIndicator.translation = m.nextConfig.indicatorTranslation
+        translation = m.nextConfig.indicatorTranslation
+        m.focusIndicator.translation = translation
         m.focusIndicator.size = m.nextConfig.indicatorSize
         ' ? "ACTIVE FOCUS POS IS NOW "; formatJson(m.nextConfig.indicatorTranslation)
 

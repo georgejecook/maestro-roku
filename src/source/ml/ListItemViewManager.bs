@@ -163,6 +163,7 @@ namespace ml
           comp = m.previousRowsByContentId[rowContent.id]
           if comp <> invalid
             m.log.info("using comp for the same row")
+            ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
             m.previousRowsByContentId.delete(rowContent.id)
@@ -254,7 +255,7 @@ namespace ml
       for i = 0 to m.content.getChildCount() - 1
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
-        visible = item.isHidden <> true and item.length > 0
+        visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
         ? "ITEM " ; i ; " VISIBLE "; visible
         if visible
           if settings.subType() = "ml_GridRowSettings"
@@ -388,13 +389,13 @@ namespace ml
     override function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
 
 
-      ' if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
+      if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
 
-      '   isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
-      '   ? "L>>>>>> GRID ROW " ; info.index ; " D " ; direction ; isFlowPossible
-      ' else
-
-      isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+        isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
+        ? "L>>>>>> GRID ROW " ; info.index ; " D " ; direction ; isFlowPossible
+      else
+        isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+      end if
 
       if not isFlowPossible and info.isFlowFocusAllowed
         'check on the renderer

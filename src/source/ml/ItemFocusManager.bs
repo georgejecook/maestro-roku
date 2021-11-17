@@ -45,7 +45,7 @@ namespace ml
         m.delegates.push(ownerDelegate)
       else
         m.log.error("There was no delegate passed to this focus manager - events wont be handled")
-        ? " NO OWNER DELEGATE!!!!!"
+        ' ? " NO OWNER DELEGATE!!!!!"
       end if
       owner = viewManager.owner
       if owner.delegate <> invalid
@@ -67,8 +67,8 @@ namespace ml
       if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
         return
       end if
-      ? ">>S> "; m.viewManager.__classname
-      ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.colIndex ; " " ; nextFocusIndicatorConfig.gridIndex
+      ' ? ">>S> "; m.viewManager.__classname
+      ' ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.colIndex ; " " ; nextFocusIndicatorConfig.gridIndex
       m.componentInfo = componentInfo
       m.nextComponentInfo = nextComponentInfo
       if previousFocusIndicatorConfig <> invalid and previousFocusIndicatorConfig.gridIndex <> invalid and previousFocusIndicatorConfig.gridIndex <> -1
@@ -78,7 +78,7 @@ namespace ml
       end if
 
       if m.previousFocusIndicatorConfig <> invalid
-        ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
+        ' ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
       end if
       m.nextFocusIndicatorConfig = nextFocusIndicatorConfig
       m.direction = direction
@@ -109,7 +109,7 @@ namespace ml
         return
       end if
       if m.nextFocusIndicatorConfig = invalid
-        ? " no focus config"
+        ' ? " no focus config"
         return
       end if
 
@@ -159,7 +159,7 @@ namespace ml
       if m.previousFocusIndicatorConfig <> invalid and m.previousFocusIndicatorConfig.gridIndex <> invalid
         fromGridIndex = m.previousFocusIndicatorConfig.gridIndex
         event.gridIndex = fromGridIndex
-        ? "PREV EVENT "; m.previousFocusIndicatorConfig.gridIndex
+        ' ? "PREV EVENT "; m.previousFocusIndicatorConfig.gridIndex
       else
         fromGridIndex = invalid
       end if
@@ -171,8 +171,8 @@ namespace ml
 
       ' ? ">>>>>>>>>>>>>>>"
       ' ? ">>>>>>>>>>>>>>>"
-      ? " sending "; name ; " to " ; m.componentInfo.componentIndex ; " GI "; event.gridIndex
-      ? " sending "; nextName ; " to " ; m.nextComponentInfo.componentIndex ; " GI " ; nextEvent.gridIndex
+      ' ? " sending "; name ; " to " ; m.componentInfo.componentIndex ; " GI "; event.gridIndex
+      ' ? " sending "; nextName ; " to " ; m.nextComponentInfo.componentIndex ; " GI " ; nextEvent.gridIndex
       ' ? ">>>>>>>>>>>>>>>"
       isSendingFromEvent = fromGridIndex <> invalid or (m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex)
       event.rowIndex = m.rowIndex
@@ -187,7 +187,7 @@ namespace ml
         m.nextComponentInfo.component.listEvent = nextEvent
       else
 
-        ? "ERROR: missing next component info!"
+        ' ? "ERROR: missing next component info!"
         'TODO - lookup the comp info in this case!
       end if
 

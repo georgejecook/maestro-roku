@@ -174,7 +174,6 @@ namespace ml
       'ensure that the componentconfig has a component for a dynamically generated cell index
       componentConfig = m.cellInfos[index]
       componentConfig.component = cell
-      ? "++++++++++++++++++++++++++++++HERE" ; mc.dv(componentConfig.component)
     end function
 
     override function getRenderer(index as integer)
@@ -229,12 +228,12 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-      ' ? "ROW CHANGES"
+      ? "ROW CHANGES"
       oldNumComponents = m.itemScroller.numberOfComponents
       m.processRemovedCells(changes)
-      ' ? "FORCING LAYOUT"
+      ? "FORCING LAYOUT"
       m.forceUpdateLayout()
-      ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
+      ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
       if m.itemScroller.index >= m.content.length
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length -1)
         ' ? "NEEDED TWEAK TO" ; m.itemScroller.index
@@ -242,6 +241,7 @@ namespace ml
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
       m.itemScroller.processChanges(changes)
+      ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents
       if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
         ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
         m.owner@.forceUpdate()
