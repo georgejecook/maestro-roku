@@ -762,7 +762,7 @@ namespace ml
     rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
     if info = invalid or info.component = invalid
       ' ? "cannot get focus indicator componentInfo or componentInfo.component is invalid "; m.__classname
-      return new ml.FocusIndicatorConfig([0, 0], [0, 0], rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
+      return new ml.FocusIndicatorConfig(rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
     end if
 
     size = m.viewManager.getItemSize(info.contentIndex)
@@ -774,7 +774,7 @@ namespace ml
 
     isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
 
-    return new ml.FocusIndicatorConfig(size, translation, rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
+    return new ml.FocusIndicatorConfig(rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
   end function
 
 
