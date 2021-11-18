@@ -20,8 +20,6 @@ namespace ml
     private rowInfos as mc.types.array
     private renderersByContentId = {}
 
-    'trackign of cells that are no longer used
-    private renderersToBeRemoved = {}
 
     'tracking used for reusing cells during multi-render batches
     private previousRendereredByContentId = {}
@@ -30,6 +28,7 @@ namespace ml
     public content = invalid
     public rects = []
     public settings = invalid
+    public listSettings = invalid
 
     'tracking
     public direction = 0
@@ -114,7 +113,8 @@ namespace ml
       m.log.info("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
-      ' m.container.removeChildren(m.container.getChildren(-1, 0))
+      m.listSettings = m.owner.content.listSettings
+      ' m.container.removeChildren(m.container.getChildren(-1, 1))
       if m._createRenderers(content) = false
         m.isRendering = true
         m.log.info("This viewManager is doing async rendering")
@@ -241,40 +241,34 @@ namespace ml
           return
         end if
       end if
-      ' ? "C " ; m.__classname ; formatJson(renderedIndexes)
+      ? "C " ; m.__classname ; formatJson(renderedIndexes)
       ' 'bs:disable-next-line
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
-      ' m.renderedComponents = []
-      ' ? "TUR ::: AFTER STATE MAP" ; m.__classname
-      ' ? " " ; formatJson(renderedStateMap)
-
-
-      m.renderersToBeRemoved = {}
-      for each comp in m.renderedComponents
-        ' ? " WAS RENDERING THIS -NOT NOW"
-        m.renderersToBeRemoved[comp.id] = comp
-      end for
-
+      m.renderedComponents = []
+      ? "TUR ::: AFTER STATE MAP" ; m.__classname
+      ? " " ; formatJson(renderedStateMap)
       m.applyRenderStateMap(renderedStateMap)
 
       m.tidyUpUnusedRenderers()
       m.lastRenderedIndexes = renderedIndexes
     end function
 
-    protected function tidyUpUnusedRenderers()
+    protected function tidyUpUnusedRenderers() as void
       ? "Tidying up renderers " ; m.__classname
-      ? "these are" ; m.previousRendereredByContentId.count() ; " left that need cleaning up"
-
+' return
       removedRenderers = []
-      for each id in m.renderersToBeRemoved
-        renderer = m.renderersToBeRemoved[id]
-        ' ? " cleaning up "; mc.dv(renderer)
-        renderer.content = invalid
-        removedRenderers.push(renderer)
+      ? " CONTAINER HAS " ; m.container.getChildCount() -1 ; " RENS "
+      for i = 1 to m.container.getChildCount() -1
+        renderer = m.container.getChild(i)
+        if renderer.content = invalid
+          removedRenderers.push(renderer)
+        else if m.renderersByContentId[renderer.content.id] = invalid
+          removedRenderers.push(renderer)
+          renderer.content = invalid
+        end if
       end for
-      m.renderersToBeRemoved = {}
-      m.log.info("releasing", removedRenderers.count(), "rows")
+      ? " cleaning up "; removedRenderers.count() " renderers"
       m.componentPool@.releaseComponents(removedRenderers)
     end function
 
@@ -293,6 +287,9 @@ namespace ml
       'TODO - upgrade to use componentInfos
       info = m.cellInfos[index]
       if info = invalid
+        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         return {
           startIndex: -1
           endIndex: -1

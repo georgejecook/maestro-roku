@@ -112,7 +112,7 @@ namespace ml
 
       m.setFocusIndex(index, false, false)
       ' m.moveToIndex(index, false, true, 0)
-      m.viewManager.updateRenderedComponents(m.direction, index)
+      ' m.viewManager.updateRenderedComponents(m.direction, index)
     end function
 
     public function cancelScrolling()
@@ -712,7 +712,16 @@ namespace ml
         return
       end if
 
+      ? "::::::::::::::::::::::aaaaaaaaaaa"
       ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
+      if m.index < 0
+        ? "::::::::::::::::::::::VBVVVV"
+        index = m.numberOfComponents - 1
+        m.index = index
+        isIndexUpdateRequired = true
+      end if
+
+      ? ":::::::::::::::::::::CCCCCCCCCCC"
       if m.index >= m.numberOfComponents
         index = m.numberOfComponents - 1
         ' ? "index is changing " ; m.index ; " > " ; index
@@ -721,41 +730,44 @@ namespace ml
       end if
 
       if not isIndexUpdateRequired
-      isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-        return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
-      end function)
-    end if
+        isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+          ? ":::::::::::::::::::::DDDDDDDDDDDDDDD"
+          return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
+        end function)
+      end if
 
-    'FIXME - this needs revisiting
+      'FIXME - this needs revisiting
+      ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
 
-    'all changes result in downward movements
-    ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
-    ' if isIndexUpdateRequired
-    '   ? " NOTIFYING FOCUS"
-    '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
-    '   wasNotifying = m.focusManager.isNotifying
-    '   m.focusManager.isNotifying = true
-    '   m.reset(true)
-    '   m.focusManager.isNotifying = wasNotifying
-    ' else
-    '   ? " not notifying focus"
+      'all changes result in downward movements
+      ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
+      ' if isIndexUpdateRequired
+      '   ? " NOTIFYING FOCUS"
+      '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
+      '   wasNotifying = m.focusManager.isNotifying
+      '   m.focusManager.isNotifying = true
+      '   m.reset(true)
+      '   m.focusManager.isNotifying = wasNotifying
+      ' else
+      '   ? " not notifying focus"
+      ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
     m.reset(true)
     ' end if
   end function
 
   public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
-    componentInfo = m.getCellComponentInfo(componentInfo, true)
-    if componentInfo <> invalid
-      m.setComponentInfo(componentInfo)
-      ' ? " GRID CHOICE IS MADE index is now "; m.index
-    end if
-  end function
+  componentInfo = m.getCellComponentInfo(componentInfo, true)
+  if componentInfo <> invalid
+    m.setComponentInfo(componentInfo)
+    ' ? " GRID CHOICE IS MADE index is now "; m.index
+  end if
+end function
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Focus Indicator
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Focus Indicator
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
     info = m.getCellComponentInfo(componentInfo, isFromListScroll)
 

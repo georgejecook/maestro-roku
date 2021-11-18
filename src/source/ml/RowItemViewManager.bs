@@ -30,9 +30,8 @@ namespace ml
 
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
-      ? "::: CREATE RENDERERS" ; m.renderersByContentId
+      ' ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
-      m.renderersToBeRemoved = {}
       m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
       return true
@@ -104,6 +103,7 @@ namespace ml
         end for
       end if
 
+      ' ? " RENDERED COMPONENTS IS NOW "; m.renderedComponents
       m.lastRowIsRendered = m.row.isRendered
     end function
 
@@ -153,16 +153,14 @@ namespace ml
 
               m.container.appendChild(cell)
             else
-              '      ? ">>ERR no cell for " ; settings.compName
+              ? ">>ERR no cell for " ; settings.compName
             end if
           else
             cell.translation = m.rects[index].translation
           end if
           if cell <> invalid
-            m.renderedComponents.push(cell)
             m.renderersByContentId[itemId] = cell
             m.previousRendereredByContentId.delete(itemId)
-            m.renderersToBeRemoved.delete(cell.id)
           end if
         else
           cell = m.renderersByContentId[itemId]
@@ -170,7 +168,7 @@ namespace ml
             m.componentPool@.releaseComponent(cell)
             m.renderersByContentId.delete(itemId)
             m.previousRendereredByContentId.delete(itemId)
-            m.renderersToBeRemoved[cell.id] = cell
+            ' ? " REMOVING " ; cell.id
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id.
@@ -235,28 +233,27 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-      ? "ROW CHANGES"
+      ' ? "ROW CHANGES"
       oldNumComponents = m.itemScroller.numberOfComponents
       m.processRemovedCells(changes)
-      ? "FORCING LAYOUT"
+      ' ? "FORCING LAYOUT"
       m.forceUpdateLayout()
-      ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
+      ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
       if m.itemScroller.index >= m.content.length
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
-        ' ? "NEEDED TWEAK TO" ; m.itemScroller.index
       end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
       m.itemScroller.processChanges(changes)
-      ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents
+      ' ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents
+      m.rowInfos = invalid
       if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
-        ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
+        ' ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
         m.owner@.forceUpdate()
-      else
-        if m.row.isFocused
-          ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-          m.owner.focusedCellIndex = m.itemScroller.index
-        end if
+      end if
+      if m.row.isFocused
+        ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+        m.owner.focusedCellIndex = m.itemScroller.index
       end if
     end function
 
@@ -268,7 +265,7 @@ namespace ml
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
-        ? ">>> got change " ; change.type
+        ' ? ">>> got change " ; change.type
         if change.type = "remove"
           m.log.info("removing cell at index", change.index)
           item = change.child
@@ -285,6 +282,10 @@ namespace ml
           else
             m.log.error("could not find cell to release")
           end if
+        else if change.type = "clear"
+          'we've reset the list - all renderers are going now
+          m.renderersByContentId = {}
+          m.tidyUpUnusedRenderers()
         end if
       end for
     end function

@@ -179,11 +179,11 @@ namespace ml
       nextEvent.rowIndex = m.rowIndex
 
       'let components know, so they can react
-      if isSendingFromEvent
+      if isSendingFromEvent and m.componentInfo.component <> invalid
         m.componentInfo.component.listEvent = event
       end if
 
-      if m.nextComponentInfo <> invalid
+      if m.nextComponentInfo <> invalid and m.nextComponentInfo.component <> invalid
         m.nextComponentInfo.component.listEvent = nextEvent
       else
 

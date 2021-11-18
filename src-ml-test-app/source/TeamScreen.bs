@@ -123,7 +123,7 @@ namespace ml.sample
       cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
       row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
       row.settings.contentOffset = [200, 0]
-      numItems = 2
+      numItems = 5
       content.push(row)
       m.followingModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -138,7 +138,7 @@ namespace ml.sample
       row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 0, 1, 144, 4, 0)
       ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
       row.settings.contentOffset = [200, 30]
-      numItems = 20
+      numItems = 5
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -254,13 +254,15 @@ namespace ml.sample
     private function selectFavorite()
       team = m.followingModule.getChild(0)
       ? "selected fave>>>>>:"; mc.dv(team)
+      m.teamsModule@.setNotificationsEnabled(false)
       m.favoriteModule@.clear()
-
       if team <> invalid
         'we need a clone, because this team will show in 2 modules
         team = team.clone(true)
         m.favoriteModule@.appendChild(team)
       end if
+      m.teamsModule@.setNotificationsEnabled(true, true)
+      m.list@.moveToItem([0, 0])
     end function
 
     private function followTeam(itemIndex as integer) as void

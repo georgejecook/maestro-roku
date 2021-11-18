@@ -111,7 +111,6 @@ namespace ml
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
-      m.renderersToBeRemoved = {}
       return true
     end function
 
@@ -325,7 +324,6 @@ namespace ml
             m.renderedComponents.push(cell)
             m.previousRendereredByContentId.delete(itemId)
             m.renderersByContentId[itemId] = cell
-            m.renderersToBeRemoved.delete(cell.id)
           end if
         else
           cell = m.renderersByContentId[itemId]
@@ -334,7 +332,6 @@ namespace ml
             m.componentPool@.releaseComponent(cell)
             m.renderersByContentId.delete(itemId)
             m.previousRendereredByContentId.delete(itemId)
-            m.renderersToBeRemoved[cell.id] = cell
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
@@ -472,7 +469,7 @@ namespace ml
       end if
       if m.itemScroller.componentInfos.count() <> numRows
         m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
-        ? "NEED TO TELL LIST!!!"
+        ? "NEED TO TELL LIST!!!  num rows now " ; m.itemScroller.componentInfos.count()
         m.owner@.forceUpdate()
       end if
 

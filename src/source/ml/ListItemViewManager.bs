@@ -10,6 +10,7 @@ namespace ml
     private isUpdating = false
     private previousFocusedRow as mc.types.node
     private previousFocusedIndex = 0
+    private isShowingAllComps = false
     ' public componentBufferMode = "rendered"
     public componentBufferMode = "none"
 
@@ -167,7 +168,6 @@ namespace ml
           if comp <> invalid
             m.visibleComponents.push(comp)
             m.renderersByContentId[rowContent.id] = comp
-            m.renderersToBeRemoved.delete(comp.id)
           else
             m.log.error("could not create row for index ")
           end if
@@ -242,7 +242,7 @@ namespace ml
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
-        ? "ITEM " ; i ; " VISIBLE "; visible
+        ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.getChildCount() ; " isHidden " ; item.isHidden
         if visible
           if settings.subType() = "ml_GridRowSettings"
             height = m.calculateGridRowHeight(item, settings)
@@ -401,13 +401,25 @@ namespace ml
 
     override function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
       'TODO - upgrade to use componentInfos
+
       info = invalid
 
       if m.itemScroller.componentInfos <> invalid
+        if index >= m.itemScroller.componentInfos.count()
+          index = m.itemScroller.componentInfos.count() - 1
+        end if
+        if m.listSettings.lookAheadDistance = -1
+          ? " list is rendering everything" ; m.itemScroller.componentInfos.count()
+          return {
+            startIndex: 0
+            endIndex: m.itemScroller.componentInfos.count()
+          }
+        end if
         info = m.itemScroller.componentInfos[index]
       end if
 
       if info = invalid
+        ? " LIST HAS NO componentInfos CANNOT RENDER ANYTHING" ; index
         return {
           startIndex: -1
           endIndex: -1
@@ -431,11 +443,15 @@ namespace ml
         afterPos = 0
       end if
 
+      'NOTE THERE IS AN ISSUE WHERE TWO VIEWS ARE AT THE SAME POS WITH DIFFERENT SCREEN OFFSETS
       ' 'bs:disable-next-line
       indexes = {
-        startIndex: m.getIndexAtPosition(beforePos, direction)
-        endIndex: m.getIndexAtPosition(afterPos, direction)
+        startIndex: m.getIndexAtPosition(beforePos, direction) - 1
+        endIndex: m.getIndexAtPosition(afterPos, direction) + 1
       }
+      ' ? " before Pos" ; beforePos
+      ' ? " after Pos" ; afterPos
+      ' ? "COMP COUNT" ; m.itemScroller.componentInfos.count()
       ' indexes = {
       '   startIndex: m.itemScroller.index - 3
       '   endIndex: m.itemScroller.index + 5
@@ -460,10 +476,11 @@ namespace ml
       for i = 0 to m.itemScroller.componentInfos.count() - 1
         info = m.itemScroller.componentInfos[i]
         'the offset is already factored in
-        itemPos = abs(info.getScrollOffset(direction))
-        ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
+        itemPos = abs(info.getPosition(direction))
+        ' itemPos = abs(info.getScrollOffset(direction))
+        ? "i "; i ; " pos"; position ; " p "; p ; " ip " ; itemPos ; " INFO " ; info.index ; " c " ; mc.dv(info.component)
         if itemPos > p
-          ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
+          ? "+++++!!! MATCHED ITEM INDEX "; i - 1
           return mc.clamp(i - 1, 0, m.numberOfItems - 1)
         end if
       end for
@@ -471,7 +488,7 @@ namespace ml
 
       'we must be at the end! -return last item
       index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
-      ' ? "+++++!!! MATCHED ITEM INDEX "; index
+      ? "+++++!!! MATCHED ITEM INDEX "; index
       return index
     end function
 
