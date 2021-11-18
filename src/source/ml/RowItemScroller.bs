@@ -28,5 +28,37 @@ namespace ml
       end if
     end function
 
+    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      if info = invalid
+        return [0, 0]
+      end if
+
+      screenPos = info.getScreenPosition(direction)
+
+      contentOffset = m.viewManager.settings.contentOffset
+      headerOffset = m.viewManager.settings.headerSettings.height
+
+      ? "GFC " ; m.__classname ; " HO "; headerOffset ; formatJson(contentOffset); " SP " ;screenPos ; "iFF "; isFloatingFocus
+
+      translation = [screenPos, 0]
+
+      translation[1] += headerOffset
+
+      translation[1] += m.viewManager.settings.screenPos
+
+      if isFloatingFocus
+        cell = m.viewManager.getRenderer(info.contentIndex)
+        'bs:disable-next-line
+        bounds = cell.sceneBoundingRect()
+        translation = [bounds.x, bounds.y]
+      end if
+
+      if m.settings.horizAnimStyle = "fixed"
+        translation[m.axes] = contentOffset[m.axes]
+      end if
+
+      return translation
+    end function
+
   end class
 end namespace

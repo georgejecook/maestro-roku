@@ -730,44 +730,44 @@ namespace ml
       end if
 
       if not isIndexUpdateRequired
-        isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-          ? ":::::::::::::::::::::DDDDDDDDDDDDDDD"
-          return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
-        end function)
-      end if
+      isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+        ? ":::::::::::::::::::::DDDDDDDDDDDDDDD"
+        return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
+      end function)
+    end if
 
-      'FIXME - this needs revisiting
-      ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
+    'FIXME - this needs revisiting
+    ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
 
-      'all changes result in downward movements
-      ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
-      ' if isIndexUpdateRequired
-      '   ? " NOTIFYING FOCUS"
-      '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
-      '   wasNotifying = m.focusManager.isNotifying
-      '   m.focusManager.isNotifying = true
-      '   m.reset(true)
-      '   m.focusManager.isNotifying = wasNotifying
-      ' else
-      '   ? " not notifying focus"
-      ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
+    'all changes result in downward movements
+    ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
+    ' if isIndexUpdateRequired
+    '   ? " NOTIFYING FOCUS"
+    '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
+    '   wasNotifying = m.focusManager.isNotifying
+    '   m.focusManager.isNotifying = true
+    '   m.reset(true)
+    '   m.focusManager.isNotifying = wasNotifying
+    ' else
+    '   ? " not notifying focus"
+    ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
     m.reset(true)
     ' end if
   end function
 
   public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
-  componentInfo = m.getCellComponentInfo(componentInfo, true)
-  if componentInfo <> invalid
-    m.setComponentInfo(componentInfo)
-    ' ? " GRID CHOICE IS MADE index is now "; m.index
-  end if
-end function
+    componentInfo = m.getCellComponentInfo(componentInfo, true)
+    if componentInfo <> invalid
+      m.setComponentInfo(componentInfo)
+      ' ? " GRID CHOICE IS MADE index is now "; m.index
+    end if
+  end function
 
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'++ Focus Indicator
-'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Focus Indicator
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+  public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
     info = m.getCellComponentInfo(componentInfo, isFromListScroll)
 
@@ -795,47 +795,7 @@ public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direc
   end function
 
   protected function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
-    if info = invalid
-      return [0, 0]
-    end if
-
-    screenPos = info.getScreenPosition(direction)
-
-    contentOffset = m.viewManager.settings.contentOffset
-    headerOffset = m.viewManager.settings.headerSettings.height
-
-    ? "GFC " ; m.__classname ; " HO "; headerOffset ; formatJson(contentOffset); " SP " ;screenPos ; "iFF "; isFloatingFocus
-
-    ' if m.axes = 0
-    '   translation = [contentOffset[0] + screenPos, contentOffset[1]]
-    ' else
-    '   translation = [contentOffset[0], contentOffset[1] + screenPos]
-    ' end if
-    if m.axes = 0
-      translation = [screenPos, 0]
-    else
-      translation = [0, screenPos]
-    end if
-
-    translation[1] += headerOffset
-
-    if m.viewManager.row <> invalid
-      'bs:disable-next-line
-      translation[1] += m.viewManager.row.screenPos
-    end if
-
-    if isFloatingFocus
-      cell = m.viewManager.getRenderer(info.contentIndex)
-      'bs:disable-next-line
-      bounds = cell.sceneBoundingRect()
-      translation = [bounds.x, bounds.y]
-    end if
-
-    if m.settings.horizAnimStyle = "fixed"
-      translation[m.axes] = contentOffset[m.axes]
-    end if
-
-    return translation
+    return [0, 0]
   end function
 
 end class
