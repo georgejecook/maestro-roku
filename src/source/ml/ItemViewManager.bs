@@ -19,7 +19,12 @@ namespace ml
     public cellInfos = []
     private rowInfos as mc.types.array
     private renderersByContentId = {}
-    private previousrenderersByContentId = {}
+
+    'trackign of cells that are no longer used
+    private renderersToBeRemoved = {}
+
+    'tracking used for reusing cells during multi-render batches
+    private previousRendereredByContentId = {}
 
     'content
     public content = invalid
@@ -240,7 +245,17 @@ namespace ml
       ' 'bs:disable-next-line
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
-      m.renderedComponents = []
+      ' m.renderedComponents = []
+      ' ? "TUR ::: AFTER STATE MAP" ; m.__classname
+      ' ? " " ; formatJson(renderedStateMap)
+
+
+      m.renderersToBeRemoved = {}
+      for each comp in m.renderedComponents
+        ' ? " WAS RENDERING THIS -NOT NOW"
+        m.renderersToBeRemoved[comp.id] = comp
+      end for
+
       m.applyRenderStateMap(renderedStateMap)
 
       m.tidyUpUnusedRenderers()
@@ -248,13 +263,17 @@ namespace ml
     end function
 
     protected function tidyUpUnusedRenderers()
+      ? "Tidying up renderers " ; m.__classname
+      ? "these are" ; m.previousRendereredByContentId.count() ; " left that need cleaning up"
+
       removedRenderers = []
-      for each id in m.previousrenderersByContentId
-        row = m.previousrenderersByContentId[id]
-        row.content = invalid
-        removedRenderers.push(row)
+      for each id in m.renderersToBeRemoved
+        renderer = m.renderersToBeRemoved[id]
+        ' ? " cleaning up "; mc.dv(renderer)
+        renderer.content = invalid
+        removedRenderers.push(renderer)
       end for
-      m.previousrenderersByContentId = {}
+      m.renderersToBeRemoved = {}
       m.log.info("releasing", removedRenderers.count(), "rows")
       m.componentPool@.releaseComponents(removedRenderers)
     end function
@@ -521,6 +540,10 @@ namespace ml
         m.rowInfos = invalid
       end if
 
+      if m.settings = invalid
+        ? "+!!!!!?!! INVALID SETTINGS"
+        return []
+      end if
       if m.rowInfos = invalid
         focusSettings = m.getFocusSettings()
 

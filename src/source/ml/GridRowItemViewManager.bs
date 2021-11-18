@@ -84,12 +84,12 @@ namespace ml
         m.maxRowPos = (m.settings.numRows - 1) * (m.perRowHeight) + offset
         m.updateScreenRect()
 
-        ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
+        ' ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
         for i = 0 to m.rowOffsets.count() - 1
           m.rowInfos.push(m.getRowInfo(i, [0, rowHeight], m.rowOffsets[i] - contentOffset, yPosition, height, m.maxRowPos))
-          ? "LAYING OUT ITEM " ; i ; "RO " ; m.rowOffsets[i]
+          ' ? "LAYING OUT ITEM " ; i ; "RO " ; m.rowOffsets[i]
         end for
-        ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
+        ' ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
       end if
       return m.rowInfos
     end function
@@ -109,8 +109,9 @@ namespace ml
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
-      m.previousrenderersByContentId = m.renderersByContentId
+      m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
+      m.renderersToBeRemoved = {}
       return true
     end function
 
@@ -265,11 +266,16 @@ namespace ml
 
       cell = invalid
       if item <> invalid
+        itemId = item.id
+        ' ? " GRID===========================" ; itemid
         if renderState = "rendered"
-          cell = m.renderersByContentId[item.id]
+          cell = m.renderersByContentId[itemId]
+          if cell = invalid
+            cell = m.previousRendereredByContentId[itemId]
+          end if
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ' ? "GETTING CELL " ; item.id ; " " ; settings.compName ; " " ; m.__classname
+            ' ? "GETTING CELL " ; itemId ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
             if cell <> invalid
@@ -286,7 +292,7 @@ namespace ml
               cell.visible = true
               ' cell.visible = isRendered
 
-              ' ? ">>>>>>>> " ; isRendered
+              ' ? ">>>>>>>> is visible "
 
               ' if isRendered
               cell.listEvent = { "name": "didEnter" }
@@ -297,7 +303,6 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.renderersByContentId[item.id] = cell
             else
               m.log.error("could not make cell of type ", settings.compName)
             end if
@@ -315,23 +320,27 @@ namespace ml
             cell.visible = true
           end if
           if cell <> invalid
-            ' ? " SET cell at index "; index ;" to " ; item.id; " " ; item.title
+            ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
             ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
             m.renderedComponents.push(cell)
+            m.previousRendereredByContentId.delete(itemId)
+            m.renderersByContentId[itemId] = cell
+            m.renderersToBeRemoved.delete(cell.id)
           end if
         else
-          cell = m.renderersByContentId[item.id]
+          cell = m.renderersByContentId[itemId]
           if cell <> invalid
             ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.renderersByContentId.delete(item.id)
+            m.renderersByContentId.delete(itemId)
+            m.previousRendereredByContentId.delete(itemId)
+            m.renderersToBeRemoved[cell.id] = cell
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
           end if
         end if
       end if
-
       componentConfig = m.cellInfos[index]
       componentConfig.component = cell
     end function
@@ -530,18 +539,6 @@ namespace ml
           end if
         end if
       end for
-    end function
-
-    protected override function tidyUpUnusedRenderers()
-      removedRows = []
-      for each id in m.previousrenderersByContentId
-        row = m.renderersByContentId[id]
-        row.content = invalid
-        removedRows.push(row)
-      end for
-      m.previousrenderersByContentId = {}
-      m.log.info("releasing", removedRows.count(), "rows")
-      m.componentPool@.releaseComponents(removedRows)
     end function
 
   end class

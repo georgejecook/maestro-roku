@@ -59,7 +59,7 @@ namespace ml
       'ensure that we catch any components if we were half way through a batch, so we can remove them
       allComponents = {}
       m.visibleComponents = []
-      allComponents.append(m.previousrenderersByContentId)
+      allComponents.append(m.previousRendereredByContentId)
       allComponents.append(m.renderersByContentId)
       for each id in allComponents
         m.visibleComponents.push(allComponents[id])
@@ -75,7 +75,7 @@ namespace ml
       m.updateRects()
       if content <> invalid
         m.creationIndex = -1
-        m.previousrenderersByContentId = m.renderersByContentId
+        m.previousRendereredByContentId = m.renderersByContentId
         m.renderersByContentId = {}
         m.visibleComponents = []
         settings = content.listSettings
@@ -98,6 +98,7 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
+      ? "TUR ::: LIST onRenderersCreated"
       m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
@@ -149,13 +150,13 @@ namespace ml
           settings = ml.listMixin.getRowSettings(m.content, rowContent)
           rect = m.rects[index]
 
-          comp = m.previousrenderersByContentId[rowContent.id]
+          comp = m.previousRendereredByContentId[rowContent.id]
           if comp <> invalid
             m.log.info("using comp for the same row")
             ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
-            m.previousrenderersByContentId.delete(rowContent.id)
+            m.previousRendereredByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
           else
             m.log.info("creating row for this item")
@@ -166,15 +167,11 @@ namespace ml
           if comp <> invalid
             m.visibleComponents.push(comp)
             m.renderersByContentId[rowContent.id] = comp
+            m.renderersToBeRemoved.delete(comp.id)
           else
             m.log.error("could not create row for index ")
           end if
           m.visibleComponents.push(comp)
-          ' if rect.visible
-          '   m.visibleComponents.push(comp)
-          ' else
-          '   m.hiddenComponents.push(comp)
-          ' end if
           index++
           m.log.info(">>> END CREATE ROW", i)
         end for

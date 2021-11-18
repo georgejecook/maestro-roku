@@ -30,8 +30,10 @@ namespace ml
 
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+      ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
-      m.previousrenderersByContentId = m.renderersByContentId
+      m.renderersToBeRemoved = {}
+      m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
       return true
     end function
@@ -107,18 +109,23 @@ namespace ml
 
     function applyrenderStateForCell(id as string, renderState as string)
       m.log.verbose("applyrenderStateForCell", id, renderState)
+      ' ? "APPLY RENDER STATE FOR CELL"
       index = id.toInt()
       ' isRendered = m.row.isRendered
       item = m.content.getChild(index)
       cell = invalid
       if item <> invalid
+        itemId = item.id
         if renderState = "rendered"
-          cell = m.renderersByContentId[item.id]
+          cell = m.renderersByContentId[itemId]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
+            if cell = invalid
+              cell = m.previousRendereredByContentId[itemId]
+            end if
             if cell <> invalid
               cell.index = index
               cell.translation = m.rects[index].translation
@@ -145,7 +152,6 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.renderersByContentId[item.id] = cell
             else
               '      ? ">>ERR no cell for " ; settings.compName
             end if
@@ -154,13 +160,17 @@ namespace ml
           end if
           if cell <> invalid
             m.renderedComponents.push(cell)
+            m.renderersByContentId[itemId] = cell
+            m.previousRendereredByContentId.delete(itemId)
+            m.renderersToBeRemoved.delete(cell.id)
           end if
         else
-          cell = m.renderersByContentId[item.id]
+          cell = m.renderersByContentId[itemId]
           if cell <> invalid
-            ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.renderersByContentId.delete(item.id)
+            m.renderersByContentId.delete(itemId)
+            m.previousRendereredByContentId.delete(itemId)
+            m.renderersToBeRemoved[cell.id] = cell
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id.
@@ -232,7 +242,7 @@ namespace ml
       m.forceUpdateLayout()
       ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
       if m.itemScroller.index >= m.content.length
-        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length -1)
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
         ' ? "NEEDED TWEAK TO" ; m.itemScroller.index
       end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
