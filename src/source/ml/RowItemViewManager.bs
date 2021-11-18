@@ -3,14 +3,11 @@ import "pkg:/source/ml/ItemViewManager.bs"
 namespace ml
   class RowItemViewManager extends ml.ItemViewManager
     public row = invalid
-    public cellsById = {}
-    public componentPool
     public lastRowIsRendered = "none"
     public isFlowSupported = false
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
-      super("RowItemViewManager", list, container, 0, minPos, maxPos)
-      m.componentPool = componentPool
+      super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
 
       'TODO - make configurable - or calculate on cell size
@@ -23,25 +20,25 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function reset()
-      m.log.info("releasing", m.cellsById.count(), "row children")
-      for each id in m.cellsById
-        m.componentPool@.releaseComponent(m.cellsById[id])
+      m.log.info("releasing", m.renderersByContentId.count(), "row children")
+      for each id in m.renderersByContentId
+        m.componentPool@.releaseComponent(m.renderersByContentId[id])
       end for
-      m.cellsById = {}
+      m.renderersByContentId = {}
       super.reset()
     end function
 
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
-      m.cellsById = {}
+      m.previousrenderersByContentId = m.renderersByContentId
+      m.renderersByContentId = {}
       return true
     end function
 
     override function updateLayout() as void
       m.log.info("ROW updateLayout")
       m.rects = []
-      m.visibleComponents = []
       m.visibleItems = []
       m.cellInfos = []
 
@@ -116,7 +113,7 @@ namespace ml
       cell = invalid
       if item <> invalid
         if renderState = "rendered"
-          cell = m.cellsById[item.id]
+          cell = m.renderersByContentId[item.id]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
@@ -148,7 +145,7 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.cellsById[item.id] = cell
+              m.renderersByContentId[item.id] = cell
             else
               '      ? ">>ERR no cell for " ; settings.compName
             end if
@@ -159,11 +156,11 @@ namespace ml
             m.renderedComponents.push(cell)
           end if
         else
-          cell = m.cellsById[item.id]
+          cell = m.renderersByContentId[item.id]
           if cell <> invalid
             ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(item.id)
+            m.renderersByContentId.delete(item.id)
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id.
@@ -180,7 +177,7 @@ namespace ml
       if m.content <> invalid
         item = m.content.getChild(index)
         if item <> invalid
-          return m.cellsById[item.id]
+          return m.renderersByContentId[item.id]
         else
           ' ? "ERROR could not find renderer for ", index
           return invalid
@@ -211,8 +208,8 @@ namespace ml
       m.lastScrollEvent = isScrolling ? event : invalid
 
 
-      for each id in m.cellsById
-        comp = m.cellsById[id]
+      for each id in m.renderersByContentId
+        comp = m.renderersByContentId[id]
         comp.listEvent = event
       end for
 
@@ -261,15 +258,16 @@ namespace ml
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
+        ? ">>> got change " ; change.type
         if change.type = "remove"
           m.log.info("removing cell at index", change.index)
           item = change.child
 
           if item <> invalid
-            cell = m.cellsById[item.id]
+            cell = m.renderersByContentId[item.id]
             if cell <> invalid
               m.componentPool@.releaseComponent(cell)
-              m.cellsById.delete(item.id)
+              m.renderersByContentId.delete(item.id)
             else
               'this is almost certainly due to trying to release a cell during setting content
               m.log.error("could not find cell to release", item.id)

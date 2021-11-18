@@ -4,10 +4,8 @@ import "pkg:/source/ml/ComponentInfo.bs"
 namespace ml
   class GridRowItemViewManager extends ml.ItemViewManager
     public row = invalid
-    public cellsById = {}
     public numRows = 0
     public numCols = 1
-    public componentPool
     public componentBufferMode = "rendered"
     public lastRowIsRendered = "none"
     public isFlowSupported = false
@@ -19,8 +17,7 @@ namespace ml
     private isVerticalFlowFocusAllowed = false
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
-      super("GridRowItemViewManager", list, container, 0, minPos, maxPos)
-      m.componentPool = componentPool
+      super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
 
       m.lookAheadDistance = maxPos * 1.5
@@ -102,17 +99,18 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function reset()
-      m.log.info("releasing", m.cellsById.count(), "row children")
-      for each id in m.cellsById
-        m.componentPool@.releaseComponent(m.cellsById[id])
+      m.log.info("releasing", m.renderersByContentId.count(), "row children")
+      for each id in m.renderersByContentId
+        m.componentPool@.releaseComponent(m.renderersByContentId[id])
       end for
-      m.cellsById = {}
+      m.renderersByContentId = {}
       super.reset()
     end function
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
-      m.cellsById = {}
+      m.previousrenderersByContentId = m.renderersByContentId
+      m.renderersByContentId = {}
       return true
     end function
 
@@ -122,7 +120,6 @@ namespace ml
       ' ? "+>+>>+>+>+>+>++>>++>>+>+>+>+>+>+>>+>+>+>+>"
       ' ? "GRID UPDATE LAYOUT"
       m.rects = []
-      m.visibleComponents = []
       m.visibleItems = []
       m.rowOffsets = []
       m.rowInfos = invalid
@@ -269,7 +266,7 @@ namespace ml
       cell = invalid
       if item <> invalid
         if renderState = "rendered"
-          cell = m.cellsById[item.id]
+          cell = m.renderersByContentId[item.id]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; item.id ; " " ; settings.compName ; " " ; m.__classname
@@ -300,7 +297,7 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.cellsById[item.id] = cell
+              m.renderersByContentId[item.id] = cell
             else
               m.log.error("could not make cell of type ", settings.compName)
             end if
@@ -323,11 +320,11 @@ namespace ml
             m.renderedComponents.push(cell)
           end if
         else
-          cell = m.cellsById[item.id]
+          cell = m.renderersByContentId[item.id]
           if cell <> invalid
             ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(item.id)
+            m.renderersByContentId.delete(item.id)
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id
@@ -343,7 +340,7 @@ namespace ml
       if m.content <> invalid
         item = m.content.getChild(index)
         if item <> invalid
-          return m.cellsById[item.id]
+          return m.renderersByContentId[item.id]
         else
           m.log.error("ERROR could not find renderer for ", index)
           ? " GRID COULD NOT GET RENDERER FOR index" ; index
@@ -375,8 +372,8 @@ namespace ml
       m.lastScrollEvent = isScrolling ? event : invalid
 
 
-      for each id in m.cellsById
-        comp = m.cellsById[id]
+      for each id in m.renderersByContentId
+        comp = m.renderersByContentId[id]
         comp.listEvent = event
       end for
 
@@ -518,10 +515,10 @@ namespace ml
 
           if item <> invalid
             ' ? " REMOVING CELL", item.id
-            cell = m.cellsById[item.id]
+            cell = m.renderersByContentId[item.id]
             if cell <> invalid
               m.componentPool@.releaseComponent(cell)
-              m.cellsById.delete(item.id)
+              m.renderersByContentId.delete(item.id)
             else
               'this is almost certainly due to trying to release a cell during setting content
               ' ? "NO CELL item.id", item.id
@@ -533,6 +530,18 @@ namespace ml
           end if
         end if
       end for
+    end function
+
+    protected override function tidyUpUnusedRenderers()
+      removedRows = []
+      for each id in m.previousrenderersByContentId
+        row = m.renderersByContentId[id]
+        row.content = invalid
+        removedRows.push(row)
+      end for
+      m.previousrenderersByContentId = {}
+      m.log.info("releasing", removedRows.count(), "rows")
+      m.componentPool@.releaseComponents(removedRows)
     end function
 
   end class

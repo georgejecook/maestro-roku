@@ -8,6 +8,7 @@ namespace ml
 
     public screenRect = { translation: [0, 0], size: [1920, 1080] }
     public componentBufferMode = "none"
+    private componentPool as mc.types.node
 
     'owning views
     'we wrap the container to make it very easy to reason about content offsets
@@ -17,6 +18,8 @@ namespace ml
     public contentGroup = invalid
     public cellInfos = []
     private rowInfos as mc.types.array
+    private renderersByContentId = {}
+    private previousrenderersByContentId = {}
 
     'content
     public content = invalid
@@ -26,7 +29,6 @@ namespace ml
     'tracking
     public direction = 0
     public visibleItems = []
-    public visibleComponents = []
     public hiddenComponents = []
     public numberOfItems = 0
     public numberOfVisibleItems = 0
@@ -52,10 +54,11 @@ namespace ml
     public lastScrollEvent as mc.types.assocarray
     public itemScroller as ml.ItemScroller
 
-    function new(name as string, owner as mc.types.node, container as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
+    function new(name as string, owner as mc.types.node, container as mc.types.node, componentPool as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
       super(name)
       m.container = container
       m.contentGroup = container.getParent()
+      m.componentPool = componentPool
       m.owner = owner
       m.axes = axes
       m.minPos = minPos
@@ -82,7 +85,6 @@ namespace ml
 
       m.direction = 0
       m.visibleItems = []
-      m.visibleComponents = []
       m.hiddenComponents = []
       m.numberOfItems = 0
       m.numberOfVisibleItems = 0
@@ -117,7 +119,6 @@ namespace ml
     end function
 
     function _createRenderers(content as mc.types.node) as boolean
-      m.visibleComponents = []
       m.visibleItems = []
 
       return m.createRenderers(content)
@@ -156,7 +157,6 @@ namespace ml
       sStart = m.screenRect.translation[m.axes] + startOffset
       sEnd = sStart + m.screenRect.size[m.axes]
 
-      ' for each comp in m.visibleComponents
       for each comp in m.renderedComponents
         if comp.index <> invalid
           cRect = m.rects[comp.index]
@@ -242,7 +242,21 @@ namespace ml
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
       m.renderedComponents = []
       m.applyRenderStateMap(renderedStateMap)
+
+      m.tidyUpUnusedRenderers()
       m.lastRenderedIndexes = renderedIndexes
+    end function
+
+    protected function tidyUpUnusedRenderers()
+      removedRenderers = []
+      for each id in m.previousrenderersByContentId
+        row = m.previousrenderersByContentId[id]
+        row.content = invalid
+        removedRenderers.push(row)
+      end for
+      m.previousrenderersByContentId = {}
+      m.log.info("releasing", removedRenderers.count(), "rows")
+      m.componentPool@.releaseComponents(removedRenderers)
     end function
 
     function shouldUpdateRenderedIndexes(direction as integer, index as integer)
@@ -447,7 +461,7 @@ namespace ml
       end if
       if info.component = invalid
         'TODO - this is wrong - a component might not yet be rendered..
-        info.component = m.visibleComponents[info.index]
+        info.component = m.getRenderer(info.index)
         if info.component = invalid
           ? " could not get renderer for this info"
           return false

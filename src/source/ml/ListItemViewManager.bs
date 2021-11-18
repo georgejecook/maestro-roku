@@ -4,10 +4,9 @@ import "pkg:/source/ml/ListMixin.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
-    private componentPool as mc.types.node
     private batchTimer as mc.types.node
-    private rowsByContentID = {}
-    private previousRowsByContentId = {}
+    private visibleComponents = []
+
     private isUpdating = false
     private previousFocusedRow as mc.types.node
     private previousFocusedIndex = 0
@@ -28,7 +27,7 @@ namespace ml
         end for
         m.componentPool@.releaseComponents(m.visibleComponents)
       end if
-      m.rowsByContentID = {}
+      m.renderersByContentId = {}
 
       super.reset()
     end function
@@ -44,9 +43,8 @@ namespace ml
     private batchDelay = 3
 
     function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
-      super("ListItemViewManager", list, container, 1, minPos, maxPos)
+      super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
       m.delegate = list.rowEvents
-      m.componentPool = componentPool
       m.lookAheadDistance = maxPos * 5
       m.lookBehindDistance = maxPos * 2
     end function
@@ -61,8 +59,8 @@ namespace ml
       'ensure that we catch any components if we were half way through a batch, so we can remove them
       allComponents = {}
       m.visibleComponents = []
-      allComponents.append(m.previousRowsByContentId)
-      allComponents.append(m.rowsByContentID)
+      allComponents.append(m.previousrenderersByContentId)
+      allComponents.append(m.renderersByContentId)
       for each id in allComponents
         m.visibleComponents.push(allComponents[id])
       end for
@@ -77,8 +75,8 @@ namespace ml
       m.updateRects()
       if content <> invalid
         m.creationIndex = -1
-        m.previousRowsByContentId = m.rowsByContentID
-        m.rowsByContentID = {}
+        m.previousrenderersByContentId = m.renderersByContentId
+        m.renderersByContentId = {}
         m.visibleComponents = []
         settings = content.listSettings
         if not forceSync and settings.rowCreationStrategy = "async" and not m.isUpdating
@@ -100,16 +98,7 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      removedRows = []
-      for each id in m.previousRowsByContentId
-        row = m.previousRowsByContentId[id]
-        row.content = invalid
-        removedRows.push(row)
-      end for
-      m.previousRowsByContentId = {}
-      m.log.info("releasing", removedRows.count(), "rows")
-      m.componentPool@.releaseComponents(removedRows)
-
+      m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
         m.itemScroller.reset()
@@ -126,7 +115,7 @@ namespace ml
       focusIndex = [0, 0]
 
       if m.previousFocusedRow <> invalid
-        row = m.rowsByContentID[m.previousFocusedRow.id]
+        row = m.renderersByContentId[m.previousFocusedRow.id]
         if row = invalid
           index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
           row = m.visibleComponents[index]
@@ -160,13 +149,13 @@ namespace ml
           settings = ml.listMixin.getRowSettings(m.content, rowContent)
           rect = m.rects[index]
 
-          comp = m.previousRowsByContentId[rowContent.id]
+          comp = m.previousrenderersByContentId[rowContent.id]
           if comp <> invalid
             m.log.info("using comp for the same row")
             ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
-            m.previousRowsByContentId.delete(rowContent.id)
+            m.previousrenderersByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
           else
             m.log.info("creating row for this item")
@@ -176,7 +165,7 @@ namespace ml
 
           if comp <> invalid
             m.visibleComponents.push(comp)
-            m.rowsByContentID[rowContent.id] = comp
+            m.renderersByContentId[rowContent.id] = comp
           else
             m.log.error("could not create row for index ")
           end if
@@ -201,7 +190,7 @@ namespace ml
       isRendered = index < 4
       ' isRendered = true
       row = m.componentPool@.getComponent(compName, 1)
-      m.rowsByContentID[rowContent.id] = row
+      m.renderersByContentId[rowContent.id] = row
 
       row.setFields(rect)
 
@@ -296,7 +285,7 @@ namespace ml
           screenPos: screenPos
           visible: visible
         })
-        comp = m.rowsByContentID[item.id]
+        comp = m.renderersByContentId[item.id]
         if comp <> invalid
           if comp.height = 0 or comp.height = -1
             comp.height = height
@@ -305,7 +294,7 @@ namespace ml
         end if
 
         ' else
-        '   comp = m.rowsByContentID[item.id]
+        '   comp = m.renderersByContentId[item.id]
         '   if comp <> invalid
         '     m.hiddenComponents.push(comp)
         '   end if
@@ -488,5 +477,6 @@ namespace ml
       ' ? "+++++!!! MATCHED ITEM INDEX "; index
       return index
     end function
+
   end class
 end namespace

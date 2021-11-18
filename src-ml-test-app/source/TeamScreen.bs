@@ -252,8 +252,15 @@ namespace ml.sample
     end function
 
     private function selectFavorite()
-      team = m.favoriteModule.getChild(0)
-      ? "selected fave:"; team.title
+      team = m.followingModule.getChild(0)
+      ? "selected fave>>>>>:"; mc.dv(team)
+      m.favoriteModule@.clear()
+
+      if team <> invalid
+        'we need a clone, because this team will show in 2 modules
+        team = team.clone(true)
+        m.favoriteModule@.appendChild(team)
+      end if
     end function
 
     private function followTeam(itemIndex as integer) as void
