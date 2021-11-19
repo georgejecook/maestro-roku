@@ -91,20 +91,24 @@ namespace ml
         return [0, 0]
       end if
 
-      screenPos = info.getScreenPosition(direction)
-      parentScreenPos = componentInfo.getScreenPosition(direction)
-
+      if not isFloatingFocus and info.contentIndex > 1 and m.viewManager.isVerticalFlowFocusAllowed
+        if direction = -1
+          screenPos = m.viewManager.upScreenPosition
+        else
+          screenPos = m.viewManager.downScreenPosition
+        end if
+      else
+        ' screenPos = info.getScreenPosition(direction)
+        screenPos = componentInfo.getScreenPosition(direction)
+      end if
+      ' screenPos = 150
       contentOffset = m.viewManager.settings.contentOffset
 
-      ? " PARENT " ; componentInfo.index ; " PSP "; parentScreenPos
-      ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
+      ' ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
 
-      ? " contentOffset "; formatJson(contentOffset)
-      if m.axes = 0
-        translation = [contentOffset[0] + screenPos, contentOffset[1] + parentScreenPos]
-      else
-        translation = [contentOffset[0] + parentScreenPos, contentOffset[1] + screenPos]
-      end if
+      ' ? " contentOffset "; formatJson(contentOffset)
+      translation = [contentOffset[0], contentOffset[1] + screenPos]
+      translation = [contentOffset[0], contentOffset[1] + screenPos]
 
       headerOffset = m.viewManager.settings.headerSettings.height
       translation[1] += headerOffset
@@ -116,11 +120,6 @@ namespace ml
         'bs:disable-next-line
         bounds = cell.sceneBoundingRect()
         translation = [bounds.x, bounds.y]
-      end if
-
-
-      if m.settings.horizAnimStyle = "fixed"
-        translation[m.axes] = contentOffset[m.axes]
       end if
 
       ? " END GRID GET FOCUS INDICATOR TRANS"

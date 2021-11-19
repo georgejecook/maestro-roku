@@ -15,6 +15,9 @@ namespace ml
     private otherRowScreenPos = 0
     private perRowHeight = 0
     private isVerticalFlowFocusAllowed = false
+    public upScreenPosition = 0
+    public downScreenPosition = 0
+    private lastFlowDirection = 1
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
@@ -38,17 +41,20 @@ namespace ml
       position += m.row.translation[1] 'adjust for position in the list
       p = abs(position)
       i = 0
-      ' position -= m.contentGroup.translation[1] 'adjust for header offsets
+      position -= m.contentGroup.translation[1] 'adjust for header offsets
 
-      for i = m.numRows to 0 step -1
+      numRows = m.rowOffsets.count() - 1
+      for i = numRows to 0 step -1
+        ? " CHECK ROW " ;i ; " " ; m.rowOffsets[i] ; " >>> "; p
         itemPos = m.rowOffsets[i]
-        if p >= itemPos
-          return mc.clamp(i, 0, m.numRows)
+        if p > itemPos
+          return mc.clamp(i + 1, 0, numRows)
         end if
       end for
+      ? " GOT TO END"
 
       'we must be at the end! -return last item
-      return mc.clamp(i - 1, 0, m.numRows)
+      return mc.clamp(i, 0, numRows)
     end function
 
 
@@ -63,25 +69,22 @@ namespace ml
 
         rowHeight = m.settings.rowHeight
         contentOffset = m.settings.contentOffset[1]
-        if m.rowOffsets.count() > 2
-          offset = m.settings.otherRowScreenPos
-        else
-          offset = m.settings.firstRowScreenPos
-        end if
 
         if m.settings.firstRowScreenPos <> m.settings.screenPos
           m.firstFlowIndex = 1
-          m.otherRowScreenPos = m.settings.firstRowScreenPos
+          m.otherRowScreenPos = m.settings.otherRowScreenPos
         else
           m.firstFlowIndex = 0
-          m.otherRowScreenPos = m.settings.screenPos
+          m.otherRowScreenPos = m.settings.firstRowScreenPos
         end if
+        m.maxRowPos = (m.settings.numRows - 1) * (m.perRowHeight)
+        m.upScreenPosition = m.otherRowScreenPos
 
-
-        if offset > yPosition
-          offset = yPosition
+        if m.isVerticalFlowFocusAllowed
+          m.downScreenPosition = m.maxRowPos
+        else
+          m.downScreenPosition = m.otherRowScreenPos
         end if
-        m.maxRowPos = (m.settings.numRows - 1) * (m.perRowHeight) + offset
         m.updateScreenRect()
 
         ' ? "+>+>+>>+>+>++>+>+>+>>++>>+>+"
@@ -224,11 +227,16 @@ namespace ml
       else
         screenPos = m.settings.otherRowScreenPos
         isFlowFocusAllowed = m.isVerticalFlowFocusAllowed
-
-        ' ? "ROW SCREEN POS" ; index ; " " ; rowOffset ; " Y " ; yOffset ; " F "; m.firstFlowIndex
+        if m.isVerticalFlowFocusAllowed
+          downScreenPos = (m.settings.numRows - 1) * (m.perRowHeight)
+        else
+          downScreenPos = 0
+        end if
+        ? "ROW SCREEN POS" ; rowIndex ; " " ; yOffset ; " Y " ; yOffset ; " F "; m.firstFlowIndex ; " SP "; screenPos
         positions = [
           new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          ' new ml.ComponentPosition(yOffset, screenPos) 'down
+          new ml.ComponentPosition(yOffset - downScreenPos, screenPos) 'down
         ]
       end if
       'note - col width is irrelevant
@@ -484,26 +492,35 @@ namespace ml
 
 
     override function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
-      ? " grid isVerticalFlowFocusPossible "
 
-      return false
-      ? info.componentIndex ; " NR "; m.settings.numRows ; " FRI " ; m.firstFlowIndex
 
-      if info.componentIndex <= m.firstFlowIndex
+      if not m.isVerticalFlowFocusAllowed
         return false
       end if
+      ? " grid isVerticalFlowFocusPossible "
+      ? info.componentIndex ; " NR "; m.settings.numRows ; " FRI " ; m.firstFlowIndex ; " ASP "; activeScreenPos ; " SP "; scrollPos
+
+      if info.componentIndex <= m.firstFlowIndex and direction = 1
+        return false
+      end if
+
+      activeScreenPos = m.lastFlowDirection = -1 ? m.upScreenPosition : m.downScreenPosition
+      m.lastFlowDirection = direction
+
+      ? " CHANGING ACTIVE SCREEN POS TO FIRST ROW POS"
+      ' end if
       rowStartPos = scrollPos + activeScreenPos
 
       firstRowOnScreen = m.getSubIndexAtPosition(rowStartPos, direction)
       ? "L>>>>>>"
       ? "L>>>>>> ; first on screen" ; firstRowOnScreen
-      ? "L>>>>>> ; last row ALLOWED screen "; firstRowOnScreen + (m.settings.numRows)
+      ? "L>>>>>> ; last row ALLOWED screen "; firstRowOnScreen + (m.settings.numRows - 1)
       ? "L>>>>>> row "; info.componentIndex
       ? "L>>>>>> SP "; scrollPos ; " ASP "; activeScreenPos
       if direction = -1
-        return info.componentIndex > firstRowOnScreen
+        return info.componentIndex >= firstRowOnScreen
       else
-        return info.componentIndex <= firstRowOnScreen + (m.settings.numRows)
+        return info.componentIndex <= firstRowOnScreen + (m.settings.numRows - 1)
       end if
     end function
 

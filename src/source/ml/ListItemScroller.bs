@@ -88,17 +88,23 @@ namespace ml
       if isSubRowChanged
         m.viewManager.owner.focusedSubRowIndex = info.componentIndex
       end if
-      m.viewManager.owner.screenPos = m.activeScreenPos
-      m.focusIndicatorManager.activeScreenPos = m.activeScreenPos
+      m.viewManager.owner.screenPos = m.screenPos
+      m.focusIndicatorManager.activeScreenPos = m.screenPos
     end function
 
     protected override function setNextComponentInfo(info as ml.ComponentInfo) as void
+      ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
       super.setNextComponentInfo(info)
-      m.focusIndicatorManager.nextScreenPos = m.nextScreenPos
+      if not m.isLastMoveFlowFocus
+        m.focusIndicatorManager.nextScreenPos = m.nextScreenPos
+      end if
     end function
 
-    protected override function updateSrollOffsetFraction(fraction as float)
-
+    protected override function updateSrollOffsetFraction(fraction as float) as void
+      if m.isLastMoveFlowFocus
+        ? "Ignoring scrolloffset fraction while doing floating focus"
+        return
+      end if
       fraction = mc.clamp(fraction, 0, 1)
       newTranslation = mc.interpolateArray([0, m.previousScreenPos], [0, m.nextScreenPos], fraction)
       ' ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
