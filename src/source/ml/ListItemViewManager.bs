@@ -1,17 +1,18 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/ListMixin.bs"
-#const use_debug_hacks = false
 
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
-    private componentPool as mc.types.node
     private batchTimer as mc.types.node
-    private rowsByContentID = {}
-    private previousRowsByContentId = {}
+    private visibleComponents = []
+
     private isUpdating = false
     private previousFocusedRow as mc.types.node
     private previousFocusedIndex = 0
+    private isShowingAllComps = false
+    ' public componentBufferMode = "rendered"
+    public componentBufferMode = "none"
 
     public override function reset()
       m.log.info ("resetting viewManager. numItems: ", m.numberOfItems)
@@ -20,14 +21,14 @@ namespace ml
         m.cancelBatching()
       end if
 
-      if m.components.count() > 0
-        m.log.info("releasing", m.components.count(), "list children")
-        for each component in m.components
+      if m.visibleComponents.count() > 0
+        m.log.info("releasing", m.visibleComponents.count(), "list children")
+        for each component in m.visibleComponents
           component.content = invalid
         end for
-        m.componentPool@.releaseComponents(m.components)
+        m.componentPool@.releaseComponents(m.visibleComponents)
       end if
-      m.rowsByContentID = {}
+      m.renderersByContentId = {}
 
       super.reset()
     end function
@@ -43,15 +44,14 @@ namespace ml
     private batchDelay = 3
 
     function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
-      super("ListItemViewManager", list, container, 1, minPos, maxPos)
+      super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
       m.delegate = list.rowEvents
-      m.componentPool = componentPool
       m.lookAheadDistance = maxPos * 5
       m.lookBehindDistance = maxPos * 2
     end function
 
     override function getRenderer(index as integer)
-      return m.components[index]
+      return m.visibleComponents[index]
     end function
 
     private function cancelBatching()
@@ -59,11 +59,11 @@ namespace ml
       m.isUpdating = false
       'ensure that we catch any components if we were half way through a batch, so we can remove them
       allComponents = {}
-      m.components = []
-      allComponents.append(m.previousRowsByContentId)
-      allComponents.append(m.rowsByContentID)
+      m.visibleComponents = []
+      allComponents.append(m.previousRendereredByContentId)
+      allComponents.append(m.renderersByContentId)
       for each id in allComponents
-        m.components.push(allComponents[id])
+        m.visibleComponents.push(allComponents[id])
       end for
       m.cancelWaitTimer(m.batchTimer)
     end function
@@ -76,9 +76,9 @@ namespace ml
       m.updateRects()
       if content <> invalid
         m.creationIndex = -1
-        m.previousRowsByContentId = m.rowsByContentID
-        m.rowsByContentID = {}
-        m.components = []
+        m.previousRendereredByContentId = m.renderersByContentId
+        m.renderersByContentId = {}
+        m.visibleComponents = []
         settings = content.listSettings
         if not forceSync and settings.rowCreationStrategy = "async" and not m.isUpdating
           m.batchSize = settings.rowCreationBatchSize
@@ -99,25 +99,17 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      removedRows = []
-      for each id in m.previousRowsByContentId
-        row = m.previousRowsByContentId[id]
-        row.content = invalid
-        removedRows.push(row)
-      end for
-      m.previousRowsByContentId = {}
-      m.log.info("releasing", removedRows.count(), "rows")
-      m.componentPool@.releaseComponents(removedRows)
-
+      ? "TUR ::: LIST onRenderersCreated"
+      m.tidyUpUnusedRenderers()
       if not m.isUpdating
-        m.itemScroller.reset()
         m.owner.state = "rendered"
+        m.itemScroller.reset()
       else
         m.log.info("was updating, so not updating scroll position")
         'TODO - update the scrolling position if it was on a removed row
         m.isUpdating = false
       end if
-
+      m.itemScroller.getComponentInfos(true)
       m.restorePreviousFocus()
     end function
 
@@ -125,7 +117,7 @@ namespace ml
       focusIndex = [0, 0]
 
       if m.previousFocusedRow <> invalid
-        row = m.rowsByContentID[m.previousFocusedRow.id]
+        row = m.renderersByContentId[m.previousFocusedRow.id]
         if row = invalid
           index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
           row = m.visibleComponents[index]
@@ -140,21 +132,12 @@ namespace ml
       m.previousFocusedRow = invalid
       ' 'TODO need to actually set the focus properly
       m.itemScroller.moveToIndex(focusIndex[0], false)
-      m.itemScroller.forceFocusOnIndex(focusIndex[0])
-      m.owner.nextFocusIndex = focusIndex
-      m.owner.focusedRowIndex = focusIndex[0]
+      ' m.itemScroller.forceFocusOnIndex(focusIndex[0])
     end function
 
     override function createRendererBatch() as void
       if m.content <> invalid
         index = 0
-        ' ? ">>>>>>>>>>>>>>"
-        ' ? ">>>>>>>>>>>>>>"
-        ' ? ">>>>>>>>>>>>>>"
-        ' ? formatJson(m.rects)
-        ' ? ">>>>>>>>>>>>>>"
-        ' ? ">>>>>>>>>>>>>>"
-        ' ? ">>>>>>>>>>>>>>"
         for i = 0 to m.batchSize
           m.log.info(">>> BEGIN CREATE ROW", i)
           m.creationIndex++
@@ -168,12 +151,13 @@ namespace ml
           settings = ml.listMixin.getRowSettings(m.content, rowContent)
           rect = m.rects[index]
 
-          comp = m.previousRowsByContentId[rowContent.id]
+          comp = m.previousRendereredByContentId[rowContent.id]
           if comp <> invalid
             m.log.info("using comp for the same row")
+            ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
-            m.previousRowsByContentId.delete(rowContent.id)
+            m.previousRendereredByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
           else
             m.log.info("creating row for this item")
@@ -182,17 +166,12 @@ namespace ml
 
 
           if comp <> invalid
-            m.components.push(comp)
-            m.rowsByContentID[rowContent.id] = comp
+            m.visibleComponents.push(comp)
+            m.renderersByContentId[rowContent.id] = comp
           else
             m.log.error("could not create row for index ")
           end if
           m.visibleComponents.push(comp)
-          ' if rect.visible
-          '   m.visibleComponents.push(comp)
-          ' else
-          '   m.hiddenComponents.push(comp)
-          ' end if
           index++
           m.log.info(">>> END CREATE ROW", i)
         end for
@@ -206,8 +185,9 @@ namespace ml
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'TODO - measure height to ascertain how many
       isRendered = index < 4
+      ' isRendered = true
       row = m.componentPool@.getComponent(compName, 1)
-      m.rowsByContentID[rowContent.id] = row
+      m.renderersByContentId[rowContent.id] = row
 
       row.setFields(rect)
 
@@ -252,7 +232,6 @@ namespace ml
       m.rects = []
       m.visibleItems = []
       m.visibleComponents = []
-      m.hiddenComponents = []
 
       if m.content = invalid
         return
@@ -261,8 +240,8 @@ namespace ml
       for i = 0 to m.content.getChildCount() - 1
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
-        visible = item.isHidden <> true
-        ? "ITEM " ; i ; " VISIBLE "; visible
+        visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
+        ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.getChildCount() ; " isHidden " ; item.isHidden
         if visible
           if settings.subType() = "ml_GridRowSettings"
             height = m.calculateGridRowHeight(item, settings)
@@ -271,7 +250,6 @@ namespace ml
           end if
           screenPos = settings.screenPos
 
-          ' m.visibleItems.push(item)
           translation = [0, y]
           yOffset = 0
           contentOffset = settings.contentOffset
@@ -302,41 +280,23 @@ namespace ml
           screenPos: screenPos
           visible: visible
         })
-        comp = m.rowsByContentID[item.id]
+        comp = m.renderersByContentId[item.id]
         if comp <> invalid
+          if comp.height = 0 or comp.height = -1
+            comp.height = height
+          end if
           m.visibleComponents.push(comp)
         end if
-
-        ' else
-        '   comp = m.rowsByContentID[item.id]
-        '   if comp <> invalid
-        '     m.hiddenComponents.push(comp)
-        '   end if
-
-        ' end if
-
       end for
 
       m.numberOfItems = m.visibleItems.count()
       m.numberOfVisibleItems = m.visibleComponents.count()
     end function
 
-
-    private function hackInfoIntoHeader(comp as mc.types.node)
-      if comp.subType() = "ml_HorizontalRow"
-
-        header = comp.getChild(2).getChild(0)
-        if header <> invalid
-          label = header.getChild(1)
-          label.text = `I ${comp.index} POS ${comp.translation[1]} SP ${comp.content.settings.screenPos}`
-        end if
-      end if
-    end function
-
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-      '    ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
+      ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
-        comp = m.components[id.toInt()]
+        comp = m.visibleComponents[id.toInt()]
 
         if comp <> invalid and comp.renderState <> renderStateMap[id]
           comp.renderState = renderStateMap[id]
@@ -344,9 +304,9 @@ namespace ml
             m.renderedComponents.push(comp)
           end if
           comp.isRendered = comp.renderState = "rendered"
-          '      ? " set comp.isRendered "; comp.isRendered
+          ? " set comp.isRendered "; comp.isRendered
         else
-          '      ? "ERROR could not find visible comp for "; id
+          ? "ERROR could not find visible comp for "; id
         end if
       end for
 
@@ -379,8 +339,8 @@ namespace ml
       numItems = row.getChildCount()
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
-      numRows = numItems / numCols
-      rowHeight = settings.rowHeight
+      numRows = fix(numItems / numCols)
+      rowHeight = settings.rowHeight + settings.rowSpace
       height = numRows * rowHeight
 
       if settings.headerSettings.position <> "none"
@@ -402,6 +362,125 @@ namespace ml
       m.itemScroller.move(0)
     end function
 
+    override function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+
+
+      if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
+
+        isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
+        ? "L>>>>>> GRID ROW " ; info.index ; " D " ; direction ; isFlowPossible
+      else
+        isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+      end if
+
+      if not isFlowPossible and info.isFlowFocusAllowed
+        'check on the renderer
+        ' ? "Flow not possible based on component info - checking actual component " ; m.screenPos ; " NI "; info.index
+        ' isFlowPossible = m.getIsOnScreen(info, activeScreenPos)
+        isFlowPossible = m.getIsOnScreen(info, 0)
+      end if
+      ' end if
+
+      return isFlowPossible
+    end function
+
+    public function getItemInfoForIndex(rowIndex as integer, cellIndex as integer)
+
+    end function
+
+
+    override function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
+      'TODO - upgrade to use componentInfos
+
+      info = invalid
+
+      if m.itemScroller.componentInfos <> invalid
+        if index >= m.itemScroller.componentInfos.count()
+          index = m.itemScroller.componentInfos.count() - 1
+        end if
+        if m.listSettings.lookAheadDistance = -1
+          ? " list is rendering everything" ; m.itemScroller.componentInfos.count()
+          return {
+            startIndex: 0
+            endIndex: m.itemScroller.componentInfos.count()
+          }
+        end if
+        info = m.itemScroller.componentInfos[index]
+      end if
+
+      if info = invalid
+        ? " LIST HAS NO componentInfos CANNOT RENDER ANYTHING" ; index
+        return {
+          startIndex: -1
+          endIndex: -1
+        }
+      end if
+      indexPos = abs(info.getScrollOffset(direction))
+
+      if direction < 0
+        beforePos = indexPos - m.lookAheadDistance
+        afterPos = indexPos + m.lookBehindDistance
+      else
+        afterPos = indexPos + m.lookAheadDistance
+        beforePos = indexPos - m.lookBehindDistance
+      end if
+
+      if beforePos < 0
+        beforePos = 0
+      end if
+
+      if afterPos < 0
+        afterPos = 0
+      end if
+
+      'NOTE THERE IS AN ISSUE WHERE TWO VIEWS ARE AT THE SAME POS WITH DIFFERENT SCREEN OFFSETS
+      ' 'bs:disable-next-line
+      indexes = {
+        startIndex: m.getIndexAtPosition(beforePos, direction) - 1
+        endIndex: m.getIndexAtPosition(afterPos, direction) + 1
+      }
+      ' ? " before Pos" ; beforePos
+      ' ? " after Pos" ; afterPos
+      ' ? "COMP COUNT" ; m.itemScroller.componentInfos.count()
+      ' indexes = {
+      '   startIndex: m.itemScroller.index - 3
+      '   endIndex: m.itemScroller.index + 5
+      ' }
+
+      'couple of hacky fixes - need to work out how it get's in this state
+      if indexes.startIndex = indexes.endIndex and indexes.startIndex = 0
+        indexes.endIndex = 1
+      end if
+      if indexes.startIndex = indexes.endIndex and indexes.startIndex = 1
+        indexes.startIndex = 0
+      end if
+      ? "LIST LIST LIST"
+      ? formatJson(indexes)
+      return indexes
+    end function
+
+
+    override function getIndexAtPosition(position as integer, direction as integer)
+      p = abs(position)
+      i = 0
+      for i = 0 to m.itemScroller.componentInfos.count() - 1
+        info = m.itemScroller.componentInfos[i]
+        'the offset is already factored in
+        itemPos = abs(info.getPosition(direction))
+        ' itemPos = abs(info.getScrollOffset(direction))
+        ? "i "; i ; " pos"; position ; " p "; p ; " ip " ; itemPos ; " INFO " ; info.index ; " c " ; mc.dv(info.component)
+        if itemPos > p
+          ? "+++++!!! MATCHED ITEM INDEX "; i - 1
+          return mc.clamp(i - 1, 0, m.numberOfItems - 1)
+        end if
+      end for
+      ' end ifk
+
+      'we must be at the end! -return last item
+      index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
+      ? "+++++!!! MATCHED ITEM INDEX "; index
+      return index
+    end function
 
   end class
 end namespace

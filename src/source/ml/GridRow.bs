@@ -3,6 +3,7 @@ import "pkg:/source/ml/GridRowItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   ' displays items in a grid, with:
@@ -16,13 +17,9 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public focusedCellIndex = 0
-    public focusedCellPercent = 0.0
-
-    public isMultiRow = true
-    public focusedRowPercent = 0.0
-    public focusedRowIndex = 0
 
     public isScrolling = false
+    private isDoingFlowFocus = false
     private isScrollingEnabled = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -76,88 +73,14 @@ namespace ml
     private function createManagers()
       m.log.info("createManagers")
       m.viewManager = new ml.GridRowItemViewManager(m.owner, m.top, m.cellsGroup, m.componentPool, 0, m.width)
-      m.itemScroller = new ml.GridRowItemScroller(m.viewManager)
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.itemScroller, m.owner.cellEvents, m.index)
+      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.owner.cellEvents, m.index)
       m.focusManager.name = "ROW FM "
       m.focusManager.isRow = true
+      m.itemScroller = new ml.GridRowItemScroller(m.viewManager, m.focusManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ row movement
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function moveRowUp() as boolean
-      m.log.verbose("moveRowUp")
-      if m.canMoveRow(-1) and m.itemScroller.index > m._content.settings.numColumns - 1
-        return m.itemScroller.moveFromPress(- m._content.settings.numColumns, false)
-      end if
-      return false
-    end function
-
-    public function moveRowDown() as boolean
-      m.log.verbose("moveRowDown")
-      '      ? "aaa"
-      if m.canMoveRow(1) and m.itemScroller.index < m._content.getChildCount() - m._content.settings.numColumns
-        '      ? "bbbbb"
-        return m.itemScroller.moveFromPress(m._content.settings.numColumns, false)
-      end if
-      return false
-    end function
-
-    public function canMoveRow(direction as integer)
-      canMove = (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((direction = -1 and m.itemScroller.index > 0) or (direction = 1 and m.itemScroller.index < m._content.getChildCount() - 1))
-      '      ? "CAN MOVE ROW" ; canMove
-      return canMove
-    end function
-
-    public function canMoveRowUpDown(direction as integer)
-      return m.isScrollingEnabled and m.itemScroller.canMoveRowUpDown(direction)
-    end function
-
-    public function getRowIndex() as integer
-      return m.itemScroller.currentRowIndex
-    end function
-    public function getRowForIndex(index as integer) as integer
-      return fix(index / m.viewManager.numCols)
-    end function
-
-    public function getMaxSubRowIndex() as integer
-      return m.viewManager.rowOffsets.count()
-    end function
-
-    public function getRowOffset(rowIndex as integer) as integer
-      return m.viewManager.rowOffsets[rowIndex]
-    end function
-
-    function getSubIndexAtPosition(position as integer, direction as integer) as integer
-      return m.viewManager.getSubIndexAtPosition(position, direction)
-    end function
-
-    function getIndexByAddingOffset(offset as integer) as integer
-      return m.itemScroller.getIndexByAddingOffset(offset)
-    end function
-
-    function getTargetYOffsetForRow(rowIndex as integer, direction as integer) as integer
-      return m.viewManager.getTargetYOffsetForRow(rowIndex, direction)
-    end function
-
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public api
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function moveRowFromPress(direction as integer) as boolean
-      if direction = -1
-        return m.moveRowUp()
-      else if direction = 1
-        return m.moveRowDown()
-      end if
-
-      return false
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function onRecycle(newContent as mc.types.node)
@@ -189,6 +112,16 @@ namespace ml
       m.viewManager.onContentItemsChange(changes)
     end function
 
+    public override function jumpToItem(index as integer, animated as boolean)
+      if m._content <> invalid and index <> -1
+        ? " DO A MOVE TO INDEX "; index, animated
+        m.itemScroller.moveToIndex(index, animated)
+        m.itemScroller.index = index
+        m.focusedCellIndex = index
+        m.owner.focusedCellIndex = index
+      end if
+    end function
+
     protected override function onIsRenderedChange()
       if m.viewManager <> invalid
         m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index)
@@ -196,7 +129,7 @@ namespace ml
     end function
 
     protected override function onListEvent(event as object)
-      ' ? "ROW ON LIST EVENT " ; event
+      ' ? "GRID ON LIST EVENT " ; event.gridIndex ; event.name
       if event.name = "willEnter" or event.name = "didEnter"
         for each component in m.cellsGroup.getChildren(-1, 0)
           if component.doesExist("listEvent")
@@ -204,16 +137,16 @@ namespace ml
           end if
         end for
       end if
-      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      if event.gridIndex <> invalid and event.gridIndex <> -1
+        cell = m.viewManager.getRenderer(event.gridIndex)
+      else
+        cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      end if
+
       if cell <> invalid
+        ' ? " PASSING LIST EVENT "; event.name ; " to CI "; m.focusedCellIndex
         ' TODO potentially filter events
         cell.listEvent = event
-      end if
-    end function
-
-    public override function jumpToItem(index as integer, animated as boolean)
-      if m._content <> invalid
-        m.owner@.moveToSubRowIndex(m.index, index, 1, animated, true)
       end if
     end function
 
@@ -225,53 +158,18 @@ namespace ml
       return m.viewManager.getRect(index, useScreenCoords)
     end function
 
-    public override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      return m.viewManager.getScreenRect(index, screenPos, direction)
-    end function
-
     public override function getItemSize(index as integer) as mc.types.array
       return m.viewManager.getItemSize(index)
     end function
 
     public override function onFlowFocusFraction(fraction as float)
+      m.isDoingFlowFocus = fraction <> 1
       m.itemScroller.onFlowFocusFraction(fraction)
-    end function
-
-    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, isFixed = true as boolean, screenPos = invalid as integer)
-      return m.viewManager.getScreenPositionForItem(itemRect, direction, isFixed, screenPos)
-    end function
-
-    function getSubRowFlowScreenPosition(rowIndex as integer, direction as integer, containerOffset as integer)
-      return m.viewManager.getSubRowFlowScreenPosition(rowIndex, direction, containerOffset)
-    end function
-
-    function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
-      return m.itemScroller.moveUsingFlowAnim(index, nextIndex, direction)
     end function
 
     function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
       m.itemScroller.setFocusIndex(index, isMoving, notifyFocusManager)
     end function
-
-    function getRowIndexUpDown(direction as integer) as integer
-      return m.getIndexByAddingOffset(direction * m.settings.numColumns)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ list animation hooks
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    public function setNextMoveIndex(fraction as float, direction as integer, notifyFocusManager = true as boolean)
-      m.itemScroller.setNextMoveIndex(fraction, direction, notifyFocusManager)
-    end function
-
-    public function updateMoveFraction(fraction as float, focusOnRenderer as boolean)
-      m.itemScroller.updateMoveFraction(fraction, focusOnRenderer)
-    end function
-
-    public function getActiveScreenPos(direction as integer) as integer
-      return m.viewManager.getScreenPos(m.itemScroller.currentRowIndex, direction)
-    end function
-
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ header
@@ -318,6 +216,34 @@ namespace ml
       end if
     end function
 
+    public override function focusOnContentsNow() as void
+      ? "GRID FORCE FOCUS ON CONTENTS"
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        rowIndex = fix(m.itemScroller.componentInfo.index / m.viewManager.numCols)
+        if m.viewManager.rowInfos = invalid
+          return
+        end if
+        rowInfo = m.viewManager.rowInfos[rowIndex]
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        m.focusedCellIndex = m.itemScroller.index
+        m.owner.focusedCellIndex = m.itemScroller.index
+        'bs:disable-next-line
+        ? "MI" ; m.itemScroller.index ; " NC " ; m.itemScroller.numberOfComponents
+
+        'bs:disable-next-line
+        config = m.itemScroller.getFocusIndicatorConfig(rowInfo, m.itemScroller.direction, false, false)
+        if config <> invalid
+          config.colIndex = m.itemScroller.index
+          m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
+          m.owner.focusIndicatorManager@.setFocusComplete(config)
+        else
+          ? " CONFIG INVALID"
+        end if
+      end if
+    end function
+
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -325,6 +251,9 @@ namespace ml
     private function onKeyPressLeft() as boolean
       m.log.verbose("onKeyPressLeft")
       m.itemScroller.isDoingLongPress = false
+      if m.isAlreadyScrolling()
+        return true
+      end if
       if m.canScroll("left")
         return m.itemScroller.moveFromPress(-1)
       end if
@@ -333,6 +262,10 @@ namespace ml
 
     private function onKeyPressRight() as boolean
       m.log.verbose("onKeyPressRight")
+      if m.isAlreadyScrolling()
+        return true
+      end if
+
       m.itemScroller.isDoingLongPress = false
       if m.canScroll("right")
         return m.itemScroller.moveFromPress(1)
@@ -350,14 +283,22 @@ namespace ml
     end function
 
     private function canScroll(key as string)
+
+      if m.isAlreadyScrolling()
+        return false
+      end if
       index = m.itemScroller.index
       normalizedColumn = index mod m.viewManager.numCols
       return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
+    private function isAlreadyScrolling() as boolean
+      return m.viewManager.isScrolling or m.isDoingFlowFocus
+    end function
+
     private function onLongPressStart(key as string) as boolean
       m.log.verbose(">>>>onLongPressStart", key)
-      '      ? " ON LONG PRESS START "; key
+      ? " ON LONG PRESS START GRID ROW "; key
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         m.itemScroller.isDoingLongPress = true
@@ -374,7 +315,7 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-
+      ? " ON LONG PRESS FINISH "; key
       m.itemScroller.isDoingLongPress = false
       if key = "left" or key = "right"
         m.log.verbose("long press finished on key", key)
@@ -391,6 +332,7 @@ namespace ml
 
     protected function onWillLoseFocus(direction as integer)
       m.log.verbose("This row will lose focus - disabling scrolling")
+      ? " WILL LOSE FOCUS " ; m.top.id
       m.itemScroller.cancelScrolling()
       m.toggleLongPressTimer(0)
       m.isScrollingEnabled = false
@@ -398,6 +340,7 @@ namespace ml
 
     protected function onWillGainFocus(direction as integer)
       m.log.verbose("This row will gain focus - enabling scrolling")
+      ? " WILL GAIN FOCUS " ; m.top.id
       m.isScrollingEnabled = true
     end function
 

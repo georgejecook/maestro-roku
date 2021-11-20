@@ -1,12 +1,14 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ItemScroller.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
 
 namespace ml
   class ItemViewManager extends mc.BaseClass
 
     public screenRect = { translation: [0, 0], size: [1920, 1080] }
     public componentBufferMode = "none"
+    private componentPool as mc.types.node
 
     'owning views
     'we wrap the container to make it very easy to reason about content offsets
@@ -14,18 +16,23 @@ namespace ml
     public owner = invalid
     public delegate = invalid
     public contentGroup = invalid
+    public cellInfos = []
+    private rowInfos as mc.types.array
+    private renderersByContentId = {}
+
+
+    'tracking used for reusing cells during multi-render batches
+    private previousRendereredByContentId = {}
 
     'content
     public content = invalid
-    public components = []
     public rects = []
     public settings = invalid
+    public listSettings = invalid
 
     'tracking
     public direction = 0
     public visibleItems = []
-    public visibleComponents = []
-    public hiddenComponents = []
     public numberOfItems = 0
     public numberOfVisibleItems = 0
 
@@ -43,14 +50,18 @@ namespace ml
     public scrollingStartIndex = -1
     private isRendering = false
 
+    'TODO - move into settings or calculate this
+    private renderedIndexUpdateInterval = 10
+
     'stored so we can send it with initialstate
     public lastScrollEvent as mc.types.assocarray
     public itemScroller as ml.ItemScroller
 
-    function new(name as string, owner as mc.types.node, container as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
+    function new(name as string, owner as mc.types.node, container as mc.types.node, componentPool as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
       super(name)
       m.container = container
       m.contentGroup = container.getParent()
+      m.componentPool = componentPool
       m.owner = owner
       m.axes = axes
       m.minPos = minPos
@@ -61,8 +72,10 @@ namespace ml
       m.updateScreenRect()
     end function
 
-    private function updateScreenRect()
-      m.screenRect = { translation: m.owner.translation, size: [m.owner.width, m.owner.height] }
+    protected function updateScreenRect()
+      'bs:disable-next-line
+      bounds = m.owner.sceneBoundingRect()
+      m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.owner.height] }
     end function
 
     public function reset()
@@ -70,21 +83,11 @@ namespace ml
       ' ? "RESETTING VIEW MANAGER "; m.__classname
 
       m.content = invalid
-      m.components = []
       m.rects = []
       m.settings = invalid
 
-      'TODO - these need to get reset from our owner on recycle
-      ' m.axes = 0
-      ' m.minPos = 0
-      ' m.maxPos = 1080
-      ' m.lookAheadDistance = 1000
-      ' m.lookBehindDistance = 1000
-
       m.direction = 0
       m.visibleItems = []
-      m.visibleComponents = []
-      m.hiddenComponents = []
       m.numberOfItems = 0
       m.numberOfVisibleItems = 0
 
@@ -108,7 +111,8 @@ namespace ml
       m.log.info("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
-      ' m.container.removeChildren(m.container.getChildren(-1, 0))
+      m.listSettings = m.owner.content.listSettings
+      ' m.container.removeChildren(m.container.getChildren(-1, 1))
       if m._createRenderers(content) = false
         m.isRendering = true
         m.log.info("This viewManager is doing async rendering")
@@ -118,8 +122,6 @@ namespace ml
     end function
 
     function _createRenderers(content as mc.types.node) as boolean
-      m.components = []
-      m.visibleComponents = []
       m.visibleItems = []
 
       return m.createRenderers(content)
@@ -158,7 +160,6 @@ namespace ml
       sStart = m.screenRect.translation[m.axes] + startOffset
       sEnd = sStart + m.screenRect.size[m.axes]
 
-      ' for each comp in m.visibleComponents
       for each comp in m.renderedComponents
         if comp.index <> invalid
           cRect = m.rects[comp.index]
@@ -181,6 +182,8 @@ namespace ml
     end function
 
     function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer)
+      ? m.__classname ; " setIsScrolling " ; isScrolling
+
       m.isScrolling = isScrolling
       m.scrollingStartIndex = isScrolling ? startIndex: -1
       m.owner.isScrolling = isScrolling
@@ -219,7 +222,7 @@ namespace ml
       ' ? ""
       ' ? ""
       ' ? "((((((((((((((((((((((((((((((((((((("
-      ' ? "updateRenderedComponents"
+      ' ? "updateRenderedComponents " ; m.__classname
       if not force and not m.shouldUpdateRenderedIndexes(direction, index)
         ' ? "not updating rendered indexes - shouldUpdateRenderedIndexes: false"
         return
@@ -232,26 +235,43 @@ namespace ml
         ' this is the same set of comps as last time
         if m.renderedComponents.count() > 0
           ' and we have seemingly done our initial render; so we can bail.
+          ' ? "+++ initial RENDER DONE" ; m.__classname
           return
         end if
       end if
-      ' ? ">>> FINISH UPDATE RENDERED COMPS ))))))))))))))))))))))))))"
-
+      ? "C " ; m.__classname ; formatJson(renderedIndexes)
       ' 'bs:disable-next-line
-      ' if m.row <> invalid
-      '   ? " RI " ; renderedIndexes
-      '   ? " LRI " ; m.lastRenderedIndexes
-      ' end if
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
       m.renderedComponents = []
+      ? "TUR ::: AFTER STATE MAP" ; m.__classname
+      ? " " ; formatJson(renderedStateMap)
       m.applyRenderStateMap(renderedStateMap)
+
+      m.tidyUpUnusedRenderers()
       m.lastRenderedIndexes = renderedIndexes
+    end function
+
+    protected function tidyUpUnusedRenderers() as void
+      ? "Tidying up renderers " ; m.__classname
+      removedRenderers = []
+      ? " CONTAINER HAS " ; m.container.getChildCount() -1 ; " RENS "
+      for i = 1 to m.container.getChildCount() -1
+        renderer = m.container.getChild(i)
+        if renderer.content = invalid
+          removedRenderers.push(renderer)
+        else if m.renderersByContentId[renderer.content.id] = invalid
+          removedRenderers.push(renderer)
+          renderer.content = invalid
+        end if
+      end for
+      ? " cleaning up "; removedRenderers.count() " renderers"
+      m.componentPool@.releaseComponents(removedRenderers)
     end function
 
     function shouldUpdateRenderedIndexes(direction as integer, index as integer)
       ' ? "???? I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
-      if direction <> m.lastScrollDirection or abs(index - m.lastScrollIndex) > 10 or index = 0
+      if direction <> m.lastScrollDirection or abs(index - m.lastScrollIndex) > m.renderedIndexUpdateInterval or index = 0
         ' ? " LIST SHOULD UPDATE I "; index ; " LI " ; m.lastScrollIndex ; " D " ; direction ; " LD " ; m.lastScrollDirection
         m.lastScrollIndex = index
         m.lastScrollDirection = direction
@@ -260,8 +280,19 @@ namespace ml
       return false
     end function
 
-    function getRenderedIndexes(direction as integer, index as integer)
-      indexPos = abs(m.getTargetTranslation(index, direction)[m.axes])
+    function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
+      'TODO - upgrade to use componentInfos
+      info = m.cellInfos[index]
+      if info = invalid
+        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+        return {
+          startIndex: -1
+          endIndex: -1
+        }
+      end if
+      indexPos = abs(info.getScrollOffset(direction))
 
       if direction < 0
         beforePos = indexPos - m.lookAheadDistance
@@ -292,6 +323,7 @@ namespace ml
       if indexes.startIndex = indexes.endIndex and indexes.startIndex = 1
         indexes.startIndex = 0
       end if
+      ' ? formatJson(indexes)
       return indexes
     end function
 
@@ -305,7 +337,7 @@ namespace ml
       end if
 
       ' ? "++++++++++++++++++++"
-      ' ? "m.lastRenderedIndexes" ; m.lastRenderedIndexes ; " " ; m.__classname
+      ' ? "LRI> " ; m.lastRenderedIndexes ; " " ; m.__classname
       m.updateRenderStateMap(renderedStateMap, m.lastRenderedIndexes.startIndex, m.lastRenderedIndexes.endIndex, m.componentBufferMode)
       m.updateRenderStateMap(renderedStateMap, renderedIndexes.startIndex, renderedIndexes.endIndex, "rendered")
       return renderedStateMap
@@ -337,27 +369,6 @@ namespace ml
     '++ itemRect positions
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function getTargetTranslation(index as integer, direction as integer, screenPos = invalid as boolean)
-      itemRect = m.rects[index]
-
-      if itemRect = invalid
-        m.log.warn("no itemRect for index", index)
-        return [-1, -1]
-      end if
-
-      screenPos = m.getScreenPositionForItem(itemRect, direction, not m.itemScroller.isFloatingFocus, screenPos)
-
-      targetPos = m.getOffsetForScreenPosition(itemRect, screenPos)
-      ' ? " POS " ; targetPos ; " dir " ; m.direction ; " sp " ; screenPos ; " it " ; itemRect.translation[m.axes]
-
-      if m.axes = 0
-        return [- targetPos, m.container.translation[1]]
-      else
-        return [m.container.translation[0], - targetPos]
-      end if
-
-    end function
-
     function getFlowScreenPosition(index as integer, direction as integer)
       itemRect = m.rects[index]
 
@@ -378,31 +389,6 @@ namespace ml
       return invalid
     end function
 
-    function getScreenPositionForItem(itemRect as object, direction = 0 as integer, isFixed = true as boolean, screenPos = invalid as integer)
-
-      if itemRect <> invalid and itemRect.screenPos <> invalid and itemRect.screenPos <> -1
-        ' ? " USING ITEM RECT SCREEN POS"
-        screenPos = itemRect.screenPos
-      end if
-      if screenPos = invalid and itemRect <> invalid
-        if m.direction = -1
-          screenPos = m.minPos
-        else if m.direction = 1
-          if isFixed
-            screenPos = m.minPos
-          else
-            screenPos = m.maxPos - itemRect.width
-          end if
-        end if
-      end if
-
-      if screenPos = invalid
-        screenPos = m.minPos
-      end if
-
-      return screenPos
-    end function
-
     function getOffsetForScreenPosition(itemRect as object, screenPos as integer)
       if itemRect <> invalid
         return itemRect.translation[m.axes] - screenPos
@@ -414,19 +400,22 @@ namespace ml
     function getIndexAtPosition(position as integer, direction as integer)
       p = abs(position)
       i = 0
-      for i = 0 to m.numberOfItems
-        itemRect = m.rects[i]
+      for i = 0 to m.cellInfos.count() - 1
+        info = m.cellInfos[i]
         'the offset is already factored in
-        itemPos = m.getOffsetForScreenPosition(itemRect, 0)
+        itemPos = abs(info.getScrollOffset(direction))
+        ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
         if itemPos > p
-          ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
-          ' ? "+++++!!! MATCHED ITEM INDEX "; i -1
-          return mc.clamp(i - 1, 0, m.numberOfItems)
+          ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
+          return mc.clamp(i - 1, 0, m.numberOfItems - 1)
         end if
       end for
+      ' end ifk
 
       'we must be at the end! -return last item
-      return mc.clamp(i - 1, 0, m.numberOfItems)
+      index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
+      ' ? "+++++!!! MATCHED ITEM INDEX "; index
+      return index
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -457,20 +446,16 @@ namespace ml
       return screenRect
     end function
 
-    function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = m.getRect(index)
-      if rect <> invalid and rect.screenPos <> invalid
-        rect.translation[m.axes] += rect.screenPos
-      end if
-      return rect
-    end function
-
     function getFocusSettings()
-      return m.content.focusSettings
+      if m.settings <> invalid
+        return m.settings.focusSettings
+      else
+        return invalid
+      end if
     end function
 
     function getItemSettings()
-      return m.content.settings
+      return m.settings
     end function
 
     function getItemSize(index as integer) as mc.types.array
@@ -482,9 +467,45 @@ namespace ml
       end if
     end function
 
+    function getIsOnScreen(info as ml.componentInfo, screenPos = 0 as integer) as boolean
+      rect = m.rects[info.contentIndex]
+      if rect = invalid
+        return false
+      end if
+      if info.component = invalid
+        'TODO - this is wrong - a component might not yet be rendered..
+        info.component = m.getRenderer(info.index)
+        if info.component = invalid
+          ? " could not get renderer for this info"
+          return false
+        end if
+      end if
+      'bs:disable-next-line
+      bounds = info.component.sceneBoundingRect()
+      w = rect.size[0]
+      h = rect.size[1]
+      translation = [bounds.x, bounds.y]
+      translation[m.axes] += screenPos
+      return translation[0] >= m.screenRect.translation[0] and translation[0] + w <= m.screenRect.size[0] and translation[1] >= m.screenRect.translation[1] and translation[1] + h <= m.screenRect.size[1]
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+      isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
+
+      if not isFlowPossible and info.isFlowFocusAllowed
+        'check on the renderer
+        ' ? "Flow not possible based on component info - checking actual component " ; m.screenPos ; " NI "; info.index
+        isFlowPossible = m.getIsOnScreen(info, activeScreenPos)
+      end if
+      return isFlowPossible
+    end function
+
+    function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+      return true
+    end function
 
     function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       m.log.error("You must override this method")
@@ -506,6 +527,28 @@ namespace ml
 
     protected function onContentItemsChange(changes as mc.types.array)
       'override me
+    end function
+
+    protected function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as mc.types.array
+      if forceRecalculate
+        m.rowInfos = invalid
+      end if
+
+      if m.settings = invalid
+        ? "+!!!!!?!! INVALID SETTINGS"
+        return []
+      end if
+      if m.rowInfos = invalid
+        focusSettings = m.getFocusSettings()
+
+        screenPos = m.settings.screenPos
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'normal
+          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+        ]
+        m.rowInfos = [new ml.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)]
+      end if
+      return m.rowInfos
     end function
 
   end class

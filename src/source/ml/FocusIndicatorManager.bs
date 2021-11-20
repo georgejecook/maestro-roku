@@ -1,0 +1,358 @@
+import "pkg:/source/ml/ListItemScroller.bs"
+import "pkg:/source/ml/ListItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/view/Animation.bs"
+import "pkg:/source/ml/FocusIndicatorConfig.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
+
+namespace ml
+  @node("ml_FocusIndicatorManager", "mv_BaseView")
+  class FocusIndicatorManager extends mv.BaseView
+
+    @alwaysnotify
+    @observer("onIsHiddenChange")
+    public isHidden = false
+    public list as mc.types.node
+    public isScrolling = false
+
+    @alwaysnotify
+    @observer("onActiveScreenPosChange")
+    public activeScreenPos = 0
+
+    @alwaysnotify
+    @observer("onNextScreenPosChange")
+    public nextScreenPos = 0
+
+    @alwaysnotify
+    @observer("onFocusedRowIndexChange")
+    private focusedRowIndex = 0
+
+    @alwaysnotify
+    @observer("onFocusedCellIndexChange")
+    private focusedCellIndex = 0
+
+    @observer("onFocusedFractionChange")
+    public focusedFraction = 0.0
+
+    private nextFocusIndex as mc.types.Array
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Internal event tracking
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public isDoingFlowFocus = false
+    public focusScreenPosition = [0, 0]
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private focusPoint as mc.types.node
+    private focusIndicator as mc.types.node
+    private activeFocusView as mc.types.node
+    private nextFocusView as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Animations
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private focusPointAnim
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ State
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private shouldShowIndicator = false
+    private isIndicatorOnTop = true
+    private direction = 0
+
+    private flowFocusDelegate as mc.types.node
+
+    private nextConfig as object
+
+    private nextFocusSettings as mc.types.node
+    private previousFocusSettings as mc.types.node
+    private previousSize = [0, 0]
+    private previousTranslation = [0, 0]
+    private rowHasIndicator = true
+    private isFocusSettingsChangePending = false
+    private minFocusChangeFraction = 0.5
+
+    function new()
+      super("ml_FocusIndicatorManager")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function initialize()
+      super.initialize()
+      m.createViews()
+      m.createAnims()
+    end function
+
+    private function createViews()
+      'TODO - might still end up needing this... depends on how floating focus lands
+      m.focusIndicator = m.createSGNode("mv_Poster", m.top, "focusIndicator", {
+        blendColor: "#ffffff"
+        uri: "pkg:/images/input-focusrect.9.png"
+        visible: false
+      })
+      m.focusPoint = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+        color: "#ff0000"
+        size: [20, 20]
+        visible: false
+      })
+      m.activeFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+        color: "#00ff00"
+        size: [20, 20]
+        visible: false
+      })
+      m.nextFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+        color: "#ff0000"
+        size: [20, 20]
+        visible: false
+      })
+    end function
+
+    private function createAnims()
+      m.focusPointAnim = new mv.animations.Move(m.focusPoint, 0.2, [0, 0], [0, 0])
+      m.focusPointAnim.observeFraction(m.onFlowFocusFractionChange, m)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ public api
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function getRowRenderer(index as integer)
+      return m.list@.getRowRenderer(index)
+    end function
+
+    private function getCellRenderer(rowIndex as integer, cellIndex as integer)
+      return m.list@.getCellRenderer(rowIndex, cellIndex)
+    end function
+
+    public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer) as void
+      ? "[[[ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
+      m.direction = direction
+      m.preprareNextFocusConfig(focusIndicatorConfig)
+    end function
+
+    public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
+      m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
+      m.list.focusedCellIndex = focusIndicatorConfig.colIndex
+      row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
+      if row <> invalid
+        row.focusedCellIndex = focusIndicatorConfig.colIndex
+      end if
+      'We must be already prepared
+      m.applyFocusSettings(true)
+      m.moveFocusIndicatorToTargetPosition(1)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onIsHiddenChange(isHidden as boolean)
+      m.isHidden = isHidden
+      ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
+      m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
+    end function
+
+    private function onActiveScreenPosChange(y as integer) as void
+      m.activeFocusView.translation = [200, y]
+    end function
+
+    private function onNextScreenPosChange(y as integer) as void
+      m.nextFocusView.translation = [220, y]
+    end function
+
+    private function onFocusedFractionChange(fraction as float) as void
+      ' ? "ON ROW Fraction CHANGE" ; fraction " " ; m.focusedRowIndex ; " "; m.isDoingFlowFocus
+      m.list.focusedFraction = fraction
+
+      if m.isDoingFlowFocus
+        'flow focus callbacks will handle this
+        return
+      end if
+
+      if fraction = 1
+        m.applyFocusSettings(true)
+      else if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
+        m.applyFocusSettings(false)
+      end if
+
+
+      m.moveFocusIndicatorToTargetPosition(fraction)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Focus settings Managements
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function preprareNextFocusConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+      if m.list.state = "rendering" or m.list.content = invalid
+        return
+      end if
+
+      m.nextConfig = focusIndicatorConfig
+
+      if m.nextConfig = invalid
+        m.focusIndicator.visible = false
+        m.shouldShowIndicator = false
+        return
+      end if
+
+      if m.nextConfig <> invalid
+        ' ? " GOT TARGET RECT "; formatJson (targetIndex) ; "  " ; m.nextConfig.indicatorTranslation[1]
+      end if
+
+      m.setActiveFocusSettings(m.nextConfig.settings)
+
+      if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
+        m.rowHasIndicator = false
+        m.focusIndicator.visible = false
+      else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.nextFocusSettings.feedbackStyle))
+        m.focusIndicator.visible = false
+      else if m.isHidden
+        m.focusIndicator.visible = false
+      else
+        m.rowHasIndicator = true
+      end if
+
+      m.isFocusSettingsChangePending = true
+    end function
+
+    private function setActiveFocusSettings(newSettings as mc.types.node)
+      m.previousFocusSettings = m.nextFocusSettings
+      m.nextFocusSettings = newSettings
+      m.previousSize = m.focusIndicator.size
+      m.previousTranslation = m.focusIndicator.translation
+      ' bounds = m.focusIndicator.sceneBoundingRect()
+      ' indicatorTranslation = [bounds.x, bounds.y]
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Moving/Applying focus settings
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' applies changes that affect the focus indicators appearance, like color, image, vis
+    ' @params {node} focusSettings - settings to use when applying
+    private function applyFocusSettings(isFinal as boolean) as void
+      m.shouldShowIndicator = false
+      if m.nextFocusSettings = invalid or m.nextConfig = invalid
+        return
+      end if
+      'note - we don't show the focus indicator till we're in place, if the last row was hidden
+      if m.nextFocusSettings.feedbackStyle = "none" or (not isFinal and (m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"))
+        m.rowHasIndicator = false
+        m.focusIndicator.visible = false
+      else
+        m.rowHasIndicator = true
+        ' ? "APPLY FOCUS SETTINGS VIS"
+        if not m.focusIndicator.visible and not m.isHidden
+          m.focusIndicator.visible = not m.isHidden
+        end if
+        m.shouldShowIndicator = true
+
+        if m.isIndicatorOnTop and m.nextFocusSettings.feedbackStyle = "underneath"
+          m.list.insertChild(m.focusIndicator, 0)
+          m.isIndicatorOnTop = false
+        else if not m.isHidden and m.nextFocusSettings.feedbackStyle = "onTop"
+          m.list.appendChild(m.focusIndicator)
+          m.isIndicatorOnTop = true
+        end if
+
+      end if
+
+      m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
+      m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
+
+      m.isFocusSettingsChangePending = false
+    end function
+
+    private function moveFocusIndicatorToTargetPosition(fraction as float) as void
+      if m.nextConfig = invalid
+        return
+      end if
+
+
+      if fraction = 1
+        translation = m.nextConfig.indicatorTranslation
+        m.focusIndicator.translation = translation
+        m.focusIndicator.size = m.nextConfig.indicatorSize
+        ' ? "ACTIVE FOCUS POS IS NOW "; formatJson(m.nextConfig.indicatorTranslation)
+
+      else
+        translation = mc.interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
+        size = mc.interpolateArray(m.previousSize, m.nextConfig.indicatorSize, fraction)
+        m.focusIndicator.translation = translation
+        m.focusIndicator.size = size
+      end if
+      ' ? "moveFocusIndicatorToTargetPosition " ; fraction ; " " ; m.nextConfig.indicatorTranslation[1]
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Flow Focus Support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
+
+      m.log.info("starting flow focus ")
+      ? "START FLOW FOCUS "; m.__classname
+
+      m.isDoingFlowFocus = true
+      m.nextConfig = focusIndicatorConfig
+
+      m.setActiveFocusSettings(m.nextConfig.settings)
+      m.focusScreenPosition = m.nextConfig.indicatorTranslation
+
+      'TODO - finish animation if existing delegate
+      'HACK! TODO - get the correct offset for the list's location
+      m.nextConfig.indicatorTranslation[1] = m.nextConfig.indicatorTranslation[1] - m.list.translation[1]
+      m.nextConfig.indicatorTranslation[0] = m.nextConfig.indicatorTranslation[0] - m.list.translation[0]
+
+      speed *= 2
+      m.flowFocusDelegate = delegate
+      ? ">>>> ANIMATE FLOW FOCUS " ; speed
+      m.focusPointAnim.setFromToValue(m.focusIndicator.translation, m.nextConfig.indicatorTranslation)
+      m.focusPointAnim.animateTo(m.nextConfig.indicatorTranslation, speed)
+      m.focusPointAnim.start()
+    end function
+
+    public function cancelFlowFocus()
+      m.flowFocusDelegate = invalid
+      m.isDoingFlowFocus = false
+      m.focusPointAnim.pause()
+      m.focusPoint.translation = [0, 0]
+    end function
+
+    private function onFlowFocusFractionChange(fraction as float)
+      m.moveFocusIndicatorToTargetPosition(fraction)
+      if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
+        m.applyFocusSettings(false)
+      end if
+
+      if m.flowFocusDelegate <> invalid
+        ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        m.flowFocusDelegate@.onFlowFocusFraction(fraction)
+      end if
+
+      if fraction = 1
+        m.applyFocusSettings(true)
+        m.isDoingFlowFocus = false
+      end if
+    end function
+
+  end class
+end namespace

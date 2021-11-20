@@ -3,16 +3,14 @@ import "pkg:/source/ml/ItemViewManager.bs"
 namespace ml
   class RowItemViewManager extends ml.ItemViewManager
     public row = invalid
-    public cellsById = {}
-    public componentPool
     public lastRowIsRendered = "none"
     public isFlowSupported = false
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
-      super("RowItemViewManager", list, container, 0, minPos, maxPos)
-      m.componentPool = componentPool
+      super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
 
+      'TODO - make configurable - or calculate on cell size
       m.lookAheadDistance = maxPos * 1.5
       m.lookBehindDistance = maxPos * 1.5
     end function
@@ -22,53 +20,65 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function reset()
-      m.log.info("releasing", m.cellsById.count(), "row children")
-      for each id in m.cellsById
-        m.componentPool@.releaseComponent(m.cellsById[id])
+      m.log.info("releasing", m.renderersByContentId.count(), "row children")
+      for each id in m.renderersByContentId
+        m.componentPool@.releaseComponent(m.renderersByContentId[id])
       end for
-      m.cellsById = {}
+      m.renderersByContentId = {}
       super.reset()
     end function
 
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+      ' ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
-      m.cellsById = {}
+      m.previousRendereredByContentId = m.renderersByContentId
+      m.renderersByContentId = {}
       return true
     end function
 
     override function updateLayout() as void
       m.log.info("ROW updateLayout")
       m.rects = []
-      m.visibleComponents = []
       m.visibleItems = []
+      m.cellInfos = []
 
+      m.rowInfos = invalid
       if m.content = invalid
         return
       end if
 
       index = 0
       ' m.contentGroup.translation = [0, 0]
-
-      offset = 0
+      focusSettings = m.settings.focusSettings
+      x = 0
       for each item in m.content.getChildren(-1, 0)
         ' ? ">>>> laying out ", item.title
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-        if m.axes = 0
-          translation = [offset, 0]
-        else
-          translation = [0, offset]
-        end if
+        xSpace = settings.space
+
         m.rects.push({
-          translation: translation,
+          translation: [x, 0],
           size: settings.size
           index: index
           rowIndex: m.row.index
+          visible: true
         })
+        maxPos = m.maxPos - settings.size[0] - xSpace
+
+        positions = [
+          new ml.ComponentPosition(x, 0) 'normal
+          new ml.ComponentPosition(x, maxPos) 'float-scroll
+        ]
+
+        cellInfo = new ml.ComponentInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
+        cellInfo.index = index
+        m.cellInfos.push(cellInfo)
+
         'TODO - for now, no vis options for rows children..
         m.visibleItems.push(item)
 
-        offset += settings.size[m.axes] + settings.space
+        x += settings.size[m.axes] + xSpace
         index++
       end for
 
@@ -93,23 +103,29 @@ namespace ml
         end for
       end if
 
+      ' ? " RENDERED COMPONENTS IS NOW "; m.renderedComponents
       m.lastRowIsRendered = m.row.isRendered
     end function
 
     function applyrenderStateForCell(id as string, renderState as string)
       m.log.verbose("applyrenderStateForCell", id, renderState)
+      ' ? "APPLY RENDER STATE FOR CELL"
       index = id.toInt()
       ' isRendered = m.row.isRendered
       item = m.content.getChild(index)
-
+      cell = invalid
       if item <> invalid
+        itemId = item.id
         if renderState = "rendered"
-          cell = m.cellsById[item.id]
+          cell = m.renderersByContentId[itemId]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
+            if cell = invalid
+              cell = m.previousRendereredByContentId[itemId]
+            end if
             if cell <> invalid
               cell.index = index
               cell.translation = m.rects[index].translation
@@ -136,35 +152,40 @@ namespace ml
               end if
 
               m.container.appendChild(cell)
-              m.cellsById[item.id] = cell
             else
-              '      ? ">>ERR no cell for " ; settings.compName
+              ? ">>ERR no cell for " ; settings.compName
             end if
           else
             cell.translation = m.rects[index].translation
           end if
           if cell <> invalid
-            m.renderedComponents.push(cell)
+            m.renderersByContentId[itemId] = cell
+            m.previousRendereredByContentId.delete(itemId)
           end if
         else
-          cell = m.cellsById[item.id]
+          cell = m.renderersByContentId[itemId]
           if cell <> invalid
-            ' ? "RELEASING " ; id
             m.componentPool@.releaseComponent(cell)
-            m.cellsById.delete(item.id)
+            m.renderersByContentId.delete(itemId)
+            m.previousRendereredByContentId.delete(itemId)
+            ' ? " REMOVING " ; cell.id
           else
             'this is almost certainly due to trying to release a cell during setting content
-            ' ? " COULD NOT FIND CELL TO RELEASE" ; id
+            ' ? " COULD NOT FIND CELL TO RELEASE" ; id.
           end if
+          cell = invalid
         end if
       end if
+      'ensure that the componentconfig has a component for a dynamically generated cell index
+      componentConfig = m.cellInfos[index]
+      componentConfig.component = cell
     end function
 
     override function getRenderer(index as integer)
       if m.content <> invalid
         item = m.content.getChild(index)
         if item <> invalid
-          return m.cellsById[item.id]
+          return m.renderersByContentId[item.id]
         else
           ' ? "ERROR could not find renderer for ", index
           return invalid
@@ -195,8 +216,8 @@ namespace ml
       m.lastScrollEvent = isScrolling ? event : invalid
 
 
-      for each id in m.cellsById
-        comp = m.cellsById[id]
+      for each id in m.renderersByContentId
+        comp = m.renderersByContentId[id]
         comp.listEvent = event
       end for
 
@@ -210,42 +231,30 @@ namespace ml
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
-    override function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer)
-      rect = super.getScreenRect(index, screenPos, direction)
-
-      if rect <> invalid
-        if screenPos <> invalid
-          rect.translation[1] += screenPos
-        else
-          rect.translation[1] += m.settings.screenPos
-        end if
-      end if
-      return rect
-    end function
-
-    override function getNextFlowScreenPosition(index as integer, direction as integer, screenPos as integer)
-      if m.isFlowSupported = true
-        itemRect = m.rects[index]
-        if itemRect <> invalid
-          screenPos = m.getScreenPositionForItem(itemRect, direction, false, screenPos)
-        end if
-        if direction = -1
-          'TODO
-          return invalid
-        end if
-      end if
-
-      return invalid
-    end function
-
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       ' ? "ROW CHANGES"
+      oldNumComponents = m.itemScroller.numberOfComponents
       m.processRemovedCells(changes)
       ' ? "FORCING LAYOUT"
       m.forceUpdateLayout()
+      ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
+      if m.itemScroller.index >= m.content.length
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
+      end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
+      m.itemScroller.getComponentInfos(true)
       m.itemScroller.processChanges(changes)
+      ' ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents
+      m.rowInfos = invalid
+      if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
+        ' ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
+        m.owner@.forceUpdate()
+      end if
+      if m.row.isFocused
+        ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+        m.owner.focusedCellIndex = m.itemScroller.index
+      end if
     end function
 
 
@@ -256,15 +265,16 @@ namespace ml
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
+        ' ? ">>> got change " ; change.type
         if change.type = "remove"
           m.log.info("removing cell at index", change.index)
           item = change.child
 
           if item <> invalid
-            cell = m.cellsById[item.id]
+            cell = m.renderersByContentId[item.id]
             if cell <> invalid
               m.componentPool@.releaseComponent(cell)
-              m.cellsById.delete(item.id)
+              m.renderersByContentId.delete(item.id)
             else
               'this is almost certainly due to trying to release a cell during setting content
               m.log.error("could not find cell to release", item.id)
@@ -272,6 +282,10 @@ namespace ml
           else
             m.log.error("could not find cell to release")
           end if
+        else if change.type = "clear" or change.type = "sort" or change.type = "updated"
+          'we've reset the list - all renderers are going now
+          m.renderersByContentId = {}
+          m.tidyUpUnusedRenderers()
         end if
       end for
     end function

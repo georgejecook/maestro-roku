@@ -1,57 +1,30 @@
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class GridRowItemScroller extends ml.ItemScroller
 
-    public isFloatingFocus = true
-    public isDoingLongPress = false
     public currentRowIndex = 0
 
-    function new(viewManager as ml.GridRowItemViewManager)
-      super(viewManager, 0)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function canMoveRowUpDown(direction as integer)
-      '      ? "I " ; m.index ; " NI " ; m.viewManager.numberOfItems ; " NC " ; m.viewManager.numCols; " D " ; direction
-      canMove = m.viewManager.numberOfItems > 0 and ((direction = -1 and m.index >= m.viewManager.numCols) or (direction = 1 and m.index < m.viewManager.numberOfItems - m.viewManager.numCols))
-      '      ? "CAN MOVE ROW UP DOWN" ; canMove
-      return canMove
+    function new(viewManager as ml.GridRowItemViewManager, focusManager as ml.ItemFocusManager)
+      super("GridRowItemScroller", viewManager, focusManager)
+      m.isOnlyFloatingFocus = true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public override function onViewManagerUpdate()
-      super.onViewManagerUpdate()
-      ' m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
-      'grids are always floating focus
-      m.isFloatingFocus = true
-    end function
-
-    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
-      if not isMoving
-        m.log.info("stopped scrolling on item", m.index)
-      end if
-    end function
-
     override function getFocusSettings()
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
-      m.toggleScrolling(true)
-      m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
-      m.flowFocusIndex = nextIndex
-      m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
-    end function
-
+    'For a grid row, we can only move to the end of the current row
     override function moveToEnd(direction as integer, animated = true as boolean, fast = false as boolean) as boolean
+
+      m.isScrollCancelled = false
+
       if (m.index >= m.viewManager.numberOfItems - 1 and direction = 1) or m.index = 0 and direction = -1
         m.log.info("already at end - ignoring")
         return false
@@ -67,99 +40,91 @@ namespace ml
       return true
     end function
 
-    override function finishAnimating() as void
-      super.finishAnimating()
-      m.isMovingMultiple = false
+    protected override function setComponentInfo(info as ml.ComponentInfo)
+      super.setComponentInfo(info)
+      if info <> invalid
+        m.currentRowIndex = fix(info.index / m.viewManager.numCols)
+      else
+        m.currentRowIndex = -1
+      end if
     end function
 
-    protected override function setIndex(index as integer)
-      super.setIndex(index)
-      m.currentRowIndex = fix(index / m.viewManager.numCols)
+    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+      if componentInfo = invalid
+        return invalid
+      end if
+      if isFromListScroll
+        ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex ; " is List scroll? "; isFromListScroll
+        colIndex = m.index mod m.viewManager.numCols
+        cellIndex = mc.clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
+        ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.numberOfComponents - 1
+        return m.viewManager.cellInfos[cellIndex]
+      else
+        return m.viewManager.cellInfos[componentInfo.index]
+      end if
     end function
 
-    override function onFlowFocusFraction(fraction as float)
-      ' ? "on FLow fraction"; fraction ; m.__classname
-      ' m.log.info("onAnimationFractionChange", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex, "FF index", m.flowFocusIndex)
+    public override function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+      ' ? " GRID CHOOSE SCROLLING INTO ROW" ; componentInfo.index; " CI "; componentInfo.componentIndex
+      componentInfo = m.getCellComponentInfo(componentInfo, true)
+      if componentInfo <> invalid
+        m.setComponentInfo(componentInfo)
+        'bs:disable-next-line
+        m.viewManager.row.focusedCellIndex = m.index
+        ' ? " GRID CHOICE IS MADE index is now "; m.index
+      end if
+    end function
 
-      if fraction = 1
-        m.focusManager.onFocusAnimationUpdate(1)
-        m.setIndex(m.flowFocusIndex)
-        if m.isMovingMultiple and m.targetIndex <> m.index
-          m.log.info("was moving multiple, will keep moving")
-          m.setFocusOnRenderer(false)
-          if m.isScrollCancelled or not m.isDoingLongPress
-            m.log.info("but scrolling was cancelled or finished!")
-            m.stopAnimating()
-          else
-            m.continueScrolling()
-          end if
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Focus Indicator
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      info = m.getCellComponentInfo(componentInfo, isFromListScroll)
+      config = super.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromListScroll)
+      config.gridIndex = info.contentIndex
+      return config
+    end function
+
+    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      if info = invalid or m.viewManager.settings = invalid
+        return [0, 0]
+      end if
+
+      if not isFloatingFocus and info.contentIndex > 1 and m.viewManager.isVerticalFlowFocusAllowed
+        if direction = -1
+          screenPos = m.viewManager.upScreenPosition
         else
-          m.log.info("finished focusing action with this flow")
-          m.setTargetIndex(-1)
-          m.setFocusOnRenderer(true)
-          m.toggleScrolling(false)
+          screenPos = m.viewManager.downScreenPosition
         end if
       else
-        m.focusManager.onFocusAnimationUpdate(fraction)
+        ' screenPos = info.getScreenPosition(direction)
+        screenPos = componentInfo.getScreenPosition(direction)
       end if
-    end function
+      ' screenPos = 150
+      contentOffset = m.viewManager.settings.contentOffset
 
-    override function continueScrolling() as void
-      '      ? "CONTINUE - " ; m.direction
-      if m.isDoingLongPress
-        m.move(m.direction)
+      ' ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
+
+      ' ? " contentOffset "; formatJson(contentOffset)
+      translation = [contentOffset[0], contentOffset[1] + screenPos]
+      translation = [contentOffset[0], contentOffset[1] + screenPos]
+
+      headerOffset = m.viewManager.settings.headerSettings.height
+      translation[1] += headerOffset
+
+      if isFloatingFocus
+        ' ? " is float"
+        'replace with actual screen location
+        cell = m.viewManager.getRenderer(info.contentIndex)
+        'bs:disable-next-line
+        bounds = cell.sceneBoundingRect()
+        translation = [bounds.x, bounds.y]
       end if
-    end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ list animation hooks
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      ? " END GRID GET FOCUS INDICATOR TRANS"
 
-    public function setNextMoveIndex(index as integer, direction as integer, notifyFocusManager = true as boolean)
-      m.direction = direction
-      m.setNextIndex(index)
-      m.toggleScrolling(true)
-      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      '      ? "==================================="
-      '      ? "Setting next move index " ; index ; " d "; direction
-      '      ? "==================================="
-      '      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      if notifyFocusManager
-        m.focusManager.setFocusPosition(m.index, 0, index, 0, direction)
-      end if
-    end function
-
-    public function updateMoveFraction(fraction as float, focusOnRenderer as boolean)
-      ' ? "+>+>+ updateMoveFraction " ; fraction ; " " ; m.index ; " > " ; m.nextIndex
-      if fraction = 1
-        '      ? "FINISHED LIST CONTROLLED MOVE "
-        m.focusManager.onFocusAnimationUpdate(1)
-        m.setIndex(m.nextIndex)
-        if focusOnRenderer
-          m.setFocusOnRenderer(false)
-        end if
-        m.toggleScrolling(false)
-      else
-        m.focusManager.onFocusAnimationUpdate(fraction)
-      end if
-    end function
-
-
-    protected override function processChanges(changes as mc.types.array) as void
-      ' super.processChanges(changes)
-      ' m.moveFromPress(- m.viewManager.content.settings.numColumns, false)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ private impl
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function ceiling(x as float) as integer
-      i = int(x)
-      if i < x
-        i = i + 1
-      end if
-      return i
+      return translation
     end function
 
 

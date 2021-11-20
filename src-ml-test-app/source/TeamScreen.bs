@@ -23,12 +23,10 @@ namespace ml.sample
     private focusSettings
     private cellSettings
     private loadingIndicator
-    private scrollSpeed = m.fastScrollSpeed
     private favoriteModule as mc.types.node
     private followingModule as mc.types.node
     private teamsModule as mc.types.node
-    private scrollSpeed = 0.3
-    private fastScrollSpeed = 0.2
+    private scrollSpeed = 0.75
 
     function new()
       super("TeamScreen")
@@ -55,6 +53,7 @@ namespace ml.sample
         width: size[0]
         height: size[1]
       })
+      mioc.setInstance("list", m.list)
       m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
         isActive: true
         width: 1920
@@ -75,7 +74,8 @@ namespace ml.sample
       listSettings.rowCreationStrategy = "async"
       listSettings.rowCreationBatchSize = 10
       listSettings.rowCreationBatchDelay = 0.1
-      content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+      focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed)
+      content = ml.listMixin.createListContent(focusSettings, m.rowSettings, listSettings)
       items = m.createData(),
       timer.log("makeData")
       m.setFocus(m.loadingIndicator)
@@ -96,7 +96,6 @@ namespace ml.sample
       if state = "rendered"
         m.setFocus(m.list)
         m.list@.moveToItem([0, 0], false)
-        m.list.nextFocusIndex = [0, 0]
         m.list.visible = true
         m.loadingIndicator.isActive = false
       end if
@@ -104,7 +103,7 @@ namespace ml.sample
 
     private function createData()
       content = []
-      rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "fixed", [-20, -20, 20, 20])
+      rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
       showHero = true
       headerSettings = ml.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
       row = createObject("roSGNode", "ml_RowContent")
@@ -124,7 +123,7 @@ namespace ml.sample
       cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
       row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
       row.settings.contentOffset = [200, 0]
-      numItems = 3
+      numItems = 5
       content.push(row)
       m.followingModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -133,10 +132,13 @@ namespace ml.sample
       row.title = "TEAMS"
       row.id = rnd(2147483647).toStr()
       cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
-      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, m.fastScrollSpeed, "floating", [-20, -20, 20, 20])
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 800, 1, 144, 4, 70)
+      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", invalid, "underneath", "fixed")
+      gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
+      gridFocusSettings.feedbackColor = "#aaaaaa"
+      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 100, 1, 144, 4, 150)
+      ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
       row.settings.contentOffset = [200, 30]
-      numItems = 5
+      numItems = 20
       content.push(row)
       m.teamsModule = row
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
@@ -226,9 +228,13 @@ namespace ml.sample
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function unFollowTeam(index as integer)
+    private function unFollowTeam(index as integer) as void
 
       team = m.followingModule.getChild(index)
+      if team = invalid
+        return
+      end if
+
       ? "unfollow "; team.title
 
       m.teamsModule@.setNotificationsEnabled(false)
@@ -241,18 +247,29 @@ namespace ml.sample
       m.followingModule.isHidden = m.followingModule.getChildCount() = 0
       m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
       if m.followingModule.isHidden
-        m.list.jumpToRowIndex = 1
-        m.list.jumpToRowItemIndex = 1
+        m.list@.moveToItem([0, 0])
       end if
     end function
 
     private function selectFavorite()
-      team = m.favoriteModule.getChild(0)
-      ? "selected fave:"; team.title
+      team = m.followingModule.getChild(0)
+      ? "selected fave>>>>>:"; mc.dv(team)
+      m.teamsModule@.setNotificationsEnabled(false)
+      m.favoriteModule@.clear()
+      if team <> invalid
+        'we need a clone, because this team will show in 2 modules
+        team = team.clone(true)
+        m.favoriteModule@.appendChild(team)
+      end if
+      m.teamsModule@.setNotificationsEnabled(true, true)
+      m.list@.moveToItem([0, 0])
     end function
 
-    private function followTeam(itemIndex as integer)
+    private function followTeam(itemIndex as integer) as void
       team = m.teamsModule.getChild(itemIndex)
+      if team = invalid
+        return
+      end if
 
       ? "follow "; team.title
       m.teamsModule@.removeChildIndex(itemIndex)
@@ -261,9 +278,11 @@ namespace ml.sample
       m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
       ? "followingModule : "; m.followingModule.getChildCount()
       ? "teamsModule : "; m.teamsModule.getChildCount()
-      ' if m.teamsModule.isHidden
-      '   m.list.jumpToRowIndex = 1
-      ' end if
+      if m.teamsModule.isHidden
+        ? " TEAMS IS HIDDEN"
+        m.list@.moveToItem([1, 0])
+      end if
+      ' m.list@.moveToItem([2, index])
 
     end function
 
@@ -273,6 +292,14 @@ namespace ml.sample
 
     private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
       ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: itemIndex
+      })
+    end function
+
+    private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      ' ? "+SCREEN onCellWillLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
       mioc.setInstance("focusedIndex", {
         row: rowIndex
         cell: itemIndex
@@ -335,6 +362,23 @@ namespace ml.sample
 
     private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
       ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+      ' if direction = 1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1 - fraction
+      ' end if
+
+    end function
+
+    private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+      ' ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = fraction
+      ' end if
+    end function
+
+    private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+      ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
       ' if direction = 1
       '   row = m.list@.getRowRenderer(rowIndex)
       '   row.opacity = 1 - fraction

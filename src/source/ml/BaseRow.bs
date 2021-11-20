@@ -4,6 +4,8 @@ import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
 namespace ml
   @node("ml_BaseRow", "mv_BaseView")
@@ -24,7 +26,7 @@ namespace ml
     public isInViewport = false
     public height = 0
     public width = 0
-    public isMultiRow = false
+    public screenPos = 0
 
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
@@ -55,6 +57,7 @@ namespace ml
     protected wasHidden = false
     protected wasFocusable = true
     protected settings
+    protected rowInfos = []
 
     function new()
       super(m.top.subType())
@@ -94,6 +97,7 @@ namespace ml
 
           changes = []
           if m.wasHidden <> m._content.isHidden
+            ? ">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden
             changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
             m.wasHidden = m._content.isHidden
           end if
@@ -113,7 +117,6 @@ namespace ml
           'potentially update the header
         else
           '   'new content is invalid
-          m._onContentChange(invalid)
         end if
 
       end if
@@ -125,11 +128,15 @@ namespace ml
 
 
     public function onJumpToIndex(index as integer)
-      m.jumpToItem(index, false)
+      if m.content <> invalid and index <> -1
+        m.jumpToItem(index, false)
+      end if
     end function
 
     public function onAnimateToIndexChange(index as integer)
-      m.jumpToItem(index, true)
+      if m.content <> invalid and index <> -1
+        m.jumpToItem(index, true)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -158,9 +165,64 @@ namespace ml
       return invalid
     end function
 
-    public function getScreenRect(index as integer, screenPos = invalid as integer, direction = 0 as integer) as object
-      'implement me
-      return invalid
+    public function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.getRowInfos(m.top.translation[1], forceRecalculate)
+      else
+        focusSettings = m.settings.focusSettings
+
+        screenPos = m.settings.screenPos
+        yOffset = m.top.translation[1]
+
+        positions = [
+          new ml.ComponentPosition(yOffset, screenPos) 'normal
+          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+        ]
+        rowInfo = new ml.ComponentInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
+        return [rowInfo]
+      end if
+    end function
+
+    public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      componentInfo = m.getRowInfos(false)[componentInfo.componentIndex]
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        return m.itemScroller.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromLIstScroll)
+      else
+        return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings, true)
+      end if
+    end function
+
+    public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        m.itemScroller.chooseComponentInfoForScrollingIntoRow(componentInfo)
+      end if
+    end function
+
+    public function isVerticalFlowFocusPossible(componentInfo as ml.ComponentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.isVerticalFlowFocusPossible(componentInfo, direction, activeScreenPos, scrollPos)
+      end if
+      return true
+    end function
+
+    public function focusOnContentsNow()
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        config = m.itemScroller.getFocusIndicatorConfig(m.itemScroller.componentInfo, m.itemScroller.direction, false, false)
+        'bs:disable-next-line
+        ? "FORCE FOCUS ON CONTENTS  C " ; config
+        m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
+        m.owner.focusIndicatorManager@.setFocusComplete(config)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

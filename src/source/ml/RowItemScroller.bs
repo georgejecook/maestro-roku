@@ -1,36 +1,63 @@
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class RowItemScroller extends ml.ItemScroller
-    function new(viewManager as ml.RowItemViewManager)
-      super(viewManager, 0)
+
+    function new(viewManager as ml.RowItemViewManager, focusManager as ml.ItemFocusManager)
+      super("RowItemScroller", viewManager, focusManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    public override function onViewManagerUpdate()
-      super.onViewManagerUpdate()
-      m.isFloatingFocus = m.settings.horizAnimStyle = "floating"
-    end function
-
-
-    override function setFocusOnRenderer(isMoving as boolean, index = invalid as integer)
-      if not isMoving
-        m.log.info("stopped scrolling on item", m.index)
-      end if
-    end function
 
     override function getFocusSettings()
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    protected override function moveUsingFlowAnim(index as integer, nextIndex as integer, direction as integer)
-      m.toggleScrolling(true)
-      m.focusManager.setFocusPosition(index, 0, nextIndex, 0, direction)
-      m.flowFocusIndex = nextIndex
-      m.viewManager.owner@.startFlowFocus([m.viewManager.row.index, index], [m.viewManager.row.index, nextIndex], m.animSpeed, mc.getTop())
+    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+      if isFromListScroll
+        return m.viewManager.cellInfos[m.index]
+      else
+        if componentInfo = invalid
+          return invalid
+        end if
+        return m.viewManager.cellInfos[componentInfo.index]
+      end if
+    end function
+
+    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      if info = invalid
+        return [0, 0]
+      end if
+
+      screenPos = info.getScreenPosition(direction)
+
+      contentOffset = m.viewManager.settings.contentOffset
+      headerOffset = m.viewManager.settings.headerSettings.height
+
+      ? "GFC " ; m.__classname ; " HO "; headerOffset ; formatJson(contentOffset); " SP " ;screenPos ; "iFF "; isFloatingFocus
+
+      translation = [screenPos, 0]
+
+      translation[1] += headerOffset
+
+      translation[1] += m.viewManager.settings.screenPos
+
+      if isFloatingFocus
+        cell = m.viewManager.getRenderer(info.contentIndex)
+        'bs:disable-next-line
+        bounds = cell.sceneBoundingRect()
+        translation = [bounds.x, bounds.y]
+      end if
+
+      if m.settings.horizAnimStyle = "fixed"
+        translation[m.axes] = contentOffset[m.axes]
+      end if
+
+      return translation
     end function
 
   end class
