@@ -232,7 +232,6 @@ namespace ml
       m.rects = []
       m.visibleItems = []
       m.visibleComponents = []
-      m.hiddenComponents = []
 
       if m.content = invalid
         return
@@ -251,7 +250,6 @@ namespace ml
           end if
           screenPos = settings.screenPos
 
-          ' m.visibleItems.push(item)
           translation = [0, y]
           yOffset = 0
           contentOffset = settings.contentOffset
@@ -289,14 +287,6 @@ namespace ml
           end if
           m.visibleComponents.push(comp)
         end if
-
-        ' else
-        '   comp = m.renderersByContentId[item.id]
-        '   if comp <> invalid
-        '     m.hiddenComponents.push(comp)
-        '   end if
-
-        ' end if
       end for
 
       m.numberOfItems = m.visibleItems.count()
@@ -349,7 +339,7 @@ namespace ml
       numItems = row.getChildCount()
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
-      numRows = numItems / numCols
+      numRows = fix(numItems / numCols)
       rowHeight = settings.rowHeight + settings.rowSpace
       height = numRows * rowHeight
 

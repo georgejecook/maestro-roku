@@ -27,7 +27,8 @@ namespace ml
         item = m.viewManager.visibleItems[i]
         settings = ml.listMixin.getRowSettings(m.viewManager.content, item)
         if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.length > 0)
-          component = m.viewManager.visibleComponents[i]
+          ' component = m.viewManager.visibleComponents[i]
+          component = m.viewManager.renderersByContentId[item.id]
           infos = component@.getRowInfos(forceRecalculate)
 
           contentIndex = component.index

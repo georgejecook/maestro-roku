@@ -233,9 +233,14 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function forceUpdate()
+    public function forceUpdate() as void
       ? "+>+>+>+> list forceUpdate"
       ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
+      if m.top.state = "rendering"
+        ? "cannot forceUpdate list while rendering is taking place"
+        return
+      end if
+
       ? m.focusedRowIndex ; " " m.focusedCellIndex
       ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout()
