@@ -99,7 +99,7 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      ? "TUR ::: LIST onRenderersCreated"
+      ' ? "TUR ::: LIST onRenderersCreated"
       m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
@@ -154,7 +154,7 @@ namespace ml
           comp = m.previousRendereredByContentId[rowContent.id]
           if comp <> invalid
             m.log.info("using comp for the same row")
-            ? " REUSING COMP FOR SAME ROW "; index
+            ' ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
             m.previousRendereredByContentId.delete(rowContent.id)
@@ -294,7 +294,7 @@ namespace ml
     end function
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-      ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
+      ' ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
         comp = m.visibleComponents[id.toInt()]
 
@@ -304,7 +304,7 @@ namespace ml
             m.renderedComponents.push(comp)
           end if
           comp.isRendered = comp.renderState = "rendered"
-          ? " set comp.isRendered "; comp.isRendered
+          ' ? " set comp.isRendered "; comp.isRendered
         else
           ? "ERROR could not find visible comp for "; id
         end if
@@ -368,7 +368,7 @@ namespace ml
       if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
 
         isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
-        ? "L>>>>>> GRID ROW " ; info.index ; " D " ; direction ; isFlowPossible
+        ' ? "L>>>>>> GRID ROW " ; info.index ; " D " ; direction ; isFlowPossible
       else
         isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
       end if
@@ -399,7 +399,7 @@ namespace ml
           index = m.itemScroller.componentInfos.count() - 1
         end if
         if m.listSettings.lookAheadDistance = -1
-          ? " list is rendering everything" ; m.itemScroller.componentInfos.count()
+          ' ? " list is rendering everything" ; m.itemScroller.componentInfos.count()
           return {
             startIndex: 0
             endIndex: m.itemScroller.componentInfos.count()
@@ -409,7 +409,7 @@ namespace ml
       end if
 
       if info = invalid
-        ? " LIST HAS NO componentInfos CANNOT RENDER ANYTHING" ; index
+        ' ? " LIST HAS NO componentInfos CANNOT RENDER ANYTHING" ; index
         return {
           startIndex: -1
           endIndex: -1
@@ -454,8 +454,8 @@ namespace ml
       if indexes.startIndex = indexes.endIndex and indexes.startIndex = 1
         indexes.startIndex = 0
       end if
-      ? "LIST LIST LIST"
-      ? formatJson(indexes)
+      ' ? "LIST LIST LIST"
+      ' ? formatJson(indexes)
       return indexes
     end function
 
@@ -468,9 +468,9 @@ namespace ml
         'the offset is already factored in
         itemPos = abs(info.getPosition(direction))
         ' itemPos = abs(info.getScrollOffset(direction))
-        ? "i "; i ; " pos"; position ; " p "; p ; " ip " ; itemPos ; " INFO " ; info.index ; " c " ; mc.dv(info.component)
+        ' ? "i "; i ; " pos"; position ; " p "; p ; " ip " ; itemPos ; " INFO " ; info.index ; " c " ; mc.dv(info.component)
         if itemPos > p
-          ? "+++++!!! MATCHED ITEM INDEX "; i - 1
+          ' ? "+++++!!! MATCHED ITEM INDEX "; i - 1
           return mc.clamp(i - 1, 0, m.numberOfItems - 1)
         end if
       end for
@@ -478,7 +478,7 @@ namespace ml
 
       'we must be at the end! -return last item
       index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
-      ? "+++++!!! MATCHED ITEM INDEX "; index
+      ' ? "+++++!!! MATCHED ITEM INDEX "; index
       return index
     end function
 

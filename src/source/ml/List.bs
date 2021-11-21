@@ -234,22 +234,22 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function forceUpdate() as void
-      ? "+>+>+>+> list forceUpdate"
+      ' ? "+>+>+>+> list forceUpdate"
       ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
         ? "cannot forceUpdate list while rendering is taking place"
         return
       end if
 
-      ? m.focusedRowIndex ; " " m.focusedCellIndex
-      ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
+      ' ? m.focusedRowIndex ; " " m.focusedCellIndex
+      ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout()
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
 
-      ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
+      ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       if m.itemScroller.numberOfComponents > 0
-        ? "LIST HAS COMPONENTS"
+        ' ? "LIST HAS COMPONENTS"
         ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
         '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         '   if index >= 0
@@ -266,7 +266,7 @@ namespace ml
         'TODO - hide focus
       end if
 
-      ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
+      ' ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
       m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
     end function
 
@@ -322,14 +322,14 @@ namespace ml
     public function moveToSubRowIndex(index as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.moveToIndex(index, false, false)
-        ? " MOVING TO SUB ROW INDEX " ; index
+        ' ? " MOVING TO SUB ROW INDEX " ; index
         compInfo = m.itemScroller.componentInfos[index]
         if compInfo <> invalid
           compInfo.component.focusedCellIndex = index
           m.focusedCellIndex = compInfo.component.focusedCellIndex
         end if
         ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
-        ? "DONE"
+        ' ? "DONE"
       end if
     end function
 
@@ -356,10 +356,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function _onContentItemChange(changes as mc.types.array)
-      ? "______________________________ _onContentItemChange" ; m.__classname
-      ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
-        return c.type
-      end function))
+      ' ? "______________________________ _onContentItemChange" ; m.__classname
+      ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
+      '   return c.type
+      ' end function))
       m.viewManager.forceUpdateLayout()
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
@@ -369,7 +369,7 @@ namespace ml
       m.itemScroller.processChanges(changes)
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)
-      ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
+      ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
       m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
 
       if m.top.isChildFocused or m.top.isFocused
@@ -420,7 +420,7 @@ namespace ml
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus or m.isScrolling
       if isScrolling
         m.log.info("Cannot select while scrolling")
-        ? " CANNOT select while view is scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        ' ? " CANNOT select while view is scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
         'TODO - improve this
         return true
       end if
@@ -526,7 +526,7 @@ namespace ml
 
     protected override function onLostFocus()
       super.onLostFocus()
-      ? " LIST LOST FOCUS"
+      ' ? " LIST LOST FOCUS"
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true

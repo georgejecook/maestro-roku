@@ -141,13 +141,13 @@ namespace ml
     end function
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer) as void
-      ? "[[[ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
+      ' ? "[[[ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
       m.direction = direction
       m.preprareNextFocusConfig(focusIndicatorConfig)
     end function
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
+      ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
       m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m.list.focusedCellIndex = focusIndicatorConfig.colIndex
       row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
@@ -165,7 +165,7 @@ namespace ml
 
     private function onIsHiddenChange(isHidden as boolean)
       m.isHidden = isHidden
-      ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
+      ' ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
       m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
     end function
 
@@ -309,7 +309,7 @@ namespace ml
     public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
 
       m.log.info("starting flow focus ")
-      ? "START FLOW FOCUS "; m.__classname
+      ' ? "START FLOW FOCUS "; m.__classname
 
       m.isDoingFlowFocus = true
       m.nextConfig = focusIndicatorConfig
@@ -324,7 +324,7 @@ namespace ml
 
       speed *= 2
       m.flowFocusDelegate = delegate
-      ? ">>>> ANIMATE FLOW FOCUS " ; speed
+      ' ? ">>>> ANIMATE FLOW FOCUS " ; speed
       m.focusPointAnim.setFromToValue(m.focusIndicator.translation, m.nextConfig.indicatorTranslation)
       m.focusPointAnim.animateTo(m.nextConfig.indicatorTranslation, speed)
       m.focusPointAnim.start()
@@ -344,7 +344,7 @@ namespace ml
       end if
 
       if m.flowFocusDelegate <> invalid
-        ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        ' ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
       end if
 

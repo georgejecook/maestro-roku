@@ -40,6 +40,7 @@ namespace ml
       if nextComponentInfo = invalid
         return
       end if
+
       'maintain a collection of controls that are in bounds right now:
       m.RCMap = m.viewManager.getComponentsInViewPort(- m.container.translation[m.axes])
 
@@ -66,7 +67,8 @@ namespace ml
         end if
       end for
 
-      for each comp in m.viewManager.visibleComponents
+      for each id in m.viewManager.renderersByContentId
+        comp = m.viewManager.renderersByContentId[id]
         ' for each comp in m.viewManager.renderedComponents
         if comp <> invalid
           id = comp.id
