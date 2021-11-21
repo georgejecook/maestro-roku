@@ -91,7 +91,7 @@ namespace ml
         m.log.info("row content is set to invalid. resetting")
         m.viewManager.reset()
       else
-        ? "UPDATING CONTENT"
+        ' ? "UPDATING CONTENT"
         m.viewManager.reset()
         m.viewManager.setContent(content)
 
@@ -101,7 +101,7 @@ namespace ml
       end if
       ' end if
       if m.itemScroller.numberOfComponents = 0 and content.isHidden <> true
-        ? "force update - no comps left!"
+        ' ? "force update - no comps left!"
         m.owner@.forceUpdate()
       end if
     end function
@@ -118,24 +118,27 @@ namespace ml
     end function
 
     protected override function onListEvent(event as object)
-      ' ? "ROW ON LIST EVENT " ; event
-      if event.name = "willEnter" or event.name = "didEnter"
-        for each component in m.cellsGroup.getChildren(-1, 0)
-          if component.doesExist("listEvent")
-            component.listEvent = event
-          end if
-        end for
-      end if
-      cell = m.viewManager.getRenderer(m.focusedCellIndex)
-      if cell <> invalid
-        ' TODO potentially filter events
-        cell.listEvent = event
+      if event.name = "willEnter" or event.name = "didEnter" or event.name = "scrollStart" or event.name = "scrollStop" or event.name = "scrollUpdate"
+        if m.settings.passRowEventsToChildRenderers
+          for each component in m.cellsGroup.getChildren(-1, 0)
+            if component.doesExist("listEvent")
+              component.listEvent = event
+            end if
+          end for
+        end if
+      else
+        cell = m.viewManager.getRenderer(m.focusedCellIndex)
+        if cell <> invalid
+          ' ? "!!!!!!!!! GIVING event " ; event.name ; " to cell"
+          ' TODO potentially filter events
+          cell.listEvent = event
+        end if
       end if
     end function
 
     public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid and index <> -1
-        ? " DO A MOVE TO INDEX "; index, animated
+        ' ? " DO A MOVE TO INDEX "; index, animated
         m.itemScroller.moveToIndex(index, animated)
       end if
     end function
@@ -207,9 +210,7 @@ namespace ml
 
     private function onKeyPressLeft() as boolean
       m.log.verbose("onKeyPressLeft")
-      ? "LEFT AA"
       if m.canScroll("left")
-        ? "LEFT BB"
         return m.itemScroller.moveFromPress(-1)
       end if
       return false
@@ -217,9 +218,7 @@ namespace ml
 
     private function onKeyPressRight() as boolean
       m.log.verbose("onKeyPressRight")
-      ? "RIGHT AA"
       if m.canScroll("right")
-        ? "RIGHT BB"
         return m.itemScroller.moveFromPress(1)
       end if
       return false
@@ -235,10 +234,10 @@ namespace ml
     end function
 
     private function canScroll(key as string)
-      ? ">>> canScroll"
-      ? "m.isScrollingEnabled" ; m.isScrollingEnabled
-      ? "I " ; m.itemScroller.index
-      ? "key" ; key
+      ' ? ">>> canScroll"
+      ' ? "m.isScrollingEnabled" ; m.isScrollingEnabled
+      ' ? "I " ; m.itemScroller.index
+      ' ? "key" ; key
       return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.getChildCount() - 1))
     end function
 
@@ -275,7 +274,7 @@ namespace ml
 
     protected function onWillLoseFocus(direction as integer)
       m.log.verbose("This row will lose focus - cancelling scrolling")
-      ? "WILL LOSE FOCUS "; m.top.id
+      ' ? "WILL LOSE FOCUS "; m.top.id
       m.itemScroller.cancelScrolling()
       m.toggleLongPressTimer(0)
       m.isScrollingEnabled = false
@@ -283,7 +282,7 @@ namespace ml
 
     protected function onWillGainFocus(direction as integer)
       m.log.verbose("This row will gain focus - enabling scrolling")
-      ? "WILL GAIN FOCUS "; m.top.id
+      ' ? "WILL GAIN FOCUS "; m.top.id
       m.isScrollingEnabled = true
     end function
 

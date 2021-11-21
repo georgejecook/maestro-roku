@@ -312,25 +312,26 @@ class ListScreen extends mv.BaseScreen
   private function createSimpleGridData()
     content = []
     rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, -10, -140])
-    showHero = true
+    showHero = false
+    showGrid = false
 
     'TODO - add normal rows around this
-    for i = 0 to 7
+    for i = 0 to 30
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
-      numItems = 5
+      numItems = 20
       if showHero and i = 0
         row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0], "none")
         cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 400], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
-      else if i = 4
+      else if i = 4 and showGrid
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-10, -10, 20, -110])
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 400, 3, 427, 2, 100)
         row.settings.contentOffset = [100, 30]
         numItems = 14
-      else if i = 2
+      else if i = 2 and showGrid
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-10, -10, 10, -120], "underneath")
         gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
         gridFocusSettings.feedbackColor = "#F7F700"

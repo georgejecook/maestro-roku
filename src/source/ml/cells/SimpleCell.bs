@@ -74,21 +74,26 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-    ' private function onScrollingChange(isScrolling as boolean, isLong as boolean)
-    '   if not isScrolling
-    '     m.label.visible = true
-    '   end if
-    ' end function
+    private function onScrollingChange(isScrolling as boolean, isLong as boolean)
+      ' ? "SC: isScrolling " ; " " ; isScrolling ; " IL " ; isLong
+      if not isScrolling
+        m.label.visible = true
+      end if
+    end function
 
-    ' private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
-    '   textVisible = abs(startIndex - currentIndex) < 2
-    '   m.label.visible = textVisible
-    ' end function
+    private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
+      ' ? "SC: isScrolling UPDATE " ; " " ; startIndex ; " SI " ; currentIndex
+      textVisible = abs(startIndex - currentIndex) < 4
+      m.label.visible = textVisible
+    end function
 
     private function onWillExit(direction as integer)
       ' ? "SC: onCellWillExit " ; " " ; direction
     end function
 
+    private function onWillEnter(direction as integer)
+      ' ? "SC: onWillEnter " ; m.index ; " " ; direction
+    end function
     private function onDidEnter(direction as integer)
       ' ? "SC: onCellDidEnter " ; m.index ; " " ; direction
       m.label.fontKey = "medium,30"
@@ -102,9 +107,6 @@ namespace ml
     end function
 
     private function onWillGainFocus(direction as integer)
-      if m.index = 3
-        ? "here"
-      end if
       ' ? "SC: onCellWillGainFocus " ; m.index ; " " ; direction
     end function
 

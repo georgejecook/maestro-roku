@@ -58,6 +58,8 @@ namespace ml
     private nextScrollLocation = 0
     private postHopIndex = 0
     private isScrollCancelled = false
+    private sendViewPortEvents = false
+
     protected previousScreenPos = 0
 
     private isMultiMoveFinished = false
@@ -69,7 +71,6 @@ namespace ml
 
       m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
       m.container = m.viewManager.container
-
       m.axes = m.viewManager.axes
       m.viewPortEventNotifier = new ml.ViewPortEventNotifier(viewManager)
       m.moveAnimation = new mv.animations.Move(m.container, 1, m.container.translation, m.container.translation)
@@ -85,6 +86,7 @@ namespace ml
       else
         m.settings = invalid
       end if
+      m.sendViewPortEvents = mc.getPath(m.viewManager.owner, "content.listSettings.sendViewPortEvents", false)
       m.viewPortEventNotifier.onViewManagerUpdate()
       m.getComponentInfos(true)
     end function
@@ -115,7 +117,7 @@ namespace ml
     end function
 
     public function cancelScrolling()
-      ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
+      ' ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
       'Tidy up the scrolling in here
       m.isScrollCancelled = m.viewManager.isScrolling
       if m.viewManager.isScrolling
@@ -296,7 +298,7 @@ namespace ml
       ' ? "2.b IS FLOW POSSIBLE ??? " ; m.screenPos ; "m.viewManager.maxPos " ;m.viewManager.maxPos; " NFA "; nextComponentInfo.isFlowFocusAllowed
       isFlowPossible = m.viewManager.isFlowFocusPossible(nextComponentInfo, direction, m.screenPos)
 
-      ? " ::::::::::::::: setNextComponentInfo DDD"
+      ' ? " ::::::::::::::: setNextComponentInfo DDD"
       m.isLastMoveFlowFocus = isFlowPossible and animated
       m.setNextComponentInfo(nextComponentInfo)
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
@@ -423,13 +425,13 @@ namespace ml
 
     function finishMovingToIndex() as boolean
 
-      ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
-      ? m.__classname ; " " ; m.isScrollCancelled
+      ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
+      ' ? m.__classname ; " " ; m.isScrollCancelled
       m.focusManager.onFocusAnimationUpdate(1)
       m.updateSrollOffsetFraction(1)
 
       if m.isScrollCancelled
-        ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
+        ' ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
         if m.container.translation[m.axes] = m.nextScrollLocation
           ' ? " is in position"
           m.toggleScrolling(false)
@@ -445,14 +447,14 @@ namespace ml
       end if
 
       if not m.viewManager.isScrolling
-        ? "VVVVV Scrolling is finished - cannot finish move"
+        ' ? "VVVVV Scrolling is finished - cannot finish move"
         ' m.toggleScrolling(false)
         ' m.setFocusOnRenderer(false)
         return false
       end if
 
       if not m.isMovingMultiple
-        ? "VVVVV was a simple move"
+        ' ? "VVVVV was a simple move"
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         ' m.setFocusOnRenderer(false)
@@ -463,7 +465,7 @@ namespace ml
 
       componentInfo = m.nextComponentInfo
       componentInfo = m.componentInfo
-      ? "VVVV NCI " ; mc.getPath(m.targetComponentInfo, "index"); mc.getPath(componentInfo, "index")
+      ' ? "VVVV NCI " ; mc.getPath(m.targetComponentInfo, "index"); mc.getPath(componentInfo, "index")
       if componentInfo = invalid
         ' ? "VVVVV NO Component Info"
         m.toggleScrolling(false)
@@ -472,15 +474,15 @@ namespace ml
       end if
 
       if m.targetComponentInfo = invalid or componentInfo.index = m.targetComponentInfo.index
-        ? "VVVVV HAVE ARRIVED"
+        ' ? "VVVVV HAVE ARRIVED"
         m.toggleScrolling(false)
         m.isMultiMoveFinished = true
         return false
       end if
 
-      ? "VVVVV Need to move to index " ; m.targetComponentInfo.index
+      ' ? "VVVVV Need to move to index " ; m.targetComponentInfo.index
       isMoving = m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
-      ? " isMoving "; isMoving
+      ' ? " isMoving "; isMoving
       if not isMoving
         ' ? "VVVVV Final move could not be done"
         m.toggleScrolling(false)
@@ -581,7 +583,7 @@ namespace ml
         return
       end if
 
-      ? m.__classname ; " SET NEXT COMPONENT INFO " ; info.index ; " IFF "; m.isLastMoveFlowFocus
+      ' ? m.__classname ; " SET NEXT COMPONENT INFO " ; info.index ; " IFF "; m.isLastMoveFlowFocus
 
       if info.index <> m.nextIndex
         m.nextIndex = info.index
@@ -626,7 +628,7 @@ namespace ml
     function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
-      ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
+      ' ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
 
       if m.numberOfComponents = 0
         return
@@ -634,7 +636,7 @@ namespace ml
 
       if index = -1
         m.setComponentInfo(m.componentInfos[0])
-        ? " ::::::::::::::: setNextComponentInfo AAA"
+        ' ? " ::::::::::::::: setNextComponentInfo AAA"
         m.setNextComponentInfo(m.componentInfos[0])
         ' m.setNextIndex(0)
       else
@@ -644,7 +646,7 @@ namespace ml
 
         m.setComponentInfo(m.componentInfos[index])
         index = mc.clamp(m.index + m.direction, 0, m.numberOfComponents - 1)
-        ? " ::::::::::::::: setNextComponentInfo BBB"
+        ' ? " ::::::::::::::: setNextComponentInfo BBB"
         m.setNextComponentInfo(m.componentInfos[index])
       end if
 
@@ -652,7 +654,9 @@ namespace ml
 
       m.viewManager.updateRenderedComponents(m.direction, m.index)
 
-      m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
+      if m.sendViewPortEvents
+        m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
+      end if
 
       if notifyFocusManager
         m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
@@ -667,7 +671,7 @@ namespace ml
       end if
       index = mc.clamp(index, 0, m.numberOfComponents - 1)
       m.setComponentInfo(m.componentInfos[index])
-      ? " ::::::::::::::: setNextComponentInfo CCC"
+      ' ? " ::::::::::::::: setNextComponentInfo CCC"
       m.setNextComponentInfo(m.componentInfos[index])
 
       ' m.viewManager.updateRenderedComponents(m.direction, m.index)
@@ -703,16 +707,13 @@ namespace ml
         return
       end if
 
-      ? "::::::::::::::::::::::aaaaaaaaaaa"
-      ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
+      ' ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
       if m.index < 0
-        ? "::::::::::::::::::::::VBVVVV"
         index = m.numberOfComponents - 1
         m.index = index
         isIndexUpdateRequired = true
       end if
 
-      ? ":::::::::::::::::::::CCCCCCCCCCC"
       if m.index >= m.numberOfComponents
         index = m.numberOfComponents - 1
         ' ? "index is changing " ; m.index ; " > " ; index
@@ -722,16 +723,15 @@ namespace ml
 
       if not isIndexUpdateRequired
       isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-        ? ":::::::::::::::::::::DDDDDDDDDDDDDDD"
         return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
       end function)
     end if
 
     'FIXME - this needs revisiting
-    ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
+    ' ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
 
     'all changes result in downward movements
-    ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
+    ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
     ' if isIndexUpdateRequired
     '   ? " NOTIFYING FOCUS"
     '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
@@ -741,7 +741,7 @@ namespace ml
     '   m.focusManager.isNotifying = wasNotifying
     ' else
     '   ? " not notifying focus"
-    ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
+    ' ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
     m.reset(true)
     ' end if
   end function

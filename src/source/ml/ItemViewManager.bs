@@ -160,8 +160,9 @@ namespace ml
       sStart = m.screenRect.translation[m.axes] + startOffset
       sEnd = sStart + m.screenRect.size[m.axes]
 
-      for each comp in m.renderedComponents
-        if comp.index <> invalid
+      for each item in m.visibleItems
+        comp = m.renderersByContentId[item.id]
+        if comp <> invalid and comp.index <> invalid
           cRect = m.rects[comp.index]
           if cRect <> invalid
             cStart = cRect.translation[m.axes]
@@ -171,6 +172,7 @@ namespace ml
             else
               compStates[comp.id] = false
             end if
+            ' ? " LIST COMPS IN VP SS " ; sStart ; " SE" ; sEnd ; " CS " ; cStart ; " CE " ; cEnd
           end if
         else
           ' ? "comp index not set!"
@@ -178,11 +180,12 @@ namespace ml
         ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
       end for
 
+      ' ? " STATES " ; formatJson(compStates)
       return compStates
     end function
 
     function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer)
-      ? m.__classname ; " setIsScrolling " ; isScrolling
+      ' ? m.__classname ; " setIsScrolling " ; isScrolling
 
       m.isScrolling = isScrolling
       m.scrollingStartIndex = isScrolling ? startIndex: -1
@@ -239,13 +242,13 @@ namespace ml
           return
         end if
       end if
-      ? "C " ; m.__classname ; formatJson(renderedIndexes)
+      ' ? "C " ; m.__classname ; formatJson(renderedIndexes)
       ' 'bs:disable-next-line
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
       m.renderedComponents = []
-      ? "TUR ::: AFTER STATE MAP" ; m.__classname
-      ? " " ; formatJson(renderedStateMap)
+      ' ? "TUR ::: AFTER STATE MAP" ; m.__classname
+      ' ? " " ; formatJson(renderedStateMap)
       m.applyRenderStateMap(renderedStateMap)
 
       m.tidyUpUnusedRenderers()
@@ -253,10 +256,10 @@ namespace ml
     end function
 
     protected function tidyUpUnusedRenderers() as void
-      ? "Tidying up renderers " ; m.__classname
+      ' ? "Tidying up renderers " ; m.__classname
       removedRenderers = []
-      ? " CONTAINER HAS " ; m.container.getChildCount() -1 ; " RENS "
-      for i = 1 to m.container.getChildCount() -1
+      ' ? " CONTAINER HAS " ; m.container.getChildCount() - 1 ; " RENS "
+      for i = 1 to m.container.getChildCount() - 1
         renderer = m.container.getChild(i)
         if renderer.content = invalid
           removedRenderers.push(renderer)
@@ -265,7 +268,7 @@ namespace ml
           renderer.content = invalid
         end if
       end for
-      ? " cleaning up "; removedRenderers.count() " renderers"
+      ' ? " cleaning up "; removedRenderers.count() " renderers"
       m.componentPool@.releaseComponents(removedRenderers)
     end function
 
@@ -284,9 +287,6 @@ namespace ml
       'TODO - upgrade to use componentInfos
       info = m.cellInfos[index]
       if info = invalid
-        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
-        ? "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
         return {
           startIndex: -1
           endIndex: -1

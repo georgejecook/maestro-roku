@@ -114,7 +114,7 @@ namespace ml
 
     public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid and index <> -1
-        ? " DO A MOVE TO INDEX "; index, animated
+        ' ? " DO A MOVE TO INDEX "; index, animated
         m.itemScroller.moveToIndex(index, animated)
         m.itemScroller.index = index
         m.focusedCellIndex = index
@@ -130,23 +130,24 @@ namespace ml
 
     protected override function onListEvent(event as object)
       ' ? "GRID ON LIST EVENT " ; event.gridIndex ; event.name
-      if event.name = "willEnter" or event.name = "didEnter"
+      if event.name = "willEnter" or event.name = "didEnter" or event.name = "scrollStart" or event.name = "scrollStop"
         for each component in m.cellsGroup.getChildren(-1, 0)
           if component.doesExist("listEvent")
             component.listEvent = event
           end if
         end for
-      end if
-      if event.gridIndex <> invalid and event.gridIndex <> -1
-        cell = m.viewManager.getRenderer(event.gridIndex)
       else
-        cell = m.viewManager.getRenderer(m.focusedCellIndex)
-      end if
+        if event.gridIndex <> invalid and event.gridIndex <> -1
+          cell = m.viewManager.getRenderer(event.gridIndex)
+        else
+          cell = m.viewManager.getRenderer(m.focusedCellIndex)
+        end if
 
-      if cell <> invalid
-        ' ? " PASSING LIST EVENT "; event.name ; " to CI "; m.focusedCellIndex
-        ' TODO potentially filter events
-        cell.listEvent = event
+        if cell <> invalid
+          ' ? " PASSING LIST EVENT "; event.name ; " to CI "; m.focusedCellIndex
+          ' TODO potentially filter events
+          cell.listEvent = event
+        end if
       end if
     end function
 
@@ -217,7 +218,7 @@ namespace ml
     end function
 
     public override function focusOnContentsNow() as void
-      ? "GRID FORCE FOCUS ON CONTENTS"
+      ' ? "GRID FORCE FOCUS ON CONTENTS"
       'bs:disable-next-line
       if m.itemScroller <> invalid
         rowIndex = fix(m.itemScroller.componentInfo.index / m.viewManager.numCols)
@@ -229,7 +230,7 @@ namespace ml
         m.focusedCellIndex = m.itemScroller.index
         m.owner.focusedCellIndex = m.itemScroller.index
         'bs:disable-next-line
-        ? "MI" ; m.itemScroller.index ; " NC " ; m.itemScroller.numberOfComponents
+        ' ? "MI" ; m.itemScroller.index ; " NC " ; m.itemScroller.numberOfComponents
 
         'bs:disable-next-line
         config = m.itemScroller.getFocusIndicatorConfig(rowInfo, m.itemScroller.direction, false, false)
@@ -298,7 +299,7 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       m.log.verbose(">>>>onLongPressStart", key)
-      ? " ON LONG PRESS START GRID ROW "; key
+      ' ? " ON LONG PRESS START GRID ROW "; key
       if m.canScroll(key)
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         m.itemScroller.isDoingLongPress = true
@@ -315,7 +316,7 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-      ? " ON LONG PRESS FINISH "; key
+      ' ? " ON LONG PRESS FINISH "; key
       m.itemScroller.isDoingLongPress = false
       if key = "left" or key = "right"
         m.log.verbose("long press finished on key", key)
@@ -331,16 +332,16 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function onWillLoseFocus(direction as integer)
-      m.log.verbose("This row will lose focus - disabling scrolling")
-      ? " WILL LOSE FOCUS " ; m.top.id
+      ' m.log.verbose("This row will lose focus - disabling scrolling")
+      ' ? " WILL LOSE FOCUS " ; m.top.id
       m.itemScroller.cancelScrolling()
       m.toggleLongPressTimer(0)
       m.isScrollingEnabled = false
     end function
 
     protected function onWillGainFocus(direction as integer)
-      m.log.verbose("This row will gain focus - enabling scrolling")
-      ? " WILL GAIN FOCUS " ; m.top.id
+      ' m.log.verbose("This row will gain focus - enabling scrolling")
+      ' ? " WILL GAIN FOCUS " ; m.top.id
       m.isScrollingEnabled = true
     end function
 
