@@ -305,8 +305,11 @@ namespace mv.animations
       mc.tasks.cleanNodeObserver(m.node, "state")
     end function
 
-    function onFraction(fraction as float, func as function, scope as dynamic)
+    function onFraction(fraction as float, func as function, scope = invalid as dynamic)
       if m.fractionValueObserver = invalid
+        if scope = invalid
+          scope = mc.getTopM()
+        end if
         m.fractionValueObserver = new mc.tasks.ValueObserver(m.interpolator, "fraction", scope)
       end if
       m.fractionValueObserver.onValue(fraction, func, ">=")
