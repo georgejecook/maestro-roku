@@ -120,6 +120,7 @@ namespace ml
       m.focusIndicatorManager = m.createSGNode("ml_FocusIndicatorManager", m.top, "focusIndicator", {
         list: m.top
       })
+
     end function
 
     private function initManagers()
@@ -206,6 +207,8 @@ namespace ml
 
     private function onJumpToRowIndexChange(index as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
+        'hack here
+        m.focusedRowIndex = index
         m.moveToRow(index, false)
       end if
     end function
