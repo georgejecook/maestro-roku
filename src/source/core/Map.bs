@@ -35,12 +35,18 @@ namespace mc.collections
       m.top.length = 0
     end function
 
-    public function remove(key as string)
+    public function remove(key as string) as void
+      if key = invalid
+        return
+      end if
       m.data.delete(key)
       m.top.length = m.data.count()
     end function
 
-    public function set(key as string, value as dynamic)
+    public function set(key as string, value as dynamic) as void
+      if key = invalid
+        return
+      end if
       m.data[key] = value
       m.top.length = m.data.count()
     end function
@@ -54,10 +60,16 @@ namespace mc.collections
     end function
 
     public function get(key as string) as dynamic
+      if key = invalid
+        return invalid
+      end if
       return m.data[key]
     end function
 
     public function hasKey(key as string) as boolean
+      if key = invalid
+        return false
+      end if
       return m.data[key] <> invalid
     end function
 
