@@ -269,7 +269,7 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ delegate
+    '++ Delegate
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function onWillLoseFocus(direction as integer)
@@ -284,6 +284,17 @@ namespace ml
       m.log.verbose("This row will gain focus - enabling scrolling")
       ' ? "WILL GAIN FOCUS "; m.top.id
       m.isScrollingEnabled = true
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Life Cycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.isScrollingEnabled = true
+      end if
     end function
 
   end class
