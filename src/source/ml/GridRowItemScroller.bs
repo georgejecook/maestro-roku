@@ -87,6 +87,7 @@ namespace ml
     end function
 
     protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      ' ? " START GRID GET FOCUS INDICATOR TRANS"
       if info = invalid or m.viewManager.settings = invalid
         return [0, 0]
       end if
@@ -101,13 +102,11 @@ namespace ml
         ' screenPos = info.getScreenPosition(direction)
         screenPos = componentInfo.getScreenPosition(direction)
       end if
-      ' screenPos = 150
       contentOffset = m.viewManager.settings.contentOffset
 
-      ' ? " info sp "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes
+      ' ? " info CI "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes ; " isFloatingFocus" ; isFloatingFocus
 
       ' ? " contentOffset "; formatJson(contentOffset)
-      translation = [contentOffset[0], contentOffset[1] + screenPos]
       translation = [contentOffset[0], contentOffset[1] + screenPos]
 
       headerOffset = m.viewManager.settings.headerSettings.height
@@ -120,6 +119,8 @@ namespace ml
         'bs:disable-next-line
         bounds = cell.sceneBoundingRect()
         translation = [bounds.x, bounds.y]
+      else
+        translation[0] += info.getScreenPosition(direction)
       end if
 
       ' ? " END GRID GET FOCUS INDICATOR TRANS"
