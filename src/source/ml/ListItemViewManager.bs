@@ -339,10 +339,11 @@ namespace ml
       numItems = row.getChildCount()
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
-      numRows = fix(numItems / numCols) + 1
+      numRows = mc.divideNumberToNearest(numItems, numCols)
       rowHeight = settings.rowHeight + settings.rowSpace
       height = numRows * rowHeight
 
+      ' ? "+>+>+ GRID HEIGHT "; numItems ; "/" numCols ; " NR "; numRows ; " height " ; height
       if settings.headerSettings.position <> "none"
         height += settings.headerSettings.height
       end if

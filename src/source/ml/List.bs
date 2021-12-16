@@ -190,7 +190,10 @@ namespace ml
 
     private function onContentItemsChange(changes as mc.types.array)
       m.log.info("The content items have changed")
+      m.focusIndicatorManager@.cancelFlowFocus()
       m.viewManager.onContentItemsChange(changes)
+      m.focusIndicatorManager@.cancelFlowFocus()
+      m.viewManager.isScrolling = false
       ' m.viewManager.forceUpdateLayout()
       ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
 
