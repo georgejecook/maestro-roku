@@ -53,6 +53,7 @@ namespace ml
     public moveAnimation
 
     private animSpeed = 0.05
+    private longPressEndItemOffset = 0
 
     private activeScrollLocation = 0
     private nextScrollLocation = 0
@@ -83,8 +84,11 @@ namespace ml
     public function onViewManagerUpdate()
       if m.viewManager.settings <> invalid
         m.settings = m.viewManager.settings.focusSettings
+        m.animSpeed = m.settings.animSpeed
+        m.longPressEndItemOffset = m.settings.longPressEndItemOffset
       else
-        m.settings = invalid
+        m.animSpeed = 0.05
+        m.longPressEndItemOffset = 0
       end if
       m.sendViewPortEvents = mc.getPath(m.viewManager.owner, "content.listSettings.sendViewPortEvents", false)
       m.viewPortEventNotifier.onViewManagerUpdate()
@@ -117,15 +121,16 @@ namespace ml
     end function
 
     public function cancelScrolling()
-      ' ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
+      ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
       'Tidy up the scrolling in here
       m.isScrollCancelled = m.viewManager.isScrolling
       if m.viewManager.isScrolling
-        ' ? "000000000000000000000000000000000000"
+        ? "000000000000000000000000000000000000 "; m.isScrollCancelled
         ' m.toggleScrolling(false)
-        ' m.setTargetComponentInfo(m.nextComponentInfo)
-        ' m.finishAnimating()
-        ' m.isMovingMultiple = false
+        m.setTargetComponentInfo(m.nextComponentInfo)
+        m.moveAnimation.pause()
+        m.finishAnimating()
+        m.isMovingMultiple = false
       end if
     end function
 
@@ -245,8 +250,8 @@ namespace ml
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
-      ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
-      ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      ? ">?>?>?>?>?////////////////////////////////////////////////////////"
+      ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
       index = mc.clamp(index, 0, m.numberOfComponents - 1)
       ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
@@ -265,10 +270,10 @@ namespace ml
           direction = 1
         end if
       end if
-      ' ? "////// MTI RESOLVED " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      ? "////// MTI RESOLVED " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
 
       '////////////////////////////////////////////////////////////////////////
-      ' ? "//// 1. get ComponentInfo"
+      ? "//// 1. get ComponentInfo"
       '////////////////////////////////////////////////////////////////////////
 
       m.isMovingMultiple = abs(index - m.index) > 1
@@ -304,7 +309,7 @@ namespace ml
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
       if isFlowPossible and animated
-        ' ? "///// 2.b flow IS POSSIBLE I " ; index
+        ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
         return true
       end if
@@ -316,10 +321,10 @@ namespace ml
 
       if animated
         '////////////////////////////////////////////////////////////////////////
-        ' ? "/////// 3. animated move"
+        ? "/////// 3. animated move"
         '////////////////////////////////////////////////////////////////////////
 
-        ' ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
+        ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
         m.toggleScrolling(true)
         m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
@@ -337,6 +342,68 @@ namespace ml
         m.setFocusIndex(index, false, true)
         m.forceFocusOnIndex(index, true)
         m.setComponentInfo(targetComponentInfo)
+      end if
+
+      return true
+    end function
+
+    ' move to the Virtual Index
+    function finishMovingToNextComponent(animated = true as boolean) as boolean
+      ? "moving to next component"
+      'FIXME - cancel/tidy up a move in progress
+      ' m.focusIndicatorManager@.cancelFlowFocus()
+
+      direction = m.direction
+      nextComponentInfo = m.nextComponentInfo
+      ' m.setTargetComponentInfo(nextComponentInfo)
+
+      '////////////////////////////////////////////////////////////////////////
+      ' ? "//// 2. Ascertain offset "; m.__classname
+      '////////////////////////////////////////////////////////////////////////
+
+      ' ? "2.b IS FLOW POSSIBLE ??? " ; m.screenPos ; "m.viewManager.maxPos " ;m.viewManager.maxPos; " NFA "; nextComponentInfo.isFlowFocusAllowed
+      isFlowPossible = m.viewManager.isFlowFocusPossible(nextComponentInfo, direction, m.screenPos)
+
+      ' ? " ::::::::::::::: setNextComponentInfo DDD"
+      m.isLastMoveFlowFocus = isFlowPossible and animated
+      ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
+
+      if isFlowPossible and animated
+        ? "///// 2.b flow IS POSSIBLE I " ; nextComponentInfo.index
+        m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
+        return true
+      end if
+
+      translation = m.container.translation
+      translation[m.axes] = - nextComponentInfo.getPosition(direction)
+
+      ' ? "////// offset is "; translation[m.axes]
+
+      if animated
+        '////////////////////////////////////////////////////////////////////////
+        ? "/////// 3. animated move"
+        '////////////////////////////////////////////////////////////////////////
+
+        ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
+        ' m.toggleScrolling(true)
+        ' m.setFocusIndex(m.index, true)
+        m.viewManager.updateRenderedComponents(m.direction, m.index)
+        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
+        m.moveAnimation.start()
+      else
+        '////////////////////////////////////////////////////////////////////////
+        ' 4. non-animated move
+        '////////////////////////////////////////////////////////////////////////
+        m.toggleScrolling(false)
+        m.container.translation = translation
+        m.nextScreenPos = m.nextComponentInfo.getScreenPosition(m.direction)
+        m.updateSrollOffsetFraction(1)
+        index = m.nextComponentInfo.index
+        m.viewManager.updateRenderedComponents(m.direction, index)
+
+        m.setFocusIndex(index, false, true)
+        m.forceFocusOnIndex(index, true)
+        m.setComponentInfo(m.nextComponentInfo)
       end if
 
       return true
@@ -374,7 +441,7 @@ namespace ml
     end function
 
     function onAnimationFractionChange(fraction as float) as void
-      ' ? ">>>+>>>+ OAFC "; fraction ; "TCI" ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
+      ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
       if fraction = 1 and not m.isMovingMultiple
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
@@ -383,8 +450,9 @@ namespace ml
         m.finishMovingToIndex()
       else if m.isMovingMultiple
 
-        if fraction = 1 and (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
-          ' ? " REGULAR ANIM FINISHED: BUT STILL NOT IN PLACE!"
+        if fraction = 1
+          isInPlace = (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
+          ' ? " REGULAR ANIM FINISHED " ; isInPlace '": BUT STILL NOT IN PLACE!"
           m.updateSrollOffsetFraction(1)
           m.finishMovingToIndex()
         else
@@ -439,48 +507,57 @@ namespace ml
 
           return false
         else
-          ' ? "is not in position yet - finishing"
+          ? "+++++++++++++++++++"
+          ? "is not in position yet - finishing T " ; m.nextScrollLocation ; " P " ; m.container.translation[m.axes] ; " D " ; m.direction
           ' ? "VVVVV Need to move to index " ; m.nextIndex
-          index = m.nextIndex + m.direction
-          isMoving = m.moveToIndex(index, true, true, m.direction, true, true)
+          index = m.nextIndex
+          if (m.direction = 1 and m.container.translation[m.axes] < m.nextScrollLocation) or (m.direction = -1 and m.container.translation[m.axes] > m.nextScrollLocation)
+            ? "Moved past this item - need to go forward one more"
+            index += m.direction
+          end if
+          ' isMoving = m.moveToIndex(index, true, true, m.direction, true, true)
+          isMoving = m.finishMovingToNextComponent()
+          if isMoving
+            return true
+          end if
         end if
       end if
 
       if not m.viewManager.isScrolling
-        ' ? "VVVVV Scrolling is finished - cannot finish move"
+        ? "VVVVV Scrolling is finished - cannot finish move"
         ' m.toggleScrolling(false)
         ' m.setFocusOnRenderer(false)
         return false
       end if
 
-      if not m.isMovingMultiple
-        ' ? "VVVVV was a simple move"
+      if not m.isMovingMultiple and not m.isScrollCancelled
+        ? "VVVVV was a simple move"
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         ' m.setFocusOnRenderer(false)
         return false
       end if
 
-      m.setFocusIndex(m.nextIndex, true, true)
-
+      ' componentInfo = m.componentInfo
       componentInfo = m.nextComponentInfo
-      componentInfo = m.componentInfo
       ' ? "VVVV NCI " ; mc.getPath(m.targetComponentInfo, "index"); mc.getPath(componentInfo, "index")
       if componentInfo = invalid
-        ' ? "VVVVV NO Component Info"
+        ? "VVVVV NO Component Info"
+        m.setFocusIndex(m.nextIndex, true, true)
         m.toggleScrolling(false)
         m.isMultiMoveFinished = true
         return false
       end if
 
       if m.targetComponentInfo = invalid or componentInfo.index = m.targetComponentInfo.index
-        ' ? "VVVVV HAVE ARRIVED"
+        ? "VVVVV HAVE ARRIVED"
         m.toggleScrolling(false)
+        m.setFocusIndex(m.nextIndex, false, false)
         m.isMultiMoveFinished = true
         return false
       end if
 
-      ' ? "VVVVV Need to move to index " ; m.targetComponentInfo.index
+      ? "VVVVV Need to move to index " ; m.targetComponentInfo.index ; " at " ; componentInfo.index
       isMoving = m.moveToIndex(m.targetComponentInfo.index, true, true, m.direction, true, true)
       ' ? " isMoving "; isMoving
       if not isMoving
@@ -491,7 +568,7 @@ namespace ml
     end function
 
     function toggleScrolling(active as boolean)
-      ' ? "+>+>+>+> toggleScrolling " ; active ; " " ; m.__classname
+      ? "+>+>+>+> toggleScrolling " ; active ; " IS " ; m.viewManager.isScrolling ; " " ; m.__classname
       if m.viewManager.isScrolling <> active
         if active
           m.scrollStartIndex = m.index
@@ -527,6 +604,7 @@ namespace ml
       m.isLastMoveFlowFocus = true
       m.toggleScrolling(true)
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
+      ? "FLOW "; m.animSpeed
       m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
     end function
 
