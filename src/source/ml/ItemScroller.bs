@@ -56,6 +56,7 @@ namespace ml
     private longPressEndItemOffset = 0
 
     private activeScrollLocation = 0
+    private lastScrollOffsetFraction = 0
     private nextScrollLocation = 0
     private postHopIndex = 0
     private isScrollCancelled = false
@@ -127,7 +128,7 @@ namespace ml
       if m.viewManager.isScrolling
         ? "000000000000000000000000000000000000 "; m.isScrollCancelled
         ' m.toggleScrolling(false)
-        m.setTargetComponentInfo(m.nextComponentInfo)
+        ' m.setTargetComponentInfo(m.nextComponentInfo)
         m.moveAnimation.pause()
         m.finishAnimating()
         m.isMovingMultiple = false
@@ -353,7 +354,10 @@ namespace ml
       'FIXME - cancel/tidy up a move in progress
       ' m.focusIndicatorManager@.cancelFlowFocus()
 
+      m.isScrollCancelled = false
+
       direction = m.direction
+
       nextComponentInfo = m.nextComponentInfo
       ' m.setTargetComponentInfo(nextComponentInfo)
 
@@ -441,19 +445,19 @@ namespace ml
     end function
 
     function onAnimationFractionChange(fraction as float) as void
-      ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
+      ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
       if fraction = 1 and not m.isMovingMultiple
-        ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
+        ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
 
-        m.updateSrollOffsetFraction(1)
+        ' m.updateSrollOffsetFraction(1)
         m.finishMovingToIndex()
       else if m.isMovingMultiple
 
         if fraction = 1
           isInPlace = (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
           ' ? " REGULAR ANIM FINISHED " ; isInPlace '": BUT STILL NOT IN PLACE!"
-          m.updateSrollOffsetFraction(1)
+          ' m.updateSrollOffsetFraction(1)
           m.finishMovingToIndex()
         else
 
@@ -493,13 +497,11 @@ namespace ml
 
     function finishMovingToIndex() as boolean
 
-      ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
+      ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
       ' ? m.__classname ; " " ; m.isScrollCancelled
-      m.focusManager.onFocusAnimationUpdate(1)
-      m.updateSrollOffsetFraction(1)
 
       if m.isScrollCancelled
-        ' ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
+        ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
         if m.container.translation[m.axes] = m.nextScrollLocation
           ' ? " is in position"
           m.toggleScrolling(false)
@@ -521,10 +523,14 @@ namespace ml
             return true
           end if
         end if
+      else
+        ? "VVVV is not cancelled"
       end if
 
       if not m.viewManager.isScrolling
         ? "VVVVV Scrolling is finished - cannot finish move"
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.updateSrollOffsetFraction(1)
         ' m.toggleScrolling(false)
         ' m.setFocusOnRenderer(false)
         return false
@@ -532,6 +538,8 @@ namespace ml
 
       if not m.isMovingMultiple and not m.isScrollCancelled
         ? "VVVVV was a simple move"
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         ' m.setFocusOnRenderer(false)
@@ -543,6 +551,8 @@ namespace ml
       ' ? "VVVV NCI " ; mc.getPath(m.targetComponentInfo, "index"); mc.getPath(componentInfo, "index")
       if componentInfo = invalid
         ? "VVVVV NO Component Info"
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.updateSrollOffsetFraction(1)
         m.setFocusIndex(m.nextIndex, true, true)
         m.toggleScrolling(false)
         m.isMultiMoveFinished = true
@@ -551,6 +561,8 @@ namespace ml
 
       if m.targetComponentInfo = invalid or componentInfo.index = m.targetComponentInfo.index
         ? "VVVVV HAVE ARRIVED"
+        m.focusManager.onFocusAnimationUpdate(1)
+        m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         m.isMultiMoveFinished = true
@@ -650,6 +662,8 @@ namespace ml
     end function
 
     protected function setNextComponentInfo(info as ml.ComponentInfo) as void
+      m.lastScrollOffsetFraction = 0
+
       if info = invalid
         m.nextComponentInfo = invalid
         m.nextIndex = -1

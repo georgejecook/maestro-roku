@@ -24,6 +24,7 @@ namespace ml
     private didFinish = false
     private isNotifying = true
     private rowIndex = -1
+    private lastSentFraction = -1
 
     private moveAnimation
     private delegates
@@ -80,6 +81,7 @@ namespace ml
       if m.previousFocusIndicatorConfig <> invalid
         ' ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
       end if
+      m.lastSentFraction = -1
       m.nextFocusIndicatorConfig = nextFocusIndicatorConfig
       m.direction = direction
       m.didStart = false
@@ -141,7 +143,11 @@ namespace ml
       m.sendEvents(name, nextName, fraction)
     end function
 
-    private function sendEvents(name as string, nextName as string, fraction as float)
+    private function sendEvents(name as string, nextName as string, fraction as float) as void
+      if fraction < m.lastSentFraction
+        return
+      end if
+      m.lastSentFraction = fraction
       event = {
         direction: m.direction
         fraction: fraction
@@ -170,9 +176,9 @@ namespace ml
       end if
 
       ' ? ">>>>>>>>>>>>>>>"
-      ' ? ">>>>>>>>>>>>>>>"
-      ' ? " sending "; name ; " to " ; m.componentInfo.index ; " GI "; event.gridIndex
-      ' ? " sending "; nextName ; " to " ; m.nextComponentInfo.index ; " GI " ; nextEvent.gridIndex
+      ? ">>>>>>>>>>>>>>>"
+      ? " sending "; name ; " to " ; m.componentInfo.index ; " GI "; event.gridIndex
+      ? " sending "; nextName ; " to " ; m.nextComponentInfo.index ; " GI " ; nextEvent.gridIndex
       ' ? ">>>>>>>>>>>>>>>"
       isSendingFromEvent = fromGridIndex <> invalid or (m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex)
       event.rowIndex = m.rowIndex
