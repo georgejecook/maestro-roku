@@ -34,8 +34,36 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public api
+    '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function getRowIndexForItemIndex(index as integer) as integer
+      return fix(index / m.numCols)
+    end function
+
+    function getCellInfosInRow(rowIndex as integer) as mc.types.array
+      infos = []
+      firstIndex = rowIndex * m.numCols
+      for i = firstIndex to firstIndex + m.numCols - 1
+        info = m.cellInfos[i]
+        if info <> invalid
+          infos.push(info)
+        end if
+      end for
+      return infos
+    end function
+
+    function getRenderersInRow(rowIndex as integer) as mc.types.array
+      infos = m.getCellInfosInRow(rowIndex)
+      renderers = []
+      for each info in infos
+        renderer = m.getRenderer(info.componentIndex)
+        if renderer <> invalid
+          renderers.push(renderer)
+        end if
+      end for
+      return renderers
+    end function
 
     function getSubIndexAtPosition(position as integer, direction as integer)
       position += m.row.translation[1] 'adjust for position in the list
@@ -56,6 +84,10 @@ namespace ml
       return mc.clamp(i, 0, numRows)
     end function
 
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
       if forceRecalculate
@@ -95,10 +127,6 @@ namespace ml
       end if
       return m.rowInfos
     end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ overridden
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function reset()
       m.log.info("releasing", m.renderersByContentId.count(), "row children")

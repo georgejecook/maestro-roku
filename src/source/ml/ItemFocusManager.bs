@@ -24,6 +24,7 @@ namespace ml
     private didFinish = false
     private isNotifying = true
     private rowIndex = -1
+    private lastSentFraction = -1
 
     private moveAnimation
     private delegates
@@ -65,6 +66,8 @@ namespace ml
     'TODO - add subrow index events
     function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
       if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
+        ' ? ">>>> NOTHING HAS CHANGED DS " ; m.didStart ; " DF "; m.didFinish
+        m.didFinish = false
         return
       end if
       ' ? ">>S> "; m.viewManager.__classname
@@ -80,6 +83,7 @@ namespace ml
       if m.previousFocusIndicatorConfig <> invalid
         ' ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
       end if
+      m.lastSentFraction = -1
       m.nextFocusIndicatorConfig = nextFocusIndicatorConfig
       m.direction = direction
       m.didStart = false
@@ -88,8 +92,8 @@ namespace ml
     end function
 
     function onFocusAnimationUpdate(fraction as float) as void
-      ' ? "ANIM UPDATE "; m.name ; " F " ; fraction
-
+      ' ? "ANIM UPDATE "; m.name ; " F " ; fraction ; " DS" ; m.didStart ; " DF " ; m.didFinish
+      ' ? " CI "; m.componentInfo.index ; " NCI "; m.nextComponentInfo.index
       if m.didStart and not m.didFinish
         m.onFocusUpdate(fraction)
       end if
@@ -141,7 +145,11 @@ namespace ml
       m.sendEvents(name, nextName, fraction)
     end function
 
-    private function sendEvents(name as string, nextName as string, fraction as float)
+    private function sendEvents(name as string, nextName as string, fraction as float) as void
+      if fraction < m.lastSentFraction
+        return
+      end if
+      m.lastSentFraction = fraction
       event = {
         direction: m.direction
         fraction: fraction
@@ -171,8 +179,8 @@ namespace ml
 
       ' ? ">>>>>>>>>>>>>>>"
       ' ? ">>>>>>>>>>>>>>>"
-      ' ? " sending "; name ; " to " ; m.componentInfo.componentIndex ; " GI "; event.gridIndex
-      ' ? " sending "; nextName ; " to " ; m.nextComponentInfo.componentIndex ; " GI " ; nextEvent.gridIndex
+      ' ? " sending "; name ; " to " ; m.componentInfo.index ; " GI "; event.gridIndex
+      ' ? " sending "; nextName ; " to " ; m.nextComponentInfo.index ; " GI " ; nextEvent.gridIndex
       ' ? ">>>>>>>>>>>>>>>"
       isSendingFromEvent = fromGridIndex <> invalid or (m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex)
       event.rowIndex = m.rowIndex

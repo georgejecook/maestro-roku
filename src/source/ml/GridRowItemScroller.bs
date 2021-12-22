@@ -55,10 +55,26 @@ namespace ml
       end if
       if isFromListScroll
         ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex ; " is List scroll? "; isFromListScroll
-        colIndex = m.index mod m.viewManager.numCols
-        cellIndex = mc.clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
+        focusX = m.focusIndicatorManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
+
+        cellInfosInRow = m.viewManager.getCellInfosInRow(componentInfo.componentIndex)
+        nextInfo = invalid
+
+        for each info in cellInfosInRow
+          ' ? " RI " ; componentInfo.componentIndex ; " CI " ; info.index ; " P " ; info.getScreenPosition(1) ; " FP " ; focusX
+          if info <> invalid and info.getScreenPosition(1) <= focusX
+            nextInfo = info
+          end if
+        end for
+        ' colIndex = m.index mod m.viewManager.numCols
+        ' cellIndex = mc.clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
         ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.numberOfComponents - 1
-        return m.viewManager.cellInfos[cellIndex]
+        if nextInfo = invalid
+          ' ? "no item found for indicator position - using first item in row"
+          nextInfo = cellInfosInRow[0]
+        end if
+
+        return nextInfo
       else
         return m.viewManager.cellInfos[componentInfo.index]
       end if
