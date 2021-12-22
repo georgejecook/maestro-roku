@@ -66,6 +66,8 @@ namespace ml
     'TODO - add subrow index events
     function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
       if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
+        ' ? ">>>> NOTHING HAS CHANGED DS " ; m.didStart ; " DF "; m.didFinish
+        m.didFinish = false
         return
       end if
       ' ? ">>S> "; m.viewManager.__classname
@@ -90,8 +92,8 @@ namespace ml
     end function
 
     function onFocusAnimationUpdate(fraction as float) as void
-      ' ? "ANIM UPDATE "; m.name ; " F " ; fraction
-
+      ' ? "ANIM UPDATE "; m.name ; " F " ; fraction ; " DS" ; m.didStart ; " DF " ; m.didFinish
+      ' ? " CI "; m.componentInfo.index ; " NCI "; m.nextComponentInfo.index
       if m.didStart and not m.didFinish
         m.onFocusUpdate(fraction)
       end if
