@@ -112,7 +112,7 @@ namespace tests
           "0": "zero"
           "1": "zero"
           "2": "zero"
-          "legal" : [
+          "legal": [
             "la"
           ]
         }
@@ -266,5 +266,180 @@ namespace tests
       m.assertEqual(node.description, "d")
 
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getFloat")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets floats, with defaults")
+    @params({ v: invalid }, "v", 0.5, 0.5)
+    @params({ v: 0 }, "v", 1.1, 1.1)
+    @params({ v: 3 }, "v", 2.1, 2.1)
+    @params({ v: "3" }, "v", 2.1, 2.1)
+    @params({ v: 3.1 }, "v", 1.1, 3.1)
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getFloat(json, path, default), expected * 1.0)
+    end function
+
+    @it("gets floats, with no defaults")
+    @params({ v: invalid }, "v", 0.0)
+    @params({ v: 0 }, "v", 0.0)
+    @params({ v: 3 }, "v", 0.0)
+    @params({ v: "3" }, "v", 0.0)
+    @params({ v: 3.1 }, "v", 3.1)
+    function _(json, path, expected)
+      m.assertEqual(mc.getFloat(json, path), expected * 1.0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getInteger")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets integer, with defaults")
+    @params({ v: invalid }, "v", 0.5, 0.5)
+    @params({ v: 3.1 }, "v", 2, 2)
+    @params({ v: "3" }, "v", 2, 2)
+    @params({ v: 3 }, "v", 1, 3)
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getInteger(json, path, default), expected)
+    end function
+
+    @it("gets integer, with no defaults")
+    @params({ v: invalid }, "v", 0)
+    @params({ v: 3.1 }, "v", 0)
+    @params({ v: "3" }, "v", 0)
+    @params({ v: 3 }, "v", 3)
+    function _(json, path, expected)
+      m.assertEqual(mc.getInteger(json, path), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getString")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets string, with defaults")
+    @params({ v: invalid }, "v", "0.5", "0.5")
+    @params({ v: 3.1 }, "v", "2", "2")
+    @params({ v: 3 }, "v", "1", "1")
+    @params({ v: ["3"] }, "v", "1", "1")
+    @params({ v: "3" }, "v", 2, "3")
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getString(json, path, default), expected)
+    end function
+
+    @it("gets string, with no defaults")
+    @params({ v: invalid }, "v", "")
+    @params({ v: 3.1 }, "v", "")
+    @params({ v: 3 }, "v", "")
+    @params({ v: ["3"] }, "v", "")
+    @params({ v: "3" }, "v", "3")
+    function _(json, path, expected)
+      m.assertEqual(mc.getString(json, path), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getBoolean")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets boolean, with defaults")
+    @params({ v: invalid }, "v", true, true)
+    @params({ v: invalid }, "v", false, false)
+    @params({ v: 3.1 }, "v", true, true)
+    @params({ v: 3.1 }, "v", false, false)
+    @params({ v: 3 }, "v", true, true)
+    @params({ v: 3 }, "v", false, false)
+    @params({ v: ["3"] }, "v", "1", "1")
+    @params({ v: true }, "v", false, true)
+    @params({ v: false }, "v", true, false)
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getBoolean(json, path, default), expected)
+    end function
+
+    @it("gets boolean, with no defaults")
+    @params({ v: invalid }, "v", false)
+    @params({ v: invalid }, "v", false)
+    @params({ v: 3.1 }, "v", false)
+    @params({ v: 3.1 }, "v", false)
+    @params({ v: 3 }, "v", false)
+    @params({ v: 3 }, "v", false)
+    @params({ v: ["3"] }, "v", false)
+    @params({ v: true }, "v", true)
+    @params({ v: false }, "v", false)
+    function _(json, path, expected)
+      m.assertEqual(mc.getBoolean(json, path), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getArray")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets array, with defaults")
+    @params({ v: invalid }, "v", ["d"], ["d"])
+    @params({ v: "3.1" }, "v", ["d"], ["d"])
+    @params({ v: 3 }, "v", ["d"], ["d"])
+    @params({ v: [] }, "v", ["d"], [])
+    @params({ v: ["3"] }, "v", "1", ["3"])
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getArray(json, path, default), expected)
+    end function
+
+    @it("gets array, with no defaults")
+    @params({ v: invalid }, "v", [])
+    @params({ v: "3.1" }, "v", [])
+    @params({ v: 3 }, "v", [])
+    @params({ v: false }, "v", [])
+    @params({ v: ["3"] }, "v", ["3"])
+    function _(json, path, expected)
+      m.assertEqual(mc.getArray(json, path), expected)
+    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getPoint")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets point, with defaults")
+    @params({ v: invalid }, "v", [1, 1], [1, 1])
+    @params({ v: "3.1" }, "v", [1, 1], [1, 1])
+    @params({ v: 3 }, "v", [1, 1], [1, 1])
+    @params({ v: [] }, "v", [1, 1], [1, 1])
+    @params({ v: [3] }, "v", [1, 1], [1, 1])
+    @params({ v: [3, 3] }, "v", [1, 1], [3, 3])
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getPoint(json, path, default), expected)
+    end function
+
+    @it("gets point, with no defaults")
+    @params({ v: invalid }, "v", [0, 0])
+    @params({ v: "3.1" }, "v", [0, 0])
+    @params({ v: 3 }, "v", [0, 0])
+    @params({ v: false }, "v", [0, 0])
+    @params({ v: [3, 3] }, "v", [3, 3])
+    function _(json, path, expected)
+      m.assertEqual(mc.getPoint(json, path), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getAA")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets aa, with defaults")
+    @params({ v: invalid }, "v", { id: "d" }, { id: "d" })
+    @params({ v: "3.1" }, "v", { id: "d" }, { id: "d" })
+    @params({ v: 3 }, "v", { id: "d" }, { id: "d" })
+    @params({ v: {} }, "v", { id: "d" }, {})
+    @params({ v: { id: "3" } }, "v", "1", { id: "3" })
+    function _(json, path, default, expected)
+      m.assertEqual(mc.getAA(json, path, default), expected)
+    end function
+
+    @it("gets aa, with no defaults")
+    @params({ v: invalid }, "v", {})
+    @params({ v: "3.1" }, "v", {})
+    @params({ v: 3 }, "v", {})
+    @params({ v: false }, "v", {})
+    @params({ v: { id: "3" } }, "v", { id: "3" })
+    function _(json, path, expected)
+      m.assertEqual(mc.getAA(json, path), expected)
+    end function
+
   end class
 end namespace
