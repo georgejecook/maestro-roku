@@ -172,11 +172,11 @@ namespace mc
   '  * @param {string} field - path to field, with "items.2.path.syntax",
   '  * @returns {any} value if found, or default value
   '  */
-  function getPath(content as object, field as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
+  function getPath(content as object, path as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
     part = invalid
 
-    if field <> invalid
-      parts = field.split(".")
+    if path <> invalid
+      parts = path.split(".")
       numParts = parts.count()
       i = 0
 
@@ -210,21 +210,77 @@ namespace mc
     end if
   end function
 
+  function getString(content as object, path as string, default = "" as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isString(value)
+      return value
+    end if
+    return default
+  end function
+
+  function getInteger(content as object, path as string, default = 0 as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isInteger(value)
+      return value
+    end if
+    return default
+  end function
+
+  function getArray(content as object, path as string, default = [] as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isArray(value)
+      return value
+    end if
+    return default
+  end function
+
+  function getAA(content as object, path as string, default = {} as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isAACompatible(value)
+      return value
+    end if
+    return default
+  end function
+
+  function getFloat(content as object, path as string, default = 0.0 as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isFloat(value)
+      return value
+    end if
+    return default
+  end function
+
+  function getBoolean(content as object, path as string, default = false as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isBoolean(value)
+      return value
+    end if
+    return default
+  end function
+
+  function getPoint(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isPoint(value)
+      return value
+    end if
+    return default
+  end function
+
   ' /**
   '  * @member setPath
   '  * @memberof module:Utils
   '  * @instance
   '  * @function
-  '  * @description gets content field from array. This variation has a slower implementation that supports array lookup
+  '  * @description gets content path from array. This variation has a slower implementation that supports array lookup
   '  * @param {assocarray} content - node/aa to look up on
-  '  * @param {string} field - path to field, with "items.2.path.syntax",
+  '  * @param {string} path - path to path, with "items.2.path.syntax",
   '  * @returns {any} value if found, or default value
   '  */
-  function setPath(content as dynamic, field as mc.types.array, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as void
+  function setPath(content as dynamic, path as string, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as void
     part = invalid
 
-    if field <> invalid
-      parts = field.split(".")
+    if path <> invalid
+      parts = path.split(".")
       numParts = parts.count() - 1
       i = 0
 
