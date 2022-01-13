@@ -458,7 +458,7 @@
 </thead>
 <tbody><tr>
 <td>logLevel</td>
-<td>number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+<td>number &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
 <td>Optional. log level for framework from 0(error) to 4 (verbose)</td>
 </tr>
 <tr>
@@ -478,12 +478,17 @@
 </tr>
 <tr>
 <td>stripParamTypes</td>
-<td>boolean;</td>
+<td>boolean</td>
 <td>Defaults to true. Removes the types on params at runtime, so that you can code with any types you want in your app and not have roku compiler break when compiling, or hit a crash when passing in an invalid into, e.g. a string. i.e. allows for optional defined types</td>
 </tr>
 <tr>
+<td>paramStripExceptions</td>
+<td>string[]</td>
+<td>Optional. Array of function names that will not have their params stripped. Allowins for working around issues that might arise in some cases</td>
+</tr>
+<tr>
 <td>applyStrictToAllClasses</td>
-<td>boolean;</td>
+<td>boolean</td>
 <td>Defaults to true. Adds additional strict validation</td>
 </tr>
 <tr>
@@ -492,28 +497,28 @@
 <td>Optional. Contains options to configure the mvvm behavior</td>
 </tr>
 <tr>
-<td>insertXmlBindingsEarly</td>
-<td>boolean;</td>
+<td>- insertXmlBindingsEarly</td>
+<td>boolean</td>
 <td>Optional - default false, if set to true, will allow you to see transpiled files in the editor. Performance will tank though - use with care!</td>
 </tr>
 <tr>
-<td>createCodeBehindFilesWhenNeeded</td>
-<td>boolean;</td>
+<td>- createCodeBehindFilesWhenNeeded</td>
+<td>boolean</td>
 <td>Defaults to true. Maestro will create code-behinds for your xml files. This means you just need to create an xml file, and a vm, and maestro does the rest</td>
 </tr>
 <tr>
-<td>insertCreateVMMethod</td>
-<td>boolean;</td>
+<td>- insertCreateVMMethod</td>
+<td>boolean</td>
 <td>Default true. Maestro will create your vm for you, in your code-behind file, if present</td>
 </tr>
 <tr>
-<td>callCreateVMMethodInInit</td>
-<td>boolean;</td>
+<td>- callCreateVMMethodInInit</td>
+<td>boolean</td>
 <td>Default true. Maestro will create your vm and initialize it for you</td>
 </tr>
 <tr>
-<td>callCreateNodeVarsInInit</td>
-<td>boolean;</td>
+<td>- callCreateNodeVarsInInit</td>
+<td>boolean</td>
 <td>Default true. Maestro will create <code>m.nodeId</code> fields for all xml components that have id set. Never type <code>findNode</code> again :)</td>
 </tr>
 <tr>
@@ -522,14 +527,54 @@
 <td>Optional. Options for node class generation</td>
 </tr>
 <tr>
-<td>generateTestUtils</td>
-<td>boolean;</td>
+<td>- generateTestUtils</td>
+<td>boolean</td>
 <td>Default to false. Set this to true in your test projects, and maestro will create test utils to make it easy for you to debug your node generated classes</td>
 </tr>
 <tr>
-<td>buildForIDE</td>
-<td>boolean;</td>
+<td>- buildForIDE</td>
+<td>boolean</td>
 <td>Set this to true in your <code>bsconfig.json</code> used by the IDE, to keep performance snappy. If this is not set to false on your other builds, then maestro will not generate any code for you and your app will have erratic behavior</td>
+</tr>
+<tr>
+<td>processXMLFiles</td>
+<td>boolean</td>
+<td>Default to false. If true, then xml files (and mvvm style coding) is supported. If your project only uses node files, it iis recommended to disable this for performance</td>
+</tr>
+<tr>
+<td>reflection</td>
+<td>dictionary</td>
+<td>Optional. Options for controlling reflection behavior</td>
+</tr>
+<tr>
+<td>- generateReflectionFunctions</td>
+<td>boolean</td>
+<td>Default to false. if true will generate the functions required to lookup classes by name</td>
+</tr>
+<tr>
+<td>- excludeFilters</td>
+<td>string[]</td>
+<td>Will exclude files matchign these globs from reflection</td>
+</tr>
+<tr>
+<td>extraValidation</td>
+<td>dictionary</td>
+<td>Optional. Settings that control maestro&#39;s additional validation</td>
+</tr>
+<tr>
+<td>- doExtraValidation</td>
+<td>boolean</td>
+<td>If true will do additional maestro validation</td>
+</tr>
+<tr>
+<td>- excludeFilters</td>
+<td>string[]</td>
+<td>Will exclude certain files from extra validation</td>
+</tr>
+<tr>
+<td>- doExtraImportValidation</td>
+<td>boolean</td>
+<td>Will exclude certain files from extra validation</td>
 </tr>
 </tbody></table>
             <div id="footer">
