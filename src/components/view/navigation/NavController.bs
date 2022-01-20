@@ -8,22 +8,22 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view as mc.types.node, animated = true as boolean) as void
+function push(v as types.node, animated = true as boolean) as void
   m.log.method("push")
-  if view = invalid
+  if v = invalid
     m.log.warn(" push invalid view passed in : ignoring")
     return
   end if
 
-  m.log.info("pushing ", view.subType())
-  m.viewStack.Push(view)
-  view.navController = m.top
+  m.log.info("pushing ", v.subType())
+  m.viewStack.Push(v)
+  v.navController = m.top
   updatePublicFields()
 
-  transitionToView(view, animated)
+  transitionToView(v, animated)
 end function
 
-function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+function reset(newFirstScreen = invalid as types.node, endIndex = -1 as integer, animated = false as boolean)
   m.log.info(" reset ", m.top.numberOfViews)
   if endIndex < -1
     endIndex = -1
@@ -33,11 +33,11 @@ function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integ
   index = m.top.numberOfViews - 1
   while index > endIndex
     m.log.info("resetting index ", index)
-    view = m.viewStack.Pop()
-    if view <> invalid
-      hideView(view)
-      view.navController = invalid
-      view@.onRemovedFromAggregateView(m.top)
+    v = m.viewStack.Pop()
+    if v <> invalid
+      hideView(v)
+      v.navController = invalid
+      v@.onRemovedFromAggregateView(m.top)
     else
       m.log.info(" reset found invalid child")
     end if
@@ -78,7 +78,7 @@ function pop(animated = true as boolean)
   return previousView
 end function
 
-function replace(newView = invalid as mc.types.node, animated = false as boolean) as object
+function replace(newView = invalid as types.node, animated = false as boolean) as object
   m.log.method("replace ", m.top.numberOfViews)
   previousView = m.top.currentView
   if previousView <> invalid
@@ -121,7 +121,7 @@ end function
 '++ Lifecycle methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as types.assocarray)
   m.log.method("initialize(args)")
   m.log = new log.Logger("NC.(" + m.top.getParent().subType() + ")")
 end function

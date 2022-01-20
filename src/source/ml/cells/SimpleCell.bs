@@ -7,9 +7,9 @@ import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/cells/BaseCell.bs"
 
-namespace ml
+namespace list
   @node("ml_SimpleCell", "ml_BaseCell")
-  class SimpleCell extends ml.BaseCell
+  class SimpleCell extends list.BaseCell
 
     private poster
     private rectangle
@@ -24,12 +24,12 @@ namespace ml
     end function
 
     protected override function createViews() as void
-      m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      m.bgRect = createSGNode("Rectangle", m.top, "bgRect", {
         size: m.posterSize
         color: "#555555"
       })
 
-      m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+      m.poster = createSGNode("Poster", m.top, "poster", {
         scaleRotateCenter: [m.posterSize[0] / 2, m.posterSize[1] / 2]
         translation: [0, 0]
         loadingBitmapUri: "http://via.placeholder.com/370x300"
@@ -40,13 +40,13 @@ namespace ml
         size: m.posterSize
         loadDisplayMode: "scaleToFit"
       })
-      m.rectangle = mc.createSGNode("mv_Rectangle", m.top, "rectangle", {
+      m.rectangle = createSGNode("Rectangle", m.top, "rectangle", {
         opacity: 0.4
         color: "#000000"
         width: m.posterSize[0]
         height: 50
       })
-      m.label = mc.createSGNode("mv_Label", m.top, "label", {
+      m.label = createSGNode("Label", m.top, "label", {
         width: m.posterSize[0]
         fontKey: "medium,30"
         color: "#aaaaaa"
@@ -57,7 +57,7 @@ namespace ml
       m.scale = 1
     end function
 
-    protected override function onContentChange(content as mc.types.node)
+    protected override function onContentChange(content as types.node)
       ' ? " SC 1"
       m.poster.width = m.posterSize[0]
       m.poster.height = m.posterSize[1]

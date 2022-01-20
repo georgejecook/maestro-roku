@@ -1,5 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
-import "pkg:/source/roku_modules/maestro/core/MIOC.brs"
+import "pkg:/source/roku_modules/maestro/core/ioc.brs"
 import "pkg:/components/roku_modules/maestro/view/mixin/FocusMixin.brs"
 
 function Init() as void
@@ -27,7 +27,7 @@ function begin(args = invalid)
   m.log.info("begin")
   initializeIOC()
   setupMaestro()
-  mioc.setInstance("appArgs", args)
+  ioc.setInstance("appArgs", args)
 
   m.log.info("starting the bootstrap task to orchestrate our app init/loading tasks")
   ' my apps have a task here that manages the various app initialization activities
@@ -43,8 +43,8 @@ function setupMaestro()
   tick.duration = 0.01
   tick.repeat = true
   tick.control = "start"
-  mc.setOrAddNodeField(m.global, "tick", tick)
-  mioc.setInstance("tick", tick)
+  setOrAddNodeField(m.global, "tick", tick)
+  ioc.setInstance("tick", tick)
 end function
 
 function onIsBootstrapTasksComplete()
@@ -52,25 +52,25 @@ function onIsBootstrapTasksComplete()
 
   m.top.appController = createObject("roSGNode", "AppController")
   m.global.addFields({ "appController": m.top.appController })
-  mioc.setInstance("appController", m.top.appController)
+  ioc.setInstance("appController", m.top.appController)
   m.top.removeChild(m.loadingPoster)
   m.top.appendChild(m.top.appController)
   m.top.appController@._initialize()
-  mv.setFocus(m.top.appController)
+  view.setFocus(m.top.appController)
 end function
 
 function initializeIOC()
   m.log.info("initializing the IOD container")
   'note this is done in the boostrap sequence in my apps
-  mioc.createContainer()
+  ioc.createContainer()
 
-  fontManager = createObject("roSGNode", "mv_FontManager")
-  mioc.setInstance("fontManager", fontManager)
-  mc.setOrAddNodeField(m.global, "fontManager", fontManager)
+  fontManager = createObject("roSGNode", "FontManager")
+  ioc.setInstance("fontManager", fontManager)
+  setOrAddNodeField(m.global, "fontManager", fontManager)
 
-  styleManager = createObject("roSGNode", "mv_StyleManager")
-  mioc.setInstance("styleManager", styleManager)
-  mc.setOrAddNodeField(m.global, "fontManager", fontManager)
+  styleManager = createObject("roSGNode", "StyleManager")
+  ioc.setInstance("styleManager", styleManager)
+  setOrAddNodeField(m.global, "fontManager", fontManager)
 end function
 
 function signalAppLaunchComplete(args = invalid)

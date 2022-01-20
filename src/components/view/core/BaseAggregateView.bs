@@ -8,22 +8,22 @@ end function
 '++ view management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function hideView(view as mc.types.node)
-  if view <> invalid
-    if view.isSameNode(m.top.currentView)
+function hideView(v as types.node)
+  if v <> invalid
+    if v.isSameNode(m.top.currentView)
       m.top.currentView = invalid
     end if
-    view.visible = false
-    m.top.removeChild(view)
+    v.visible = false
+    m.top.removeChild(v)
   end if
 
 end function
 
-function transitionToView(view as mc.types.node, animated = true as boolean)
+function transitionToView(v as types.node, animated = true as boolean)
   if m.top.transition = invalid
-    m.top.transition = createObject("roSGNode", "mv_SimpleTransition")
+    m.top.transition = createObject("roSGNode", "SimpleTransition")
   end if
-  m.top.transition@.execute(m.top, m.top.currentView, view, animated)
+  m.top.transition@.execute(m.top, m.top.currentView, v, animated)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -56,7 +56,7 @@ function onGainedFocus(isSelfFocused as boolean)
   if isSelfFocused
     if m.top.currentView <> invalid
       ' m.log.debug("setting focus to view ", m.top.currentView.id)
-      mv.setFocus(m.top.currentView)
+      view.setFocus(m.top.currentView)
     else
       m.log.debug("no current view when gaining focus")
     end if

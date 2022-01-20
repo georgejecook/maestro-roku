@@ -1,87 +1,85 @@
 
-namespace mc
-  class JsonCombiner
-    function new()
-    end function
+class JsonCombiner
+  function new()
+  end function
 
-    public function combine(source as mc.types.assocarray, other as mc.types.assocarray) as mc.types.assocarray
-      if not mc.isAACompatible(source)
-        return other
+  public function combine(source as types.assocarray, other as types.assocarray) as types.assocarray
+    if not isAACompatible(source)
+      return other
+    end if
+
+    if other["$replace"] = true
+      other.delete("$replace")
+      return other
+    end if
+
+    for each key in other
+      otherValue = other[key]
+      sourceValue = source[key]
+      combinedValue = invalid
+
+      if isAACompatible(otherValue)
+        combinedValue = m.combine(sourceValue, otherValue)
+      else if isArray(otherValue)
+        combinedValue = m.combineArray(sourceValue, otherValue)
+      else
+        combinedValue = other[key]
       end if
 
-      if other["$replace"] = true
-        other.delete("$replace")
-        return other
+      if isString(combinedValue) and combinedValue = "$delete"
+        source.delete(key)
+      else
+        source[key] = combinedValue
       end if
+    end for
+    return source
+  end function
 
-      for each key in other
-        otherValue = other[key]
-        sourceValue = source[key]
-        combinedValue = invalid
+  private function combineArray(source as types.array, other as types.array) as dynamic
+    if not isArray(source)
+      return other
+    end if
 
-        if mc.isAACompatible(otherValue)
-          combinedValue = m.combine(sourceValue, otherValue)
-        else if mc.isArray(otherValue)
-          combinedValue = m.combineArray(sourceValue, otherValue)
-        else
-          combinedValue = other[key]
-        end if
-
-        if mc.isString(combinedValue) and combinedValue = "$delete"
-          source.delete(key)
-        else
-          source[key] = combinedValue
-        end if
-      end for
-      return source
-    end function
-
-    private function combineArray(source as mc.types.array, other as mc.types.array) as dynamic
-      if not mc.isArray(source)
-        return other
-      end if
-
-      if other.count() > 0
-        mode = "$merge"
-        if mc.isString(other[0])
-          if other[0] = "$merge"
-            mode = "$merge"
-            other.shift()
-          else if other[0] = "$append"
-            mode = "$append"
-            other.shift()
-          else if other[0] = "$replace"
-            other.shift()
-            return other
-          end if
-        else if not mc.isAACompatible(other[0])
-          'replace primitive values
+    if other.count() > 0
+      mode = "$merge"
+      if isString(other[0])
+        if other[0] = "$merge"
+          mode = "$merge"
+          other.shift()
+        else if other[0] = "$append"
+          mode = "$append"
+          other.shift()
+        else if other[0] = "$replace"
+          other.shift()
           return other
         end if
-
-        if mode = "$merge"
-          for each item in other
-            if mc.isAACompatible(item)
-              if item.id <> invalid and item.id <> ""
-                index = mc.collections.getArrayIndex(source, item, "id")
-              else
-                index = -1
-              end if
-              if index <> -1
-                source[index] = m.combine(source[index], item)
-              else
-                source.push(item)
-              end if
-            end if
-          end for
-        else if mode = "$append"
-          source.append(other)
-        end if
-        return source
-      else
-        return []
+      else if not isAACompatible(other[0])
+        'replace primitive values
+        return other
       end if
-    end function
 
-  end class
-end namespace
+      if mode = "$merge"
+        for each item in other
+          if isAACompatible(item)
+            if item.id <> invalid and item.id <> ""
+              index = collections.getArrayIndex(source, item, "id")
+            else
+              index = -1
+            end if
+            if index <> -1
+              source[index] = m.combine(source[index], item)
+            else
+              source.push(item)
+            end if
+          end if
+        end for
+      else if mode = "$append"
+        source.append(other)
+      end if
+      return source
+    else
+      return []
+    end if
+  end function
+
+end class

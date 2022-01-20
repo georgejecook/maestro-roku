@@ -18,14 +18,14 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function onKeyEvent(key as string, press as boolean) as boolean
-  result = false
+  res = false
   if press
     'bs:disable-next-line
-    if mc.isFunction(isAnyKeyPressLocked) and isAnyKeyPressLocked(key)
+    if isFunction(isAnyKeyPressLocked) and isAnyKeyPressLocked(key)
       return true
-    else if mc_isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
+    else if isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
       return true
-    else if m.vm <> invalid and mc_isFunction(m.vm.isAnyKeyPressLocked) and m.vm.isAnyKeyPressLocked(key)
+    else if m.vm <> invalid and isFunction(m.vm.isAnyKeyPressLocked) and m.vm.isAnyKeyPressLocked(key)
       return true
     else if m.isKeyPressLocked
       m.log.warn("All key presses are locked, due to isKeyPressLocked flag on ", m.top.id)
@@ -34,45 +34,45 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
     if key = "down"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressDown) then result = onKeyPressDown() else result = false
+      if isFunction(onKeyPressDown) then res = onKeyPressDown() else res = false
     else if key = "up"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressUp) then result = onKeyPressUp() else result = false
+      if isFunction(onKeyPressUp) then res = onKeyPressUp() else res = false
     else if key = "left"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressLeft) then result = onKeyPressLeft() else result = false
+      if isFunction(onKeyPressLeft) then res = onKeyPressLeft() else res = false
     else if key = "right"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressRight) then result = onKeyPressRight() else result = false
+      if isFunction(onKeyPressRight) then res = onKeyPressRight() else res = false
     else if key = "OK"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressOK) then result = onKeyPressOK() else result = false
+      if isFunction(onKeyPressOK) then res = onKeyPressOK() else res = false
     else if key = "back"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressBack) then result = onKeyPressBack() else result = false
+      if isFunction(onKeyPressBack) then res = onKeyPressBack() else res = false
     else if key = "options"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressOptions) then result = onKeyPressOptions() else result = false
+      if isFunction(onKeyPressOptions) then res = onKeyPressOptions() else res = false
     else if key = "play"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressPlay) then result = onKeyPressPlay() else result = false
+      if isFunction(onKeyPressPlay) then res = onKeyPressPlay() else res = false
     else if key = "replay"
       'bs:disable-next-line
-      if mc.isFunction(onKeyPressReplay) then result = onKeyPressReplay() else result = false
+      if isFunction(onKeyPressReplay) then res = onKeyPressReplay() else res = false
     end if
     ' else if m.longPressKey <> ""
     '   toggleLongPressTimer(0)
-    '   result = true
+    '   res = true
   end if
 
-  if result = invalid
-    result = false
+  if res = invalid
+    res = false
   end if
 
-  if result and press
+  if res and press
 
     'bs:disable-next-line
-    if mc.isFunction(getLongPressIntervalForKey) then longPressInterval = getLongPressIntervalForKey(key) else longPressInterval = 0
+    if isFunction(getLongPressIntervalForKey) then longPressInterval = getLongPressIntervalForKey(key) else longPressInterval = 0
     if longPressInterval > 0
       m.log.info("entering long press for key ", key)
       m.longPressKey = key
@@ -80,23 +80,23 @@ function onKeyEvent(key as string, press as boolean) as boolean
     end if
   else
     'bs:disable-next-line
-    result = mc.isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
+    res = isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
   end if
 
-  if result = false and m.vm <> invalid
-    result = m.vm.onKeyEvent(key, press)
+  if res = false and m.vm <> invalid
+    res = m.vm.onKeyEvent(key, press)
   end if
-  if result = false and m.onKeyEvent <> invalid
-    result = m.onKeyEvent(key, press)
+  if res = false and m.onKeyEvent <> invalid
+    res = m.onKeyEvent(key, press)
   end if
 
-  return result
+  return res
 end function
 
 function toggleLongPressTimer(interval as float)
   if interval > 0
     if m.longPressTimer = invalid
-      m.longPressTimer = mc.private.getMaestroPooledComponent("Timer")
+      m.longPressTimer = private.getMaestroPooledComponent("Timer")
     end if
     m.longPressTimer.duration = interval
     m.longPressTimer.repeat = true
@@ -107,14 +107,14 @@ function toggleLongPressTimer(interval as float)
       m.longPressTimer.unobserveFieldScoped("fire")
       m.longPressTimer.control = "stop"
       m.longPressTimer.repeat = false
-      mc.private.releaseMaestroPooledComponent(m.longPressTimer)
+      private.releaseMaestroPooledComponent(m.longPressTimer)
       m.longPressTimer = invalid
     end if
 
     if m.longPressKey <> ""
       m.log.info("finishing longPress on key ", m.longPressKey)
       'bs:disable-next-line
-      if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
+      if m.isLongPressStarted and isFunction(onLongPressFinish)
         'bs:disable-next-line
         onLongPressFinish(m.longPressKey)
       end if
@@ -127,11 +127,11 @@ end function
 function onLongPressTimerFire()
   if m.isLongPressStarted
     'bs:disable-next-line
-    if mc.isFunction(onLongPressUpdate)
+    if isFunction(onLongPressUpdate)
       'bs:disable-next-line
       if not onLongPressUpdate(m.longPressKey)
         m.log.info("long press was cancelled by the onLongPressUpdate call")
-        if mc.isFunction(toggleLongPressTimer)
+        if isFunction(toggleLongPressTimer)
           toggleLongPressTimer(0)
         end if
       else
@@ -141,7 +141,7 @@ function onLongPressTimerFire()
     end if
   else
     'bs:disable-next-line
-    if mc.isFunction(onLongPressStart) and not onLongPressStart(m.longPressKey)
+    if isFunction(onLongPressStart) and not onLongPressStart(m.longPressKey)
       m.log.info("long press was rejected by onLongPressStart call")
       toggleLongPressTimer(0)
     else

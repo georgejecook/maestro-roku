@@ -3,9 +3,9 @@ import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/core/DebugTimer.bs"
 
-namespace ml.sample
-  @node("TeamScreen", "mv_BaseScreen")
-  class TeamScreen extends mv.BaseScreen
+namespace list.sample
+  @node("TeamScreen", "BaseScreen")
+  class TeamScreen extends view.BaseScreen
 
     'views
     private list
@@ -17,15 +17,15 @@ namespace ml.sample
     private defaultCellType = "ml_SimpleCell"
 
     'state
-    public componentPool as mc.types.Node
+    public componentPool as types.Node
     private contentId = 0
     private rowSettings
     private focusSettings
     private cellSettings
     private loadingIndicator
-    private favoriteModule as mc.types.node
-    private followingModule as mc.types.node
-    private teamsModule as mc.types.node
+    private favoriteModule as types.node
+    private followingModule as types.node
+    private teamsModule as types.node
     private scrollSpeed = 0.75
 
     function new()
@@ -40,7 +40,7 @@ namespace ml.sample
       m.button = m.createSGNode("Button", m.top, "button", {
         title: "focus me"
       })
-      m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      m.bgRect = m.createSGNode("Rectangle", m.top, "bgRect", {
         translation: translation
         size: size
         color: "#6a307d"
@@ -53,29 +53,29 @@ namespace ml.sample
         width: size[0]
         height: size[1]
       })
-      mioc.setInstance("list", m.list)
+      ioc.setInstance("list", m.list)
       m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
         isActive: true
         width: 1920
         height: 1080
         backgroundVisible: false
       })
-      ml.delegateMixin.setListDelegate(m.list)
+      list.delegateMixin.setListDelegate(m.list)
       m.onResetChange()
     end function
 
     private function onResetChange()
       m.list.content = invalid
-      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
+      m.cellSettings = list.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
 
-      timer = new mc.utils.DebugTimer("list")
-      m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
-      listSettings = ml.listMixin.createListSettings(-1, -1)
+      timer = new utils.DebugTimer("list")
+      m.rowSettings = list.listMixin.createRowSettings(m.cellSettings, invalid, 30)
+      listSettings = list.listMixin.createListSettings(-1, -1)
       listSettings.rowCreationStrategy = "async"
       listSettings.rowCreationBatchSize = 10
       listSettings.rowCreationBatchDelay = 0.1
-      focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed)
-      content = ml.listMixin.createListContent(focusSettings, m.rowSettings, listSettings)
+      focusSettings = list.listMixin.createFocusSettings(m.scrollSpeed)
+      content = list.listMixin.createListContent(focusSettings, m.rowSettings, listSettings)
       items = m.createData(),
       timer.log("makeData")
       m.setFocus(m.loadingIndicator)
@@ -103,14 +103,14 @@ namespace ml.sample
 
     private function createData()
       content = []
-      rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
+      rowFocusSettings = list.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-20, -20, 20, 20])
       showHero = true
-      headerSettings = ml.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
+      headerSettings = list.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "FAVORITE TEAM"
       row.id = rnd(2147483647).toStr()
-      cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 30)
-      row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
+      cellSettings = list.listMixin.createCellSettings(m.defaultCellType, [307, 200], 30)
+      row.settings = list.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
       row.settings.contentOffset = [200, 0]
       numItems = 1
       content.push(row)
@@ -120,8 +120,8 @@ namespace ml.sample
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "FOLLOWING"
       row.id = rnd(2147483647).toStr()
-      cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
-      row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
+      cellSettings = list.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
+      row.settings = list.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
       row.settings.contentOffset = [200, 0]
       numItems = 5
       content.push(row)
@@ -131,12 +131,12 @@ namespace ml.sample
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "TEAMS"
       row.id = rnd(2147483647).toStr()
-      cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
-      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", invalid, "underneath", "fixed")
+      cellSettings = list.listMixin.createCellSettings("LongCell", [1192, 144], 40)
+      gridFocusSettings = list.listMixin.createFocusSettings(m.scrollSpeed, "floating", invalid, "underneath", "fixed")
       gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
       gridFocusSettings.feedbackColor = "#aaaaaa"
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 100, 1, 144, 4, 150)
-      ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
+      row.settings = list.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 100, 1, 144, 4, 150)
+      ' row.settings = list.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
       row.settings.contentOffset = [200, 30]
       numItems = 20
       content.push(row)
@@ -153,7 +153,7 @@ namespace ml.sample
       return items
     end function
 
-    private function makeItem(cellType as string, title as string) as mc.types.node
+    private function makeItem(cellType as string, title as string) as types.node
       child = createObject("roSGNode", "ContentNode")
       id = str(m.contentId).trim()
       ' child.id = rnd(2147483647).toStr()
@@ -253,7 +253,7 @@ namespace ml.sample
 
     private function selectFavorite()
       team = m.followingModule.getChild(0)
-      ? "selected fave>>>>>:"; mc.dv(team)
+      ? "selected fave>>>>>:"; dv(team)
       m.teamsModule@.setNotificationsEnabled(false)
       m.favoriteModule@.clear()
       if team <> invalid
@@ -292,7 +292,7 @@ namespace ml.sample
 
     private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
       ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-      mioc.setInstance("focusedIndex", {
+      ioc.setInstance("focusedIndex", {
         row: rowIndex
         cell: itemIndex
       })
@@ -300,7 +300,7 @@ namespace ml.sample
 
     private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
       ' ? "+SCREEN onCellWillLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-      mioc.setInstance("focusedIndex", {
+      ioc.setInstance("focusedIndex", {
         row: rowIndex
         cell: itemIndex
       })
@@ -308,7 +308,7 @@ namespace ml.sample
 
     private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
       ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-      mioc.setInstance("focusedIndex", {
+      ioc.setInstance("focusedIndex", {
         row: rowIndex
         cell: itemIndex
       })
@@ -336,12 +336,12 @@ namespace ml.sample
 
       row = m.list@.getRowRenderer(rowIndex)
       if row <> invalid
-        mioc.setInstance("focusedIndex", {
+        ioc.setInstance("focusedIndex", {
           row: rowIndex
           cell: row.focusedCellIndex
         })
       else
-        mioc.setInstance("focusedIndex", {
+        ioc.setInstance("focusedIndex", {
           row: -1
           cell: -1
         })

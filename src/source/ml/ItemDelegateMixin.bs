@@ -1,4 +1,4 @@
-namespace ml.itemDelegateMixin
+namespace list.itemDelegateMixin
 
   ' wires up a cell, or row (or some other list item) to method handlers for the delegate events it may receive. This should be used to add listeners to a cell, or a row renderer. You are free to just simply use the events, that come in onListEventMap, as well.
   ' @param {class} instance - target for the delegate; if invalid, then it will default to the methods on node scope
@@ -27,11 +27,11 @@ namespace ml.itemDelegateMixin
       }
 
       for each funcName in funcMap
-        if mc_isFunction(instance[funcName])
+        if isFunction(instance[funcName])
           m.listEventMap[funcMap[funcName]] = funcName
         end if
       end for
-      if mc_isFunction(instance["onScrollingChange"])
+      if isFunction(instance["onScrollingChange"])
         m.listEventMap["scrollStart"] = "onScrollingChange"
         m.listEventMap["scrollStop"] = "onScrollingChange"
       end if
@@ -42,9 +42,9 @@ namespace ml.itemDelegateMixin
     if m.isObservingListEvents
       m.listItemDelegate = instance
       'bs:disable-next-line
-      mc.toggleObserver(m.top, "listEvent", mc.getFunctionName(onListEventBridge))
+      toggleObserver(m.top, "listEvent", getFunctionName(onListEventBridge))
     else
-      mc.toggleObserver(m.top, "listEvent")
+      toggleObserver(m.top, "listEvent")
     end if
   end function
 

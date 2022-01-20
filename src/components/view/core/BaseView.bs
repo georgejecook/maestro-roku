@@ -4,7 +4,7 @@ import "pkg:/components/view/mixin/FocusMixin.bs"
 import "pkg:/components/view/mixin/KeyMixin.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/ViewUtils.bs"
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/core/Types-Polyfill.bs"
 
 ' /**
@@ -13,7 +13,7 @@ import "pkg:/source/core/Types-Polyfill.bs"
 '  */
 function init() as void
   m.log = new log.Logger(getViewName())
-  mioc.initialize()
+  ioc.initialize()
   m.top.observeFieldScoped("isFocused", "onIsFocusedChange")
   m.top.observeFieldScoped("isChildFocused", "onIsChildFocusedChange")
 
@@ -30,8 +30,8 @@ function getViewName()
 end function
 
 function onDebugMChange()
-  mc.setOrAddNodeField(m.top, "__m", m)
-  mc.setOrAddNodeField(m.top, "__vm", m.vm)
+  setOrAddNodeField(m.top, "__m", m)
+  setOrAddNodeField(m.top, "__vm", m.vm)
 end function
 
 ' /**
@@ -42,9 +42,9 @@ end function
 '  * @description initializes the passed in View
 '  * @param {BaseView} the view to initialize
 '  */
-function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray) as void
-  if view <> invalid
-    view@._initialize(args)
+function initializeView(v as types.node, args = invalid as types.assocarray) as void
+  if v <> invalid
+    v@._initialize(args)
   else
     m.log.error("view is invalid!")
   end if
@@ -68,7 +68,7 @@ end function
 '++ Lifecycle methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _onShow(args as mc.types.assocarray) as void
+function _onShow(args as types.assocarray) as void
   ' ? ">> base VIEW _OnShow " ; m.top.id ; " isShown " ; m.top.isShown
   oldIsShowing = m.top.isShown
   if not m.top.isInitialized
@@ -78,7 +78,7 @@ function _onShow(args as mc.types.assocarray) as void
 
   if not m.wasShown
     'bs:disable-next-line
-    if mc.isFunction(onFirstShow)
+    if isFunction(onFirstShow)
       'bs:disable-next-line
       onFirstShow()
     end if
@@ -94,7 +94,7 @@ function _onShow(args as mc.types.assocarray) as void
 
   if oldIsShowing <> m.top.isShown
     'bs:disable-next-line
-    if mc.isFunction(onShow)
+    if isFunction(onShow)
       'bs:disable-next-line
       onShow()
     end if
@@ -108,11 +108,11 @@ function _onShow(args as mc.types.assocarray) as void
   end if
 end function
 
-function _onHide(args as mc.types.assocarray)
+function _onHide(args as types.assocarray)
   if m.wasShown
     m.top.isShown = false
     'bs:disable-next-line
-    if mc.isFunction(onHide)
+    if isFunction(onHide)
       'bs:disable-next-line
       onHide()
     end if
@@ -129,7 +129,7 @@ function _onHide(args as mc.types.assocarray)
   end if
 end function
 
-function _initialize(args = invalid as mc.types.assocarray)
+function _initialize(args = invalid as types.assocarray)
   if not m.top.isInitialized
     m.top.isInitialized = true
     initialize(args)
@@ -137,12 +137,12 @@ function _initialize(args = invalid as mc.types.assocarray)
       m._initialize()
     end if
     'bs:disable-next-line
-    if m.pendingCallbacks <> invalid and m.pendingCallbacks.count() > 0 and mc.isFunction(executePendingCallbacks)
+    if m.pendingCallbacks <> invalid and m.pendingCallbacks.count() > 0 and isFunction(executePendingCallbacks)
       'bs:disable-next-line
       executePendingCallbacks()
     end if
     'bs:disable-next-line
-    if mc.isFunction(m_createVM)
+    if isFunction(m_createVM)
       'bs:disable-next-line
       m_createVM()
     end if
@@ -155,19 +155,19 @@ function _initialize(args = invalid as mc.types.assocarray)
   end if
 end function
 
-function onAddedToAggregateView(view as mc.types.node)
+function onAddedToAggregateView(v as types.node)
   if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
-    m.vm.onAddedToAggregateView(view)
+    m.vm.onAddedToAggregateView(v)
   else if m.onAddedToAggregateView <> invalid
-    m.onAddedToAggregateView(view)
+    m.onAddedToAggregateView(v)
   end if
 end function
 
-function onRemovedFromAggregateView(view as mc.types.node)
+function onRemovedFromAggregateView(v as types.node)
   if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
-    m.vm.onRemovedFromAggregateView(view)
+    m.vm.onRemovedFromAggregateView(v)
   else if m.onRemovedFromAggregateView <> invalid
-    m.onRemovedFromAggregateView(view)
+    m.onRemovedFromAggregateView(v)
   end if
 end function
 
@@ -177,7 +177,7 @@ end function
 
 function onIsFocusedChange()
   if m.global.focusManager.isLogging
-    m.log.verbose("m.top.isFocused", m.top.isFocused, mc.dv(m.top))
+    m.log.verbose("m.top.isFocused", m.top.isFocused, dv(m.top))
   end if
 
   if m.top.isFocused
@@ -189,7 +189,7 @@ end function
 
 function onIsChildFocusedChange()
   if m.global.focusManager.isLogging
-    m.log.verbose("m.top.isChildFocused", m.top.isChildFocused, mc.dv(m.top))
+    m.log.verbose("m.top.isChildFocused", m.top.isChildFocused, dv(m.top))
   end if
 
   if m.top.isChildFocused
@@ -224,7 +224,7 @@ function onGainedFocus(isSelfFocused as boolean)
       end if
 
       'bs:disable-next-line
-      if mc.isFunction(mx_onFocusIdChange)
+      if isFunction(mx_onFocusIdChange)
         'bs:disable-next-line
         mx_onFocusIdChange(m.vm.focusId)
       end if
@@ -270,7 +270,7 @@ end function
 
 function callVMFunc(funcName as string, p1 = "#M_NONE#" as dynamic, p2 = "#M_NONE#" as dynamic, p3 = "#M_NONE#" as dynamic)
   if m.vm <> invalid
-    return mc.callAAFunc(m.vm, funcName, p1, p2, p3)
+    return callAAFunc(m.vm, funcName, p1, p2, p3)
   else
     return m.callAAFunc(m, funcName, p1, p2, p3)
   end if
@@ -280,5 +280,5 @@ end function
 '++ abstract lifecycle methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as types.assocarray)
 end function

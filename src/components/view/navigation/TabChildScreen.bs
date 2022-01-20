@@ -13,7 +13,7 @@ end function
 '++ Public API
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function reset(args = invalid as mc.types.assocarray)
+function reset(args = invalid as types.assocarray)
   m.log.method("reset")
   resetNavControllerToRoot()
 
@@ -22,7 +22,7 @@ function reset(args = invalid as mc.types.assocarray)
   end if
 
   if m.top.hasFocus()
-    mv.setFocus(m.top.navController)
+    view.setFocus(m.top.navController)
   end if
 end function
 
@@ -53,7 +53,7 @@ function onKeyPressBack() as boolean
 
   if m.top.navController.numberOfViews > 1
     pop()
-    mv.setFocus(m.top.navController)
+    view.setFocus(m.top.navController)
     return true
   end if
 
@@ -84,6 +84,6 @@ end function
 function onGainedFocus(isSelfFocused as boolean)
   ' m.log.method("onGainedFocus ", isSelfFocused)
   if isSelfFocused
-    mv.setFocus(m.top.navController)
+    view.setFocus(m.top.navController)
   end if
 end function

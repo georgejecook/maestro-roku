@@ -1,6 +1,6 @@
 namespace tests
   @suite("StyleManager tests")
-  class StyleManagerTests extends mv.tests.BaseTestSuite
+  class StyleManagerTests extends view.tests.BaseTestSuite
 
     private manager
     private nodeGlobal
@@ -19,7 +19,7 @@ namespace tests
     protected override function beforeEach()
       m.nodeGlobal = new rooibos.utils.MockNode()
       m.nodeTop = new rooibos.utils.MockNode()
-      m.manager = new mv.StyleManager()
+      m.manager = new view.StyleManager()
       m.manager.setStyleJson(m.testData)
     end function
 
@@ -29,7 +29,7 @@ namespace tests
 
     @it("initializes")
     function _()
-      m.manager = new mv.StyleManager()
+      m.manager = new view.StyleManager()
       m.assertEmpty(m.manager.styles)
       m.assertEmpty(m.manager.cachedStyles)
     end function
@@ -166,7 +166,7 @@ namespace tests
 
       m.nodeGlobal = new rooibos.utils.MockNode()
       m.nodeTop = new rooibos.utils.MockNode()
-      m.manager = new mv.StyleManager()
+      m.manager = new view.StyleManager()
       m.manager.setStyleJson(m.testData)
     end function
 
@@ -370,7 +370,7 @@ namespace tests
 
       m.assertEqual(bundle.views[0], {
         "id": "logoPoster",
-        "_type": "mv_Poster",
+        "_type": "Poster",
         "size": [
           137,
           80
@@ -387,7 +387,7 @@ namespace tests
       })
       m.assertEqual(bundle.views[2], {
         "id": "emailInput",
-        "_type": "mv_TextInput",
+        "_type": "TextInput",
         "size": [
           610,
           102
@@ -429,7 +429,7 @@ namespace tests
 
 
       expected = lcase(formatJson({
-        "_type": "mv_Poster"
+        "_type": "Poster"
         "id": "logoPoster"
         "loadDisplayMode": "limitSize"
         "loadHeight": 80
@@ -441,7 +441,7 @@ namespace tests
       }))
       m.assertEqual(lcase(formatJson(englishBundle.views[0])), expected)
       m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[0])), lcase(formatJson({
-        "_type": "mv_TextInput"
+        "_type": "TextInput"
         "hintText": "Password"
         "id": "passwordInput"
         "isHandlingSelection": false
@@ -449,7 +449,7 @@ namespace tests
         "translation": [200, 482]
       })))
       m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[3]._children[1])), lcase(formatJson({
-        "_type": "mv_Label"
+        "_type": "Label"
         "color": "#000000"
         "fontKey": "SystemBold,30"
         "id": "forgotText_1"
@@ -458,7 +458,7 @@ namespace tests
       })))
 
       m.assertEqual(lcase(formatJson(frenchBundle.views[0])), lcase(formatJson({
-        "_type": "mv_Poster",
+        "_type": "Poster",
         "id": "logoPoster",
         "loadDisplayMode": "limitSize",
         "loadHeight": 200,
@@ -469,17 +469,17 @@ namespace tests
         "uri": "pkg:/images/sign-in-logo-fr-$$RES$$.png"
       })))
       m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[0])), lcase(formatJson({
-        "_type": "mv_TextInput"
+        "_type": "TextInput"
         "hintText": "le mot de passe"
         "id": "passwordInput"
         "isHandlingSelection": false
         "size": [400, 72]
         "translation": [200, 482]
       })))
-      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[3]._children[1])), lcase(formatJson({ "_type": "mv_label", "color": "#000000", "fontkey": "systembold,30", "id": "forgottext_1", "size": [0, 0], "text": "org.com/forgot-fr"
+      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[3]._children[1])), lcase(formatJson({ "_type": "label", "color": "#000000", "fontkey": "systembold,30", "id": "forgottext_1", "size": [0, 0], "text": "org.com/forgot-fr"
       })))
 
-      m.assertEqual(lcase(formatJson(germanBundle.views[0])), lcase(formatJson({ "_type": "mv_poster"
+      m.assertEqual(lcase(formatJson(germanBundle.views[0])), lcase(formatJson({ "_type": "poster"
         "id": "logoposter"
         "loaddisplaymode": "limitsize"
         "loadheight": 80
@@ -490,7 +490,7 @@ namespace tests
         "uri": "pkg:/images/sign-in-logo-de-$$res$$.png"
       })))
       m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[0])), lcase(formatJson({
-        "_type": "mv_TextInput"
+        "_type": "TextInput"
         "hintText": "Passwort"
         "id": "passwordInput"
         "isHandlingSelection": false
@@ -498,7 +498,7 @@ namespace tests
         "translation": [200, 482]
       })))
       m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[3]._children[1])), lcase(formatJson({
-        "_type": "mv_label"
+        "_type": "label"
         "color": "#000000"
         "fontkey": "systembold,30"
         "id": "forgottext_1"
@@ -527,7 +527,7 @@ namespace tests
       m.assertNotEqual(frenchBundle, germanBundle)
 
       expected = lcase(formatJson({
-        "_type": "mv_Poster"
+        "_type": "Poster"
         "id": "logoPoster"
         "loadDisplayMode": "limitSize"
         "loadHeight": 80
@@ -539,7 +539,7 @@ namespace tests
       }))
       m.assertEqual(lcase(formatJson(englishBundle.views[0])), expected)
       m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[0])), lcase(formatJson({
-        "_type": "mv_TextInput"
+        "_type": "TextInput"
         "hintText": "Password"
         "id": "passwordInput"
         "isHandlingSelection": false
@@ -547,7 +547,7 @@ namespace tests
         "translation": [200, 482]
       })))
       m.assertEqual(lcase(formatJson(englishBundle.views[3]._children[3]._children[1])), lcase(formatJson({
-        "_type": "mv_Label"
+        "_type": "Label"
         "color": "#000000"
         "fontKey": "SystemBold,30"
         "id": "forgotText_1"
@@ -556,7 +556,7 @@ namespace tests
       })))
 
       m.assertEqual(lcase(formatJson(frenchBundle.views[0])), lcase(formatJson({
-        "_type": "mv_Poster",
+        "_type": "Poster",
         "id": "logoPoster",
         "loadDisplayMode": "limitSize",
         "loadHeight": 200,
@@ -567,17 +567,17 @@ namespace tests
         "uri": "pkg:/images/sign-in-logo-fr-$$RES$$.png"
       })))
       m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[0])), lcase(formatJson({
-        "_type": "mv_TextInput"
+        "_type": "TextInput"
         "hintText": "le mot de passe"
         "id": "passwordInput"
         "isHandlingSelection": false
         "size": [400, 72]
         "translation": [200, 482]
       })))
-      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[3]._children[1])), lcase(formatJson({ "_type": "mv_label", "color": "#000000", "fontkey": "systembold,30", "id": "forgottext_1", "size": [0, 0], "text": "org.com/forgot-fr"
+      m.assertEqual(lcase(formatJson(frenchBundle.views[3]._children[3]._children[1])), lcase(formatJson({ "_type": "label", "color": "#000000", "fontkey": "systembold,30", "id": "forgottext_1", "size": [0, 0], "text": "org.com/forgot-fr"
       })))
 
-      m.assertEqual(lcase(formatJson(germanBundle.views[0])), lcase(formatJson({ "_type": "mv_poster"
+      m.assertEqual(lcase(formatJson(germanBundle.views[0])), lcase(formatJson({ "_type": "poster"
         "id": "logoposter"
         "loaddisplaymode": "limitsize"
         "loadheight": 80
@@ -588,7 +588,7 @@ namespace tests
         "uri": "pkg:/images/sign-in-logo-de-$$res$$.png"
       })))
       m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[0])), lcase(formatJson({
-        "_type": "mv_TextInput"
+        "_type": "TextInput"
         "hintText": "Passwort"
         "id": "passwordInput"
         "isHandlingSelection": false
@@ -596,7 +596,7 @@ namespace tests
         "translation": [200, 482]
       })))
       m.assertEqual(lcase(formatJson(germanBundle.views[3]._children[3]._children[1])), lcase(formatJson({
-        "_type": "mv_label"
+        "_type": "label"
         "color": "#000000"
         "fontkey": "systembold,30"
         "id": "forgottext_1"

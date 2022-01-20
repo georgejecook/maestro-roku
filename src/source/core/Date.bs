@@ -1,47 +1,45 @@
-namespace mc
-  class Date
+class Date
 
-    private date = CreateObject("roDateTime")
+  private date = CreateObject("roDateTime")
 
-    public function new(seconds = invalid as integer, isoDate = invalid as string)
-      if seconds <> invalid
-        m.setSeconds(seconds)
-      else if isoDate <> invalid
-        m.date.fromISO8601String(isoDate)
-      else
-        m.date.mark()
-      end if
-    end function
+  public function new(seconds = invalid as integer, isoDate = invalid as string)
+    if seconds <> invalid
+      m.setSeconds(seconds)
+    else if isoDate <> invalid
+      m.date.fromISO8601String(isoDate)
+    else
+      m.date.mark()
+    end if
+  end function
 
-    public function getSeconds()
-      return m.date.asSeconds()
-    end function
+  public function getSeconds()
+    return m.date.asSeconds()
+  end function
 
-    public function setSeconds(seconds as integer)
-      m.date.fromSeconds(seconds)
-    end function
+  public function setSeconds(seconds as integer)
+    m.date.fromSeconds(seconds)
+  end function
 
-    public function getSecondsSince(otherTimeInSeconds as integer)
-      return m.getSeconds() - otherTimeInSeconds
-    end function
+  public function getSecondsSince(otherTimeInSeconds as integer)
+    return m.getSeconds() - otherTimeInSeconds
+  end function
 
-    public function getSecondsUntil(otherTimeInSeconds as integer)
-      return otherTimeInSeconds - m.getSeconds()
-    end function
+  public function getSecondsUntil(otherTimeInSeconds as integer)
+    return otherTimeInSeconds - m.getSeconds()
+  end function
 
-    public function getUserFriendlyDateString(format = "no-weekday" as string)
-      return m.date.asDateString(format)
-    end function
+  public function getUserFriendlyDateString(format = "no-weekday" as string)
+    return m.date.asDateString(format)
+  end function
 
-    public function mark()
-      return m.date.mark()
-    end function
+  public function mark()
+    return m.date.mark()
+  end function
 
-    public function getTimeString(update = false as boolean)
-      if update
-        m.date.mark()
-      end if
-      return `${m.date.getHours()}:${m.date.getMinutes()}`
-    end function
-  end class
-end namespace
+  public function getTimeString(update = false as boolean)
+    if update
+      m.date.mark()
+    end if
+    return `${m.date.getHours()}:${m.date.getMinutes()}`
+  end function
+end class

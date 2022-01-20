@@ -9,22 +9,22 @@ import "pkg:/source/ml/cells/BaseCell.bs"
 import "pkg:/source/view/Animation.bs"
 
 @node("LongCell", "ml_BaseCell")
-class LongCell extends ml.BaseCell
-  private poster as mc.types.node
-  private bgRect as mc.types.node
-  private label as mc.types.node
+class LongCell extends list.BaseCell
+  private poster as types.node
+  private bgRect as types.node
+  private label as types.node
 
   function new()
     super()
   end function
 
   protected override function createViews() as void
-    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+    m.bgRect = createSGNode("Rectangle", m.top, "bgRect", {
       size: [1192, 144]
       ' color: "#000000"
       visible: false
     })
-    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+    m.poster = createSGNode("Poster", m.top, "poster", {
       translation: [24, 16]
       loadingBitmapUri: "http://via.placeholder.com/80x80"
       failedBitmapUri: "http://via.placeholder.com/80x80"
@@ -34,7 +34,7 @@ class LongCell extends ml.BaseCell
       size: [80, 80]
       loadDisplayMode: "zoomToFill"
     })
-    m.label = mc.createSGNode("mv_Label", m.top, "label", {
+    m.label = createSGNode("Label", m.top, "label", {
       fontKey: "mediumBold,50"
       horizAlign: "left"
       vertAlign: "center"
@@ -44,7 +44,7 @@ class LongCell extends ml.BaseCell
     })
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onContentChange(content as types.node)
     m.poster.uri = content.HDGRIDPOSTERURL
     m.label.text = `${m.index} ${content.title}`
   end function

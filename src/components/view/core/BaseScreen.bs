@@ -9,11 +9,11 @@ import "pkg:/source/core/Types-Polyfill.bs"
 '++ nav support
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view as mc.types.node, animated = true as boolean)
+function push(v as types.node, animated = true as boolean)
   navController = getNavController()
 
   if navController <> invalid
-    navController@.push(view, animated)
+    navController@.push(v, animated)
   else
     m.log.error("Push failed - there is no navcontroller on ", m.top)
   end if
@@ -30,7 +30,7 @@ function pop(animated = true as boolean) as object
   end if
 end function
 
-function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+function replaceNavControllerScreen(targetScreen as types.node, animated = false as boolean)
   navController = getNavController()
 
   if navController <> invalid
@@ -46,7 +46,7 @@ function resetNavControllerToRoot(animated = false as boolean)
   resetNavController(invalid, 0, animated)
 end function
 
-function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+function resetNavController(newFirstScreen = invalid as types.node, endIndex = -1 as integer, animated = false as boolean)
   m.log.method("resetNavController." + m.top.id)
   navController = getNavController()
 
@@ -62,7 +62,7 @@ function getNavController()
     return m.top.navController
   else
     'might be nested in a screen; ultimately, there has to be a navcontroller somewhere
-    return mv.getFirstParentWithType(m.top, "NavController")
+    return view.getFirstParentWithType(m.top, "NavController")
   end if
 end function
 
@@ -78,7 +78,7 @@ end function
 '  * @description gets the screen at the top of this screen's sceneGraph.
 '  * @returns {BaseScreen} a screen considered as the top of this graph
 '  */
-function _getTopScreen(args = invalid as mc.types.assocarray)
+function _getTopScreen(args = invalid as types.assocarray)
   m.log.method("_getTopScreen")
   topScreen = getTopScreen()
   navController = getNavController()

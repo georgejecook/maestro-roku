@@ -1,13 +1,13 @@
 import "pkg:/source/core/BaseClass.bs"
 
-namespace ml
-  class ViewPortEventNotifier extends mc.BaseClass
+namespace list
+  class ViewPortEventNotifier extends BaseClass
     'rendered component maps
     private RCMap = {}
     private lastRCMap = {}
     private nextRCMap = {}
-    private viewManager as ml.ItemViewManager
-    private container as mc.types.node
+    private viewManager as list.ItemViewManager
+    private container as types.node
     private axes = 0
     public delegates = []
 
@@ -16,7 +16,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-    function new(viewManager as ml.ItemViewManager)
+    function new(viewManager as list.ItemViewManager)
       super("ItemScroller")
       m.viewManager = viewManager
       m.container = viewManager.container
@@ -36,7 +36,7 @@ namespace ml
     end function
 
 
-    function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
+    function notifyViewportEvents(componentInfo as list.ComponentInfo, nextComponentInfo as list.ComponentInfo, direction as integer, isMoving as boolean) as void
       if nextComponentInfo = invalid
         return
       end if
@@ -101,7 +101,7 @@ namespace ml
       end for
     end function
 
-    function setCompViewPortStatus(direction as integer, comp as mc.types.node, eventName as string, validState as string, events as mc.types.array)
+    function setCompViewPortStatus(direction as integer, comp as types.node, eventName as string, validState as string, events as types.array)
       if not comp.doesExist("_vs")
         comp.addFields({ _vs: "none" })
       end if

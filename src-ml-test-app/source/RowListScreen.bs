@@ -2,8 +2,8 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
 
-@node("RowListScreen", "mv_BaseScreen")
-class RowListScreen extends mv.BaseScreen
+@node("RowListScreen", "BaseScreen")
+class RowListScreen extends view.BaseScreen
 
   'views
   private list
@@ -28,14 +28,14 @@ class RowListScreen extends mv.BaseScreen
     translation = [0, 0]
     size = [1920, 1080]
 
-    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+    m.bgRect = m.createSGNode("Rectangle", m.top, "bgRect", {
       translation: translation
       size: size
       color: "#b286f0"
     })
     m.listHolder = m.createSGNode("Group", m.top, "listHolder")
 
-    m.list = m.createSGNode("mv_RowList", m.listHolder, "list", {
+    m.list = m.createSGNode("RowList", m.listHolder, "list", {
       translation: translation
       itemSize: [1920, 300]
       itemComponentName: "RowListCell"
@@ -47,7 +47,7 @@ class RowListScreen extends mv.BaseScreen
 
   private function onResetChange()
     m.list.content = invalid
-    ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
+    ' m.cellSettings = list.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
     content = m.createSGNode("ContentNode", invalid, "content")
     content.appendChildren(m.createRows())
     m.list.content = content
@@ -118,7 +118,7 @@ class RowListScreen extends mv.BaseScreen
 
   protected override function onShow()
     super.onShow()
-    mv.setFocus(m.list)
+    view.setFocus(m.list)
   end function
 
   protected override function onHide()
@@ -130,7 +130,7 @@ class RowListScreen extends mv.BaseScreen
     m.log.info("onGainedFocus", isSelfFocused)
 
     if isSelfFocused
-      mv.setFocus(m.list)
+      view.setFocus(m.list)
     end if
   end function
 

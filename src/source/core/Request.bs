@@ -5,7 +5,7 @@ import "pkg:/source/core/QueryStringBuilder.bs"
 
 'adapted from https://github.com/bvisin/roku-requests
 
-namespace mc.net
+namespace net
 
 class Request
     private log
@@ -17,37 +17,37 @@ class Request
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function get(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function get(url as string, params = invalid as types.assocarray, headers = invalid as types.assocarray, otherArgs = invalid as types.assocarray) as net.NetResult
       return m.executeRequest("GET", url, params, headers, otherArgs)
     end function
 
-    function post(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function post(url as string, params = invalid as types.assocarray, headers = invalid as types.assocarray, otherArgs = invalid as types.assocarray) as net.NetResult
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function delete(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function delete(url as string, params = invalid as types.assocarray, headers = invalid as types.assocarray, otherArgs = invalid as types.assocarray) as net.NetResult
       return m.executeRequest("DELETE", url, params, headers, otherArgs)
     end function
 
-    function put(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function put(url as string, params = invalid as types.assocarray, headers = invalid as types.assocarray, otherArgs = invalid as types.assocarray) as net.NetResult
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
-    function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function executeRequest(method as string, url as string, params = invalid as types.assocarray, headers = invalid as types.assocarray, otherArgs = invalid as types.assocarray) as net.NetResult
 
-      if mc.isAACompatible(otherArgs)
+      if isAACompatible(otherArgs)
         args = otherArgs
       else
         args = {}
       end if
 
-      if mc.isAACompatible(params)
+      if isAACompatible(params)
         args.params = params
       else if params <> invalid
         m.log.error("received illegal headers type", type(headers))
       end if
 
-      if mc.isAACompatible(headers)
+      if isAACompatible(headers)
         args.headers = headers
       else if headers <> invalid
         m.log.error("received illegal headers type", type(headers))
@@ -70,9 +70,9 @@ class Request
     '  * @param {string} method
     '  * @param {string} url
     '  * @param {assocarray} args - args for the request
-    '  * @returns {mc.net.NetResult} response object
+    '  * @returns {net.NetResult} response object
     '  */
-    private function runRequest(method as string, url as string, args as object) as mc.net.NetResult
+    private function runRequest(method as string, url as string, args as object) as net.NetResult
       headers = {}
       params = {}
       data = invalid
@@ -80,42 +80,42 @@ class Request
       retryCount = 1
       certificatePath = "common:/certs/ca-bundle.crt"
 
-      if mc.isAACompatible(args)
-        if mc.isAACompatible(args.params)
+      if isAACompatible(args)
+        if isAACompatible(args.params)
           params = args.params
         end if
 
-        if mc.isAACompatible(args.headers)
+        if isAACompatible(args.headers)
           headers = args.headers
         end if
 
-        if mc.isAACompatible(args.json) or mc.isArray(args.json)
+        if isAACompatible(args.json) or isArray(args.json)
           headers["Content-Type"] = "application/json"
           data = formatJson(args.json)
-        else if mc.isString(args.data)
+        else if isString(args.data)
           data = args.data
         end if
 
-        if mc.isInteger(args.timeout)
+        if isInteger(args.timeout)
           timeout = args.timeout
         end if
 
-        if mc.isInteger(args.retryCount)
+        if isInteger(args.retryCount)
           retryCount = args.retryCount
         end if
 
-        if mc.isString(args.certificatePath)
+        if isString(args.certificatePath)
           certificatePath = args.certificatePath
         end if
       end if
 
-      queryStringBuilder = new mc.net.QueryStringBuilder(params)
+      queryStringBuilder = new net.QueryStringBuilder(params)
       url = queryStringBuilder.appendToUrl(url)
 
       return m._execute(method, url, headers, data, timeout, retryCount, certificatePath)
     end function
 
-    private function _execute(method as string, url as string, headers as mc.types.assocarray, data as string, timeout as float, retryCount as integer, certificatePath as string)
+    private function _execute(method as string, url as string, headers as types.assocarray, data as string, timeout as float, retryCount as integer, certificatePath as string)
       transfer = m.createUrlTransfer(true, true, certificatePath)
       transfer.setUrl(url)
       transfer.setHeaders(headers)
@@ -209,7 +209,7 @@ class Request
       end if
     end function
 
-    private function createNetResult(responseEvent as object) as mc.net.NetResult
+    private function createNetResult(responseEvent as object) as net.NetResult
       data = invalid
       headers = invalid
       statusCode = -1
@@ -220,7 +220,7 @@ class Request
         statusCode = responseEvent.getResponseCode()
         'bs:disable-next-line
         headers = responseEvent.getResponseHeaders()
-        contentType = mc.getPath(headers, "content-type", "")
+        contentType = getPath(headers, "content-type", "")
         data = responseEvent.getString()
       end if
 
@@ -228,7 +228,7 @@ class Request
         data = parseJson(data)
       end if
 
-      return new mc.net.NetResult(statusCode, data, invalid, headers)
+      return new net.NetResult(statusCode, data, invalid, headers)
     end function
   end class
 

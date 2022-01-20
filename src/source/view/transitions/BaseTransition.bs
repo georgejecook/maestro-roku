@@ -1,15 +1,15 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Tasks.bs"
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/view/NodeClass.bs"
 import "pkg:/components/view/mixin/FocusMixin.bs"
 
-namespace mv.transitions
+namespace transitions
   ' /**
   '  * @module BaseTransition
   '  * @description BaseTransition component. extend this to create other transitions
   '  */
-  class BaseTransition extends mv.NodeClass
+  class BaseTransition extends view.NodeClass
 
     private top
     public progress = 0.0
@@ -22,7 +22,7 @@ namespace mv.transitions
       super(name)
     end function
 
-    public function execute(owner as mc.types.node, source as mc.types.node, target as mc.types.node, animated = true as boolean)
+    public function execute(owner as types.node, source as types.node, target as types.node, animated = true as boolean)
       m.owner = owner
       m.source = source
       m.target = target
@@ -64,14 +64,14 @@ namespace mv.transitions
       if m.target <> invalid
         'bs:disable-next-line
         if m.owner.isAutoFocusEnabled and (m.owner.isFocused or m.owner.isChildFocused)
-          mv.setFocus(m.target)
+          view.setFocus(m.target)
         end if
       end if
     end function
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray)
-      if view <> invalid
-        view@._initialize(args)
+    protected function initializeView(v as types.node, args = invalid as types.assocarray)
+      if v <> invalid
+        v@._initialize(args)
       else
         m.log.error("view is invalid!")
       end if

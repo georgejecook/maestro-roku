@@ -22,16 +22,16 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function changeCurrentItem(item as mc.types.node)
+function changeCurrentItem(item as types.node)
   m.log.info("changeCurrentItem", item)
 
   if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
     m.top.currentItem = item
-    view = getViewForMenuItemContent(m.top.currentItem, item.screenType <> "DeepLinkingController")
-    if view = invalid
+    v = getViewForMenuItemContent(m.top.currentItem, item.screenType <> "DeepLinkingController")
+    if v = invalid
       m.log.error("no view for item", m.top.currentItem)
     end if
-    transitionToView(view)
+    transitionToView(v)
   end if
 end function
 
@@ -39,18 +39,18 @@ end function
 '++ View management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function getViewForMenuItemContent(menuItemContent as mc.types.node, useCache = true as boolean)
+function getViewForMenuItemContent(menuItemContent as types.node, useCache = true as boolean)
   if menuItemContent = invalid
     return invalid
   end if
 
-  view = m.viewsByMenuItemId[menuItemContent.id]
+  v = m.viewsByMenuItemId[menuItemContent.id]
 
-  if view = invalid or not useCache
-    view = _createView(menuItemContent)
+  if v = invalid or not useCache
+    v = _createView(menuItemContent)
   end if
 
-  return view
+  return v
 end function
 
 function getViews()
@@ -66,12 +66,12 @@ function addExistingView(existingView as boolean)
   existingView.visible = false
 end function
 
-function _createView(menuItemContent as mc.types.node)
+function _createView(menuItemContent as types.node)
   m.log.method("createView menuItemContent.screenType", menuItemContent.screenType)
   childView = createView(menuItemContent)
 
   if childView <> invalid
-    containerView = createObject("roSGNode", "mv_TabChildScreen")
+    containerView = createObject("roSGNode", "TabChildScreen")
     containerView.rootView = childView
     containerView.id = menuItemContent.id
     childView.navController = containerView.navController
@@ -81,7 +81,7 @@ function _createView(menuItemContent as mc.types.node)
     childView.visible = false
     childView.isShown = false
 
-    ' initializeView(view)
+    ' initializeView(v)
     initializeView(containerView)
     containerView.visible = false
     return containerView
@@ -99,23 +99,23 @@ end function
 '  * @param {node} a selected menu item
 '  * @returns {BaseScreen} a screen to display in a TabChildScreen
 '  */
-function createView(menuItemContent as mc.types.node)
-  view = invalid
+function createView(menuItemContent as types.node)
+  v = invalid
 
   if menuItemContent.screenType <> "none"
-    view = createObject("roSGNode", menuItemContent.screenType)
-    if view <> invalid
-      view.id = menuItemContent.id
+    v = createObject("roSGNode", menuItemContent.screenType)
+    if v <> invalid
+      v.id = menuItemContent.id
     end if
   end if
 
-  return view
+  return v
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Lifecycle
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as types.assocarray)
   addChildViews()
 end function

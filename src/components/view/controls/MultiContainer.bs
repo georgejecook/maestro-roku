@@ -24,11 +24,11 @@ function init()
   onSizeChange()
 end function
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as types.assocarray)
   updateChildren()
 end function
 
-function updateChildren(newChildren = invalid as mc.types.array)
+function updateChildren(newChildren = invalid as types.array)
   children = []
   backgroundChildren = []
   m.container_updateTimer.control = "stop"
@@ -95,7 +95,7 @@ function onHeroOffsetChildCurrFocusRowChange(event as object)
   end if
 end function
 
-function fixRowListPosition(rowlist as mc.types.node, direction as integer, currFocusRow as mc.types.node)
+function fixRowListPosition(rowlist as types.node, direction as integer, currFocusRow as types.node)
   if m.rowListFloatingFocusPositionOffset <> 0 and direction = 1 and not m.isFloatingFocusOffsetApplied and currFocusRow > 1.5 and currFocusRow < 2.5
     ' ? "applying fix"
     m.isFloatingFocusOffsetApplied = true
@@ -158,7 +158,7 @@ function onIndexChange() as void
   if m.top.isFocused or m.top.isChildFocused
     'another ropm miss
     'bs:disable-next-line
-    mv_setFocus(child)
+    setFocus(child)
   end if
 
 end function
@@ -253,9 +253,9 @@ function onNeedsRecalculatingChange()
       y += child.boundingRect().height
     end if
 
-    mc.setOrAddNodeField(child, "heroControl", heroControl)
-    mc.setOrAddNodeField(child, "isHeroOffsetApplied", child.isHeroOffsetApplied = true)
-    mc.setOrAddNodeField(child, "_multiContainer", m.top)
+    setOrAddNodeField(child, "heroControl", heroControl)
+    setOrAddNodeField(child, "isHeroOffsetApplied", child.isHeroOffsetApplied = true)
+    setOrAddNodeField(child, "_multiContainer", m.top)
 
     if child.isHero = true
       heroControl = child
@@ -279,7 +279,7 @@ function onGainedFocus(isSelfFocused as boolean)
     if child <> invalid
       'another ropm miss here. :(
       'bs:disable-next-line
-      mv_setFocus(child)
+      setFocus(child)
     end if
   end if
 end function

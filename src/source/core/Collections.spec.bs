@@ -17,7 +17,7 @@ namespace tests
     @params({})
     @params([])
     function _(value)
-      m.assertEmpty(mc.collections.getSortedArrayByKey(value, "id"))
+      m.assertEmpty(collections.getSortedArrayByKey(value, "id"))
     end function
 
     @it("does not bork on invalid/empty keys")
@@ -30,7 +30,7 @@ namespace tests
         { id: "2" }
         { id: "3" }
       ]
-      m.assertEmpty(mc.collections.getSortedArrayByKey(arr, key))
+      m.assertEmpty(collections.getSortedArrayByKey(arr, key))
     end function
 
     @it("sorts on key")
@@ -63,8 +63,8 @@ namespace tests
           id2: "a"
         }
       ]
-      result = mc.collections.getSortedArrayByKey(arr, "id")
-      m.assertEqual(result, expected)
+      res = collections.getSortedArrayByKey(arr, "id")
+      m.assertEqual(res, expected)
     end function
 
     @it("sorts test 2")
@@ -97,8 +97,8 @@ namespace tests
           id2: "c"
         }
       ]
-      result = mc.collections.getSortedArrayByKey(arr, "id")
-      m.assertEqual(result, expected)
+      res = collections.getSortedArrayByKey(arr, "id")
+      m.assertEqual(res, expected)
     end function
 
     @it("sorts descending")
@@ -131,8 +131,8 @@ namespace tests
           id2: "a"
         }
       ]
-      result = mc.collections.getSortedArrayByKey(arr, "id", false)
-      m.assertEqual(result, expected)
+      res = collections.getSortedArrayByKey(arr, "id", false)
+      m.assertEqual(res, expected)
     end function
 
     @it("sorts on different key")
@@ -165,7 +165,7 @@ namespace tests
           id2: "c"
         }
       ]
-      m.assertEqual(mc.collections.getSortedArrayByKey(arr, "id2"), expected)
+      m.assertEqual(collections.getSortedArrayByKey(arr, "id2"), expected)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -179,11 +179,11 @@ namespace tests
     @params(2, 2)
     @params(3, -1)
     function _(index, expectedIndex)
-      i0 = mc.createSGNode("ContentNode")
-      i1 = mc.createSGNode("ContentNode")
-      i2 = mc.createSGNode("ContentNode")
+      i0 = createSGNode("ContentNode")
+      i1 = createSGNode("ContentNode")
+      i2 = createSGNode("ContentNode")
       items = [i0, i1, i2]
-      m.assertEqual(mc.collections.getArrayIndex(items, items[index]), expectedIndex)
+      m.assertEqual(collections.getArrayIndex(items, items[index]), expectedIndex)
     end function
 
     @it("gets keyed indexes")
@@ -197,7 +197,7 @@ namespace tests
       i1 = { "id": "i1" }
       i2 = { "id": "i2" }
       items = [i0, i1, i2]
-      m.assertEqual(mc.collections.getArrayIndex(items, items[index], "id"), expectedIndex)
+      m.assertEqual(collections.getArrayIndex(items, items[index], "id"), expectedIndex)
     end function
 
     @it("gets regular values")
@@ -208,7 +208,7 @@ namespace tests
     @params(["a", "b", "c"], "b", 1)
     @params(["a", "b", "c"], "c", 2)
     function _(items, value, expectedIndex)
-      m.assertEqual(mc.collections.getArrayIndex(items, value), expectedIndex)
+      m.assertEqual(collections.getArrayIndex(items, value), expectedIndex)
     end function
 
     @it("defaults to index of id, if dealing with aas")
@@ -222,7 +222,7 @@ namespace tests
       i1 = { "id": "i1" }
       i2 = { "id": "i2" }
       items = [i0, i1, i2]
-      m.assertEqual(mc.collections.getArrayIndex(items, items[index]), expectedIndex)
+      m.assertEqual(collections.getArrayIndex(items, items[index]), expectedIndex)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -260,7 +260,7 @@ namespace tests
     @params(["a", "b", "c"], "c", -2, "a")
     @params(["a", "b", "c"], "c", -3, "a")
     function _(items, value, offset, expectedValue)
-      m.assertEqual(mc.collections.getItemAtOffset(items, value, offset), expectedValue)
+      m.assertEqual(collections.getItemAtOffset(items, value, offset), expectedValue)
     end function
 
     @it("defaults to index of id, if dealing with aas")
@@ -284,7 +284,7 @@ namespace tests
       i1 = { "id": "i1" }
       i2 = { "id": "i2" }
       items = [i0, i1, i2]
-      m.assertEqual(mc.collections.getItemAtOffset(items, items[index], offset).id, expectedId)
+      m.assertEqual(collections.getItemAtOffset(items, items[index], offset).id, expectedId)
     end function
 
     @it("works with nodes")
@@ -304,11 +304,11 @@ namespace tests
     @params(2, -3, "i0")
     @params(2, 1, "i2")
     function _(index, offset, expectedId)
-      i0 = mc.createSGNode("ContentNode", invalid, "i0")
-      i1 = mc.createSGNode("ContentNode", invalid, "i1")
-      i2 = mc.createSGNode("ContentNode", invalid, "i2")
+      i0 = createSGNode("ContentNode", invalid, "i0")
+      i1 = createSGNode("ContentNode", invalid, "i1")
+      i2 = createSGNode("ContentNode", invalid, "i2")
       items = [i0, i1, i2]
-      m.assertEqual(mc.collections.getItemAtOffset(items, items[index], offset).id, expectedId)
+      m.assertEqual(collections.getItemAtOffset(items, items[index], offset).id, expectedId)
     end function
 
   end class

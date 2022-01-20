@@ -1,45 +1,45 @@
 import "pkg:/source/core/Utils.bs"
-namespace mioc
+namespace ioc
   ' /**
-  '  * @module MIOC
+  '  * @module ioc
   '  * @description Maestro IOC mixin methods. You can use this IOC container to allow for easy stubbing/mocking of data items in your app.
   '  */
 
   ' /**
   '  * @member nameOfFunction
-  '  * @memberof module:MIOC
+  '  * @memberof module:ioc
   '  * @instance
   '  * @function createContainer
   '  * @description creates an IOC container on your app. Call this as early as you can.
   '  */
   function createContainer()
-    mioc.reset()
-    m.__mioc = createObject("roSGNode", "Node")
-    mc.setOrAddNodeField(mc.getGlobal(), "__mioc", m.__mioc)
-    mc.setOrAddNodeField(mc.getScene(), "__mioc", m.__mioc)
+    ioc.reset()
+    m.__ioc = createObject("roSGNode", "Node")
+    setOrAddNodeField(getGlobal(), "__ioc", m.__ioc)
+    setOrAddNodeField(getScene(), "__ioc", m.__ioc)
 
   end function
 
   ' /**
   '  * @member nameOfFunction
-  '  * @memberof module:MIOC
+  '  * @memberof module:ioc
   '  * @instance
   '  * @function initialize
   '  * @description Called automatically to setup your scope with ioc
   '  */
   function initialize()
-    m.__mioc = mc.getGlobal().__mioc
-    if m.__mioc = invalid
+    m.__ioc = getGlobal().__ioc
+    if m.__ioc = invalid
       'in some cases (like tests, the global reference can get screwed up - fall back to scene)
-      m.__mioc = mc.getScene().__mioc
+      m.__ioc = getScene().__ioc
     end if
-    if m.__mioc = invalid
+    if m.__ioc = invalid
       m.log.error("call createContainer must be called before initializing any scopes")
     end if
   end function
 
   function reset()
-    container = mc.getGlobal().__mioc
+    container = getGlobal().__ioc
     if container <> invalid
       'bs:disable-next-line
       fields = container.getFields()
@@ -49,15 +49,15 @@ namespace mioc
       end for
       container.removeFields(fieldNames)
     end if
-    mioc.clearClassInstances()
+    ioc.clearClassInstances()
   end function
 
   function getInstance(name as string, path = invalid as string) as dynamic
-    if m.__mioc = invalid
-      mioc.initialize()
+    if m.__ioc = invalid
+      ioc.initialize()
     end if
 
-    instance = m.__mioc[name]
+    instance = m.__ioc[name]
     if instance = invalid
       m.log.warn("value", name, "was not found in IOC")
     end if
@@ -65,19 +65,19 @@ namespace mioc
     if path = invalid
       return instance
     else
-      return mc.getPath(instance, path)
+      return getPath(instance, path)
     end if
 
   end function
 
-  function setInstances(instances as mc.types.assocarray)
+  function setInstances(instances as types.assocarray)
     for each key in instances
-      mioc.setInstance(key, instances[key])
+      ioc.setInstance(key, instances[key])
     end for
   end function
   ' /**
   '  * @member setInstance
-  '  * @memberof module:MIOC
+  '  * @memberof module:ioc
   '  * @instance
   '  * @function
   '  * @description sets a node instance on the DI container
@@ -90,30 +90,30 @@ namespace mioc
       return false
     end if
 
-    if m.__mioc = invalid
-      mioc.initialize()
+    if m.__ioc = invalid
+      ioc.initialize()
     end if
 
-    if m.__mioc.doesExist(field)
-      m.__mioc[field] = instance
+    if m.__ioc.doesExist(field)
+      m.__ioc[field] = instance
     else
       newFields = {}
       newFields[field] = instance
-      m.__mioc.addfields(newFields)
+      m.__ioc.addfields(newFields)
     end if
     return true
   end function
 
   function setInstanceField(field as string, instanceField as string, value as dynamic)
-    instance = mioc.getInstance(field)
+    instance = ioc.getInstance(field)
     if instance <> invalid
-      mc.setOrAddNodeField(instanceField, value)
-      mioc.setInstance(field, instance)
+      setOrAddNodeField(instanceField, value)
+      ioc.setInstance(field, instance)
     end if
   end function
   ' /**
   '  * @member unsetInstance
-  '  * @memberof module:MIOC
+  '  * @memberof module:ioc
   '  * @instance
   '  * @function
   '  * @description sets a node instance on the DI container
@@ -121,12 +121,12 @@ namespace mioc
   '  * @returns {boolean} true if added
   '  */
   function unsetInstance(field as string)
-    if m.__mioc = invalid
-      mioc.initialize()
+    if m.__ioc = invalid
+      ioc.initialize()
     end if
 
-    if m.__mioc.doesExist(field)
-      m.__mioc.removeField(field)
+    if m.__ioc.doesExist(field)
+      m.__ioc.removeField(field)
     end if
     return true
   end function
@@ -150,7 +150,7 @@ namespace mioc
 
   ' /**
   '  * @member getClassInstance
-  '  * @memberof module:MIOC
+  '  * @memberof module:ioc
   '  * @instance
   '  * @function
   '  * @description wrapper for IOC purposes - getting the named item from the model Locator
@@ -160,11 +160,11 @@ namespace mioc
   '  * @param {boolean}  storeInstance - defaults to true
   '  * @returns {any|invalid} resource, or invalid if not found
   '  */
-  function getClassInstance(clazz as dynamic, args = [] as mc.types.assocarray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
-    if mc.isFunction(clazz)
-      instance = mioc.createClassInstance(clazz, args)
+  function getClassInstance(clazz as dynamic, args = [] as types.assocarray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+    if isFunction(clazz)
+      instance = ioc.createClassInstance(clazz, args)
       if storeInstance and instance <> invalid
-        mioc.setClassInstance(instance)
+        ioc.setClassInstance(instance)
       end if
       return instance
     end if
@@ -177,9 +177,9 @@ namespace mioc
     if m._instancesByType.doesExist(clazz)
       instance = m._instancesByType[clazz]
     else if createTypeIfNotPresent
-      instance = mioc.createClassInstance(clazz, args)
+      instance = ioc.createClassInstance(clazz, args)
       if storeInstance and instance <> invalid
-        mioc.setClassInstance(instance)
+        ioc.setClassInstance(instance)
       end if
     end if
 
@@ -187,17 +187,17 @@ namespace mioc
   end function
 
   ' @params {string|constructor} - name of class, or pointer to class constructor
-  function createClassInstance(classType as dynamic, args = [] as mc.types.array) as dynamic
+  function createClassInstance(classType as dynamic, args = [] as types.array) as dynamic
 
-    if mc.isFunction(classType)
-      return mc_apply(classType, args)
+    if isFunction(classType)
+      return apply(classType, args)
     end if
 
     'bs:disable-next-line
     clazz = mr_getClass(classType)
 
-    if mc_isFunction(clazz)
-      return mc_apply(clazz, args)
+    if isFunction(clazz)
+      return apply(clazz, args)
     else
       if type(m.top) = "roSGNode"
         subType = m.top.subtype()
@@ -216,24 +216,24 @@ namespace mioc
   end function
 end namespace
 
-namespace mioc.testing
+namespace ioc.testing
 
-  function setContainer(container as mc.types.assocarray)
-    mioc.testing.unset__mioc()
-    m.__mioc = container
-    mc.setOrAddNodeField(mc.getGlobal(), "__mioc", m.__mioc)
-    mc.setOrAddNodeField(mc.getScene(), "__mioc", m.__mioc)
+  function setContainer(container as types.assocarray)
+    ioc.testing.unset__ioc()
+    m.__ioc = container
+    setOrAddNodeField(getGlobal(), "__ioc", m.__ioc)
+    setOrAddNodeField(getScene(), "__ioc", m.__ioc)
   end function
 
-  function unset__mioc()
-    m.__mioc = invalid
-    mc.getGlobal().delete("__mioc")
+  function unset__ioc()
+    m.__ioc = invalid
+    getGlobal().delete("__ioc")
   end function
 
-  function createMockClassInstance(classname as string, id as string, fields = {} as mc.types.assocarray) as dynamic
+  function createMockClassInstance(classname as string, id as string, fields = {} as types.assocarray) as dynamic
     instance = { "id": id, "__classname": classname }
     instance.append(fields)
-    mioc.setClassInstance(instance)
+    ioc.setClassInstance(instance)
     return instance
   end function
 

@@ -1,119 +1,117 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "Serialization.bs"
 
-namespace mc
-  class Registry
+class Registry
 
-    private log = new log.Logger("Registry")
-    '
-    ' Read and deserialize to a native type
-    public function read(sectionName as string, key as string) as dynamic
-      sectionName = lcase(sectionName)
-      key = lcase(key)
+  private log = new log.Logger("Registry")
+  '
+  ' Read and deserialize to a native type
+  public function read(sectionName as string, key as string) as dynamic
+    sectionName = lcase(sectionName)
+    key = lcase(key)
+    section = createObject("roRegistrySection", sectionName)
+
+    if section.exists(key)
+      return parseJson(section.read(key))
+    else
+      return invalid
+    end if
+  end function
+
+  public function write(sectionName as string, key as string, value as dynamic) as void
+    sectionName = lcase(sectionName)
+    key = lcase(key)
+    reg = createObject("roRegistry")
+    section = createObject("roRegistrySection", sectionName)
+    section.write(key, formatJson(value))
+    section.flush()
+    reg.flush()
+  end function
+
+
+  public function delete(sectionName as string, key as string) as void
+    sectionName = lcase(sectionName)
+    key = lcase(key)
+    section = createObject("roRegistrySection", sectionName)
+    if section.exists(key)
+      section.delete(key)
+    end if
+  end function
+
+  public function readAll() as object
+    reg = createObject("roRegistry")
+    sections = reg.getSectionList()
+    data = {}
+
+    for each sectionName in sections
       section = createObject("roRegistrySection", sectionName)
+      keys = section.getKeyList()
+      sectionData = {}
 
-      if section.exists(key)
-        return parseJson(section.read(key))
-      else
-        return invalid
-      end if
-    end function
+      for each k in keys
+        sectionData[k] = parseJson(section.read(k))
+      end for
+      data[sectionName] = sectionData
+    end for
 
-    public function write(sectionName as string, key as string, value as dynamic) as void
-      sectionName = lcase(sectionName)
-      key = lcase(key)
-      registry = createObject("roRegistry")
-      section = createObject("roRegistrySection", sectionName)
-      section.write(key, formatJson(value))
-      section.flush()
-      registry.flush()
-    end function
+    return data
+  end function
 
+  public function writeAll(data as object) as void
+    reg = createObject("roRegistry")
 
-    public function delete(sectionName as string, key as string) as void
-      sectionName = lcase(sectionName)
-      key = lcase(key)
-      section = createObject("roRegistrySection", sectionName)
-      if section.exists(key)
-        section.delete(key)
-      end if
-    end function
+    if data <> invalid and type(data) = "roAssociativeArray"
 
-    public function readAll() as object
-      registry = createObject("roRegistry")
-      sections = registry.getSectionList()
-      data = {}
-
-      for each sectionName in sections
+      for each sectionName in data
+        sectionData = data[sectionName]
+        sectionName = lcase(`${sectionName}`)
         section = createObject("roRegistrySection", sectionName)
-        keys = section.getKeyList()
-        sectionData = {}
 
-        for each k in keys
-          sectionData[k] = parseJson(section.read(k))
-        end for
-        data[sectionName] = sectionData
+        if sectionData <> invalid and type(sectionData) = "roAssociativeArray"
+
+          for each key in sectionData
+            value = sectionData[key]
+            key = lcase(`${key}`)
+            section.write(key, formatJson(value))
+          end for
+
+        end if
+        section.flush()
+
       end for
 
-      return data
-    end function
+    end if
 
-    public function writeAll(data as object) as void
-      registry = createObject("roRegistry")
+    reg.flush()
+  end function
 
-      if data <> invalid and type(data) = "roAssociativeArray"
+  public function deleteAll() as void
+    reg = createObject("roRegistry")
+    sections = reg.getSectionList()
 
-        for each sectionName in data
-          sectionData = data[sectionName]
-          sectionName = lcase(`${sectionName}`)
-          section = createObject("roRegistrySection", sectionName)
+    for each sectionName in sections
+      reg.delete(sectionName)
+    end for
+  end function
 
-          if sectionData <> invalid and type(sectionData) = "roAssociativeArray"
-
-            for each key in sectionData
-              value = sectionData[key]
-              key = lcase(`${key}`)
-              section.write(key, formatJson(value))
-            end for
-
-          end if
-          section.flush()
-
-        end for
-
-      end if
-
-      registry.flush()
-    end function
-
-    public function deleteAll() as void
-      registry = createObject("roRegistry")
-      sections = registry.getSectionList()
-
-      for each sectionName in sections
-        registry.delete(sectionName)
-      end for
-    end function
-
-    function writeSerializable(section as string, key as string, serializable as object) as boolean
-      data = mc.utils.Serialization.serialize(serializable)
-      if data <> invalid
-        m.write(section, key, data)
-        return true
-      else
-        m.log.warn("asked to write from non-serializebale object")
-        return false
-      end if
-    end function
-
-    function readSerializable(section as string, key as string, serializable = invalid as object) as dynamic
-      if mc.utils.Serialization.isSerializable(serializable) or serializable = invalid
-        data = m.read(section, key)
-        return mc.utils.Serialization.deSerialize(data, serializable)
-      else
-        m.log.warn("asked to read into non-serializebale object")
-      end if
+  function writeSerializable(section as string, key as string, serializable as object) as boolean
+    data = utils.Serialization.serialize(serializable)
+    if data <> invalid
+      m.write(section, key, data)
+      return true
+    else
+      m.log.warn("asked to write from non-serializebale object")
       return false
-    end function
-  end class
-end namespace
+    end if
+  end function
+
+  function readSerializable(section as string, key as string, serializable = invalid as object) as dynamic
+    if utils.Serialization.isSerializable(serializable) or serializable = invalid
+      data = m.read(section, key)
+      return utils.Serialization.deSerialize(data, serializable)
+    else
+      m.log.warn("asked to read into non-serializebale object")
+    end if
+    return false
+  end function
+end class

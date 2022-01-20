@@ -1,10 +1,9 @@
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 
-namespace mc
-
+namespace private
   ' all purpose component pool that can store any kind of components for reuse
-  @node("mc_ComponentPool", "Group")
+  @node("ComponentPool", "Group")
   class ComponentPool
 
     @observer("onDebugMChange")
@@ -40,7 +39,7 @@ namespace mc
       m.numberOfComponentsInUse = 0
     end function
 
-    function getComponentPool(componentType as string) as mc.types.node
+    function getComponentPool(componentType as string) as types.node
       pool = m.poolsByComponentType[componentType]
       if pool = invalid
         pool = { usedComponentsById: {}
@@ -74,7 +73,7 @@ namespace mc
       end for
     end function
 
-    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as mc.types.node
+    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as types.node
 
       pool = m.getComponentPool(componentType)
 
@@ -122,9 +121,9 @@ namespace mc
       end if
     end function
 
-    function releaseComponent(component as mc.types.node)
+    function releaseComponent(component as types.node)
       if component <> invalid
-        ' ? ">>>>releasing component "; mc.dv(component)
+        ' ? ">>>>releasing component "; dv(component)
         if component.getParent() <> invalid
           component.getParent().removeChild(component)
         end if
@@ -135,7 +134,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponents(components as mc.types.array)
+    function releaseComponents(components as types.array)
       for each component in components
         m.releaseComponent(component)
       end for

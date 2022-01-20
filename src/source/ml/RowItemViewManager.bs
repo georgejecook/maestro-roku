@@ -1,13 +1,13 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 
-namespace ml
-  class RowItemViewManager extends ml.ItemViewManager
+namespace list
+  class RowItemViewManager extends list.ItemViewManager
     public row = invalid
     public lastRowIsRendered = "none"
     public isFlowSupported = false
 
-    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
-      super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
+    function new(l as types.node, row as types.node, container as types.node, componentPool as types.node, minPos as integer, maxPos as integer)
+      super("RowItemViewManager", l, container, componentPool, 0, minPos, maxPos)
       m.row = row
 
       'TODO - make configurable - or calculate on cell size
@@ -29,7 +29,7 @@ namespace ml
     end function
 
 
-    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    override function createRenderers(content as types.node, forceSync = false as boolean) as boolean
       ' ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
@@ -54,7 +54,7 @@ namespace ml
       x = 0
       for each item in m.content.getChildren(-1, 0)
         ' ? ">>>> laying out ", item.title
-        settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+        settings = list.listMixin.getCellSettings(m.owner.content, m.content, item)
         xSpace = settings.space
 
         m.rects.push({
@@ -67,11 +67,11 @@ namespace ml
         maxPos = m.maxPos - settings.size[0] - xSpace
 
         positions = [
-          new ml.ComponentPosition(x, 0) 'normal
-          new ml.ComponentPosition(x, maxPos) 'float-scroll
+          new list.ComponentPosition(x, 0) 'normal
+          new list.ComponentPosition(x, maxPos) 'float-scroll
         ]
 
-        cellInfo = new ml.ComponentInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
+        cellInfo = new list.ComponentInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
         cellInfo.index = index
         m.cellInfos.push(cellInfo)
 
@@ -89,7 +89,7 @@ namespace ml
       return true
     end function
 
-    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
+    override function applyRenderStateMap(renderStateMap as types.assocarray)
       m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
       m.renderedComponents = []
       if m.row.isRendered
@@ -119,7 +119,7 @@ namespace ml
         if renderState = "rendered"
           cell = m.renderersByContentId[itemId]
           if cell = invalid
-            settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+            settings = list.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
@@ -232,7 +232,7 @@ namespace ml
       ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    protected override function onContentItemsChange(changes as types.array)
       m.log.info("updating row renderers due to contents change")
       ' ? "ROW CHANGES"
       oldNumComponents = m.itemScroller.numberOfComponents
@@ -241,7 +241,7 @@ namespace ml
       m.forceUpdateLayout()
       ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
       if m.itemScroller.index >= m.content.length
-        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
+        m.itemScroller.index = clamp(m.itemScroller.index, 0, m.content.length - 1)
       end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
@@ -263,7 +263,7 @@ namespace ml
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function processRemovedCells(changes as mc.types.array)
+    private function processRemovedCells(changes as types.array)
       m.log.info("processing removed cells")
       for each change in changes
         ' ? ">>> got change " ; change.type

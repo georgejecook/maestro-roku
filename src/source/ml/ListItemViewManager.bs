@@ -1,14 +1,14 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/ListMixin.bs"
 
-namespace ml
-  class ListItemViewManager extends ml.ItemViewManager
+namespace list
+  class ListItemViewManager extends list.ItemViewManager
 
-    private batchTimer as mc.types.node
+    private batchTimer as types.node
     private visibleComponents = []
 
     private isUpdating = false
-    private previousFocusedRow as mc.types.node
+    private previousFocusedRow as types.node
     private previousFocusedIndex = 0
     private isShowingAllComps = false
     ' public componentBufferMode = "rendered"
@@ -43,9 +43,9 @@ namespace ml
     private batchSize = 3
     private batchDelay = 3
 
-    function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
-      super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
-      m.delegate = list.rowEvents
+    function new(l as types.node, container as types.node, minPos as integer, maxPos as integer, componentPool as types.node)
+      super("ListItemViewManager", l, container, componentPool, 1, minPos, maxPos)
+      m.delegate = l.rowEvents
       m.lookAheadDistance = maxPos * 5
       m.lookBehindDistance = maxPos * 2
     end function
@@ -68,7 +68,7 @@ namespace ml
       m.cancelWaitTimer(m.batchTimer)
     end function
 
-    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    override function createRenderers(content as types.node, forceSync = false as boolean) as boolean
 
       ' ? "CREATE RENDERERS"
       m.visibleComponents = []
@@ -148,7 +148,7 @@ namespace ml
             return
           end if
           rowContent = m.content.getChild(index)
-          settings = ml.listMixin.getRowSettings(m.content, rowContent)
+          settings = list.listMixin.getRowSettings(m.content, rowContent)
           rect = m.rects[index]
 
           comp = m.previousRendereredByContentId[rowContent.id]
@@ -181,7 +181,7 @@ namespace ml
       end if
     end function
 
-    function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, rect as mc.types.assocarray)
+    function createRow(rowContent as types.node, index as integer, settings as types.node, rect as types.assocarray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'TODO - measure height to ascertain how many
       isRendered = index < 4
@@ -239,7 +239,7 @@ namespace ml
 
       for i = 0 to m.content.getChildCount() - 1
         item = m.content.getChild(i)
-        settings = ml.listMixin.getRowSettings(m.content, item)
+        settings = list.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
         ' ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.getChildCount() ; " isHidden " ; item.isHidden
         if visible
@@ -293,7 +293,7 @@ namespace ml
       m.numberOfVisibleItems = m.visibleComponents.count()
     end function
 
-    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
+    override function applyRenderStateMap(renderStateMap as types.assocarray)
       ' ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
       for each id in renderStateMap
         comp = m.visibleComponents[id.toInt()]
@@ -317,7 +317,7 @@ namespace ml
     end function
 
     ' @params{ml_RowSettings} settings for the current row
-    private function calculateRowHeight(settings as mc.types.node) as integer
+    private function calculateRowHeight(settings as types.node) as integer
       height = 300
       if settings = invalid
         return height
@@ -335,11 +335,11 @@ namespace ml
       return height
     end function
 
-    private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
+    private function calculateGridRowHeight(row as types.node, settings as types.node) as integer
       numItems = row.getChildCount()
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
-      numRows = mc.divideNumberToNearest(numItems, numCols)
+      numRows = divideNumberToNearest(numItems, numCols)
       rowHeight = settings.rowHeight + settings.rowSpace
       height = numRows * rowHeight
 
@@ -350,12 +350,12 @@ namespace ml
       return height
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    protected override function onContentItemsChange(changes as types.array)
       m.log.info("updating row renderers due to contents change")
       m.isUpdating = true
       m.previousFocusedRow = m.itemScroller.focusedItem
       m.previousFocusedIndex = m.itemScroller.index
-      ' ? " GOT CHANGES "; formatJson(mc.collections.map(changes, function(c as object)
+      ' ? " GOT CHANGES "; formatJson(collections.map(changes, function(c as object)
       '   return c.type
       ' end function))
       m.createRenderers(m.content)
@@ -363,7 +363,7 @@ namespace ml
       m.itemScroller.move(0)
     end function
 
-    override function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+    override function isFlowFocusPossible(info as list.componentInfo, direction as integer, activeScreenPos as integer)
 
 
       if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
@@ -390,7 +390,7 @@ namespace ml
     end function
 
 
-    override function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
+    override function getRenderedIndexes(direction as integer, index as integer) as types.assocarray
       'TODO - upgrade to use componentInfos
 
       info = invalid
@@ -469,16 +469,16 @@ namespace ml
         'the offset is already factored in
         itemPos = abs(info.getPosition(direction))
         ' itemPos = abs(info.getScrollOffset(direction))
-        ' ? "i "; i ; " pos"; position ; " p "; p ; " ip " ; itemPos ; " INFO " ; info.index ; " c " ; mc.dv(info.component)
+        ' ? "i "; i ; " pos"; position ; " p "; p ; " ip " ; itemPos ; " INFO " ; info.index ; " c " ; dv(info.component)
         if itemPos > p
           ' ? "+++++!!! MATCHED ITEM INDEX "; i - 1
-          return mc.clamp(i - 1, 0, m.numberOfItems - 1)
+          return clamp(i - 1, 0, m.numberOfItems - 1)
         end if
       end for
       ' end ifk
 
       'we must be at the end! -return last item
-      index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
+      index = clamp(i - 1, 0, m.numberOfItems - 1)
       ' ? "+++++!!! MATCHED ITEM INDEX "; index
       return index
     end function

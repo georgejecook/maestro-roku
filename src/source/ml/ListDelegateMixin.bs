@@ -1,16 +1,16 @@
-namespace ml.delegateMixin
+namespace list.delegateMixin
 
   ' @param {MList} list instance to add delegate methods for
   ' @param {class} instance, target for the delegate methods - if invalid, then methods will be called on m
   ' @returns {returnType} returnDescription
-  function setListDelegate(list as mc.types.node, instance = invalid as object)
+  function setListDelegate(l as types.node, instance = invalid as object)
     if instance = invalid
       instance = m
     end if
 
-    ml.delegateMixin.setListRowDelegate(list, instance)
-    ml.delegateMixin.setListCellDelegate(list, instance)
-    ml.delegateMixin.setListDelegate_internal(list, instance)
+    l.delegateMixin.setListRowDelegate(l, instance)
+    l.delegateMixin.setListCellDelegate(l, instance)
+    l.delegateMixin.setListDelegate_internal(l, instance)
 
     if m.isObservingCellEvents or m.isObservingRowEvents or m.isObservingListEvents
       m.listDelegate = instance
@@ -19,35 +19,35 @@ namespace ml.delegateMixin
     end if
 
     ' ? "SET LIST DELEGATE: CE "; m.isObservingCellEvents ; " RE " ; m.isObservingRowEvents
-    ml.delegateMixin.toggleDelegateActive(list)
+    list.delegateMixin.toggleDelegateActive(list)
 
   end function
 
-  function toggleDelegateActive(list as mc.types.node)
+  function toggleDelegateActive(l as types.node)
     if m.isObservingCellEvents
       ' ? "LISTENING TO CELL EVENTS"
-      mc.toggleObserver(list.cellEvents, "listEvent", mc.getFunctionName(ml.delegateMixin.onCellEventBridge))
-      mc.toggleObserver(list.cellEvents, "viewportEvents", mc.getFunctionName(ml.delegateMixin.onCellEventsBridge))
+      toggleObserver(l.cellEvents, "listEvent", getFunctionName(list.delegateMixin.onCellEventBridge))
+      toggleObserver(l.cellEvents, "viewportEvents", getFunctionName(list.delegateMixin.onCellEventsBridge))
     else
-      mc.toggleObserver(list.cellEvents, "listEvent")
-      mc.toggleObserver(list.cellEvents, "viewportEvents")
+      toggleObserver(l.cellEvents, "listEvent")
+      toggleObserver(l.cellEvents, "viewportEvents")
 
     end if
 
     if m.isObservingRowEvents
       ' ? "LISTENING TO ROW EVENTS"
-      mc.toggleObserver(list.rowEvents, "listEvent", mc.getFunctionName(ml.delegateMixin.onRowEventBridge))
-      mc.toggleObserver(list.rowEvents, "viewportEvents", mc.getFunctionName(ml.delegateMixin.onRowEventsBridge))
+      toggleObserver(l.rowEvents, "listEvent", getFunctionName(list.delegateMixin.onRowEventBridge))
+      toggleObserver(l.rowEvents, "viewportEvents", getFunctionName(list.delegateMixin.onRowEventsBridge))
     else
-      mc.toggleObserver(list.rowEvents, "listEvent")
-      mc.toggleObserver(list.rowEvents, "viewportEvents")
+      toggleObserver(l.rowEvents, "listEvent")
+      toggleObserver(l.rowEvents, "viewportEvents")
     end if
 
     if m.isObservingListEvents
       ' ? "LISTENING TO ROW EVENTS"
-      mc.toggleObserver(list, "listEvent", mc.getFunctionName(ml.delegateMixin.onListEventBridge))
+      toggleObserver(l, "listEvent", getFunctionName(list.delegateMixin.onListEventBridge))
     else
-      mc.toggleObserver(list, "listEvent")
+      toggleObserver(l, "listEvent")
     end if
   end function
 
@@ -55,7 +55,7 @@ namespace ml.delegateMixin
   '++ cells
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function setListCellDelegate(list as mc.types.node, instance = invalid as object)
+  function setListCellDelegate(l as types.node, instance = invalid as object)
     m.listCellEventMap = {}
 
     if instance <> invalid
@@ -73,7 +73,7 @@ namespace ml.delegateMixin
       }
 
       for each funcName in funcMap
-        if mc_isFunction(instance[funcName])
+        if isFunction(instance[funcName])
           m.listCellEventMap[funcMap[funcName]] = funcName
         end if
       end for
@@ -84,19 +84,19 @@ namespace ml.delegateMixin
 
   function onCellEventBridge(sgEvent as object) as void
     if m.isObservingCellEvents
-      ml.delegateMixin.handleCellEvent(sgEvent.getData())
+      list.delegateMixin.handleCellEvent(sgEvent.getData())
     end if
   end function
 
   function onCellEventsBridge(sgEvent as object) as void
     if m.isObservingCellEvents
       for each event in sgEvent.getData()
-        ml.delegateMixin.handleCellEvent(event)
+        list.delegateMixin.handleCellEvent(event)
       end for
     end if
   end function
 
-  function handleCellEvent(event as mc.types.assocarray) as void
+  function handleCellEvent(event as types.assocarray) as void
     eventName = event.name
     if not m.isObservingCellEvents or m.listCellEventMap[eventName] = invalid
       ' ? "LE(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
@@ -116,7 +116,7 @@ namespace ml.delegateMixin
   '++ list
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function setListDelegate_internal(list as mc.types.node, instance = invalid as object)
+  function setListDelegate_internal(l as types.node, instance = invalid as object)
     m.listEventMap = {}
 
     if instance <> invalid
@@ -125,7 +125,7 @@ namespace ml.delegateMixin
       }
 
       for each funcName in funcMap
-        if mc_isFunction(instance[funcName])
+        if isFunction(instance[funcName])
           m.listEventMap[funcMap[funcName]] = funcName
         end if
       end for
@@ -136,19 +136,19 @@ namespace ml.delegateMixin
 
   function onListEventBridge(sgEvent as object) as void
     if m.isObservingListEvents
-      ml.delegateMixin.handleListEvent(sgEvent.getData())
+      list.delegateMixin.handleListEvent(sgEvent.getData())
     end if
   end function
 
   function onListEventsBridge(sgEvent as object) as void
     if m.isObservingListEvents
       for each event in sgEvent.getData()
-        ml.delegateMixin.handleRowEvent(event)
+        list.delegateMixin.handleRowEvent(event)
       end for
     end if
   end function
 
-  function handleListEvent(event as mc.types.assocarray) as void
+  function handleListEvent(event as types.assocarray) as void
     eventName = event.name
     if not m.isObservingRowEvents or m.listRowEventMap[eventName] = invalid
       ' ? "LE(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
@@ -166,7 +166,7 @@ namespace ml.delegateMixin
   '++ rows
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function setListRowDelegate(list as mc.types.node, instance = invalid as object)
+  function setListRowDelegate(l as types.node, instance = invalid as object)
     m.listRowEventMap = {}
 
     if instance <> invalid
@@ -187,10 +187,10 @@ namespace ml.delegateMixin
       }
 
       for each funcName in funcMap
-        if mc_isFunction(instance[funcName])
+        if isFunction(instance[funcName])
           m.listRowEventMap[funcMap[funcName]] = funcName
         end if
-        if mc_isFunction(instance["onRowScrollingChange"])
+        if isFunction(instance["onRowScrollingChange"])
           m.listEventMap["scrollStart"] = "onRowScrollingChange"
           m.listEventMap["scrollStop"] = "onRowScrollingChange"
         end if
@@ -203,19 +203,19 @@ namespace ml.delegateMixin
 
   function onRowEventBridge(sgEvent as object) as void
     if m.isObservingRowEvents
-      ml.delegateMixin.handleRowEvent(sgEvent.getData())
+      list.delegateMixin.handleRowEvent(sgEvent.getData())
     end if
   end function
 
   function onRowEventsBridge(sgEvent as object) as void
     if m.isObservingRowEvents
       for each event in sgEvent.getData()
-        ml.delegateMixin.handleRowEvent(event)
+        list.delegateMixin.handleRowEvent(event)
       end for
     end if
   end function
 
-  function handleRowEvent(event as mc.types.assocarray) as void
+  function handleRowEvent(event as types.assocarray) as void
     eventName = event.name
     if not m.isObservingRowEvents or m.listRowEventMap[eventName] = invalid
       ' ? "LE(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction

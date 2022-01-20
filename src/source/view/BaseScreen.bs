@@ -1,15 +1,15 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Tasks.bs"
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/view/BaseView.bs"
 
-namespace mv
+namespace view
   ' /**
   '  * @module BaseScreen
   '  * @description Class based counterpart to BaseView component
   '  *              used for MVC style programming
   '  */
-  class BaseScreen extends mv.BaseView
+  class BaseScreen extends view.BaseView
 
     'field to allow for convenient tracking of a view
     @alwaysnotify
@@ -33,12 +33,12 @@ namespace mv
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as mc.types.node, animated = true as boolean)
+    protected function push(v as types.node, animated = true as boolean)
       'bs:disable-next-line
-      push(view, animated)
+      push(v, animated)
     end function
 
-    protected function pop(animated = true as boolean) as mc.types.node
+    protected function pop(animated = true as boolean) as types.node
       'bs:disable-next-line
       return(pop(animated))
     end function
@@ -53,7 +53,7 @@ namespace mv
       return getNavController()
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+    protected function resetNavController(newFirstScreen = invalid as types.node, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex, animated)
     end function
@@ -71,7 +71,7 @@ namespace mv
       end if
     end function
 
-    function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+    function replaceNavControllerScreen(targetScreen as types.node, animated = false as boolean)
       'bs:disable-next-line
       replaceNavControllerScreen(targetScreen, animated)
     end function

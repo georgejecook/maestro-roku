@@ -19,15 +19,15 @@ class RowHeader
 
   private function createViews()
     if m.bgRect = invalid
-      m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      m.bgRect = createSGNode("Rectangle", m.top, "bgRect", {
       })
-      m.label = mc.createSGNode("mv_Label", m.top, "label", {
+      m.label = createSGNode("Label", m.top, "label", {
         vertAlign: "top"
       })
     end if
   end function
 
-  public function setContent(rowContent as mc.types.node, settings as mc.types.node)
+  public function setContent(rowContent as types.node, settings as types.node)
     if m.content = invalid or not m.content.isSameNode(rowContent)
       m.content = rowContent
       m.createViews()

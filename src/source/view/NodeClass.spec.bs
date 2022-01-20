@@ -1,7 +1,7 @@
 namespace tests
 
   @suite("NodeClass tests")
-  class NodeClassTests extends mv.tests.BaseTestSuite
+  class NodeClassTests extends view.tests.BaseTestSuite
 
     private nodeTop
     private nodeGlobal
@@ -10,7 +10,7 @@ namespace tests
       super.beforeEach()
       m.nodeTop = new rooibos.utils.MockNode("top")
       m.nodeGlobal = new rooibos.utils.MockNode("top")
-      m.nc = new mv.NodeClass("test")
+      m.nc = new view.NodeClass("test")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -32,8 +32,8 @@ namespace tests
         v1: "a"
         v2: "b"
       }
-      task = m.nc.createTask("mc_RequestTask", args, m.nc.cancelWaitTimer, false, "none")
-      m.assertSubType(task, "mc_RequestTask")
+      task = m.nc.createTask("RequestTask", args, m.nc.cancelWaitTimer, false, "none")
+      m.assertSubType(task, "RequestTask")
       m.assertEqual(task.v1, "a")
       m.assertEqual(task.v2, "b")
     end function

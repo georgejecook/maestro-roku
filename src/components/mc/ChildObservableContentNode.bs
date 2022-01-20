@@ -20,7 +20,7 @@ import "pkg:/source/core/Utils.bs"
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function init()
-  m.log = new log.Logger("mc_Map")
+  m.log = new log.Logger("Map")
   m.notifyChanges = true
   m.pendingChanges = []
 end function
@@ -32,7 +32,7 @@ end function
 function sortByKey(keyName as string, ascending = true as boolean)
   children = m.top.getChildren(-1, 0)
   m.top.removeChildren(m.top.getChildren(-1, 0))
-  sortedChildren = mc.collections.getSortedArrayByKey(children, keyName, ascending)
+  sortedChildren = collections.getSortedArrayByKey(children, keyName, ascending)
   m.top.removeChildren(m.top.getChildren(-1, 0))
   m.top.appendChildren(sortedChildren)
   addChanges([{ type: "sort" }])
@@ -41,7 +41,7 @@ end function
 function sortByCallFunc(functionName as string, ascending = true as boolean)
   children = m.top.getChildren(-1, 0)
   m.top.removeChildren(m.top.getChildren(-1, 0))
-  sortedChildren = mc.collections.getSortedArrayByCallFunc(children, functionName, ascending)
+  sortedChildren = collections.getSortedArrayByCallFunc(children, functionName, ascending)
   m.top.removeChildren(m.top.getChildren(-1, 0))
   m.top.appendChildren(sortedChildren)
   addChanges([{ type: "sort" }])
@@ -75,7 +75,7 @@ function insertChild(child as object, index as integer)
   addChanges([{ type: "change", child: child, index: index }])
 end function
 
-function insertChildren(children as mc.types.array, index as integer)
+function insertChildren(children as types.array, index as integer)
   m.top.insertChildren(children, index)
   m.top.length = m.top.getChildCount()
   addChanges([{ type: "change", children: children, index: index }])
@@ -90,7 +90,7 @@ function removeChildIndex(index as integer)
   end if
 end function
 
-function appendChildren(children as mc.types.array)
+function appendChildren(children as types.array)
   m.top.appendChildren(children)
   m.top.length = m.top.getChildCount()
   addChanges([{ type: "append", children: children, index: m.top.getChildCount() - 1 }])
@@ -111,7 +111,7 @@ function removeChildrenIndex(numberOfItems as integer, index as integer)
   end if
 end function
 
-function removeChildren(children as mc.types.array)
+function removeChildren(children as types.array)
   changes = []
   for each child in children
     childIndex = getIndex(child)
@@ -122,7 +122,7 @@ function removeChildren(children as mc.types.array)
   addChanges(changes)
 end function
 
-function removeChild(child as mc.types.array)
+function removeChild(child as types.array)
   changes = []
   changes.push({ type: "remove", child: child, index: getIndex(child) })
   m.top.removeChild(child)
@@ -135,7 +135,7 @@ function hasItem(child as object, key = invalid as string)
 end function
 
 function getIndex(child as object, key = invalid as string)
-  return mc.collections.getArrayIndex(m.top.getChildren(-1, 0), child, key)
+  return collections.getArrayIndex(m.top.getChildren(-1, 0), child, key)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -146,7 +146,7 @@ function notifyUpdate(args = invalid as dynamic)
   setNotificationsEnabled(true, true)
 end function
 
-function addChanges(changes as mc.types.array)
+function addChanges(changes as types.array)
   if m.notifyChanges
     m.top.changes = changes
   else

@@ -2,7 +2,7 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/ml/ItemDelegateMixin.bs"
 
-namespace ml
+namespace list
   @node("ml_BaseCell", "Group")
   class BaseCell
 
@@ -13,25 +13,25 @@ namespace ml
 
     ' any item in a list will have this set whenever it gets recycled
     @observer("onInitialStateChange")
-    public initialState as mc.types.AssocArray
+    public initialState as types.AssocArray
 
     @observer("onIsPrebaked")
     public isPrebaked = false
 
     public isInViewPort = false
 
-    public listEvent as mc.types.AssocArray
+    public listEvent as types.AssocArray
 
     private isViewCreated = false
     private isRecyclePending = true
 
-    public content as mc.types.Node
+    public content as types.Node
     protected list
     protected row
-    protected size as mc.types.Array
+    protected size as types.Array
 
     function new()
-      ml.itemDelegateMixin.setDelegate()
+      list.itemDelegateMixin.setDelegate()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -57,7 +57,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function onDebugMChange()
-      mc.setOrAddNodeField(m.top, "__m", m)
+      setOrAddNodeField(m.top, "__m", m)
     end function
 
     protected function onIsPrebaked(value as boolean)
@@ -73,7 +73,7 @@ namespace ml
       end if
     end function
 
-    private function _onContentChange(content as mc.types.node)
+    private function _onContentChange(content as types.node)
       m.onContentChange(content)
       m.isRecyclePending = false
     end function
@@ -87,18 +87,18 @@ namespace ml
       m.recycle()
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as types.array, targetNode as types.node, assignViewsToM = true as boolean, mTarget = invalid as types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
-      mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+      view.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as mc.types.array, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as types.array, mTarget = invalid as types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
-      mv.updateViewsWithStyleJson(json, mTarget)
+      view.updateViewsWithStyleJson(json, mTarget)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -109,7 +109,7 @@ namespace ml
       'override me!
     end function
 
-    protected function onContentChange(content as mc.types.node)
+    protected function onContentChange(content as types.node)
       'override me
     end function
 

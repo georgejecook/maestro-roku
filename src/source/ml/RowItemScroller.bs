@@ -2,10 +2,10 @@ import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 
-namespace ml
-  class RowItemScroller extends ml.ItemScroller
+namespace list
+  class RowItemScroller extends list.ItemScroller
 
-    function new(viewManager as ml.RowItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(viewManager as list.RowItemViewManager, focusManager as list.ItemFocusManager)
       super("RowItemScroller", viewManager, focusManager)
     end function
 
@@ -14,10 +14,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     override function getFocusSettings()
-      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+      return list.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+    protected override function getCellComponentInfo(componentInfo as list.ComponentInfo, isFromListScroll = false as boolean) as list.ComponentInfo
       if isFromListScroll
         return m.viewManager.cellInfos[m.index]
       else
@@ -28,7 +28,7 @@ namespace ml
       end if
     end function
 
-    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+    protected override function getFocusIndicatorTranslation(info as list.ComponentInfo, componentInfo as list.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
       if info = invalid
         return [0, 0]
       end if

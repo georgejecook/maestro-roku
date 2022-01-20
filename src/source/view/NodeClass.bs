@@ -1,11 +1,11 @@
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/BaseClass.bs"
 
-namespace mv
+namespace view
   @strict
-  class NodeClass extends mc.BaseClass
+  class NodeClass extends BaseClass
 
     public __debugM = false
 
@@ -18,23 +18,23 @@ namespace mv
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function getInstance(name as string, path = invalid as string) as dynamic
-      return mioc.getInstance(name, path)
+      return ioc.getInstance(name, path)
     end function
 
     protected function setInstance(field as string, instance as dynamic)
-      mioc.setInstance(field, instance)
+      ioc.setInstance(field, instance)
     end function
 
-    protected function getClassInstance(className as string, args = [] as mc.types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
-      return mioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
+    protected function getClassInstance(className as string, args = [] as types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+      return ioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
     end function
 
-    protected function createClassInstance(className as string, args = [] as mc.types.array) as dynamic
-      return mioc.createClassInstance(className, args)
+    protected function createClassInstance(className as string, args = [] as types.array) as dynamic
+      return ioc.createClassInstance(className, args)
     end function
 
     protected function setClassInstance(instance as dynamic)
-      return mioc.setClassInstance(instance)
+      return ioc.setClassInstance(instance)
     end function
 
 
@@ -43,11 +43,11 @@ namespace mv
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function getTopField(fieldName as string) as dynamic
-      return mc.getMField("top")[fieldName]
+      return getMField("top")[fieldName]
     end function
 
     protected function getMField(fieldName as string) as dynamic
-      return mc.getMField(fieldName)
+      return getMField(fieldName)
     end function
 
   end class

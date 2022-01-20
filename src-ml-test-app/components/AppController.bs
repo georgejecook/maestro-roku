@@ -1,4 +1,4 @@
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/DebugTimer.bs"
@@ -9,14 +9,14 @@ import "pkg:/source/ml/ComponentInfo.bs"
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function Init()
-  mv.initializeFocusManager(m.global)
+  view.initializeFocusManager(m.global)
   tick = m.top.getScene().createChild("Timer")
   tick.duration = 0.01
   tick.repeat = true
   tick.control = "start"
-  mc.setOrAddNodeField(m.global, "tick", tick)
-  mc.tasks.observeNodeField(tick, "fire", onInfoChange, "none")
-  mioc.setInstance("focusedIndex", {
+  setOrAddNodeField(m.global, "tick", tick)
+  tasks.observeNodeField(tick, "fire", onInfoChange, "none")
+  ioc.setInstance("focusedIndex", {
     row: 0
     cell: 0
   })
@@ -29,10 +29,10 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function initFlyweight()
-  m.componentPool = createObject("roSGNode", "mc_ComponentPool")
+  m.componentPool = createObject("roSGNode", "ComponentPool")
   m.global.addFields({ "componentPool": m.componentPool })
 
-  m.cellTracker = createObject("roSGNode", "mv_CellTracker")
+  m.cellTracker = createObject("roSGNode", "CellTracker")
   m.global.addFields({ "cellTracker": m.cellTracker })
   m.top.addFields({ "_global": m.global })
 
@@ -41,7 +41,7 @@ function initFlyweight()
 end function
 
 function prebakeCells()
-  timer = new mc.utils.DebugTimer("prebake")
+  timer = new utils.DebugTimer("prebake")
   m.componentPool@.prebakeComponents(30, "LongCell")
   m.componentPool@.prebakeComponents(30, "HeroCell")
   m.componentPool@.prebakeComponents(100, "ml_SimpleCell")
@@ -57,7 +57,7 @@ end function
 
 function onInfoChange()
   m.infoLabel.text = ` CP: ${m.componentPool.numberOfComponentsInUse} / ${m.componentPool.numberOfComponents}`
-  list = mioc.getInstance("list")
+  list = ioc.getInstance("list")
 
   if list <> invalid
     cellIndex = list.focusedCellIndex
@@ -85,15 +85,15 @@ end function
 function onFirstShow()
   m.log.info("onFirstShow")
   prebakeCells()
-  ' m.screen = mc.createSGNode("TeamScreen", m.top.findNode("contentGroup"), "listScreen")
-  m.screen = mc.createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
-  ' m.screen = mc.createSGNode("ModuleScreen", m.top.findNode("contentGroup"), "ModuleScreen")
-  mv.setFocus(m.screen)
+  ' m.screen = createSGNode("TeamScreen", m.top.findNode("contentGroup"), "listScreen")
+  m.screen = createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
+  ' m.screen = createSGNode("ModuleScreen", m.top.findNode("contentGroup"), "ModuleScreen")
+  view.setFocus(m.screen)
   m.loadingIndicator.isActive = false
 end function
 
 function onGainedFocus(isSelfFocused as boolean)
   if isSelfFocused and m.screen <> invalid
-    mv.setFocus(m.screen)
+    view.setFocus(m.screen)
   end if
 end function

@@ -3,8 +3,8 @@ import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/core/DebugTimer.bs"
 
-@node("ModuleScreen", "mv_BaseScreen")
-class ModuleScreen extends mv.BaseScreen
+@node("ModuleScreen", "BaseScreen")
+class ModuleScreen extends view.BaseScreen
 
   @observer("onRemoveItems")
   @alwaysnotify
@@ -21,7 +21,7 @@ class ModuleScreen extends mv.BaseScreen
   private defaultCellType = "ml_SimpleCell"
 
   'state
-  public componentPool as mc.types.Node
+  public componentPool as types.Node
   private contentId = 0
   private rowSettings
   private focusSettings
@@ -41,7 +41,7 @@ class ModuleScreen extends mv.BaseScreen
     m.button = m.createSGNode("Button", m.top, "button", {
       title: "focus me"
     })
-    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+    m.bgRect = m.createSGNode("Rectangle", m.top, "bgRect", {
       translation: translation
       size: size
       color: "#6a307d"
@@ -54,31 +54,31 @@ class ModuleScreen extends mv.BaseScreen
       width: size[0]
       height: size[1]
     })
-    mioc.setInstance("list", m.list)
+    ioc.setInstance("list", m.list)
     m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
       isActive: true
       width: 1920
       height: 1080
       backgroundVisible: false
     })
-    ml.delegateMixin.setListDelegate(m.list)
+    list.delegateMixin.setListDelegate(m.list)
     m.onResetChange()
   end function
 
   private function onResetChange()
     m.list.content = invalid
-    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 450], 30)
+    m.cellSettings = list.listMixin.createCellSettings("ml_SimpleCell", [480, 450], 30)
 
-    timer = new mc.utils.DebugTimer("list")
-    m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
+    timer = new utils.DebugTimer("list")
+    m.rowSettings = list.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
-    listSettings = ml.listMixin.createListSettings(-1, -1)
+    m.focusSettings = list.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
+    listSettings = list.listMixin.createListSettings(-1, -1)
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
 
-    content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+    content = list.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createHeaderOnlyData(),
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
@@ -106,16 +106,16 @@ class ModuleScreen extends mv.BaseScreen
 
   private function createHeaderOnlyData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+    rowFocusSettings = list.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
 
     i = 0
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
     numItems = 5
-    row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+    row0FocusSettings = list.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
     row0FocusSettings.feedbackStyle = "none"
-    cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
-    row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
+    cellSettings = list.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
+    row.settings = list.listMixin.createRowSettings(cellSettings, row0FocusSettings)
     row.settings.headerSettings.position = "none"
     row.settings.contentOffset = [400, -30]
     prefix = "HERO"
@@ -130,12 +130,12 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function createModule(title as string, numItems as integer)
-    gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
+    gridFocusSettings = list.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
     numCols = 4
     prefix = "G "
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
-    row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 474, 5, 50)
+    row.settings = list.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 474, 5, 50)
     row.screenPos = 0
     row.firstRowScreenPos = 400
     row.otherRowScreenPos = 70
@@ -161,7 +161,7 @@ class ModuleScreen extends mv.BaseScreen
     return items
   end function
 
-  private function makeItem(cellType as string, title as string) as mc.types.node
+  private function makeItem(cellType as string, title as string) as types.node
     child = createObject("roSGNode", "ContentNode")
     id = str(m.contentId).trim()
     child.id = rnd(2147483647).toStr()
@@ -185,7 +185,7 @@ class ModuleScreen extends mv.BaseScreen
   private dataIndex = 0
   private function onKeyPressOptions() as boolean
 
-    m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 6, true)
+    m.dataIndex = clamp(m.dataIndex + 1, 0, 6, true)
     ? "UPDATING DATA " ; m.dataIndex
 
     m.mergeLoadedData()
@@ -326,7 +326,7 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
     ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    mioc.setInstance("focusedIndex", {
+    ioc.setInstance("focusedIndex", {
       row: rowIndex
       cell: itemIndex
     })
@@ -334,7 +334,7 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
     ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    mioc.setInstance("focusedIndex", {
+    ioc.setInstance("focusedIndex", {
       row: rowIndex
       cell: itemIndex
     })
@@ -350,12 +350,12 @@ class ModuleScreen extends mv.BaseScreen
 
     row = m.list@.getRowRenderer(rowIndex)
     if row <> invalid
-      mioc.setInstance("focusedIndex", {
+      ioc.setInstance("focusedIndex", {
         row: rowIndex
         cell: row.focusedCellIndex
       })
     else
-      mioc.setInstance("focusedIndex", {
+      ioc.setInstance("focusedIndex", {
         row: -1
         cell: -1
       })

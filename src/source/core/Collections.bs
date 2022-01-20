@@ -1,18 +1,18 @@
 import "pkg:/source/core/Utils.bs"
 
-namespace mc.collections
+namespace collections
 
   ' @description returns an array with items mapped by the mapper
   ' @param {array} array of items to map
   ' @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
   ' @returns {outputType} items mapped by the mapper
   '  */
-  function map(array as mc.types.array, mapper as mc.collections.BaseMapper)
+  function map(array as types.array, mapper as collections.BaseMapper)
     items = []
     if array <> invalid
-      isClass = mc.isClass(mapper)
+      isClazz = isClass(mapper)
       for each item in array
-        if isClass
+        if isClazz
           transformed = mapper.transform(item)
           if transformed <> invalid
             items.push(transformed)
@@ -28,13 +28,13 @@ namespace mc.collections
     return items
   end function
 
-  function getSortedArrayByKey(arr as mc.types.array, keyName as string, ascending = true as boolean) as mc.types.array
-    result = []
-    if mc.isArray(arr) and mc.isString(keyName) and keyName <> ""
+  function getSortedArrayByKey(arr as types.array, keyName as string, ascending = true as boolean) as types.array
+    res = []
+    if isArray(arr) and isString(keyName) and keyName <> ""
       dict = {}
       for each item in arr
         key = item[keyName]
-        if mc.isString(key)
+        if isString(key)
           dict[key] = item
         end if
       end for
@@ -43,19 +43,19 @@ namespace mc.collections
         keys.reverse()
       end if
       for each key in keys
-        result.push(dict[key])
+        res.push(dict[key])
       end for
     end if
-    return result
+    return res
   end function
 
-  function getSortedArrayByFunction(arr as mc.types.array, func as function, ascending = true as boolean) as mc.types.array
-    result = []
-    if mc.isArray(arr) and mc.isFunction(func)
+  function getSortedArrayByFunction(arr as types.array, func as function, ascending = true as boolean) as types.array
+    res = []
+    if isArray(arr) and isFunction(func)
       dict = {}
       for each item in arr
         key = func(item)
-        if mc.isString(key)
+        if isString(key)
           dict[key] = item
         end if
       end for
@@ -64,19 +64,19 @@ namespace mc.collections
         keys.reverse()
       end if
       for each key in keys
-        result.push(dict[key])
+        res.push(dict[key])
       end for
     end if
-    return result
+    return res
   end function
 
-  function getSortedArrayByCallFunc(arr as mc.types.array, funcName as string, ascending = true as boolean) as mc.types.array
-    result = []
-    if mc.isArray(arr) and mc.isString(funcName)
+  function getSortedArrayByCallFunc(arr as types.array, funcName as string, ascending = true as boolean) as types.array
+    res = []
+    if isArray(arr) and isString(funcName)
       dict = {}
       for each item in arr
         key = item.callFunc(funcName)
-        if mc.isString(key)
+        if isString(key)
           dict[key] = item
         end if
       end for
@@ -85,21 +85,21 @@ namespace mc.collections
         keys.reverse()
       end if
       for each key in keys
-        result.push(dict[key])
+        res.push(dict[key])
       end for
     end if
-    return result
+    return res
   end function
 
-  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer, key = invalid as string)
+  function getItemAtOffset(array as types.array, item as dynamic, offset as integer, key = invalid as string)
     if array = invalid or array.count() = 0
       return invalid
     end if
-    index = mc.collections.getArrayIndex(array, item, key)
-    return array[mc.clamp(index + offset, 0, array.count() - 1)]
+    index = collections.getArrayIndex(array, item, key)
+    return array[clamp(index + offset, 0, array.count() - 1)]
   end function
 
-  function getArrayIndex(array as mc.types.array, item as dynamic, key = invalid as string)
+  function getArrayIndex(array as types.array, item as dynamic, key = invalid as string)
     if array = invalid or array.count() = 0
       return -1
     end if
@@ -146,11 +146,11 @@ namespace mc.collections
     end function
   end class
 
-  class CallFuncMapper extends mc.collections.BaseMapper
+  class CallFuncMapper extends collections.BaseMapper
     private funcName as string
-    private args as mc.types.assocarray
+    private args as types.assocarray
 
-    function new(funcName as string, args as mc.types.assocarray)
+    function new(funcName as string, args as types.assocarray)
       super()
       m.funcName = funcName
       m.args = args
@@ -164,7 +164,7 @@ namespace mc.collections
     end function
   end class
 
-  class FuncMapper extends mc.collections.BaseMapper
+  class FuncMapper extends collections.BaseMapper
     private funcName as string
 
     function new(funcName as string)
@@ -183,7 +183,7 @@ namespace mc.collections
     end function
   end class
 
-  class FieldMapper extends mc.collections.BaseMapper
+  class FieldMapper extends collections.BaseMapper
     private fieldName as string
 
     function new(fieldName as string)
@@ -202,12 +202,12 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} items that match the predicate
-  function filter(array as mc.types.array, predicate as dynamic)
+  function filter(array as types.array, predicate as dynamic)
     items = []
     if array <> invalid
-      isClass = mc.isClass(predicate)
+      isClazz = isClass(predicate)
       for each item in array
-        if (isClass and predicate.isMatch(item)) or (not isClass and predicate(item))
+        if (isClazz and predicate.isMatch(item)) or (not isClazz and predicate(item))
           items.push(item)
         end if
       end for
@@ -218,8 +218,8 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns the first item that matches, or invalid
-  function find(array as mc.types.array, predicate as dynamic)
-    items = mc.collections.filter(array, predicate)
+  function find(array as types.array, predicate as dynamic)
+    items = collections.filter(array, predicate)
     if items.count() = 0
       return invalid
     else
@@ -230,8 +230,8 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns true if the array matches the predicate
-  function contains(array as mc.types.array, predicate as dynamic) as boolean
-    items = mc.collections.filter(array, predicate)
+  function contains(array as types.array, predicate as dynamic) as boolean
+    items = collections.filter(array, predicate)
     return items.count() > 0
   end function
 
@@ -247,7 +247,7 @@ namespace mc.collections
     end function
   end class
 
-  class ValuePredicate extends mc.collections.AbstractPredicate
+  class ValuePredicate extends collections.AbstractPredicate
     function new(expected as dynamic)
       super(expected)
     end function
@@ -257,7 +257,7 @@ namespace mc.collections
     end function
   end class
 
-  class FieldPredicate extends mc.collections.AbstractPredicate
+  class FieldPredicate extends collections.AbstractPredicate
     private fieldName as string
 
     function new(fieldName as string, expected as dynamic)
@@ -273,7 +273,7 @@ namespace mc.collections
     end function
   end class
 
-  class FuncPredicate extends mc.collections.AbstractPredicate
+  class FuncPredicate extends collections.AbstractPredicate
     private funcName as string
 
     function new(funcName as string, expected as dynamic)
@@ -293,11 +293,11 @@ namespace mc.collections
     end function
   end class
 
-  class CallFuncPredicate extends mc.collections.AbstractPredicate
+  class CallFuncPredicate extends collections.AbstractPredicate
     private funcName as string
-    private args as mc.types.assocarray
+    private args as types.assocarray
 
-    function new(funcName as string, args as mc.types.assocarray, expected as dynamic)
+    function new(funcName as string, args as types.assocarray, expected as dynamic)
       super()
       m.funcName = funcName
       m.args = args
@@ -312,8 +312,8 @@ namespace mc.collections
     end function
   end class
 
-  function arrayContains(array as mc.types.array, value as dynamic) as boolean
-    return mc.collections.getArrayIndex(array, value) <> -1
+  function arrayContains(array as types.array, value as dynamic) as boolean
+    return collections.getArrayIndex(array, value) <> -1
   end function
 
 end namespace

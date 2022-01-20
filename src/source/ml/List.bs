@@ -7,9 +7,9 @@ import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
-namespace ml
-  @node("ml_List", "mv_BaseView")
-  class List extends mv.BaseView
+namespace list
+  @node("ml_List", "BaseView")
+  class List extends view.BaseView
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ content
@@ -17,7 +17,7 @@ namespace ml
 
     'must gbe of type ListContent
     @observer("onContentChange")
-    public content as mc.types.Node
+    public content as types.Node
     private _content
 
     public state = "none"
@@ -58,34 +58,34 @@ namespace ml
     public focusedfraction = 0.0
 
     @alwaysnotify
-    public itemSelected as mc.types.array
+    public itemSelected as types.array
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Shared managers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public focusIndicatorManager as mc.types.node
+    public focusIndicatorManager as types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ internal event tracking
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public nextFocusIndex as mc.types.Array
+    public nextFocusIndex as types.Array
 
-    public cellEvents as mc.types.Node
-    public rowEvents as mc.types.Node
+    public cellEvents as types.Node
+    public rowEvents as types.Node
     public screenPos = 0
     public nextScreenPos = 0
 
     @alwaysnotify
-    public listEvent as mc.types.Assocarray
+    public listEvent as types.Assocarray
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and internal state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private viewManager as ml.ListItemViewManager
-    private itemScroller as ml.ListItemScroller
+    private viewManager as list.ListItemViewManager
+    private itemScroller as list.ListItemScroller
     private sourceFocusRect as object
     private targetFocusRect as object
     private isInitialized = false
@@ -94,8 +94,8 @@ namespace ml
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private contentGroup as mc.types.node
-    private rowsGroup as mc.types.node
+    private contentGroup as types.node
+    private rowsGroup as types.node
 
     function new()
       super("ml_List")
@@ -128,10 +128,10 @@ namespace ml
       m.rowEvents = m.createEventsBroker("rows")
       m.rowsGroup = m.top.findNode("rowsGroup")
 
-      m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
+      m.viewManager = new list.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
 
-      focusManager = new ml.ItemFocusManager(m.viewManager, m.rowEvents)
-      m.itemScroller = new ml.ListItemScroller(m.viewManager, focusManager)
+      focusManager = new list.ItemFocusManager(m.viewManager, m.rowEvents)
+      m.itemScroller = new list.ListItemScroller(m.viewManager, focusManager)
       m.itemScroller.offsetContainer = m.contentGroup
       m.content = invalid
     end function
@@ -158,7 +158,7 @@ namespace ml
       m.focusIndicatorManager.isHidden = m.top.isFocused or m.top.isChildFocused
     end function
 
-    private function applyListSettings(settings as mc.types.node)
+    private function applyListSettings(settings as types.node)
       if settings <> invalid
         m.viewManager.lookAheadDistance = settings.lookAheadDistance = -1 ? 2147483647 : settings.lookAheadDistance
         m.viewManager.lookBehindDistance = settings.lookBehindDistance = -1 ? 2147483647 : settings.lookBehindDistance
@@ -183,12 +183,12 @@ namespace ml
           m.resetState()
         else
           ' m.log.info("current content has changed in some untracked way!")
-          'TODO check case where the content items mc_Array changes entirely
+          'TODO check case where the content items Array changes entirely
         end if
       end if
     end function
 
-    private function onContentItemsChange(changes as mc.types.array)
+    private function onContentItemsChange(changes as types.array)
       m.log.info("The content items have changed")
       m.focusIndicatorManager@.cancelFlowFocus()
       m.viewManager.onContentItemsChange(changes)
@@ -257,7 +257,7 @@ namespace ml
       if m.itemScroller.numberOfComponents > 0
         ' ? "LIST HAS COMPONENTS"
         ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
-        '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        '   index = clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         '   if index >= 0
         '     ? "CORRECTING INDEX"; index
         '     m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
@@ -313,7 +313,7 @@ namespace ml
       end if
     end function
 
-    public function moveToItem(indices as mc.types.array, animated = false as boolean)
+    public function moveToItem(indices as types.array, animated = false as boolean)
       if m.content <> invalid
         m.moveToRow(indices[0], animated)
         row = m.getRowRenderer(indices[0])
@@ -361,9 +361,9 @@ namespace ml
     '++ Internal api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function _onContentItemChange(changes as mc.types.array)
+    public function _onContentItemChange(changes as types.array)
       ' ? "______________________________ _onContentItemChange" ; m.__classname
-      ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
+      ' ? "GOT CHANGES" ; formatJson(collections.map(changes, function(c as types.assocarray)
       '   return c.type
       ' end function))
       m.viewManager.forceUpdateLayout()
@@ -411,8 +411,8 @@ namespace ml
       end if
 
       if m.itemScroller.canMoveInDirection(-1)
-        result = m.itemScroller.moveFromPress(-1, false)
-        return result
+        res = m.itemScroller.moveFromPress(-1, false)
+        return res
       else
         return false
       end if
@@ -514,7 +514,7 @@ namespace ml
       row = m.getRowRenderer(m.focusedRowIndex)
       if row <> invalid
         '  ? " SETTING FOCUS ONTO ROW "
-        mv.setFocus(row)
+        view.setFocus(row)
       end if
 
     end function

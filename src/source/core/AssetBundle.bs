@@ -1,62 +1,59 @@
-namespace mc
-  @strict
-  class AssetBundle
-    private json
-    public version
+class AssetBundle
+  private json
+  public version
 
-    function new(json as mc.types.assocarray)
-      m.json = json
-      m.version = json.version
-    end function
+  function new(json as types.assocarray)
+    m.json = json
+    m.version = json.version
+  end function
 
-    function getMissingAssets()
-      fs = CreateObject("roFileSystem")
-      'iterate over all assets, ascertaining if they are present in the file system
-      id = m.json.id
-      missingAssets = {}
-      for each assetKey in m.json.files
-        filename = id + "_" + assetKey
+  function getMissingAssets()
+    fs = CreateObject("roFileSystem")
+    'iterate over all assets, ascertaining if they are present in the file system
+    id = m.json.id
+    missingAssets = {}
+    for each assetKey in m.json.files
+      filename = id + "_" + assetKey
+      '// cspell:disable-next-line
+      if not fs.exists("cachefs:/" + filename)
         '// cspell:disable-next-line
-        if not fs.exists("cachefs:/" + filename)
-          '// cspell:disable-next-line
-          ' ? "assetKey " ; assetKey ; " is not in cachefs"
-          missingAssets[assetKey] = m.json.files[assetKey]
-        end if
-      end for
-      return missingAssets
-    end function
-
-    function getChangedAssets(newerBundle as mc.AssetBundle)
-      changedAssets = {}
-
-      for each assetKey in newerBundle.json.files
-        if m.json.files[assetKey] = invalid or m.json.files[assetKey] <> newerBundle.json.files[assetKey]
-    '      ? "assetKey " ; assetKey ; " is changed or new"
-          'new or changed
-          changedAssets[assetKey] = m.json.files[assetKey]
-        end if
-      end for
-      return changedAssets
-    end function
-
-    function writeAssets(assetData as mc.types.assocarray, items as mc.types.assocarray)
-      fs = CreateObject("roFileSystem")
-      id = m.json.id
-      if items = invalid
-        items = m.json.files
+        ' ? "assetKey " ; assetKey ; " is not in cachefs"
+        missingAssets[assetKey] = m.json.files[assetKey]
       end if
-      for each assetKey in items
-        filename = id + "_" + assetKey
-        m.json.files[assetKey] = items[assetKey]
-        if fs.exists(filename)
-          fs.delete(filename)
-        end if
-        ba = createObject("roByteArray")
-        ba.fromBase64String(assetData[assetKey])
-        ' ? "writing to : " + "cachefs:/" + filename
-        ba.writeFile("cachefs:/" + filename)
-      end for
-    end function
+    end for
+    return missingAssets
+  end function
 
-  end class
-end namespace
+  function getChangedAssets(newerBundle as AssetBundle)
+    changedAssets = {}
+
+    for each assetKey in newerBundle.json.files
+      if m.json.files[assetKey] = invalid or m.json.files[assetKey] <> newerBundle.json.files[assetKey]
+        '      ? "assetKey " ; assetKey ; " is changed or new"
+        'new or changed
+        changedAssets[assetKey] = m.json.files[assetKey]
+      end if
+    end for
+    return changedAssets
+  end function
+
+  function writeAssets(assetData as types.assocarray, items as types.assocarray)
+    fs = CreateObject("roFileSystem")
+    id = m.json.id
+    if items = invalid
+      items = m.json.files
+    end if
+    for each assetKey in items
+      filename = id + "_" + assetKey
+      m.json.files[assetKey] = items[assetKey]
+      if fs.exists(filename)
+        fs.delete(filename)
+      end if
+      ba = createObject("roByteArray")
+      ba.fromBase64String(assetData[assetKey])
+      ' ? "writing to : " + "cachefs:/" + filename
+      ba.writeFile("cachefs:/" + filename)
+    end for
+  end function
+
+end class

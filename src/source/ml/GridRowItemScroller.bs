@@ -2,12 +2,12 @@ import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 
-namespace ml
-  class GridRowItemScroller extends ml.ItemScroller
+namespace list
+  class GridRowItemScroller extends list.ItemScroller
 
     public currentRowIndex = 0
 
-    function new(viewManager as ml.GridRowItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(viewManager as list.GridRowItemViewManager, focusManager as list.ItemFocusManager)
       super("GridRowItemScroller", viewManager, focusManager)
       m.isOnlyFloatingFocus = true
     end function
@@ -17,7 +17,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     override function getFocusSettings()
-      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+      return list.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
     'For a grid row, we can only move to the end of the current row
@@ -40,7 +40,7 @@ namespace ml
       return true
     end function
 
-    protected override function setComponentInfo(info as ml.ComponentInfo)
+    protected override function setComponentInfo(info as list.ComponentInfo)
       super.setComponentInfo(info)
       if info <> invalid
         m.currentRowIndex = fix(info.index / m.viewManager.numCols)
@@ -49,7 +49,7 @@ namespace ml
       end if
     end function
 
-    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+    protected override function getCellComponentInfo(componentInfo as list.ComponentInfo, isFromListScroll = false as boolean) as list.ComponentInfo
       if componentInfo = invalid
         return invalid
       end if
@@ -67,7 +67,7 @@ namespace ml
           end if
         end for
         ' colIndex = m.index mod m.viewManager.numCols
-        ' cellIndex = mc.clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
+        ' cellIndex = clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
         ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.numberOfComponents - 1
         if nextInfo = invalid
           ' ? "no item found for indicator position - using first item in row"
@@ -80,7 +80,7 @@ namespace ml
       end if
     end function
 
-    public override function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+    public override function chooseComponentInfoForScrollingIntoRow(componentInfo as list.ComponentInfo)
       ' ? " GRID CHOOSE SCROLLING INTO ROW" ; componentInfo.index; " CI "; componentInfo.componentIndex
       componentInfo = m.getCellComponentInfo(componentInfo, true)
       if componentInfo <> invalid
@@ -95,14 +95,14 @@ namespace ml
     '++ Focus Indicator
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    public override function getFocusIndicatorConfig(componentInfo as list.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as list.FocusIndicatorConfig
       info = m.getCellComponentInfo(componentInfo, isFromListScroll)
       config = super.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromListScroll)
       config.gridIndex = info.contentIndex
       return config
     end function
 
-    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+    protected override function getFocusIndicatorTranslation(info as list.ComponentInfo, componentInfo as list.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
       ' ? " START GRID GET FOCUS INDICATOR TRANS"
       if info = invalid or m.viewManager.settings = invalid
         return [0, 0]

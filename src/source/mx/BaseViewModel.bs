@@ -55,7 +55,7 @@ namespace mx
       m.state = "destroyed"
     end function
 
-    protected function onAddedToAggregateView(view as mc.types.node)
+    protected function onAddedToAggregateView(v as types.node)
     end function
 
     protected function onFirstShow()
@@ -66,7 +66,7 @@ namespace mx
       m.isShown = true
     end function
 
-    protected function onRemovedFromAggregateView(view as mc.types.node)
+    protected function onRemovedFromAggregateView(v as types.node)
     end function
 
     protected function onHide()
@@ -92,7 +92,7 @@ namespace mx
       end if
     end function
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray)
+    protected function initializeView(v as types.node, args = invalid as types.assocarray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -100,40 +100,40 @@ namespace mx
       end if
     end function
 
-    protected function setFocus(target as mc.types.node, forceSet = false as boolean)
+    protected function setFocus(target as types.node, forceSet = false as boolean)
       'bs:disable-next-line
-      mv_setFocus(target, forceSet)
+      setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as mc.types.node, message as string)
+    protected function setFocusLocked(target as types.node, message as string)
       'bs:disable-next-line
-      mv_setFocusLocked(target, message)
+      setFocusLocked(target, message)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as mc.types.node, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
-      return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
+    protected function createSGNode(nodeType as types.node, parent = invalid as types.node, id = invalid as string, args = invalid as types.assocarray, callInitialize = true as boolean, mTarget = invalid as types.assocarray) as types.node
+      return createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
-    protected function createNode(nodeType as string) as mc.types.node
-      return mc.createNode(nodeType)
+    protected function createNode(nodeType as string) as types.node
+      return createNode(nodeType)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as types.array, targetNode as types.node, assignViewsToM = true as boolean, mTarget = invalid as types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
-      mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+      view.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as mc.types.array, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as types.array, mTarget = invalid as types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
-      mv.updateViewsWithStyleJson(json, mTarget)
+      view.updateViewsWithStyleJson(json, mTarget)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -141,27 +141,27 @@ namespace mx
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onKeyEvent(key as string, press as boolean) as boolean
-      result = false
+      res = false
       if press
         'bs:disable-next-line
-        if mc.isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
+        if isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
           return true
         end if
-        if mc.isFunction(m[`onKeyPress${key}`])
-          result = m[`onKeyPress${key}`]()
+        if isFunction(m[`onKeyPress${key}`])
+          res = m[`onKeyPress${key}`]()
         end if
       else
-        result = false
+        res = false
       end if
 
-      if result = invalid
-        result = false
+      if res = invalid
+        res = false
       end if
 
       if result and press
 
         'bs:disable-next-line
-        if mc.isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
+        if isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
         if longPressInterval > 0
           m.log.info("entering long press for key ", key)
           m.longPressKey = key
@@ -170,16 +170,16 @@ namespace mx
         end if
       else
         'bs:disable-next-line
-        result = mc.isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
+        res = isFunction(isCapturingAnyKeyPress) and isCapturingAnyKeyPress(key, press)
       end if
 
       'bs:disable-next-line
-      if result = false and mc.isFunction(m.isCapturingAnyKeyPress)
+      if res = false and isFunction(m.isCapturingAnyKeyPress)
         'bs:disable-next-line
-        result = m.isCapturingAnyKeyPress(key, press)
+        res = m.isCapturingAnyKeyPress(key, press)
       end if
 
-      return result
+      return res
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -187,11 +187,11 @@ namespace mx
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function getTopField(fieldName as string) as dynamic
-      return mc.getMField("top")[fieldName]
+      return getMField("top")[fieldName]
     end function
 
     protected function getMField(fieldName as string) as dynamic
-      return mc.getMField(fieldName)
+      return getMField(fieldName)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -208,16 +208,16 @@ namespace mx
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as mc.types.node, animated = true as boolean)
+    protected function push(v as types.node, animated = true as boolean)
 
-      if mc.isString(view)
-        view = m.getViewById(view)
+      if isString(v)
+        v = m.getViewById(v)
       end if
       'bs:disable-next-line
-      push(view, animated)
+      push(v, animated)
     end function
 
-    protected function pop(animated = true as boolean) as mc.types.node
+    protected function pop(animated = true as boolean) as types.node
       'bs:disable-next-line
       return(pop(animated))
     end function
@@ -233,10 +233,10 @@ namespace mx
       end if
     end function
 
-    protected function getViewById(id as string) as mc.types.node
-      view = mc.getMField(id)
+    protected function getViewById(id as string) as types.node
+      v = getMField(id)
 
-      if view = invalid
+      if v = invalid
         m.log.error("could not find view with name ", id)
       end if
 
@@ -248,12 +248,12 @@ namespace mx
       resetNavControllerToRoot(animated)
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+    protected function resetNavController(newFirstScreen = invalid as types.node, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex, animated)
     end function
 
-    function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+    function replaceNavControllerScreen(targetScreen as types.node, animated = false as boolean)
       'bs:disable-next-line
       replaceNavControllerScreen(targetScreen, animated)
     end function
@@ -262,29 +262,29 @@ namespace mx
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
-      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
+    protected function observeNodeField(node as types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
+      tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
     end function
 
-    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
+    protected function unobserveNodeField(node as types.node, fieldName as string, callback = invalid as function)
       'TODO - we need to be a bitmore clever about observing things, as they might be going to various callbacks
-      mc.tasks.cleanNodeObserver(node, fieldName)
+      tasks.cleanNodeObserver(node, fieldName)
     end function
 
-    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.types.node
-      return mc.tasks.waitAFrame(callback, duration, sendMode, m)
+    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as types.node
+      return tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as mc.types.node)
-      mc.tasks.cancelWaitTimer(timer)
+    protected function cancelWaitTimer(timer as types.node)
+      tasks.cancelWaitTimer(timer)
     end function
 
-    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as mc.types.node
-      return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
+    protected function createTask(taskType as string, fields as types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as types.node
+      return tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as mc.types.node)
-      mc.tasks.cancelTask(task)
+    protected function cancelTask(task as types.node)
+      tasks.cancelTask(task)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -292,23 +292,23 @@ namespace mx
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function getInstance(name as string, path = invalid as string) as dynamic
-      return mioc.getInstance(name, path)
+      return ioc.getInstance(name, path)
     end function
 
     protected function setInstance(field as string, instance as dynamic)
-      mioc.setInstance(field, instance)
+      ioc.setInstance(field, instance)
     end function
 
-    protected function getClassInstance(className as string, args = [] as mc.types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as object
-      return mioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
+    protected function getClassInstance(className as string, args = [] as types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as object
+      return ioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
     end function
 
-    protected function createClassInstance(className as string, args = [] as mc.types.array) as object
-      return mioc.createClassInstance(className, args)
+    protected function createClassInstance(className as string, args = [] as types.array) as object
+      return ioc.createClassInstance(className, args)
     end function
 
     protected function setClassInstance(instance as object)
-      return mioc.setClassInstance(instance)
+      return ioc.setClassInstance(instance)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -318,7 +318,7 @@ namespace mx
     protected function toggleLongPressTimer(interval as float)
       if interval > 0
         if m.longPressTimer = invalid
-          m.longPressTimer = mc.private.getMaestroPooledComponent("Timer")
+          m.longPressTimer = private.getMaestroPooledComponent("Timer")
         end if
         m.longPressTimer.duration = interval
         m.longPressTimer.repeat = true
@@ -336,7 +336,7 @@ namespace mx
         if m.longPressKey <> invalid and m.longPressKey <> ""
           m.log.info("finishing longPress on key ", m.longPressKey)
           'bs:disable-next-line
-          if m.isLongPressStarted and mc.isFunction(onLongPressFinish)
+          if m.isLongPressStarted and isFunction(onLongPressFinish)
             'bs:disable-next-line
             onLongPressFinish(m.longPressKey)
           end if
@@ -349,11 +349,11 @@ namespace mx
     protected function onLongPressTimerFire()
       if m.isLongPressStarted
         'bs:disable-next-line
-        if mc.isFunction(m.onLongPressUpdate)
+        if isFunction(m.onLongPressUpdate)
           'bs:disable-next-line
           if not m.onLongPressUpdate(m.longPressKey)
             m.log.info("long press was cancelled by the onLongPressUpdate call")
-            if mc.isFunction(m.toggleLongPressTimer)
+            if isFunction(m.toggleLongPressTimer)
               m.toggleLongPressTimer(0)
             end if
           else
@@ -363,7 +363,7 @@ namespace mx
         end if
       else
         'bs:disable-next-line
-        if mc.isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
+        if isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
           m.log.info("long press was rejected by onLongPressStart call")
           m.toggleLongPressTimer(0)
         else
@@ -389,7 +389,7 @@ namespace mx
       if control <> invalid
         m.log.verbose("setting focus on ", control)
         'bs:disable-next-line
-        mv.setFocus(control)
+        view.setFocus(control)
       else
         m.log.error("the focus map contained a focusId that did not exist!", focusId)
       end if
@@ -400,19 +400,19 @@ namespace mx
 
   function initializeBindings()
     'bs:disable-next-line
-    if mc.isFunction(m_initBindings)
+    if isFunction(m_initBindings)
       'bs:disable-next-line
       m_initBindings()
     end if
 
     'bs:disable-next-line
-    if mc.isFunction(M_initStaticBindings)
+    if isFunction(M_initStaticBindings)
       'bs:disable-next-line
       M_initStaticBindings()
     end if
 
     'bs:disable-next-line
-    if mc.isFunction(onFocusIdChange)
+    if isFunction(onFocusIdChange)
       'bs:disable-next-line
       m.vm.observeField("focusId", onFocusIdChange)
     end if

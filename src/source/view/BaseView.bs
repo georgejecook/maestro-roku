@@ -1,15 +1,15 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/view/NodeClass.bs"
 
-namespace mv
+namespace view
   ' /**
   '  * @module BaseView
   '  * @description Is the class counterpart to BaseView component
   '  *              used for MVC style programming
   '  */
-  class BaseView extends mv.NodeClass
+  class BaseView extends view.NodeClass
 
     @inject("styleManager")
     protected styleManager
@@ -27,7 +27,7 @@ namespace mv
       super(name)
     end function
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.array)
+    protected function initializeView(v as types.node, args = invalid as types.array)
       if view <> invalid
         view@._initialize(args)
       else
@@ -35,21 +35,21 @@ namespace mv
       end if
     end function
 
-    protected function setFocus(target as mc.types.node, forceSet = false as boolean)
+    protected function setFocus(target as types.node, forceSet = false as boolean)
       m.focusedControl = target
       'bs:disable-next-line
-      mv.setFocus(target, forceSet)
+      view.setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as mc.types.node, message as string)
+    protected function setFocusLocked(target as types.node, message as string)
       if target <> invalid
         m.focusedControl = target
       end if
       'bs:disable-next-line
-      mv.setFocusLocked(target, message)
+      view.setFocusLocked(target, message)
     end function
 
-    protected function isControlFocused(control as mc.types.node)
+    protected function isControlFocused(control as types.node)
       return m.focusedControl <> invalid and control <> invalid and m.focusedControl.id = control.id
     end function
 
@@ -58,14 +58,14 @@ namespace mv
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onKeyEvent(key as string, press as boolean) as boolean
-      result = false
+      res = false
       if press
         'bs:disable-next-line
-        if mc.isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
+        if isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
           return true
         end if
         'bs:disable-next-line
-        if mc.isFunction(m.getLongPressIntervalForKey)
+        if isFunction(m.getLongPressIntervalForKey)
           'bs:disable-next-line
           longPressInterval = m.getLongPressIntervalForKey(key)
           if longPressInterval > 0
@@ -77,33 +77,33 @@ namespace mv
           end if
         end if
 
-        if mc.isFunction(m[`onKeyPress${key}`])
-          result = m[`onKeyPress${key}`]()
+        if isFunction(m[`onKeyPress${key}`])
+          res = m[`onKeyPress${key}`]()
         end if
       else if m.longPressKey <> ""
         wasStarted = m.isLongPressStarted
         m.toggleLongPressTimer(0)
-        if not wasStarted and mc.isFunction(m[`onKeyPress${key}`])
-          result = m[`onKeyPress${key}`]()
+        if not wasStarted and isFunction(m[`onKeyPress${key}`])
+          res = m[`onKeyPress${key}`]()
         end if
         return true
       end if
 
-      if result = invalid
-        result = false
+      if res = invalid
+        res = false
       end if
 
       'bs:disable-next-line
-      if result = false and mc.isFunction(m.isCapturingAnyKeyPress)
+      if res = false and isFunction(m.isCapturingAnyKeyPress)
         'bs:disable-next-line
-        result = m.isCapturingAnyKeyPress(key, press)
+        res = m.isCapturingAnyKeyPress(key, press)
       end if
 
-      if result = invalid
-        result = false
+      if res = invalid
+        res = false
       end if
 
-      return result
+      return res
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -113,7 +113,7 @@ namespace mv
     protected function toggleLongPressTimer(interval as float)
       if interval > 0
         if m.longPressTimer = invalid
-          m.longPressTimer = mc.private.getMaestroPooledComponent("Timer")
+          m.longPressTimer = private.getMaestroPooledComponent("Timer")
         end if
         m.longPressTimer.duration = interval
         m.longPressTimer.repeat = true
@@ -124,14 +124,14 @@ namespace mv
           m.unobserveNodeField(m.longPressTimer, "fire", m.onLongPressTimerFire)
           m.longPressTimer.control = "stop"
           m.longPressTimer.repeat = false
-          mc.private.releaseMaestroPooledComponent(m.longPressTimer)
+          private.releaseMaestroPooledComponent(m.longPressTimer)
           m.longPressTimer = invalid
         end if
 
         if m.longPressKey <> ""
           m.log.info("finishing longPress on key ", m.longPressKey)
           'bs:disable-next-line
-          if m.isLongPressStarted and mc.isFunction(m.onLongPressFinish)
+          if m.isLongPressStarted and isFunction(m.onLongPressFinish)
             'bs:disable-next-line
             m.onLongPressFinish(m.longPressKey)
           end if
@@ -144,11 +144,11 @@ namespace mv
     protected function onLongPressTimerFire()
       if m.isLongPressStarted
         'bs:disable-next-line
-        if mc.isFunction(m.onLongPressUpdate)
+        if isFunction(m.onLongPressUpdate)
           'bs:disable-next-line
           if not m.onLongPressUpdate(m.longPressKey)
             m.log.info("long press was cancelled by the onLongPressUpdate call")
-            if mc.isFunction(m.toggleLongPressTimer)
+            if isFunction(m.toggleLongPressTimer)
               m.toggleLongPressTimer(0)
             end if
           else
@@ -158,11 +158,11 @@ namespace mv
         end if
       else
         'bs:disable-next-line
-        if mc.isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
+        if isFunction(m.onLongPressStart) and not m.onLongPressStart(m.longPressKey)
           m.log.info("long press was rejected by onLongPressStart call")
           key = m.longPressKey
           m.toggleLongPressTimer(0)
-          if mc.isFunction(m[`onKeyPress${key}`])
+          if isFunction(m[`onKeyPress${key}`])
             m[`onKeyPress${key}`]()
           end if
         else

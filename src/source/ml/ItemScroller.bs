@@ -8,12 +8,12 @@ import "pkg:/source/ml/ComponentInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
-namespace ml
-  class ItemScroller extends mc.BaseClass
+namespace list
+  class ItemScroller extends BaseClass
 
-    public focusIndicatorManager as mc.types.node
-    public container as mc.types.node
-    public offsetContainer as mc.types.node
+    public focusIndicatorManager as types.node
+    public container as types.node
+    public offsetContainer as types.node
 
     public viewManager
     public focusManager ' this MUST be set before doing anything
@@ -28,12 +28,12 @@ namespace ml
     public componentInfos = []
     public numberOfComponents = 0
 
-    public componentInfo as ml.ComponentInfo
-    public nextComponentInfo as ml.ComponentInfo
-    public nextFocusIndicatorConfig as ml.FocusIndicatorConfig
-    public targetComponentInfo as ml.ComponentInfo
+    public componentInfo as list.ComponentInfo
+    public nextComponentInfo as list.ComponentInfo
+    public nextFocusIndicatorConfig as list.FocusIndicatorConfig
+    public targetComponentInfo as list.ComponentInfo
 
-    public focusedItem as mc.types.node
+    public focusedItem as types.node
 
     public index = 0
     public nextIndex = 0
@@ -66,7 +66,7 @@ namespace ml
 
     private isMultiMoveFinished = false
 
-    function new(name as string, viewManager as ml.ItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(name as string, viewManager as list.ItemViewManager, focusManager as list.ItemFocusManager)
       super(name)
       m.viewManager = viewManager
       viewManager.itemScroller = m
@@ -74,8 +74,8 @@ namespace ml
       m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
       m.container = m.viewManager.container
       m.axes = m.viewManager.axes
-      m.viewPortEventNotifier = new ml.ViewPortEventNotifier(viewManager)
-      m.moveAnimation = new mv.animations.Move(m.container, 1, m.container.translation, m.container.translation)
+      m.viewPortEventNotifier = new list.ViewPortEventNotifier(viewManager)
+      m.moveAnimation = new animations.Move(m.container, 1, m.container.translation, m.container.translation)
       m.moveAnimation.observeFraction(m.onAnimationFractionChange, m)
 
       focusManager.setItemScroller(m)
@@ -91,7 +91,7 @@ namespace ml
         m.animSpeed = 0.05
         m.longPressEndItemOffset = 0
       end if
-      m.sendViewPortEvents = mc.getPath(m.viewManager.owner, "content.listSettings.sendViewPortEvents", false)
+      m.sendViewPortEvents = getPath(m.viewManager.owner, "content.listSettings.sendViewPortEvents", false)
       m.viewPortEventNotifier.onViewManagerUpdate()
       m.getComponentInfos(true)
     end function
@@ -144,7 +144,7 @@ namespace ml
       m.numberOfComponents = m.componentInfos.count()
     end function
 
-    private function getComponentInfoForIndex(contentIndex as integer, cellIndex = -1 as integer) as ml.ComponentInfo
+    private function getComponentInfoForIndex(contentIndex as integer, cellIndex = -1 as integer) as list.ComponentInfo
       contentInfo = m.getComponentInfoForContentIndex(contentIndex)
       if contentInfo <> invalid
         info = contentInfo.component@.getContentInfoForIndex(cellIndex)
@@ -155,7 +155,7 @@ namespace ml
       return invalid
     end function
 
-    private function getComponentInfoForContentIndex(contentIndex as integer) as ml.ComponentInfo
+    private function getComponentInfoForContentIndex(contentIndex as integer) as list.ComponentInfo
       info = invalid
       ' ? "getComponentInfoForContentIndex" ; contentIndex
       for each info in m.componentInfos
@@ -253,8 +253,8 @@ namespace ml
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
       ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
       ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
-      index = mc.clamp(index, 0, m.numberOfComponents - 1)
-      ' index = mc.clamp(index, 0, 3)
+      index = clamp(index, 0, m.numberOfComponents - 1)
+      ' index = clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
 
       m.focusIndicatorManager@.cancelFlowFocus()
@@ -280,7 +280,7 @@ namespace ml
       m.isMovingMultiple = abs(index - m.index) > 1
 
       if forceSequential
-        nextComponentInfo = m.componentInfos[mc.clamp(m.index + direction, 0, m.numberOfComponents - 1)]
+        nextComponentInfo = m.componentInfos[clamp(m.index + direction, 0, m.numberOfComponents - 1)]
       else
         nextComponentInfo = m.componentInfos[index]
       end if
@@ -445,7 +445,7 @@ namespace ml
     end function
 
     function onAnimationFractionChange(fraction as float) as void
-      ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
+      ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
       if fraction = 1 and not m.isMovingMultiple
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
@@ -455,13 +455,13 @@ namespace ml
       else if m.isMovingMultiple
 
         if fraction = 1
-          isInPlace = (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
+          ' isInPlace = (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
           ' ? " REGULAR ANIM FINISHED " ; isInPlace '": BUT STILL NOT IN PLACE!"
           ' m.updateSrollOffsetFraction(1)
           m.finishMovingToIndex()
         else
 
-          f = mc.clamp(m.getCurrentIndexFraction(m.container.translation[m.axes]), 0, 1)
+          f = clamp(m.getCurrentIndexFraction(m.container.translation[m.axes]), 0, 1)
 
           ' ? "+>>>+>>>>+ DDDDD " ; f ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
           m.updateSrollOffsetFraction(f)
@@ -497,7 +497,7 @@ namespace ml
 
     function finishMovingToIndex(isFromFlow = false as boolean) as boolean
 
-      ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
+      ' ? "VVVVV finishMovingToIndex TI " ; getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
       ' ? m.__classname ; " " ; m.isScrollCancelled
 
       if m.isScrollCancelled
@@ -556,7 +556,7 @@ namespace ml
 
       ' componentInfo = m.componentInfo
       componentInfo = m.nextComponentInfo
-      ' ? "VVVV NCI " ; mc.getPath(m.targetComponentInfo, "index"); mc.getPath(componentInfo, "index")
+      ' ? "VVVV NCI " ; getPath(m.targetComponentInfo, "index"); getPath(componentInfo, "index")
       if componentInfo = invalid
         ' ? "VVVVV NO Component Info"
         m.focusManager.onFocusAnimationUpdate(1)
@@ -609,7 +609,7 @@ namespace ml
       end if
     end function
 
-    protected function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
+    protected function setFocusManagerInfo(componentInfo as list.componentInfo, nextComponentInfo as list.componentInfo, direction as integer, isFloatingFocus as boolean) as void
       if isFloatingFocus
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextComponentInfo, m.direction, true)
       else
@@ -623,14 +623,14 @@ namespace ml
     '++ Flow Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function moveUsingFlowAnim(fromInfo as ml.ComponentInfo, toInfo as ml.ComponentInfo, direction as integer)
+    protected function moveUsingFlowAnim(fromInfo as list.ComponentInfo, toInfo as list.ComponentInfo, direction as integer)
       ' ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
 
       m.isLastMoveFlowFocus = true
       m.toggleScrolling(true)
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
       ' ? "FLOW "; m.animSpeed
-      m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
+      m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
@@ -641,7 +641,7 @@ namespace ml
         ' ? "+>+>+>+ FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
         m.log.info("finished focusing action with this flow")
 
-        ' ? "+>+>+>+> "; mc.getPath(m.targetComponentInfo, "index"); " MI "; m.index ; " NI " ; m.nextIndex
+        ' ? "+>+>+>+> "; getPath(m.targetComponentInfo, "index"); " MI "; m.index ; " NI " ; m.nextIndex
         m.finishMovingToIndex(true)
       else
         ' ? ">>>> FLOW FOCUS "; fraction
@@ -657,7 +657,7 @@ namespace ml
     '++ State Tracking
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function setComponentInfo(info as ml.ComponentInfo)
+    protected function setComponentInfo(info as list.ComponentInfo)
       m.componentInfo = info
       if info <> invalid
         ' ? "SCI>>> (" ; m.__classname ; ") " ; info.index ; " CI " ; info.contentIndex
@@ -673,7 +673,7 @@ namespace ml
       end if
     end function
 
-    protected function setNextComponentInfo(info as ml.ComponentInfo) as void
+    protected function setNextComponentInfo(info as list.ComponentInfo) as void
       m.lastScrollOffsetFraction = 0
 
       if info = invalid
@@ -708,7 +708,7 @@ namespace ml
       m.nextComponentInfo = info
     end function
 
-    function setTargetComponentInfo(info as ml.ComponentInfo) as void
+    function setTargetComponentInfo(info as list.ComponentInfo) as void
       m.targetComponentInfo = info
       if info <> invalid
         ' ? " >>>>>>>>>>>>>>>> Target is " ; info.index
@@ -749,7 +749,7 @@ namespace ml
         end if
 
         m.setComponentInfo(m.componentInfos[index])
-        index = mc.clamp(m.index + m.direction, 0, m.numberOfComponents - 1)
+        index = clamp(m.index + m.direction, 0, m.numberOfComponents - 1)
         ' ? " ::::::::::::::: setNextComponentInfo BBB"
         m.setNextComponentInfo(m.componentInfos[index])
       end if
@@ -773,7 +773,7 @@ namespace ml
       if m.numberOfComponents = 0
         return
       end if
-      index = mc.clamp(index, 0, m.numberOfComponents - 1)
+      index = clamp(index, 0, m.numberOfComponents - 1)
       m.setComponentInfo(m.componentInfos[index])
       ' ? " ::::::::::::::: setNextComponentInfo CCC"
       m.setNextComponentInfo(m.componentInfos[index])
@@ -804,7 +804,7 @@ namespace ml
     '++ Managing Content Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function processChanges(changes as mc.types.array) as void
+    protected function processChanges(changes as types.array) as void
       isIndexUpdateRequired = false
       if m.numberOfComponents = 0
         ' ? "THERE ARE NO MORE ITEMS!"
@@ -826,7 +826,7 @@ namespace ml
       end if
 
       if not isIndexUpdateRequired
-      isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+      isIndexUpdateRequired = collections.contains(changes, function(c as types.assocarray)
         return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
       end function)
     end if
@@ -850,7 +850,7 @@ namespace ml
     ' end if
   end function
 
-  public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+  public function chooseComponentInfoForScrollingIntoRow(componentInfo as list.ComponentInfo)
     componentInfo = m.getCellComponentInfo(componentInfo, true)
     if componentInfo <> invalid
       m.setComponentInfo(componentInfo)
@@ -862,14 +862,14 @@ namespace ml
   '++ Focus Indicator
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+  public function getFocusIndicatorConfig(componentInfo as list.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as list.FocusIndicatorConfig
 
     info = m.getCellComponentInfo(componentInfo, isFromListScroll)
 
     rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
     if info = invalid or info.component = invalid or m.settings = invalid
       ' ? "cannot get focus indicator componentInfo or componentInfo.component is invalid "; m.__classname
-      return new ml.FocusIndicatorConfig(rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
+      return new list.FocusIndicatorConfig(rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
     end if
 
     size = m.viewManager.getItemSize(info.contentIndex)
@@ -879,17 +879,17 @@ namespace ml
 
     indicatorSize = [size[0] + m.settings.feedbackOffsets[2] - m.settings.feedbackOffsets[0], size[1] + m.settings.feedbackOffsets[3] - m.settings.feedbackOffsets[1]]
 
-    isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
+    isHidden = getPath(m.viewManager.content, "isHidden", false)
 
-    return new ml.FocusIndicatorConfig(rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
+    return new list.FocusIndicatorConfig(rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
   end function
 
 
-  protected function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+  protected function getCellComponentInfo(componentInfo as list.ComponentInfo, isFromListScroll = false as boolean) as list.ComponentInfo
     return invalid
   end function
 
-  protected function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+  protected function getFocusIndicatorTranslation(info as list.ComponentInfo, componentInfo as list.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
     return [0, 0]
   end function
 

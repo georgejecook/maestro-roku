@@ -1,11 +1,11 @@
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/core/Utils.bs"
 
-namespace mv.cells
+namespace cells
 
   @strict
   @lazy
-  @node("mv_BaseCell", "Group")
+  @node("BaseCell", "Group")
   class BaseCell
     'todo - add code for various events here
     private style
@@ -13,7 +13,7 @@ namespace mv.cells
     protected isFocused = false
 
     @observer("onContentChange")
-    public itemContent as mc.types.Node
+    public itemContent as types.Node
 
     public index = -1
 
@@ -35,7 +35,7 @@ namespace mv.cells
 
     private willChangeFocusReported = false
 
-    protected function onContentChange(content as mc.types.node)
+    protected function onContentChange(content as types.node)
       if m.top.index = 0
         'let's store the owning markup grid for this row
         rowList = m.top.getParent().getParent().getParent()
@@ -104,7 +104,7 @@ namespace mv.cells
     end function
 
     private function createView()
-      m.style = mv.getFieldInParent(m.itemContent, "_style")
+      m.style = view.getFieldInParent(m.itemContent, "_style")
       m._createView()
       m.isViewCreated = true
     end function
@@ -112,18 +112,18 @@ namespace mv.cells
     protected function _createView()
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as types.array, targetNode as types.node, assignViewsToM = true as boolean, mTarget = invalid as types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
-      mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+      view.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as mc.types.array, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as types.array, mTarget = invalid as types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
-      mv.updateViewsWithStyleJson(json, mTarget)
+      view.updateViewsWithStyleJson(json, mTarget)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

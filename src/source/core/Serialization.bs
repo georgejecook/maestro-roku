@@ -1,12 +1,12 @@
 import "Utils.bs"
 
-namespace mc.utils.Serialization
+namespace utils.Serialization
 
-  function serialize(serializable as object) as mc.types.assocarray
-    if mc.utils.Serialization.isSerializable(serializable)
+  function serialize(serializable as object) as types.assocarray
+    if utils.Serialization.isSerializable(serializable)
       if type(serializable) = "roSGNode"
         data = serializable@.serialize()
-        if not mc.isAACompatible(data)
+        if not isAACompatible(data)
           m.log.error("received non aa value when serialize - cannot proceed")
           return invalid
         end if
@@ -23,20 +23,20 @@ namespace mc.utils.Serialization
     return invalid
   end function
 
-  function deSerialize(data as mc.types.assocarray, serializable = invalid as object) as dynamic
-    if not mc.isAACompatible(data)
+  function deSerialize(data as types.assocarray, serializable = invalid as object) as dynamic
+    if not isAACompatible(data)
       m.log.warn("received non aa value to deserialize - cannot proceed")
       return invalid
     end if
 
-    if serializable = invalid and mc.isAACompatible(data) and mc.isString(data._serializationType)
-      serializable = mc.createSGNode(data._serializationType, invalid, data.id)
+    if serializable = invalid and isAACompatible(data) and isString(data._serializationType)
+      serializable = createSGNode(data._serializationType, invalid, data.id)
       if serializable = invalid
         m.log.error("could not deserialize type", data._serializationType)
       end if
     end if
 
-    if mc.utils.Serialization.isSerializable(serializable)
+    if utils.Serialization.isSerializable(serializable)
       if type(serializable) = "roSGNode"
         serializable@.deserialize(data)
       else
@@ -51,7 +51,7 @@ namespace mc.utils.Serialization
   end function
 
   function isSerializable(item as object) as boolean
-    if mc.isAACompatible(item)
+    if isAACompatible(item)
       if type(item) = "roSGNode"
         return item.isSerializable = true
       else
@@ -61,8 +61,8 @@ namespace mc.utils.Serialization
     return false
   end function
 
-  function isDeSerializableToNode(json as mc.types.assocarray) as boolean
-    return mc.isAACompatible(json) and json._serializationType <> invalid
+  function isDeSerializableToNode(json as types.assocarray) as boolean
+    return isAACompatible(json) and json._serializationType <> invalid
   end function
 
 end namespace

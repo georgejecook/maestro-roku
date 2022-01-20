@@ -1,4 +1,4 @@
-import "pkg:/source/roku_modules/maestro/core/MIOC.brs"
+import "pkg:/source/roku_modules/maestro/core/ioc.brs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace tests
@@ -14,14 +14,14 @@ namespace tests
     end function
 
     protected override function beforeEach()
-      mioc.createContainer()
-      m.styleManager = createObject("roSGNode", "mv_StyleManager")
-      mioc.setInstance("styleManager", m.styleManager)
+      ioc.createContainer()
+      m.styleManager = createObject("roSGNode", "StyleManager")
+      ioc.setInstance("styleManager", m.styleManager)
     end function
 
     protected override function afterEach()
-      mioc.reset()
-      mioc.clearClassInstances()
+      ioc.reset()
+      ioc.clearClassInstances()
     end function
 
   end class

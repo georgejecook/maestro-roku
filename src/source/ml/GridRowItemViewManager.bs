@@ -1,8 +1,8 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 
-namespace ml
-  class GridRowItemViewManager extends ml.ItemViewManager
+namespace list
+  class GridRowItemViewManager extends list.ItemViewManager
     public row = invalid
     public numRows = 0
     public numCols = 1
@@ -19,8 +19,8 @@ namespace ml
     public downScreenPosition = 0
     private lastFlowDirection = 1
 
-    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
-      super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
+    function new(l as types.node, row as types.node, container as types.node, componentPool as types.node, minPos as integer, maxPos as integer)
+      super("GridRowItemViewManager", l, container, componentPool, 0, minPos, maxPos)
       m.row = row
 
       m.lookAheadDistance = maxPos * 1.5
@@ -41,7 +41,7 @@ namespace ml
       return fix(index / m.numCols)
     end function
 
-    function getCellInfosInRow(rowIndex as integer) as mc.types.array
+    function getCellInfosInRow(rowIndex as integer) as types.array
       infos = []
       firstIndex = rowIndex * m.numCols
       for i = firstIndex to firstIndex + m.numCols - 1
@@ -53,7 +53,7 @@ namespace ml
       return infos
     end function
 
-    function getRenderersInRow(rowIndex as integer) as mc.types.array
+    function getRenderersInRow(rowIndex as integer) as types.array
       infos = m.getCellInfosInRow(rowIndex)
       renderers = []
       for each info in infos
@@ -76,12 +76,12 @@ namespace ml
         ' ? " CHECK ROW " ;i ; " " ; m.rowOffsets[i] ; " >>> "; p
         itemPos = m.rowOffsets[i]
         if p > itemPos
-          return mc.clamp(i + 1, 0, numRows)
+          return clamp(i + 1, 0, numRows)
         end if
       end for
 
       'we must be at the end! -return last item
-      return mc.clamp(i, 0, numRows)
+      return clamp(i, 0, numRows)
     end function
 
 
@@ -89,7 +89,7 @@ namespace ml
     '++ Overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
+    protected override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as types.array
       if forceRecalculate
         m.rowInfos = invalid
       end if
@@ -137,7 +137,7 @@ namespace ml
       super.reset()
     end function
 
-    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    override function createRenderers(content as types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
@@ -171,7 +171,7 @@ namespace ml
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
-      ' ? "children" ; formatJson(mc.collections.map(children, function(c as object)
+      ' ? "children" ; formatJson(collections.map(children, function(c as object)
       ' return c.title
       ' end function))
 
@@ -189,7 +189,7 @@ namespace ml
             exit for
           end if
           ' ? "ITEM " ; item.title
-          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+          settings = list.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y],
             size: settings.size
@@ -199,11 +199,11 @@ namespace ml
           })
 
           positions = [
-            new ml.ComponentPosition(0, x) 'up
-            new ml.ComponentPosition(0, x) 'down
+            new list.ComponentPosition(0, x) 'up
+            new list.ComponentPosition(0, x) 'down
           ]
 
-          cellInfo = new ml.ComponentInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
+          cellInfo = new list.ComponentInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
           cellInfo.index = i
           m.cellInfos.push(cellInfo)
           'TODO - for now, no vis options for rows children..
@@ -218,11 +218,11 @@ namespace ml
         rowIndex++
       end while
 
-      m.numRows = mc.clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
+      m.numRows = clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
       m.numberOfItems = m.visibleItems.count()
     end function
 
-    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.ComponentInfo
+    private function getRowInfo(rowIndex as integer, size as types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as list.ComponentInfo
 
       yOffset += y
 
@@ -235,8 +235,8 @@ namespace ml
         isFlowFocusAllowed = false
 
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new list.ComponentPosition(yOffset, screenPos) 'up
+          new list.ComponentPosition(yOffset, screenPos) 'down
         ]
       else if rowIndex = 1 and m.settings.otherRowScreenPos <> m.settings.firstRowScreenPos
         screenPos = m.settings.otherRowScreenPos
@@ -246,8 +246,8 @@ namespace ml
         ' end if
         isFlowFocusAllowed = false
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new list.ComponentPosition(yOffset, screenPos) 'up
+          new list.ComponentPosition(yOffset, screenPos) 'down
         ]
       else
         screenPos = m.settings.otherRowScreenPos
@@ -259,20 +259,20 @@ namespace ml
         end if
         ' ? "ROW SCREEN POS" ; rowIndex ; " " ; yOffset ; " Y " ; yOffset ; " F "; m.firstFlowIndex ; " SP "; screenPos
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          ' new ml.ComponentPosition(yOffset, screenPos) 'down
-          new ml.ComponentPosition(yOffset - downScreenPos, screenPos) 'down
+          new list.ComponentPosition(yOffset, screenPos) 'up
+          ' new list.ComponentPosition(yOffset, screenPos) 'down
+          new list.ComponentPosition(yOffset - downScreenPos, screenPos) 'down
         ]
       end if
       'note - col width is irrelevant
-      return new ml.ComponentInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
+      return new list.ComponentInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
     override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
       return true
     end function
 
-    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
+    override function applyRenderStateMap(renderStateMap as types.assocarray)
       m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
       ' ? "______________________________ ARSM" ; m.__classname
       m.renderedComponents = []
@@ -306,7 +306,7 @@ namespace ml
             cell = m.previousRendereredByContentId[itemId]
           end if
           if cell = invalid
-            settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+            settings = list.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; itemId ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
@@ -484,7 +484,7 @@ namespace ml
       }
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    protected override function onContentItemsChange(changes as types.array)
       m.log.info("updating row renderers due to contents change")
 
       ' ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
@@ -497,7 +497,7 @@ namespace ml
 
       m.itemScroller.getComponentInfos(true)
       if m.itemScroller.index >= m.itemScroller.numberOfComponents
-        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        m.itemScroller.index = clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         ' ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
       end if
       if m.itemScroller.componentInfos.count() <> numRows
@@ -516,7 +516,7 @@ namespace ml
     end function
 
 
-    override function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
+    override function isVerticalFlowFocusPossible(info as list.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
 
 
       if not m.isVerticalFlowFocusAllowed
@@ -553,7 +553,7 @@ namespace ml
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function processRemovedCells(changes as mc.types.array)
+    private function processRemovedCells(changes as types.array)
       m.log.info("processing removed cells")
       for each change in changes
         ' ? "GOT CHANGE TYPE "; change.type

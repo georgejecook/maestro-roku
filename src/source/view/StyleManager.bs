@@ -4,14 +4,14 @@ import "pkg:/source/view/NodeClass.bs"
 import "pkg:/source/core/JsonCombiner.bs"
 import "pkg:/source/core/DebugTimer.bs"
 
-namespace mv
-  @node("mv_StyleManager", "Node")
-  class StyleManager extends mv.NodeClass
+namespace view
+  @node("StyleManager", "Node")
+  class StyleManager extends view.NodeClass
 
     private styles = {}
     private defaultLocale = "en"
     private cachedStyles = {}
-    private jsonCombiner = new mc.JsonCombiner()
+    private jsonCombiner = new JsonCombiner()
 
     function new()
       super("StyleManager")
@@ -23,8 +23,8 @@ namespace mv
       m.defaultLocale = locale
     end function
 
-    public function setStyleJson(json as mc.types.assocarray)
-      if mc.isAACompatible(json)
+    public function setStyleJson(json as types.assocarray)
+      if isAACompatible(json)
         m.styles = json
       else
         m.styles = {}
@@ -45,7 +45,7 @@ namespace mv
     '
     ' @params {string} bundlePath of the root bundle
     ' @params {string} locale of the bundle, or invalid if the default (english)
-    public function loadBundle(bundlePath as string, locale = invalid as string) as mc.types.assocarray
+    public function loadBundle(bundlePath as string, locale = invalid as string) as types.assocarray
 
       if locale = invalid
         locale = m.defaultLocale
@@ -60,15 +60,15 @@ namespace mv
         return style
       end if
 
-      timer = new mc.utils.DebugTimer("load bundle :" + styleKey)
+      timer = new utils.DebugTimer("load bundle :" + styleKey)
       bundleFilename = m.getBundleFilename(bundlePath, "en")
       json = m.loadJson(bundleFilename)
 
-      if mc.isAACompatible(json)
+      if isAACompatible(json)
         if locale <> "en"
           localeBundleFilename = m.getBundleFilename(bundlePath, locale)
           localeJson = m.loadJson(localeBundleFilename)
-          if mc.isAACompatible(localeJson)
+          if isAACompatible(localeJson)
             json = m.jsonCombiner.combine(json, localeJson)
           else
             m.log.error("Could not load locale (", locale, ") style from ", bundlePath, "missing/corrupt file", localeBundleFilename)
@@ -141,14 +141,14 @@ namespace mv
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function loadJson(path as string) as mc.types.assocarray
+    private function loadJson(path as string) as types.assocarray
       text = readAsciiFile(path)
       return text = invalid ? invalid : parseJson(text)
     end function
 
 
     private function parseStyle(key as string)
-      style = mc.getPath(m.styles, key)
+      style = getPath(m.styles, key)
 
       if style <> invalid
         style = m.resolveNestedStyles(style)
@@ -157,7 +157,7 @@ namespace mv
     end function
 
     private function resolveNestedStyles(style as string)
-      if mc.isAACompatible(style)
+      if isAACompatible(style)
         if style["$extends"] <> invalid
           baseStyle = m.getStyle(style["$extends"])
           if baseStyle <> invalid
@@ -177,7 +177,7 @@ namespace mv
             style[key] = m.resolveNestedStyleValue(style[key])
           end for
         end if
-      else if mc.isArray(style)
+      else if isArray(style)
         n = style.count() - 1
         for i = 0 to n
           style[i] = m.resolveNestedStyleValue(style[i])
@@ -187,7 +187,7 @@ namespace mv
     end function
 
     private function resolveNestedStyleValue(value as dynamic) as dynamic
-      if mc.isString(value) and len(value) > 1 and left(value, 1) = "~"
+      if isString(value) and len(value) > 1 and left(value, 1) = "~"
         nestedKey = right(value, len(value) - 1)
         nestedStyle = m.getStyle(nestedKey, true)
         if nestedStyle = invalid
@@ -196,7 +196,7 @@ namespace mv
           nestedStyle = value
         end if
         return nestedStyle
-      else if mc.isArray(value) or mc.isAACompatible(value)
+      else if isArray(value) or isAACompatible(value)
         return m.resolveNestedStyles(value)
       else
         return value

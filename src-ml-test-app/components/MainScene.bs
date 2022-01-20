@@ -1,5 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.bs"
-import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/IOC.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/components/view/mixin/FocusMixin.bs"
@@ -25,12 +25,12 @@ end function
 function begin(args = invalid as object)
   m.log.info("begin")
   m.top._global = m.global
-  mioc.createContainer()
-  fontManager = createObject("roSGNode", "mv_FontManager")
-  mioc.setInstance("fontManager", fontManager)
-  mc.setOrAddNodeField(m.global, "fontManager", fontManager)
+  ioc.createContainer()
+  fontManager = createObject("roSGNode", "FontManager")
+  ioc.setInstance("fontManager", fontManager)
+  setOrAddNodeField(m.global, "fontManager", fontManager)
 
   appController = m.top.findNode("mainGroup").createChild("AppController")
   appController@._initialize()
-  mv.setFocus(appController)
+  view.setFocus(appController)
 end function

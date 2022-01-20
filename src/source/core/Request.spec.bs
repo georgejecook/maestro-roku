@@ -6,7 +6,7 @@ namespace tests
 
     protected override function beforeEach()
       super.beforeEach()
-      m.request = new mc.net.Request()
+      m.request = new net.Request()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -15,38 +15,38 @@ namespace tests
 
     @it("gets")
     function _()
-      result = { "id": "result" }
+      res = { "id": "result" }
 
-      m.expectOnce(m.request, "get", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "get", ["url", "params", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.request.get("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.get("url", "params", "headers", "otherArgs"), res)
     end function
 
     @it("posts")
     function _()
-      result = { "id": "result" }
+      res = { "id": "result" }
 
-      m.expectOnce(m.request, "post", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "post", ["url", "params", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.request.post("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.post("url", "params", "headers", "otherArgs"), res)
     end function
 
     @it("puts")
     function _()
-      result = { "id": "result" }
+      res = { "id": "result" }
 
-      m.expectOnce(m.request, "put", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "put", ["url", "params", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.request.put("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.put("url", "params", "headers", "otherArgs"), res)
     end function
 
     @it("deletes")
     function _()
-      result = { "id": "result" }
+      res = { "id": "result" }
 
-      m.expectOnce(m.request, "delete", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(m.request, "delete", ["url", "params", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.request.delete("url", "params", "headers", "otherArgs"), result)
+      m.assertEqual(m.request.delete("url", "params", "headers", "otherArgs"), res)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -64,10 +64,10 @@ namespace tests
       expectedArgs = {
       }
 
-      result = { "id": "result" }
-      m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], result)
+      res = { "id": "result" }
+      m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], res)
 
-      m.assertEqual(m.request.executeRequest(method, url, params, headers), result)
+      m.assertEqual(m.request.executeRequest(method, url, params, headers), res)
     end function
 
 
@@ -80,10 +80,10 @@ namespace tests
         headers: headers
       }
 
-      result = { "id": "result" }
-      m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], result)
+      res = { "id": "result" }
+      m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], res)
 
-      m.assertEqual(m.request.executeRequest(method, url, params, headers), result)
+      m.assertEqual(m.request.executeRequest(method, url, params, headers), res)
     end function
 
     @it("reformats args if receiving otherArgs")
@@ -94,10 +94,10 @@ namespace tests
         id: "otherArgs"
       }
 
-      result = { "id": "result" }
-      m.expectOnce(m.request, "runRequest", ["method", "url", expectedArgs], result)
+      res = { "id": "result" }
+      m.expectOnce(m.request, "runRequest", ["method", "url", expectedArgs], res)
 
-      m.assertEqual(m.request.executeRequest("method", "url", invalid, invalid, otherArgs), result)
+      m.assertEqual(m.request.executeRequest("method", "url", invalid, invalid, otherArgs), res)
     end function
 
     @it("reformats args if receiving otherArgs - with params and headers")
@@ -113,10 +113,10 @@ namespace tests
         headers: headers
       }
 
-      result = { "id": "result" }
-      m.expectOnce(m.request, "runRequest", ["method", "url", expectedArgs], result)
+      res = { "id": "result" }
+      m.expectOnce(m.request, "runRequest", ["method", "url", expectedArgs], res)
 
-      m.assertEqual(m.request.executeRequest("method", "url", params, headers, otherArgs), result)
+      m.assertEqual(m.request.executeRequest("method", "url", params, headers, otherArgs), res)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -143,9 +143,9 @@ namespace tests
 
       m.expectOnce(m.request, "createNetResult", [event], netResult)
 
-      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+      res = m.request._execute(method, url, headers, data, 30, 3, "crt")
 
-      m.assertEqual(result, netResult)
+      m.assertEqual(res, netResult)
     end function
 
     @it("times out on first request")
@@ -175,9 +175,9 @@ namespace tests
 
       m.expectOnce(m.request, "createNetResult", [event], netResult)
 
-      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+      res = m.request._execute(method, url, headers, data, 30, 3, "crt")
 
-      m.assertEqual(result, netResult)
+      m.assertEqual(res, netResult)
     end function
 
     @it("Fails after maximum attempts - invalid responses")
@@ -204,9 +204,9 @@ namespace tests
 
       m.expectOnce(m.request, "createNetResult", [invalid], netResult)
 
-      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+      res = m.request._execute(method, url, headers, data, 30, 3, "crt")
 
-      m.assertEqual(result, netResult)
+      m.assertEqual(res, netResult)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -238,10 +238,10 @@ namespace tests
       m.expectOnce(event, "getResponseHeaders", [], headers)
       m.expectOnce(event, "getString", [], text)
 
-      result = m.request.createNetResult(event)
-      m.assertEqual(result.isOk, ok)
-      m.assertEqual(result.statusCode, code)
-      m.assertEqual(result.data, expectedData)
+      res = m.request.createNetResult(event)
+      m.assertEqual(res.isOk, ok)
+      m.assertEqual(res.statusCode, code)
+      m.assertEqual(res.data, expectedData)
 
     end function
 
@@ -381,8 +381,8 @@ namespace tests
 
       m.expectOnce(m.request, "_execute", [method, expectedUrl, headers, data, 30000, retryCount, certificatePath], executeResult)
 
-      result = m.request.runRequest(method, url, args)
-      m.assertEqual(result, executeResult)
+      res = m.request.runRequest(method, url, args)
+      m.assertEqual(res, executeResult)
     end function
 
     @it("changes timeout")
@@ -397,8 +397,8 @@ namespace tests
         timeout: timeout
       }
 
-      result = m.request.runRequest("GET", "u", args)
-      m.assertEqual(result, executeResult)
+      res = m.request.runRequest("GET", "u", args)
+      m.assertEqual(res, executeResult)
     end function
 
 

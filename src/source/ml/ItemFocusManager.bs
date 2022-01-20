@@ -4,10 +4,10 @@ import "pkg:/source/ml/ComponentInfo.bs"
 import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
-namespace ml
-  class ItemFocusManager extends mc.BaseClass
+namespace list
+  class ItemFocusManager extends BaseClass
 
-    public focusIndicatorManager as mc.types.node
+    public focusIndicatorManager as types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -15,10 +15,10 @@ namespace ml
 
     private viewManager = invalid
     private itemScroller = invalid
-    private componentInfo as ml.ComponentInfo
-    private nextComponentInfo as ml.ComponentInfo
-    private previousFocusIndicatorConfig as ml.FocusIndicatorConfig
-    private nextFocusIndicatorConfig as ml.FocusIndicatorConfig
+    private componentInfo as list.ComponentInfo
+    private nextComponentInfo as list.ComponentInfo
+    private previousFocusIndicatorConfig as list.FocusIndicatorConfig
+    private nextFocusIndicatorConfig as list.FocusIndicatorConfig
     private direction = 0
     private didStart = false
     private didFinish = false
@@ -34,7 +34,7 @@ namespace ml
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function new(viewManager as ml.ItemViewManager, ownerDelegate = invalid as object, rowIndex = -1 as integer)
+    function new(viewManager as list.ItemViewManager, ownerDelegate = invalid as object, rowIndex = -1 as integer)
       super("ItemFocusManager")
       m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
 
@@ -58,13 +58,13 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function setItemScroller(itemScroller as ml.ListItemScroller)
+    function setItemScroller(itemScroller as list.ListItemScroller)
       m.itemScroller = itemScroller
       m.moveAnimation = itemScroller.moveAnimation
     end function
 
     'TODO - add subrow index events
-    function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
+    function setComponentInfo(componentInfo as list.componentInfo, nextComponentInfo as list.componentInfo, nextFocusIndicatorConfig as list.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as list.FocusIndicatorConfig) as void
       if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
         ' ? ">>>> NOTHING HAS CHANGED DS " ; m.didStart ; " DF "; m.didFinish
         m.didFinish = false

@@ -12,7 +12,7 @@ namespace tests
     protected override function beforeEach()
       super.beforeEach()
       m.owner = new rooibos.utils.MockNode("owner")
-      m.owner.content = ml.listMixin.createListContent()
+      m.owner.content = list.listMixin.createListContent()
       m.owner.translation = [0, 0]
       m.owner.width = 1920
       m.owner.height = 1080
@@ -22,9 +22,9 @@ namespace tests
       m.container.width = 1920
       m.container.height = 1080
 
-      m.viewManager = new ml.ItemViewManager(m.owner, m.container, 1)
+      m.viewManager = new list.ItemViewManager(m.owner, m.container, 1)
       m.focusManager = { "id": "focusManager" }
-      m.scroller = new ml.ItemScroller(m.viewManager, 1)
+      m.scroller = new list.ItemScroller(m.viewManager, 1)
       m.scroller.focusManager = m.focusManager
       m.configureScroller(1, 20)
     end function
@@ -42,13 +42,13 @@ namespace tests
         last = 0
       end if
 
-      if comps.count() > last
-        for i = first to last step direction
-          comp = comps[i]
-          ' m.log.info(index, comp.id, "evt", comp.listEvent.name, "ivp", comp.isInViewport, "vs", comp._vs)
-    '      ? "Test" ; index; " c.id:" ; comp.id; " " ; "evt " ; comp.listEvent.name; " " ; "ivp"; " " ; comp.isInViewport; " " ; "vs"; " " ; comp._vs
-        end for
-      end if
+    '   if comps.count() > last
+    '     for i = first to last step direction
+    '       comp = comps[i]
+    '       ' m.log.info(index, comp.id, "evt", comp.listEvent.name, "ivp", comp.isInViewport, "vs", comp._vs)
+    ' '      ? "Test" ; index; " c.id:" ; comp.id; " " ; "evt " ; comp.listEvent.name; " " ; "ivp"; " " ; comp.isInViewport; " " ; "vs"; " " ; comp._vs
+    '     end for
+    '   end if
     end function
 
     function resetViewPortStates()

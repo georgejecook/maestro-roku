@@ -24,7 +24,7 @@ namespace tests
     @params({})
     @params({ "method": "other" })
     function _(args)
-      rt = new mc.RequestTask()
+      rt = new RequestTask()
       req = { "id": "req" }
       m.expectOnce(rt, "makeRequest", [], req)
 
@@ -35,12 +35,12 @@ namespace tests
     @params("get")
     @params("GET")
     function _(method)
-      rt = new mc.RequestTask()
-      result = { "id": "result" }
+      rt = new RequestTask()
+      res = { "id": "result" }
 
       req = { "id": "req" }
       m.expectOnce(rt, "makeRequest", [], req)
-      m.expectOnce(req, "get", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(req, "get", ["url", "params", "headers", "otherArgs"], res)
 
       args = {
         method: method
@@ -49,7 +49,7 @@ namespace tests
         headers: "headers"
         otherArgs: "otherArgs"
       }
-      m.assertEqual(rt.execute(args), result)
+      m.assertEqual(rt.execute(args), res)
 
     end function
 
@@ -57,12 +57,12 @@ namespace tests
     @params("post")
     @params("POST")
     function _(method)
-      rt = new mc.RequestTask()
-      result = { "id": "result" }
+      rt = new RequestTask()
+      res = { "id": "result" }
 
       req = { "id": "req" }
       m.expectOnce(rt, "makeRequest", [], req)
-      m.expectOnce(req, "post", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(req, "post", ["url", "params", "headers", "otherArgs"], res)
 
       args = {
         method: method
@@ -71,7 +71,7 @@ namespace tests
         headers: "headers"
         otherArgs: "otherArgs"
       }
-      m.assertEqual(rt.execute(args), result)
+      m.assertEqual(rt.execute(args), res)
 
     end function
 
@@ -79,12 +79,12 @@ namespace tests
     @params("put")
     @params("PUT")
     function _(method)
-      rt = new mc.RequestTask()
-      result = { "id": "result" }
+      rt = new RequestTask()
+      res = { "id": "result" }
 
       req = { "id": "req" }
       m.expectOnce(rt, "makeRequest", [], req)
-      m.expectOnce(req, "put", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(req, "put", ["url", "params", "headers", "otherArgs"], res)
 
       args = {
         method: method
@@ -93,7 +93,7 @@ namespace tests
         headers: "headers"
         otherArgs: "otherArgs"
       }
-      m.assertEqual(rt.execute(args), result)
+      m.assertEqual(rt.execute(args), res)
 
     end function
 
@@ -101,12 +101,12 @@ namespace tests
     @params("delete")
     @params("DELETE")
     function _(method)
-      rt = new mc.RequestTask()
-      result = { "id": "result" }
+      rt = new RequestTask()
+      res = { "id": "result" }
 
       req = { "id": "req" }
       m.expectOnce(rt, "makeRequest", [], req)
-      m.expectOnce(req, "delete", ["url", "params", "headers", "otherArgs"], result)
+      m.expectOnce(req, "delete", ["url", "params", "headers", "otherArgs"], res)
 
       args = {
         method: method
@@ -115,7 +115,7 @@ namespace tests
         headers: "headers"
         otherArgs: "otherArgs"
       }
-      m.assertEqual(rt.execute(args), result)
+      m.assertEqual(rt.execute(args), res)
 
     end function
 

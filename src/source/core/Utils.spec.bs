@@ -25,7 +25,7 @@ namespace tests
 
         }
       }
-      m.assertEqual(mc.getPath(a, path), expected)
+      m.assertEqual(getPath(a, path), expected)
 
     end function
 
@@ -44,7 +44,7 @@ namespace tests
 
         }
       }
-      m.assertEqual(mc.getPath(a, path, "default"), "default")
+      m.assertEqual(getPath(a, path, "default"), "default")
 
     end function
 
@@ -56,7 +56,7 @@ namespace tests
       a = {
         arr: ["a", "b", "c"]
       }
-      m.assertEqual(mc.getPath(a, path), expected)
+      m.assertEqual(getPath(a, path), expected)
 
     end function
 
@@ -72,7 +72,7 @@ namespace tests
           "300": "c"
         }
       }
-      m.assertEqual(mc.getPath(a, path, invalid, false), expected)
+      m.assertEqual(getPath(a, path, invalid, false), expected)
 
     end function
 
@@ -91,8 +91,8 @@ namespace tests
           }
         }
       }
-      mc.setPath(a, path, value)
-      m.assertEqual(mc.getPath(a, path), value)
+      setPath(a, path, value)
+      m.assertEqual(getPath(a, path), value)
     end function
 
     @it("does not crash or set value when using bad values")
@@ -117,8 +117,8 @@ namespace tests
           ]
         }
       }
-      mc.setPath(a, path, "v")
-      m.assertInvalid(mc.getPath(a, path))
+      setPath(a, path, "v")
+      m.assertInvalid(getPath(a, path))
     end function
 
     @it("sets values with no dotted path")
@@ -132,8 +132,8 @@ namespace tests
           }
         }
       }
-      mc.setPath(a, path, value)
-      m.assertEqual(mc.getPath(a, path), value)
+      setPath(a, path, value)
+      m.assertEqual(getPath(a, path), value)
     end function
 
     @it("sets values when not invalid")
@@ -142,7 +142,7 @@ namespace tests
     @params("v3", 3)
     function _(path, value)
       a = invalid
-      mc.setPath(a, path, value)
+      setPath(a, path, value)
       m.assertTrue(true, "should not have crashed")
     end function
 
@@ -162,8 +162,8 @@ namespace tests
           ]
         }
       }
-      mc.setPath(a, path, value, false)
-      m.assertInvalid(mc.getPath(a, path))
+      setPath(a, path, value, false)
+      m.assertInvalid(getPath(a, path))
     end function
 
     @it("inserts aas for missing parts of the chain")
@@ -182,8 +182,8 @@ namespace tests
           ]
         }
       }
-      mc.setPath(a, path, value)
-      m.assertEqual(mc.getPath(a, path), value)
+      setPath(a, path, value)
+      m.assertEqual(getPath(a, path), value)
     end function
 
     @it("sets values on arrays, too")
@@ -211,8 +211,8 @@ namespace tests
           }
         ]
       }
-      mc.setPath(a, path, value)
-      m.assertEqual(mc.getPath(a, path), value)
+      setPath(a, path, value)
+      m.assertEqual(getPath(a, path), value)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -221,7 +221,7 @@ namespace tests
 
     @it("creates node and sets properties on it")
     function _()
-      node = mc.createSGNode("ContentNode", invalid, "myId", {
+      node = createSGNode("ContentNode", invalid, "myId", {
         title: "t"
       })
       m.assertSubType(node, "ContentNode")
@@ -232,7 +232,7 @@ namespace tests
 
     @it("creates node and sets multiple sets of properties on it")
     function _()
-      node = mc.createSGNode("ContentNode", invalid, "myId",
+      node = createSGNode("ContentNode", invalid, "myId",
       [
         {
           title: "t"
@@ -250,7 +250,7 @@ namespace tests
 
     @it("overlays multi sets of fields")
     function _()
-      node = mc.createSGNode("ContentNode", invalid, "myId",
+      node = createSGNode("ContentNode", invalid, "myId",
       [
         {
           title: "t"
@@ -278,7 +278,7 @@ namespace tests
     @params({ v: "3" }, "v", 2.1, 2.1)
     @params({ v: 3.1 }, "v", 1.1, 3.1)
     function _(json, path, default, expected)
-      m.assertEqual(mc.getFloat(json, path, default), expected * 1.0)
+      m.assertEqual(getFloat(json, path, default), expected * 1.0)
     end function
 
     @it("gets floats, with no defaults")
@@ -288,7 +288,7 @@ namespace tests
     @params({ v: "3" }, "v", 0.0)
     @params({ v: 3.1 }, "v", 3.1)
     function _(json, path, expected)
-      m.assertEqual(mc.getFloat(json, path), expected * 1.0)
+      m.assertEqual(getFloat(json, path), expected * 1.0)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -301,7 +301,7 @@ namespace tests
     @params({ v: "3" }, "v", 2, 2)
     @params({ v: 3 }, "v", 1, 3)
     function _(json, path, default, expected)
-      m.assertEqual(mc.getInteger(json, path, default), expected)
+      m.assertEqual(getInteger(json, path, default), expected)
     end function
 
     @it("gets integer, with no defaults")
@@ -310,7 +310,7 @@ namespace tests
     @params({ v: "3" }, "v", 0)
     @params({ v: 3 }, "v", 3)
     function _(json, path, expected)
-      m.assertEqual(mc.getInteger(json, path), expected)
+      m.assertEqual(getInteger(json, path), expected)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -324,7 +324,7 @@ namespace tests
     @params({ v: ["3"] }, "v", "1", "1")
     @params({ v: "3" }, "v", 2, "3")
     function _(json, path, default, expected)
-      m.assertEqual(mc.getString(json, path, default), expected)
+      m.assertEqual(getString(json, path, default), expected)
     end function
 
     @it("gets string, with no defaults")
@@ -334,7 +334,7 @@ namespace tests
     @params({ v: ["3"] }, "v", "")
     @params({ v: "3" }, "v", "3")
     function _(json, path, expected)
-      m.assertEqual(mc.getString(json, path), expected)
+      m.assertEqual(getString(json, path), expected)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -352,7 +352,7 @@ namespace tests
     @params({ v: true }, "v", false, true)
     @params({ v: false }, "v", true, false)
     function _(json, path, default, expected)
-      m.assertEqual(mc.getBoolean(json, path, default), expected)
+      m.assertEqual(getBoolean(json, path, default), expected)
     end function
 
     @it("gets boolean, with no defaults")
@@ -366,7 +366,7 @@ namespace tests
     @params({ v: true }, "v", true)
     @params({ v: false }, "v", false)
     function _(json, path, expected)
-      m.assertEqual(mc.getBoolean(json, path), expected)
+      m.assertEqual(getBoolean(json, path), expected)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -380,7 +380,7 @@ namespace tests
     @params({ v: [] }, "v", ["d"], [])
     @params({ v: ["3"] }, "v", "1", ["3"])
     function _(json, path, default, expected)
-      m.assertEqual(mc.getArray(json, path, default), expected)
+      m.assertEqual(getArray(json, path, default), expected)
     end function
 
     @it("gets array, with no defaults")
@@ -390,7 +390,7 @@ namespace tests
     @params({ v: false }, "v", [])
     @params({ v: ["3"] }, "v", ["3"])
     function _(json, path, expected)
-      m.assertEqual(mc.getArray(json, path), expected)
+      m.assertEqual(getArray(json, path), expected)
     end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("getPoint")
@@ -404,7 +404,7 @@ namespace tests
     @params({ v: [3] }, "v", [1, 1], [1, 1])
     @params({ v: [3, 3] }, "v", [1, 1], [3, 3])
     function _(json, path, default, expected)
-      m.assertEqual(mc.getPoint(json, path, default), expected)
+      m.assertEqual(getPoint(json, path, default), expected)
     end function
 
     @it("gets point, with no defaults")
@@ -414,7 +414,7 @@ namespace tests
     @params({ v: false }, "v", [0, 0])
     @params({ v: [3, 3] }, "v", [3, 3])
     function _(json, path, expected)
-      m.assertEqual(mc.getPoint(json, path), expected)
+      m.assertEqual(getPoint(json, path), expected)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -428,7 +428,7 @@ namespace tests
     @params({ v: {} }, "v", { id: "d" }, {})
     @params({ v: { id: "3" } }, "v", "1", { id: "3" })
     function _(json, path, default, expected)
-      m.assertEqual(mc.getAA(json, path, default), expected)
+      m.assertEqual(getAA(json, path, default), expected)
     end function
 
     @it("gets aa, with no defaults")
@@ -438,7 +438,7 @@ namespace tests
     @params({ v: false }, "v", {})
     @params({ v: { id: "3" } }, "v", { id: "3" })
     function _(json, path, expected)
-      m.assertEqual(mc.getAA(json, path), expected)
+      m.assertEqual(getAA(json, path), expected)
     end function
 
   end class

@@ -9,10 +9,10 @@ import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 
-namespace ml
-  class ListItemScroller extends ml.ItemScroller
+namespace list
+  class ListItemScroller extends list.ItemScroller
 
-    function new(viewManager as ml.ItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(viewManager as list.ItemViewManager, focusManager as list.ItemFocusManager)
       super("ListItemScroller", viewManager, focusManager)
     end function
 
@@ -25,7 +25,7 @@ namespace ml
       virtualIndex = 0
       for i = 0 to m.viewManager.visibleItems.count() - 1
         item = m.viewManager.visibleItems[i]
-        settings = ml.listMixin.getRowSettings(m.viewManager.content, item)
+        settings = list.listMixin.getRowSettings(m.viewManager.content, item)
         if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.length > 0)
           ' component = m.viewManager.visibleComponents[i]
           component = m.viewManager.renderersByContentId[item.id]
@@ -34,7 +34,7 @@ namespace ml
           contentIndex = component.index
           for subIndex = 0 to infos.count() - 1
             info = infos[subIndex]
-            componentInfo = ml.ComponentInfoUtils.componentInfoFromAA(info)
+            componentInfo = list.ComponentInfoUtils.componentInfoFromAA(info)
             componentInfo.component = component
             componentInfo.contentIndex = contentIndex
             componentInfo.index = virtualIndex
@@ -46,7 +46,7 @@ namespace ml
       m.numberOfComponents = m.componentInfos.count()
     end function
 
-    protected override function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
+    protected override function setFocusManagerInfo(componentInfo as list.componentInfo, nextComponentInfo as list.componentInfo, direction as integer, isFloatingFocus as boolean) as void
       previousFocusIndicatorConfig = m.getFocusIndicatorConfig(componentInfo, m.direction, isFloatingFocus)
 
       if m.viewManager.isScrolling
@@ -69,20 +69,20 @@ namespace ml
         return
       end if
       if m.componentInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
-        ' ? " SETTING FOCUS ON " ; mc.dv(m.componentInfo.component)
-        mv.setFocus(m.componentInfo.component)
+        ' ? " SETTING FOCUS ON " ; dv(m.componentInfo.component)
+        view.setFocus(m.componentInfo.component)
       else
         m.log.warn("not setting focus on", m.componentInfo.index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if
     end function
 
-    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    public override function getFocusIndicatorConfig(componentInfo as list.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as list.FocusIndicatorConfig
       ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; componentInfo.componentIndex ; " D " ; direction
       config = componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, true)
       return config
     end function
 
-    protected override function setComponentInfo(info as ml.ComponentInfo)
+    protected override function setComponentInfo(info as list.ComponentInfo)
       isSubRowChanged = m.componentInfo = invalid or info.componentIndex <> m.componentInfo.componentIndex
       super.setComponentInfo(info)
       if isSubRowChanged
@@ -92,7 +92,7 @@ namespace ml
       m.focusIndicatorManager.activeScreenPos = m.screenPos
     end function
 
-    protected override function setNextComponentInfo(info as ml.ComponentInfo) as void
+    protected override function setNextComponentInfo(info as list.ComponentInfo) as void
       ' ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
       super.setNextComponentInfo(info)
       if not m.isLastMoveFlowFocus
@@ -105,7 +105,7 @@ namespace ml
         ' ? "Ignoring scrolloffset fraction while doing floating focus"
         return
       end if
-      fraction = mc.clamp(fraction, 0, 1)
+      fraction = clamp(fraction, 0, 1)
 
       if fraction < m.lastScrollOffsetFraction
         ' ? "Experimental hack to stop the offsets getting updated multiple times when cancelling a scroll"
@@ -113,7 +113,7 @@ namespace ml
       end if
 
       m.lastScrollOffsetFraction = fraction
-      newTranslation = mc.interpolateArray([0, m.previousScreenPos], [0, m.nextScreenPos], fraction)
+      newTranslation = interpolateArray([0, m.previousScreenPos], [0, m.nextScreenPos], fraction)
       ' ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
 
       m.offsetContainer.translation = newTranslation
@@ -129,7 +129,7 @@ namespace ml
     '++ Managing Content Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function processChanges(changes as mc.types.array) as void
+    protected override function processChanges(changes as types.array) as void
       isIndexUpdateRequired = false
       ' ? " NC "; m.numberOfComponents ; " I " ; m.index
       if m.numberOfComponents = 0
@@ -145,7 +145,7 @@ namespace ml
       end if
 
       if not isIndexUpdateRequired
-      isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+      isIndexUpdateRequired = collections.contains(changes, function(c as types.assocarray)
         return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
       end function)
     end if

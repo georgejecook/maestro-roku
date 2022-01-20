@@ -1,17 +1,17 @@
-namespace ml.listMixin
-  function createListContent(focusSettings = invalid as mc.types.node, rowSettings = invalid as mc.types.node, listSettings = invalid as mc.types.node)
+namespace list.listMixin
+  function createListContent(focusSettings = invalid as types.node, rowSettings = invalid as types.node, listSettings = invalid as types.node)
     content = createObject("roSGNode", "ml_ListContent")
 
     if rowSettings = invalid
-      rowSettings = ml.listMixin.createRowSettings()
+      rowSettings = list.listMixin.createRowSettings()
     end if
 
     if focusSettings = invalid
-      focusSettings = ml.listMixin.createFocusSettings()
+      focusSettings = list.listMixin.createFocusSettings()
     end if
 
     if listSettings = invalid
-      listSettings = ml.listMixin.createListSettings()
+      listSettings = list.listMixin.createListSettings()
     end if
 
     content.update({
@@ -23,14 +23,14 @@ namespace ml.listMixin
     return content
   end function
 
-  function createRowSettings(cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function createRowSettings(cellSettings = invalid as types.node, focusSettings = invalid as types.node, space = 30 as integer, headerSettings = invalid as types.node, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
     settings = createObject("roSGNode", "ml_RowSettings")
     settings.isHiddenWhenEmpty = true
-    ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
+    list.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
     return settings
   end function
 
-  function createGridRowSettings(cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
+  function createGridRowSettings(cellSettings = invalid as types.node, focusSettings = invalid as types.node, space = 30 as integer, headerSettings = invalid as types.node, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
     settings = createObject("roSGNode", "ml_GridRowSettings")
     settings.isHiddenWhenEmpty = true
     if numRows = invalid or numRows < 1
@@ -47,7 +47,7 @@ namespace ml.listMixin
       otherScreenPos = screenPos
     end if
 
-    ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, 0, compName, height)
+    list.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, 0, compName, height)
     settings.numColumns = numColumns
     settings.rowHeight = rowHeight
     settings.numRows = numRows
@@ -60,18 +60,18 @@ namespace ml.listMixin
     return settings
   end function
 
-  function configureRowSettings(settings as mc.types.node, cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function configureRowSettings(settings as types.node, cellSettings = invalid as types.node, focusSettings = invalid as types.node, space = 30 as integer, headerSettings = invalid as types.node, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
 
     if cellSettings = invalid
-      cellSettings = ml.listMixin.createCellSettings()
+      cellSettings = list.listMixin.createCellSettings()
     end if
 
     if headerSettings = invalid
-      headerSettings = ml.listMixin.createHeaderSettings()
+      headerSettings = list.listMixin.createHeaderSettings()
     end if
 
     if focusSettings = invalid
-      focusSettings = ml.listMixin.createFocusSettings()
+      focusSettings = list.listMixin.createFocusSettings()
     end if
 
     settings.update({
@@ -96,8 +96,8 @@ namespace ml.listMixin
       space: 0
       cellSettings: invalid
       contentOffset: [0, 0]
-      headerSettings: ml.listMixin.createEmptyHeaderSettings()
-      focusSettings: ml.listMixin.createFocusSettings(1.2, "fixed", invalid, "none")
+      headerSettings: list.listMixin.createEmptyHeaderSettings()
+      focusSettings: list.listMixin.createFocusSettings(1.2, "fixed", invalid, "none")
     })
 
     return settings
@@ -139,7 +139,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function createCellSettings(compName = "ml_SimpleCell" as string, size = [300, 500] as mc.types.array, space = 30 as integer, screenPos = -1 as integer)
+  function createCellSettings(compName = "ml_SimpleCell" as string, size = [300, 500] as types.array, space = 30 as integer, screenPos = -1 as integer)
     settings = createObject("roSGNode", "ml_CellSettings")
 
     settings.update({
@@ -152,7 +152,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function createFocusSettings(animSpeed = 2 as float, horizAnimStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string, vertAnimStyle = "fixed" as string)
+  function createFocusSettings(animSpeed = 2 as float, horizAnimStyle = "fixed" as string, offsets = invalid as types.array, feedbackStyle = "onTop" as string, vertAnimStyle = "fixed" as string)
     settings = createObject("roSGNode", "ml_FocusSettings")
     if offsets = invalid
       offsets = [0, 0, 0, 0]
@@ -168,10 +168,10 @@ namespace ml.listMixin
 
   end function
 
-  function setTileSettings(compName = "ml_Cell" as string, cellSize = [300, 500] as mc.types.array)
+  function setTileSettings(compName = "ml_Cell" as string, cellSize = [300, 500] as types.array)
   end function
 
-  function getRowSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node)
+  function getRowSettings(listContent as types.node, rowContent = invalid as types.node)
     if rowContent <> invalid and rowContent.settings <> invalid
       ' ? " USING ROW SETTINGS " ; rowContent.settings.screenPos
       return rowContent.settings
@@ -185,7 +185,7 @@ namespace ml.listMixin
     end if
   end function
 
-  function getCellSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node, itemContent = invalid as mc.types.node)
+  function getCellSettings(listContent as types.node, rowContent = invalid as types.node, itemContent = invalid as types.node)
     if itemContent <> invalid and itemContent.settings <> invalid
       return itemContent.settings
     else if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.cellSettings <> invalid
@@ -198,7 +198,7 @@ namespace ml.listMixin
     end if
   end function
 
-  function getFocusSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node)
+  function getFocusSettings(listContent as types.node, rowContent = invalid as types.node)
     if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.focusSettings <> invalid
       return rowContent.settings.focusSettings
     else if listContent <> invalid and listContent.rowSettings <> invalid and listContent.rowSettings.focusSettings <> invalid

@@ -3,12 +3,12 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 
-namespace ml
-  class ItemViewManager extends mc.BaseClass
+namespace list
+  class ItemViewManager extends BaseClass
 
     public screenRect = { translation: [0, 0], size: [1920, 1080] }
     public componentBufferMode = "none"
-    private componentPool as mc.types.node
+    private componentPool as types.node
 
     'owning views
     'we wrap the container to make it very easy to reason about content offsets
@@ -17,7 +17,7 @@ namespace ml
     public delegate = invalid
     public contentGroup = invalid
     public cellInfos = []
-    private rowInfos as mc.types.array
+    private rowInfos as types.array
     private renderersByContentId = {}
 
 
@@ -54,10 +54,10 @@ namespace ml
     private renderedIndexUpdateInterval = 10
 
     'stored so we can send it with initialstate
-    public lastScrollEvent as mc.types.assocarray
-    public itemScroller as ml.ItemScroller
+    public lastScrollEvent as types.assocarray
+    public itemScroller as list.ItemScroller
 
-    function new(name as string, owner as mc.types.node, container as mc.types.node, componentPool as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
+    function new(name as string, owner as types.node, container as types.node, componentPool as types.node, axes as types.array, minPos as integer, maxPos as integer)
       super(name)
       m.container = container
       m.contentGroup = container.getParent()
@@ -107,10 +107,10 @@ namespace ml
       m._updateLayout()
     end function
 
-    function setContent(content as mc.types.node)
+    function setContent(content as types.node)
       m.log.info("setContent")
       m.content = content
-      m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
+      m.settings = list.listMixin.getRowSettings(m.owner.content, m.content)
       m.listSettings = m.owner.content.listSettings
       ' m.container.removeChildren(m.container.getChildren(-1, 1))
       if m._createRenderers(content) = false
@@ -121,7 +121,7 @@ namespace ml
       end if
     end function
 
-    function _createRenderers(content as mc.types.node) as boolean
+    function _createRenderers(content as types.node) as boolean
       m.visibleItems = []
 
       return m.createRenderers(content)
@@ -146,11 +146,11 @@ namespace ml
     '++ util
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function convertChildTranslationToOwner(containerTranslation as mc.types.array)
+    function convertChildTranslationToOwner(containerTranslation as types.array)
       return [m.container.translation[0] + containerTranslation[0], m.container.translation[1] + containerTranslation[1]]
     end function
 
-    function convertOwnerTranslationToChild(ownerTranslation as mc.types.array)
+    function convertOwnerTranslationToChild(ownerTranslation as types.array)
       return [m.container.translation[0] - ownerTranslation[0], m.container.translation[1] - ownerTranslation[1]]
     end function
 
@@ -283,7 +283,7 @@ namespace ml
       return false
     end function
 
-    function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
+    function getRenderedIndexes(direction as integer, index as integer) as types.assocarray
       'TODO - upgrade to use componentInfos
       info = m.cellInfos[index]
       if info = invalid
@@ -343,7 +343,7 @@ namespace ml
       return renderedStateMap
     end function
 
-    function updateRenderStateMap(renderedStateMap as mc.types.assocarray, startIndex as integer, endIndex as integer, state as string)
+    function updateRenderStateMap(renderedStateMap as types.assocarray, startIndex as integer, endIndex as integer, state as string)
       if startIndex < 0
         startIndex = 0
       end if
@@ -407,13 +407,13 @@ namespace ml
         ' ? "i "; i ; "pos"; position ; " p "; p ; " ip " ; itemPos
         if itemPos > p
           ' ? "+++++!!! MATCHED ITEM INDEX "; i - skipped
-          return mc.clamp(i - 1, 0, m.numberOfItems - 1)
+          return clamp(i - 1, 0, m.numberOfItems - 1)
         end if
       end for
       ' end ifk
 
       'we must be at the end! -return last item
-      index = mc.clamp(i - 1, 0, m.numberOfItems - 1)
+      index = clamp(i - 1, 0, m.numberOfItems - 1)
       ' ? "+++++!!! MATCHED ITEM INDEX "; index
       return index
     end function
@@ -458,7 +458,7 @@ namespace ml
       return m.settings
     end function
 
-    function getItemSize(index as integer) as mc.types.array
+    function getItemSize(index as integer) as types.array
       itemRect = m.rects[index]
       if itemRect <> invalid
         return itemRect.size
@@ -467,7 +467,7 @@ namespace ml
       end if
     end function
 
-    function getIsOnScreen(info as ml.componentInfo, screenPos = 0 as integer) as boolean
+    function getIsOnScreen(info as list.componentInfo, screenPos = 0 as integer) as boolean
       rect = m.rects[info.contentIndex]
       if rect = invalid
         return false
@@ -492,7 +492,7 @@ namespace ml
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+    function isFlowFocusPossible(info as list.componentInfo, direction as integer, activeScreenPos as integer)
       isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
 
       if not isFlowPossible and info.isFlowFocusAllowed
@@ -503,11 +503,11 @@ namespace ml
       return isFlowPossible
     end function
 
-    function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+    function isVerticalFlowFocusPossible(info as list.componentInfo, direction as integer, activeScreenPos as integer)
       return true
     end function
 
-    function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    function createRenderers(content as types.node, forceSync = false as boolean) as boolean
       m.log.error("You must override this method")
       return false
     end function
@@ -516,7 +516,7 @@ namespace ml
       m.log.error("You must override this method")
     end function
 
-    function applyRenderStateMap(renderedStateMap as mc.types.assocarray)
+    function applyRenderStateMap(renderedStateMap as types.assocarray)
       m.log.error("You must override this method")
     end function
 
@@ -525,11 +525,11 @@ namespace ml
       return invalid
     end function
 
-    protected function onContentItemsChange(changes as mc.types.array)
+    protected function onContentItemsChange(changes as types.array)
       'override me
     end function
 
-    protected function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as mc.types.array
+    protected function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as types.array
       if forceRecalculate
         m.rowInfos = invalid
       end if
@@ -543,10 +543,10 @@ namespace ml
 
         screenPos = m.settings.screenPos
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+          new list.ComponentPosition(yOffset, screenPos) 'normal
+          new list.ComponentPosition(yOffset, screenPos) 'float-scroll
         ]
-        m.rowInfos = [new ml.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)]
+        m.rowInfos = [new list.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)]
       end if
       return m.rowInfos
     end function

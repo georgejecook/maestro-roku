@@ -7,9 +7,9 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 '  * or change it's contents.
 '  */
 
-namespace mv
+namespace view
   @strict
-  @node("mv_CellTracker", "Group")
+  @node("CellTracker", "Group")
   class CellTracker
 
     @observeField("onDebugMChange")
@@ -39,7 +39,7 @@ namespace mv
       m.top.numberOfCellsInUse = 0
     end function
 
-    function getTrackers(scope = "all" as string) as mc.types.assocarray
+    function getTrackers(scope = "all" as string) as types.assocarray
       trackers = m.trackers[scope]
       if trackers = invalid
         trackers = {
@@ -53,13 +53,13 @@ namespace mv
       return trackers
     end function
 
-    function getCell(cellId as string, scope = "all" as string) as mc.types.node
+    function getCell(cellId as string, scope = "all" as string) as types.node
       trackers = m.getTrackers(scope)
 
       return trackers.cellsById[cellId]
     end function
 
-    function getCellForContentId(id as string, scope = "all" as string) as mc.types.node
+    function getCellForContentId(id as string, scope = "all" as string) as types.node
       trackers = m.getTrackers(scope)
       cellId = trackers.cellIdsByContentId[id]
 
@@ -70,7 +70,7 @@ namespace mv
       end if
     end function
 
-    function bindCellToContent(cell as mc.types.node, content as mc.types.node, scope = "all" as string) as void
+    function bindCellToContent(cell as types.node, content as types.node, scope = "all" as string) as void
 
       trackers = m.getTrackers(scope)
 
@@ -105,7 +105,7 @@ namespace mv
       trackers.cellsById[cell.trackingId] = cell
     end function
 
-    function unbindCell(cell as mc.types.node, scope = "all" as string)
+    function unbindCell(cell as types.node, scope = "all" as string)
       trackers = m.getTrackers(scope)
       contentId = trackers.contentIdsByCellId[cell.trackingId]
 
@@ -121,7 +121,7 @@ namespace mv
       end if
     end function
 
-    function setViewStates(states as mc.types.assocarray, scope = "all" as string)
+    function setViewStates(states as types.assocarray, scope = "all" as string)
 
       trackers = m.getTrackers(scope)
 

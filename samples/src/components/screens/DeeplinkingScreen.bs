@@ -5,7 +5,7 @@
 function init()
   m.log.method("init")
   initializeView(m.top.navController)
-  m.appController = mioc.getInstance("appController")
+  m.appController = ioc.getInstance("appController")
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -29,7 +29,7 @@ function applyDeeplinking()
   end if
 
   if isGridPresent or deeplinkingData.action = "play"
-    mv_setFocus(m.top.navController)
+    setFocus(m.top.navController)
   else
     m.log.info("No Grid present, and no played content, so we will not enter deep linking")
     m.appController@.exitFromDeepLinking()
@@ -43,7 +43,7 @@ end function
 function onKeyPressBack() as boolean
   m.log.method("onKeyPressBack")
   pop()
-  mv_setFocus(m.top.navController)
+  setFocus(m.top.navController)
   if m.top.navController.numberOfViews = 0
     m.appController@.exitFromDeepLinking()
   end if
@@ -66,6 +66,6 @@ end function
 function onGainedFocus(isSelfFocused)
   m.log.method("onGainedFocus ", isSelfFocused)
   if isSelfFocused
-    mv_setFocus(m.top.navController)
+    setFocus(m.top.navController)
   end if
 end function

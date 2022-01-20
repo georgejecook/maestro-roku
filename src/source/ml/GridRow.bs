@@ -5,12 +5,12 @@ import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 
-namespace ml
+namespace list
   ' displays items in a grid, with:
   ' - floating focus scrolling left and right
   ' - TBD fixed focus vertical
   @node("ml_GridRow", "ml_BaseRow")
-  class GridRow extends ml.BaseRow
+  class GridRow extends list.BaseRow
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ additional private state
@@ -65,31 +65,31 @@ namespace ml
       'debug stuff
       ' if m.index = 0
       '   ? "SETTING LIST CONTAINER"
-      '   mioc.setInstance("listContainer", m.cellsGroup)
+      '   ioc.setInstance("listContainer", m.cellsGroup)
       ' end if
       m.createManagers()
     end function
 
     private function createManagers()
       m.log.info("createManagers")
-      m.viewManager = new ml.GridRowItemViewManager(m.owner, m.top, m.cellsGroup, m.componentPool, 0, m.width)
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.owner.cellEvents, m.index)
+      m.viewManager = new list.GridRowItemViewManager(m.owner, m.top, m.cellsGroup, m.componentPool, 0, m.width)
+      m.focusManager = new list.ItemFocusManager(m.viewManager, m.owner.cellEvents, m.index)
       m.focusManager.name = "ROW FM "
       m.focusManager.isRow = true
-      m.itemScroller = new ml.GridRowItemScroller(m.viewManager, m.focusManager)
+      m.itemScroller = new list.GridRowItemScroller(m.viewManager, m.focusManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ row movement
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function onRecycle(newContent as mc.types.node)
+    protected override function onRecycle(newContent as types.node)
       m.cleanHeader()
       m.viewManager.setContent(invalid)
       m.itemScroller.reset()
     end function
 
-    protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
+    protected override function onContentChange(content as types.node, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       m.configureHeader()
 
@@ -107,7 +107,7 @@ namespace ml
       ' end if
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    protected override function onContentItemsChange(changes as types.array)
       m.log.info("This content has changed in some way")
       m.viewManager.onContentItemsChange(changes)
     end function
@@ -159,7 +159,7 @@ namespace ml
       return m.viewManager.getRect(index, useScreenCoords)
     end function
 
-    public override function getItemSize(index as integer) as mc.types.array
+    public override function getItemSize(index as integer) as types.array
       return m.viewManager.getItemSize(index)
     end function
 
@@ -226,7 +226,7 @@ namespace ml
           return
         end if
         rowInfo = m.viewManager.rowInfos[rowIndex]
-        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        m.itemScroller.index = clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         m.focusedCellIndex = m.itemScroller.index
         m.owner.focusedCellIndex = m.itemScroller.index
         'bs:disable-next-line

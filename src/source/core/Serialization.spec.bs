@@ -24,21 +24,21 @@ namespace tests
     @params({ isSerializable: true, deSerialize: "thing" })
     @params("#RBSNode")
     function _(value)
-      m.assertFalse(mc.utils.Serialization.isSerializable(value))
+      m.assertFalse(utils.Serialization.isSerializable(value))
 
     end function
 
     @it("correctly identifies serializable aas")
     function _()
       value = new tests.TestSerializable("test")
-      m.assertTrue(mc.utils.Serialization.isSerializable(value))
+      m.assertTrue(utils.Serialization.isSerializable(value))
     end function
 
     @it("correctly identifies serializable nodes")
     function _()
-      node = mc.createSGNode("ContentNode")
-      mc.setOrAddNodeField(node, "isSerializable", true)
-      m.assertTrue(mc.utils.Serialization.isSerializable(node))
+      node = createSGNode("ContentNode")
+      setOrAddNodeField(node, "isSerializable", true)
+      m.assertTrue(utils.Serialization.isSerializable(node))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -57,13 +57,13 @@ namespace tests
     @params({ isSerializable: true, deSerialize: "thing" })
     @params("#RBSNode")
     function _(value)
-      m.assertInvalid(mc.utils.Serialization.serialize(value))
+      m.assertInvalid(utils.Serialization.serialize(value))
     end function
 
     @it("serializes an aa")
     function _()
       value = new tests.TestSerializable("test")
-      json = mc.utils.Serialization.serialize(value)
+      json = utils.Serialization.serialize(value)
 
       m.assertEqual(json, {
         "name": "test"
@@ -72,14 +72,14 @@ namespace tests
 
     @it("serializes an a map")
     function _()
-      value = mc.createSGNode("mc_Map")
+      value = createSGNode("Map")
       value.id = "parent"
       value@.set("one", "1")
       value@.set("two", "2")
-      json = mc.utils.Serialization.serialize(value)
+      json = utils.Serialization.serialize(value)
 
       m.assertEqual(json, {
-        _serializationType: "mc_Map"
+        _serializationType: "Map"
         "id": "parent"
         "data": {
           "one": "1"
@@ -90,38 +90,38 @@ namespace tests
 
     @it("serializes an array")
     function _()
-      value = mc.createSGNode("mc_Array")
+      value = createSGNode("Array")
       value.id = "parent"
       value@.push("one")
       value@.push("two")
-      json = mc.utils.Serialization.serialize(value)
+      json = utils.Serialization.serialize(value)
 
       m.assertEqual(json, {
         id: "parent"
         items: ["one", "two"]
-        _serializationType: "mc_Array"
+        _serializationType: "Array"
       })
     end function
 
     @it("serializes a map containing nodes")
     function _()
-      value = mc.createSGNode("mc_Map")
+      value = createSGNode("Map")
       value.id = "parent"
-      childValue = mc.createSGNode("mc_Map")
+      childValue = createSGNode("Map")
       childValue.id = "child"
       childValue@.set("one", "1")
       childValue@.set("two", "2")
       value@.set("child", childValue)
 
-      json = mc.utils.Serialization.serialize(value)
+      json = utils.Serialization.serialize(value)
 
       m.assertEqual(json, {
-        _serializationtype: "mc_Map"
+        _serializationtype: "Map"
         id: "parent"
         data: {
           child: {
             id: "child"
-            _serializationtype: "mc_Map"
+            _serializationtype: "Map"
             data: {
               one: "1"
               two: "2"
@@ -133,21 +133,21 @@ namespace tests
 
     @it("serializes an array contaning a node")
     function _()
-      value = mc.createSGNode("mc_Array")
+      value = createSGNode("Array")
       value.id = "parent"
-      childValue = mc.createSGNode("mc_Map")
+      childValue = createSGNode("Map")
       childValue@.push("one")
       childValue@.push("two")
       childValue.id = "child"
       value@.push(childValue)
-      json = mc.utils.Serialization.serialize(value)
+      json = utils.Serialization.serialize(value)
 
       m.assertEqual(json, {
-        _serializationtype: "mc_Array"
+        _serializationtype: "Array"
         id: "parent"
         items: [
           {
-            _serializationtype: "mc_Map"
+            _serializationtype: "Map"
             id: "child"
             data: {
             }
@@ -173,7 +173,7 @@ namespace tests
     @params("#RBSNode")
     function _(value)
       data = {}
-      m.assertInvalid(mc.utils.Serialization.deSerialize(data, value))
+      m.assertInvalid(utils.Serialization.deSerialize(data, value))
     end function
 
     @it("returns invalid for invalid data")
@@ -188,30 +188,30 @@ namespace tests
     @params({ isSerializable: true, deSerialize: "thing" })
     @params("#RBSNode")
     function _(data)
-      m.assertInvalid(mc.utils.Serialization.deSerialize(data))
+      m.assertInvalid(utils.Serialization.deSerialize(data))
     end function
 
-    @it("deserializes INTO an existing mc_Map")
+    @it("deserializes INTO an existing Map")
     function _()
-      value = mc.createSGNode("mc_Map")
+      value = createSGNode("Map")
       value.id = "parent"
-      childValue = mc.createSGNode("mc_Map")
+      childValue = createSGNode("Map")
       childValue.id = "child"
       childValue@.set("one", "1")
       childValue@.set("two", "2")
       value@.set("child", childValue)
 
-      newValue = mc.createSGNode("mc_Map")
+      newValue = createSGNode("Map")
       newValue.id = "parent"
-      json = mc.utils.Serialization.serialize(value)
-      deserialized = mc.utils.Serialization.deSerialize(json, newValue)
-      m.assertSubType(deserialized, "mc_Map")
+      json = utils.Serialization.serialize(value)
+      deserialized = utils.Serialization.deSerialize(json, newValue)
+      m.assertSubType(deserialized, "Map")
       m.assertEqual(deserialized.id, "parent")
       m.assertEqual(deserialized, newValue)
       m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get("child")
-      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertSubType(deserializedChild, "Map")
       m.assertEqual(deserializedChild.id, "child")
       m.assertEqual(deserializedChild.length, 2)
 
@@ -222,22 +222,22 @@ namespace tests
 
     @it("deserializes creates a map, when required")
     function _()
-      value = mc.createSGNode("mc_Map")
+      value = createSGNode("Map")
       value.id = "parent"
-      childValue = mc.createSGNode("mc_Map")
+      childValue = createSGNode("Map")
       childValue.id = "child"
       childValue@.set("one", "1")
       childValue@.set("two", "2")
       value@.set("child", childValue)
 
-      json = mc.utils.Serialization.serialize(value)
-      deserialized = mc.utils.Serialization.deSerialize(json)
-      m.assertSubType(deserialized, "mc_Map")
+      json = utils.Serialization.serialize(value)
+      deserialized = utils.Serialization.deSerialize(json)
+      m.assertSubType(deserialized, "Map")
       m.assertEqual(deserialized.id, "parent")
       m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get("child")
-      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertSubType(deserializedChild, "Map")
       m.assertEqual(deserializedChild.id, "child")
       m.assertEqual(deserializedChild.length, 2)
 
@@ -246,27 +246,27 @@ namespace tests
       m.assertInvalid(deserializedChild@.get("_serializationType"))
     end function
 
-    @it("deserializes INTO an existing mc_Array")
+    @it("deserializes INTO an existing Array")
     function _()
-      value = mc.createSGNode("mc_Array")
+      value = createSGNode("Array")
       value.id = "parent"
-      childValue = mc.createSGNode("mc_Map")
+      childValue = createSGNode("Map")
       childValue.id = "child"
       childValue@.set("one", "1")
       childValue@.set("two", "2")
       value@.push(childValue)
 
-      newValue = mc.createSGNode("mc_Array")
+      newValue = createSGNode("Array")
       newValue.id = "parent"
-      json = mc.utils.Serialization.serialize(value)
-      deserialized = mc.utils.Serialization.deSerialize(json, newValue)
-      m.assertSubType(deserialized, "mc_Array")
+      json = utils.Serialization.serialize(value)
+      deserialized = utils.Serialization.deSerialize(json, newValue)
+      m.assertSubType(deserialized, "Array")
       m.assertEqual(deserialized.id, "parent")
       m.assertEqual(deserialized, newValue)
       m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get(0)
-      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertSubType(deserializedChild, "Map")
       m.assertEqual(deserializedChild.id, "child")
       m.assertEqual(deserializedChild.length, 2)
 
@@ -277,22 +277,22 @@ namespace tests
 
     @it("deserializes creates an Array, when required")
     function _()
-      value = mc.createSGNode("mc_Array")
+      value = createSGNode("Array")
       value.id = "parent"
-      childValue = mc.createSGNode("mc_Map")
+      childValue = createSGNode("Map")
       childValue.id = "child"
       childValue@.set("one", "1")
       childValue@.set("two", "2")
       value@.push(childValue)
 
-      json = mc.utils.Serialization.serialize(value)
-      deserialized = mc.utils.Serialization.deSerialize(json)
-      m.assertSubType(deserialized, "mc_Array")
+      json = utils.Serialization.serialize(value)
+      deserialized = utils.Serialization.deSerialize(json)
+      m.assertSubType(deserialized, "Array")
       m.assertEqual(deserialized.id, "parent")
       m.assertEqual(deserialized.length, 1)
 
       deserializedChild = deserialized@.get(0)
-      m.assertSubType(deserializedChild, "mc_Map")
+      m.assertSubType(deserializedChild, "Map")
       m.assertEqual(deserializedChild.id, "child")
       m.assertEqual(deserializedChild.length, 2)
 
@@ -314,13 +314,13 @@ namespace tests
       m.name = name
     end function
 
-    public function serialize() as mc.types.assocarray
+    public function serialize() as types.assocarray
       return {
         name: m.name
       }
     end function
 
-    public function deserialize(data as mc.types.assocarray)
+    public function deserialize(data as types.assocarray)
       m.name = data.name
     end function
 

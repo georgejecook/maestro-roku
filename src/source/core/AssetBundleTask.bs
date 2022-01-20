@@ -4,103 +4,100 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/Registry.bs"
 import "pkg:/source/core/AssetBundle.bs"
 
-namespace mc
-  @strict
-  @task("mc_AssetBundleTask", "Task")
-  class AssetBundleTask
-    private log
-    private baseBundleUrl
-    private bundleId
-    private registry
-    private request
+@task("AssetBundleTask", "Task")
+class AssetBundleTask
+  private log
+  private baseBundleUrl
+  private bundleId
+  private registry
+  private request
 
-    private url = ""
+  private url = ""
 
-    function new()
-      m.log = new log.Logger("ImageRequestTask")
-    end function
+  function new()
+    m.log = new log.Logger("ImageRequestTask")
+  end function
 
-    private function execute(args as mc.types.assocarray)
-      m.bundleId = args.bundleId
-      m.baseBundleUrl = args.baseBundleUrl
+  private function execute(args as types.assocarray)
+    m.bundleId = args.bundleId
+    m.baseBundleUrl = args.baseBundleUrl
 
-      m.registry = new mc.Registry()
-      m.request = m.makeRequest()
+    m.registry = new Registry()
+    m.request = m.makeRequest()
 
-      '1. Get current asset bundle manifest from registry
-      bundleJson = m.registry.read("assetBundles", m.bundleId)
-      if bundleJson = invalid
-        m.log.info("asset bundle with id", m.bundleId, ", has not been loaded")
-        bundleJson = {
-          id: m.bundleId
-          version: -1
-          files: {}
-        }
-      end if
-      currentBundle = new mc.AssetBundle(bundleJson)
+    '1. Get current asset bundle manifest from registry
+    bundleJson = m.registry.read("assetBundles", m.bundleId)
+    if bundleJson = invalid
+      m.log.info("asset bundle with id", m.bundleId, ", has not been loaded")
+      bundleJson = {
+        id: m.bundleId
+        version: -1
+        files: {}
+      }
+    end if
+    currentBundle = new AssetBundle(bundleJson)
 
-      m.log.info("current asset bundle version is ", bundleJson.version)
+    m.log.info("current asset bundle version is ", bundleJson.version)
 
-      '2. load the latest asset bundle
-      latestBundle = m.loadLatestAssetBundle()
+    '2. load the latest asset bundle
+    latestBundle = m.loadLatestAssetBundle()
 
-      assetsToLoad = {}
-      if latestBundle = invalid
-        m.log.error("could not ascertain latest bundle info")
-        latestBundle = currentBundle
-      else if latestBundle.version <> currentBundle.version
-        m.log.info("bundle ", m.bundleId, ", is changed on server")
-        m.registry.write("assetBundles", m.bundleId, latestBundle.json)
+    assetsToLoad = {}
+    if latestBundle = invalid
+      m.log.error("could not ascertain latest bundle info")
+      latestBundle = currentBundle
+    else if latestBundle.version <> currentBundle.version
+      m.log.info("bundle ", m.bundleId, ", is changed on server")
+      m.registry.write("assetBundles", m.bundleId, latestBundle.json)
 
-        assetsToLoad.append(currentBundle.getChangedAssets(latestBundle))
-      end if
+      assetsToLoad.append(currentBundle.getChangedAssets(latestBundle))
+    end if
 
-      '4. also load any assets thare are missing from cachefs
-      assetsToLoad.append(latestBundle.getMissingAssets())
+    '4. also load any assets thare are missing from cachefs
+    assetsToLoad.append(latestBundle.getMissingAssets())
 
-      if assetsToLoad.count() > 0
-        m.log.info("asset bundle has missing or changed assets")
-        data = m.loadAssetBundleData()
-        latestBundle.writeAssets(data, assetsToLoad)
-      else
-        m.log.info("all assets are present and correct")
-      end if
-    end function
+    if assetsToLoad.count() > 0
+      m.log.info("asset bundle has missing or changed assets")
+      data = m.loadAssetBundleData()
+      latestBundle.writeAssets(data, assetsToLoad)
+    else
+      m.log.info("all assets are present and correct")
+    end if
+  end function
 
-    private function loadLatestAssetBundle()
-      url = `${m.baseBundleUrl}/${m.bundleId}.json`
-      m.log.info("loading bundle info from url", url)
-      result = m.request.get(url)
-      data = mc.getPath(result, "json")
-      if data = invalid
-        data = {
-          id: m.bundleId
-          version: -1
-          files: {}
-        }
-        m.log.error("could not get any asset info from the url")
-      end if
+  private function loadLatestAssetBundle()
+    url = `${m.baseBundleUrl}/${m.bundleId}.json`
+    m.log.info("loading bundle info from url", url)
+    res = m.request.get(url)
+    data = getPath(res, "json")
+    if data = invalid
+      data = {
+        id: m.bundleId
+        version: -1
+        files: {}
+      }
+      m.log.error("could not get any asset info from the url")
+    end if
 
-      return new mc.AssetBundle(data)
-    end function
+    return new AssetBundle(data)
+  end function
 
-    private function loadAssetBundleData() as mc.types.assocarray
-      url = `${m.baseBundleUrl}/${m.bundleId}-data.json`
-      m.log.info("loading bundle info from url", url)
-      result = m.request.get(url)
-      data = mc.getPath(result, "json")
-      if data = invalid
-        data = {
-        }
-        m.log.error("could not get asset bundle data from the url")
-      end if
+  private function loadAssetBundleData() as types.assocarray
+    url = `${m.baseBundleUrl}/${m.bundleId}-data.json`
+    m.log.info("loading bundle info from url", url)
+    res = m.request.get(url)
+    data = getPath(res, "json")
+    if data = invalid
+      data = {
+      }
+      m.log.error("could not get asset bundle data from the url")
+    end if
 
-      return data
-    end function
+    return data
+  end function
 
-    private function makeRequest()
-      return new mc.net.Request()
-    end function
+  private function makeRequest()
+    return new net.Request()
+  end function
 
-  end class
-end namespace
+end class

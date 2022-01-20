@@ -9,7 +9,7 @@ import "pkg:/source/ml/cells/BaseCell.bs"
 import "pkg:/source/view/Animation.bs"
 
 @node("HeroCell", "ml_BaseCell")
-class HeroCell extends ml.BaseCell
+class HeroCell extends list.BaseCell
 
   private poster
   private bgRect
@@ -28,11 +28,11 @@ class HeroCell extends ml.BaseCell
   end function
 
   protected override function createViews() as void
-    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+    m.bgRect = createSGNode("Rectangle", m.top, "bgRect", {
       size: m.size
       color: "#000000"
     })
-    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+    m.poster = createSGNode("Poster", m.top, "poster", {
       translation: [0, 0]
       loadingBitmapUri: "http://via.placeholder.com/1700x700"
       failedBitmapUri: "http://via.placeholder.com/1700x700"
@@ -42,17 +42,17 @@ class HeroCell extends ml.BaseCell
       size: m.size
       loadDisplayMode: "zoomToFill"
     })
-    m.labelGroup = mc.createSGNode("Group", m.top, "labelGroup", {
+    m.labelGroup = createSGNode("Group", m.top, "labelGroup", {
 
     })
-    m.textRect = mc.createSGNode("mv_Rectangle", m.labelGroup, "bgRect", {
+    m.textRect = createSGNode("Rectangle", m.labelGroup, "bgRect", {
       size: m.size
       color: "#000000"
       opacity: 0.5
       translation: [0, 250]
       size: [m.size[0], 300]
     })
-    m.label = mc.createSGNode("mv_Label", m.labelGroup, "label", {
+    m.label = createSGNode("Label", m.labelGroup, "label", {
       fontKey: "mediumBold,60"
       horizAlign: "center"
       vertAlign: "center"
@@ -60,10 +60,10 @@ class HeroCell extends ml.BaseCell
       translation: [0, 300]
       size: [m.size[0], 100]
     })
-    m.labelAnim = new mv.animations.Fade(m.labelGroup, 0.2, 1, 0)
+    m.labelAnim = new animations.Fade(m.labelGroup, 0.2, 1, 0)
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onContentChange(content as types.node)
     m.poster.width = m.size[0]
     m.poster.height = m.size[1]
     m.setFocusState(0, true)

@@ -8,14 +8,14 @@ import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 import "pkg:/source/ml/ComponentInfo.bs"
 
-namespace ml
-  @node("ml_FocusIndicatorManager", "mv_BaseView")
-  class FocusIndicatorManager extends mv.BaseView
+namespace list
+  @node("ml_FocusIndicatorManager", "BaseView")
+  class FocusIndicatorManager extends view.BaseView
 
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = false
-    public list as mc.types.node
+    public list as types.node
     public isScrolling = false
 
     @alwaysnotify
@@ -37,7 +37,7 @@ namespace ml
     @observer("onFocusedFractionChange")
     public focusedFraction = 0.0
 
-    private nextFocusIndex as mc.types.Array
+    private nextFocusIndex as types.Array
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Internal event tracking
@@ -50,10 +50,10 @@ namespace ml
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private focusPoint as mc.types.node
-    private focusIndicator as mc.types.node
-    private activeFocusView as mc.types.node
-    private nextFocusView as mc.types.node
+    private focusPoint as types.node
+    private focusIndicator as types.node
+    private activeFocusView as types.node
+    private nextFocusView as types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Animations
@@ -69,12 +69,12 @@ namespace ml
     private isIndicatorOnTop = true
     private direction = 0
 
-    private flowFocusDelegate as mc.types.node
+    private flowFocusDelegate as types.node
 
     private nextConfig as object
 
-    private nextFocusSettings as mc.types.node
-    private previousFocusSettings as mc.types.node
+    private nextFocusSettings as types.node
+    private previousFocusSettings as types.node
     private previousSize = [0, 0]
     private previousTranslation = [0, 0]
     private rowHasIndicator = true
@@ -97,22 +97,22 @@ namespace ml
 
     private function createViews()
       'TODO - might still end up needing this... depends on how floating focus lands
-      m.focusIndicator = m.createSGNode("mv_Poster", m.top, "focusIndicator", {
+      m.focusIndicator = m.createSGNode("Poster", m.top, "focusIndicator", {
         blendColor: "#ffffff"
         uri: "pkg:/images/input-focusrect.9.png"
         visible: false
       })
-      m.focusPoint = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+      m.focusPoint = m.createSGNode("Rectangle", m.top, "focusPoint", {
         color: "#ff0000"
         size: [20, 20]
         visible: false
       })
-      m.activeFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+      m.activeFocusView = m.createSGNode("Rectangle", m.top, "focusPoint", {
         color: "#00ff00"
         size: [20, 20]
         visible: false
       })
-      m.nextFocusView = m.createSGNode("mv_Rectangle", m.top, "focusPoint", {
+      m.nextFocusView = m.createSGNode("Rectangle", m.top, "focusPoint", {
         color: "#ff0000"
         size: [20, 20]
         visible: false
@@ -120,7 +120,7 @@ namespace ml
     end function
 
     private function createAnims()
-      m.focusPointAnim = new mv.animations.Move(m.focusPoint, 0.2, [0, 0], [0, 0])
+      m.focusPointAnim = new animations.Move(m.focusPoint, 0.2, [0, 0], [0, 0])
       m.focusPointAnim.observeFraction(m.onFlowFocusFractionChange, m)
     end function
 
@@ -140,13 +140,13 @@ namespace ml
       return m.list@.getCellRenderer(rowIndex, cellIndex)
     end function
 
-    public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer) as void
+    public function setNextFocusIndicatorConfig(focusIndicatorConfig as list.FocusIndicatorConfig, direction as integer) as void
       ' ? "[[[ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
       m.direction = direction
       m.preprareNextFocusConfig(focusIndicatorConfig)
     end function
 
-    public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+    public function setFocusComplete(focusIndicatorConfig as list.FocusIndicatorConfig) as void
       ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
       m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m.list.focusedCellIndex = focusIndicatorConfig.colIndex
@@ -200,7 +200,7 @@ namespace ml
     '++ Focus settings Managements
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function preprareNextFocusConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+    private function preprareNextFocusConfig(focusIndicatorConfig as list.FocusIndicatorConfig) as void
       if m.list.state = "rendering" or m.list.content = invalid
         return
       end if
@@ -233,7 +233,7 @@ namespace ml
       m.isFocusSettingsChangePending = true
     end function
 
-    private function setActiveFocusSettings(newSettings as mc.types.node)
+    private function setActiveFocusSettings(newSettings as types.node)
       m.previousFocusSettings = m.nextFocusSettings
       m.nextFocusSettings = newSettings
       m.previousSize = m.focusIndicator.size
@@ -294,8 +294,8 @@ namespace ml
         ' ? "ACTIVE FOCUS POS IS NOW "; formatJson(m.nextConfig.indicatorTranslation)
 
       else
-        translation = mc.interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
-        size = mc.interpolateArray(m.previousSize, m.nextConfig.indicatorSize, fraction)
+        translation = interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
+        size = interpolateArray(m.previousSize, m.nextConfig.indicatorSize, fraction)
         m.focusIndicator.translation = translation
         m.focusIndicator.size = size
       end if
@@ -306,7 +306,7 @@ namespace ml
     '++ Flow Focus Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
+    public function startFlowFocus(focusIndicatorConfig as list.FocusIndicatorConfig, speed as float, delegate as types.node) as void
 
       m.log.info("starting flow focus ")
       ' ? "START FLOW FOCUS "; m.__classname
@@ -344,7 +344,7 @@ namespace ml
       end if
 
       if m.flowFocusDelegate <> invalid
-        ' ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        ' ? " telling delegate " ; dv(m.flowFocusDelegate)
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
       end if
 

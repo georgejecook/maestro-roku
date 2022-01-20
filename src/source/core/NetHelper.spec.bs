@@ -1,7 +1,7 @@
 namespace tests
 
   @suite("NetHelper")
-  class NetHelper extends rooibos.BaseTestSuite
+  class NetHelperTests extends rooibos.BaseTestSuite
 
     private helper
     private target
@@ -10,7 +10,7 @@ namespace tests
 
       m.target = { "id": "target" }
 
-      m.helper = new mc.NetHelper(m.target)
+      m.helper = new NetHelper(m.target)
     end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("net helpers")
@@ -18,38 +18,38 @@ namespace tests
 
     @it("gets")
     function _()
-      result = { "id": "result" }
+      res = { "id": "res" }
 
-      m.expectOnce(m.helper, "executeRequest", ["GET", "url", "params", "callback", "headers", "otherArgs"], result)
+      m.expectOnce(m.helper, "executeRequest", ["GET", "url", "params", "callback", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.helper.get("url", "params", "callback", "headers", "otherArgs"), result)
+      m.assertEqual(m.helper.get("url", "params", "callback", "headers", "otherArgs"), res)
     end function
 
     @it("posts")
     function _()
-      result = { "id": "result" }
+      res = { "id": "res" }
 
-      m.expectOnce(m.helper, "executeRequest", ["POST", "url", "params", "callback", "headers", "otherArgs"], result)
+      m.expectOnce(m.helper, "executeRequest", ["POST", "url", "params", "callback", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.helper.post("url", "params", "callback", "headers", "otherArgs"), result)
+      m.assertEqual(m.helper.post("url", "params", "callback", "headers", "otherArgs"), res)
     end function
 
     @it("puts")
     function _()
-      result = { "id": "result" }
+      res = { "id": "res" }
 
-      m.expectOnce(m.helper, "executeRequest", ["PUT", "url", "params", "callback", "headers", "otherArgs"], result)
+      m.expectOnce(m.helper, "executeRequest", ["PUT", "url", "params", "callback", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.helper.put("url", "params", "callback", "headers", "otherArgs"), result)
+      m.assertEqual(m.helper.put("url", "params", "callback", "headers", "otherArgs"), res)
     end function
 
     @it("deletes")
     function _()
-      result = { "id": "result" }
+      res = { "id": "res" }
 
-      m.expectOnce(m.helper, "executeRequest", ["DELETE", "url", "params", "callback", "headers", "otherArgs"], result)
+      m.expectOnce(m.helper, "executeRequest", ["DELETE", "url", "params", "callback", "headers", "otherArgs"], res)
 
-      m.assertEqual(m.helper.del("url", "params", "callback", "headers", "otherArgs"), result)
+      m.assertEqual(m.helper.del("url", "params", "callback", "headers", "otherArgs"), res)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -68,7 +68,7 @@ namespace tests
         "otherArgs": otherArgs
       }
       task = { "id": "task" }
-      m.expectOnce(m.helper, "createTask", ["mc_RequestTask", { args: args }, callback, true, "value", m.target], task)
+      m.expectOnce(m.helper, "createTask", ["RequestTask", { args: args }, callback, true, "value", m.target], task)
 
       m.assertEqual(m.helper.executeRequest(method, url, params, callback, headers, otherArgs), task)
     end function

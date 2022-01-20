@@ -9,8 +9,8 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 '  * @function
 '  * @description light node wrapper around a Set to stop copies
 '  */
-namespace mc.collections
-  @node("mc_Array", "Node")
+namespace collections
+  @node("Array", "Node")
   class Array
 
     protected data = []
@@ -34,14 +34,14 @@ namespace mc.collections
     @observer("onDebugAsChildrenChange")
     public _debugAsChildren = false
 
-    public __contents as mc.types.Array
+    public __contents as types.Array
 
     private pendingChanges = []
     private notifyChanges = true
     protected log
 
     function new()
-      m.log = new log.Logger("mc_Map")
+      m.log = new log.Logger("Map")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -49,7 +49,7 @@ namespace mc.collections
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function sortByKey(keyName as string, ascending = true as boolean)
-      data = mc.collections.getSortedArrayByKey(m.data, keyName, ascending)
+      data = collections.getSortedArrayByKey(m.data, keyName, ascending)
       m.clear()
       m.append(data)
     end function
@@ -76,7 +76,7 @@ namespace mc.collections
     end function
 
     function insert(index as integer, value as dynamic) as void
-      if not mc.isArray(value)
+      if not isArray(value)
         value = [value]
       end if
       if index >= m.top.length or index < 0
@@ -129,7 +129,7 @@ namespace mc.collections
       m.top.changes = [{ type: "add", item: value, index: 0 }]
     end function
 
-    function append(other as mc.types.assocarray)
+    function append(other as types.assocarray)
       index = m.top.length - 1
       m.data.append(other)
       m.top.length = m.data.count()
@@ -163,7 +163,7 @@ namespace mc.collections
     end function
 
     function getIndex(value as dynamic, key = invalid as string)
-      return mc.collections.getArrayIndex(m.data, value, key)
+      return collections.getArrayIndex(m.data, value, key)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -195,12 +195,12 @@ namespace mc.collections
     '++ Serializable support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function serialize() as mc.types.assocarray
+    function serialize() as types.assocarray
       serialized = {
         items: []
       }
       for each item in m.data
-        data = mc.utils.Serialization.serialize(item)
+        data = utils.Serialization.serialize(item)
         if data <> invalid
           serialized.items.push(data)
         else
@@ -210,12 +210,12 @@ namespace mc.collections
       return serialized
     end function
 
-    function deserialize(data as mc.types.assocarray)
+    function deserialize(data as types.assocarray)
       m.clear()
-      if mc.isAACompatible(data) and mc.isArray(data.items)
+      if isAACompatible(data) and isArray(data.items)
         for each item in data.items
-          if mc.utils.Serialization.isDeSerializableToNode(item)
-            deSerializedItem = mc.utils.Serialization.deSerialize(item)
+          if utils.Serialization.isDeSerializableToNode(item)
+            deSerializedItem = utils.Serialization.deSerialize(item)
             if deSerializedItem <> invalid
               m.data.push(deSerializedItem)
             end if
@@ -231,7 +231,7 @@ namespace mc.collections
     '++ Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function addChange(change as mc.types.assocarray)
+    private function addChange(change as types.assocarray)
       if m.notifyChanges
         m.changes = [change]
       else

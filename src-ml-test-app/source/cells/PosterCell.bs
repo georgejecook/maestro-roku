@@ -9,7 +9,7 @@ import "pkg:/source/ml/cells/BaseCell.bs"
 import "pkg:/source/view/Animation.bs"
 
 @node("PosterCell", "ml_BaseCell")
-class PosterCell extends ml.BaseCell
+class PosterCell extends list.BaseCell
 
   @observer("onDebugMChange")
   public __debugM = false
@@ -21,7 +21,7 @@ class PosterCell extends ml.BaseCell
   end function
 
   protected override function createViews() as void
-    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+    m.poster = createSGNode("Poster", m.top, "poster", {
       translation: [0, 0]
       loadingBitmapUri: "http://via.placeholder.com/307x200"
       failedBitmapUri: "http://via.placeholder.com/307x200"
@@ -33,7 +33,7 @@ class PosterCell extends ml.BaseCell
     })
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onContentChange(content as types.node)
     m.poster.uri = content.HDGRIDPOSTERURL
   end function
 end class

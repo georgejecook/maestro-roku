@@ -3,86 +3,83 @@ import "pkg:/source/core/Utils.bs"
 import "Types-Polyfill.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 
-namespace mc
-  @strict
-  class BaseClass
+class BaseClass
 
-    public state = "none"
-    protected name
-    protected log
+  public state = "none"
+  protected name
+  protected log
 
-    function new(name as string)
-      m.log = new log.Logger(name)
-      m.name = name
-    end function
+  function new(name as string)
+    m.log = new log.Logger(name)
+    m.name = name
+  end function
 
-    private function _initialize()
-      m.state = "initialized"
-      m.initialize()
+  private function _initialize()
+    m.state = "initialized"
+    m.initialize()
+    'bs:disable-next-line
+    if m.isWiringObserversOnInit = true
       'bs:disable-next-line
-      if m.isWiringObserversOnInit = true
-        'bs:disable-next-line
-        m_wireUpObservers()
-      end if
-    end function
+      m_wireUpObservers()
+    end if
+  end function
 
-    protected function initialize()
-      'override me
-    end function
+  protected function initialize()
+    'override me
+  end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ creation
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ creation
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
-      return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
-    end function
+  protected function createSGNode(nodeType as string, parent = invalid as types.node, id = invalid as string, args = invalid as types.assocarray, callInitialize = true as boolean, mTarget = invalid as types.assocarray) as types.node
+    return createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
+  end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
-      if mTarget = invalid
-        mTarget = m
-      end if
-      mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
-    end function
+  protected function createViewsFromStyleJson(childrenJson as types.array, targetNode as types.node, assignViewsToM = true as boolean, mTarget = invalid as types.assocarray)
+    if mTarget = invalid
+      mTarget = m
+    end if
+    view.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+  end function
 
-    protected function updateViewsWithStyleJson(json as mc.types.array, mTarget = invalid as mc.types.assocarray)
-      if mTarget = invalid
-        mTarget = m
-      end if
-      mv.updateViewsWithStyleJson(json, mTarget)
-    end function
+  protected function updateViewsWithStyleJson(json as types.array, mTarget = invalid as types.assocarray)
+    if mTarget = invalid
+      mTarget = m
+    end if
+    view.updateViewsWithStyleJson(json, mTarget)
+  end function
 
-    protected function createNode(nodeType as string)
-      return mc.createNode(nodeType)
-    end function
+  protected function createNode(nodeType as string)
+    return createNode(nodeType)
+  end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ task wrappers, for easy stubbing
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ task wrappers, for easy stubbing
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
-      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
-    end function
+  protected function observeNodeField(node as types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
+    tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
+  end function
 
-    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
-      mc.tasks.unobserveNodeField(node, fieldName, callback, m)
-    end function
+  protected function unobserveNodeField(node as types.node, fieldName as string, callback = invalid as function)
+    tasks.unobserveNodeField(node, fieldName, callback, m)
+  end function
 
-    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string)
-      return mc.tasks.waitAFrame(callback, duration, sendMode, m)
-    end function
+  protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+    return tasks.waitAFrame(callback, duration, sendMode, m)
+  end function
 
-    protected function cancelWaitTimer(timer as mc.types.node)
-      mc.tasks.cancelWaitTimer(timer)
-    end function
+  protected function cancelWaitTimer(timer as types.node)
+    tasks.cancelWaitTimer(timer)
+  end function
 
-    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as float, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
-      return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
-    end function
+  protected function createTask(taskType as string, fields as types.assocarray, callback = invalid as float, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
+    return tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
+  end function
 
-    protected function cancelTask(task as mc.types.node)
-      mc.tasks.cancelTask(task)
-    end function
+  protected function cancelTask(task as types.node)
+    tasks.cancelTask(task)
+  end function
 
-  end class
-end namespace
+end class
