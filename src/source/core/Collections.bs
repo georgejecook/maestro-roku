@@ -28,14 +28,20 @@ namespace mc.collections
     return items
   end function
 
-  function getSortedArrayByKey(arr as mc.types.array, keyName as string, ascending = true as boolean) as mc.types.array
+  ' sorts array of items, with unique value at keyPath
+  ' @params{array} arr - array to sort
+  ' @params{keyPath} string - path to value to sort on
+  ' @params{boolean} ascending
+  function getSortedArrayByKey(arr as mc.types.array, keyPath as string, ascending = true as boolean) as mc.types.array
     result = []
-    if mc.isArray(arr) and mc.isString(keyName) and keyName <> ""
+    if mc.isArray(arr) and mc.isString(keyPath) and keyPath <> ""
       dict = {}
-      for each item in arr
-        key = item[keyName]
+      i = 0
+      for i = 0 to arr.count() -1
+        item = arr[i]
+        key = mc.getPath(item, keyPath, "")
         if mc.isString(key)
-          dict[key] = item
+          dict[key] = i
         end if
       end for
       keys = dict.keys()
@@ -43,7 +49,7 @@ namespace mc.collections
         keys.reverse()
       end if
       for each key in keys
-        result.push(dict[key])
+        result.push(arr[dict[key]])
       end for
     end if
     return result
