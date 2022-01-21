@@ -168,6 +168,91 @@ namespace tests
       m.assertEqual(mc.collections.getSortedArrayByKey(arr, "id2"), expected)
     end function
 
+    @it("sorts on keypath key")
+    function _()
+      arr = [
+        { item: {
+            id: "1"
+            id2: "a"
+          }
+        }
+        { item: {
+            id: "3"
+            id2: "c"
+          }
+        }
+        { item: {
+            id: "2"
+            id2: "b"
+          }
+        }
+      ]
+      expected = [
+        { item: {
+            id: "1"
+            id2: "a"
+          }
+        }
+        { item: {
+            id: "2"
+            id2: "b"
+          }
+        }
+        { item: {
+            id: "3"
+            id2: "c"
+          }
+        }
+      ]
+      m.assertEqual(mc.collections.getSortedArrayByKey(arr, "item.id2"), expected)
+    end function
+
+    @it("sorts on keypath descending")
+    function _()
+      arr = [
+        {
+          item: {
+            id: "2"
+            id2: "b"
+          }
+        }
+        {
+          item: {
+            id: "1"
+            id2: "a"
+          }
+        }
+        {
+          item: {
+            id: "3"
+            id2: "c"
+          }
+        }
+      ]
+      expected = [
+        {
+          item: {
+            id: "3"
+            id2: "c"
+          }
+        }
+        {
+          item: {
+            id: "2"
+            id2: "b"
+          }
+        }
+        {
+          item: {
+            id: "1"
+            id2: "a"
+          }
+        }
+      ]
+      result = mc.collections.getSortedArrayByKey(arr, "item.id", false)
+      m.assertEqual(result, expected)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("getArrayIndex")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
