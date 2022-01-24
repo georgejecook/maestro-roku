@@ -1,0 +1,37 @@
+import "pkg:/source/core/Types-Polyfill.bs"
+
+namespace mc
+  @node("mc_Selection", "ContentNode")
+  class Selection
+    'item that started the selection
+    initialItem as mc.types.node
+
+    'collection where this item came from
+    parentCollection as mc.types.node
+
+    'current item, if changed since initial Item
+    currentItem as mc.types.node
+
+    'e.g. play or display
+    action as string
+
+    'extra info that is used to execute the action
+    actionInfo = {}
+
+    'screen where selection occurred
+    originScreen as mc.types.node
+
+    ' kind of screen to create, to execute the selection
+    targetScreen as string
+
+    'extra info that can be used to supply context to the selection
+    context as mc.types.assocarray
+
+    ' pending|success|error - can listen for this on async selection scenarios - the state should only be changed once!
+    state = "pending"
+
+    ' info pertaining to state changes
+    result = {}
+
+  end class
+end namespace
