@@ -1,21 +1,22 @@
 import "pkg:/source/view/BaseScreen.bs"
 
-namespace screens
+namespace mv
   class BaseAppController extends mv.BaseScreen
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    function new()
-      super(m.__className)
+    function new(name as string)
+      super(name)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function onExecuteSelection(selection as mc.types.node)
-      'override this method and supply the require logic
+    ' returns {boolen} - true if the selection was completed synchronously
+    function onExecuteSelection(selection as mc.types.node) as boolean
+      m.setInstance("currentSelection", selection)
       return true
     end function
 

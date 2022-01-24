@@ -174,21 +174,50 @@ namespace mv
       end if
     end function
 
-    protected function executeSelection(selection as mc.types.node)
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Selection Support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createSelection(initialItem as mc.types.node, action = "display" as string, parentCollection = invalid as mc.types.node, actionInfo = {} as mc.types.assocarray, targetScreen = "" as string)
+      id = `${m.name}-${mc.getString(initialItem, "id")}-${action}`
+      selection = mc.createSGNode("mc_Selection", invalid, id, {
+        initialItem: initialItem
+        currentItem: initialItem
+        parentCollection: parentCollection
+        action: action
+        originScreen: m.getMField("top")
+        targetScreen: targetScreen
+        actionInfo: actionInfo
+      })
+
+      return selection
+    end function
+
+    protected function executeSelection(selection as mc.types.node, observeIfPendingAfterExecution = true as boolean)
       'assumes that you have an appController instance that will handle the selection
       appController = m.getInstance("appController")
       if appController <> invalid
         result = appController@.onExecuteSelection(selection)
         if result = invalid
           m.log.error("Selection could not be executed. Do you have an appController assigned, with an onExecuteSelection method?")
+          if result = true
+            m.log.info("selection was handled synchronously")
+          else
+            m.log.info("selection requires async resolution")
+            m.observeNodeField(selection, "state", m.onSelectionStateChange, "both", true)
+          end if
         end if
       else
         m.log.error("Selection could not be executed. There is no appController in the IOC")
       end if
     end function
 
+    protected function cancelPendingSelection(selection as mc.types.node)
+      m.unobserveNodeField(selection, "state")
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ lifecycle stuff
+    '++ Lifecycle
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function destroy()
@@ -219,6 +248,10 @@ namespace mv
 
     protected function onLostFocus()
       m.isFocused = false
+    end function
+
+    protected function onSelectionStateChange(state as string, selection as mc.types.node)
+      m.log.info("selection", mc.dv(selection), "changed state to", state)
     end function
 
   end class
