@@ -225,6 +225,15 @@ namespace ml
       end if
     end function
 
+    'sends a row data event back to the owning list
+    protected function sendRowData(data as mc.types.assocarray)
+      m.owner.listEvent = {
+        name: "rowData"
+        index: m.top.index
+        data: data
+      }
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
