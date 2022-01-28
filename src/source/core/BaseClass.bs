@@ -29,6 +29,21 @@ namespace mc
 
     protected function initialize()
       'override me
+
+    end function
+
+    private function _addIOCObserver(fieldName as string, instanceName as string, path as string, observedPath as string, observedField as string, callback = invalid as function)
+      instance = mioc.getInstance(instanceName)
+      m[fieldName] = mc.getPath(instance, path)
+      if observedPath <> ""
+        instance = mc.getPath(instance, observedPath)
+      end if
+
+      if type(instance) = "roSGNode"
+        m.observeNodeField(instance, observedField, callback)
+      else
+        m.log.warn("cannot add observer for injected field", fieldName, "from IOC", "instanceName", ".", path)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
