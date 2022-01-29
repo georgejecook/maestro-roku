@@ -1,12 +1,16 @@
 import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/source/rooibos/Utils.bs"
+
 namespace tests
 
   @strict
   class BaseTestSuite extends rooibos.BaseTestSuite
-    private log
+    protected log
 
     protected override function setup()
+      'bs:disable-next-line
       tests.setUpMScope()
       m.log = new log.Logger(m.name)
     end function
@@ -15,6 +19,23 @@ namespace tests
     end function
 
     protected override function afterEach()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Helper Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createNodeClass(clazz, useClassAsTop = true, nodeTop = new rooibos.utils.MockNode("top"), nodeGlobal = new rooibos.utils.MockNode("top"))
+      'bs:disable-next-line
+      instance = tests_maestro_nodeClassUtils_createNodeClass(clazz, nodeTop, nodeGlobal)
+      if instance <> invalid and useClassAsTop
+        'note - we use the clazz itself as TOP, so that we don't have to write tests that do
+        'thing.top.value, thing.top.value2, etc all over the place
+        instance.append(nodeTop)
+        instance.top = instance
+        instance.__rooibosSkipFields = { "top": true }
+      end if
+      return instance
     end function
   end class
 

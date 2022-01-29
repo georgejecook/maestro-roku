@@ -1,17 +1,47 @@
 {
   "stagingFolderPath": "build",
-  "files": ["manifest", "source/**/*.*", "components/**/*.*"],
+  "files": [
+    "manifest",
+    "source/**/*.*",
+    "components/**/*.*"
+  ],
   "extends": "bsconfig.json",
-  "plugins": ["maestro-roku-bsc-plugin", "rooibos-roku"],
+  "plugins": [
+    "maestro-roku-bsc-plugin",
+    "rooibos-roku"
+  ],
   "rooibos": {
-    "tags": ["!integration", "!deprecated", "!fixme"],
-    "lineWidth": 70
+    "isRecordingCodeCoverage": false,
+    "testsFilePattern": null,
+    "tags": [
+      "!integration",
+      "!deprecated",
+      "!fixme",
+      "!tbd"
+    ],
+    "showOnlyFailures": true,
+    "catchCrashes": true,
+    "lineWidth": 70,
+    "sendHomeOnFinish": false,
+    "failFast": false
   },
   "rokuLog": {
     "strip": false,
     "insertPkgPath": true
   },
   "maestro": {
-    "excludeFilters": ["**/roku_modules/**/*", "**/rooibos-roku/**/*"]
+    "excludeFilters": [
+      "**/roku_modules/**/*",
+      "**/rooibos-roku/**/*"
+    ],
+    "nodeClasses": {
+      "buildForIDE": false,
+      "generateTestUtils": true
+    },
+    "extraValidation": {
+      "doExtraValidation": false,
+      "excludeFilters": [],
+      "doExtraImportValidation": false
+    }
   }
 }

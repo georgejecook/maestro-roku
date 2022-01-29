@@ -1,3 +1,10 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemViewManager.bs"
+import "pkg:/source/ml/ItemScroller.bs"
+import "pkg:/source/ml/tests/TestUtils.spec.bs"
+
+
 namespace tests
   @tags("ml")
   @suite("ItemScroller tests")
@@ -22,9 +29,11 @@ namespace tests
       m.container.width = 1920
       m.container.height = 1080
 
-      m.viewManager = new ml.ItemViewManager(m.owner, m.container, 1)
+      cp = { "id" : "cp" }
+
+      m.viewManager = new ml.ItemViewManager("ItemViewManager", m.owner, m.container, 1, cp, 0, 100)
       m.focusManager = { "id": "focusManager" }
-      m.scroller = new ml.ItemScroller(m.viewManager, 1)
+      m.scroller = new ml.ItemScroller("ItemScroller", m.viewManager, 1)
       m.scroller.focusManager = m.focusManager
       m.configureScroller(1, 20)
     end function

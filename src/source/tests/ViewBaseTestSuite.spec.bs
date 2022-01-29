@@ -1,16 +1,12 @@
 import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+
 namespace mv.tests
 
   @strict
-  class BaseTestSuite extends rooibos.BaseTestSuite
+  class BaseTestSuite extends tests.BaseTestSuite
     private styleManager
-    private log
-
-    protected override function setup()
-      tests.setUpMScope()
-      m.log = new log.Logger(m.name)
-    end function
 
     protected override function beforeEach()
       mioc.createContainer()
