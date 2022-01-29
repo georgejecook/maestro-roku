@@ -1,6 +1,8 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
+import "pkg:/source/view/controls/Styles.bs"
+import "pkg:/source/core/Utils.bs"
 
 @node("ButtonScreen", "mv_BaseScreen")
 class ButtonScreen extends mv.BaseScreen
@@ -18,17 +20,25 @@ class ButtonScreen extends mv.BaseScreen
 
   protected override function initialize()
     super.initialize()
+    redButtonStyle = mv.styles.getDefaultButtonStyle()
+    m.setStyleColor(redButtonStyle, "#aa0000", "#ff0000", "#aa0000", "#000000", "#ffffff", "#aaaaaa")
+
+    blueButtonStyle = mv.styles.getDefaultButtonStyle()
+    m.setStyleColor(blueButtonStyle, "#0000aa", "#0000ff", "#0000aa", "#000000", "#ffffff", "#0000aa")
+
     m.controlsGroup = m.createSGNode("mv_ControlsGroup", m.top, "controlsGroup", {
       translation: [200, 200]
       layoutMode: "vert"
       keyDirection: "vert"
       itemSpacings: [10]
     })
+
     m.button1 = m.createSGNode("mv_Button", m.controlsGroup, "button1", {
       text: "simple"
+      style: redButtonStyle
     })
-    redButtonStyle = mv.controls.styles.getDefaultButtonStyle()
-    mc.setFields()
+
+    m.styleManager@.addStyle("buttons", mc.createPath("blue", blueButtonStyle))
 
     iconStyle = {
       "blendColor": "#ffffff"
@@ -41,12 +51,15 @@ class ButtonScreen extends mv.BaseScreen
       text: "with icon"
       iconStyle: iconStyle
     })
+
     m.button3 = m.createSGNode("mv_Button", m.controlsGroup, "button3", {
       text: "autosize text right"
+      style: redButtonStyle
       autoSize: true
       horizAlign: "right"
-      iconStyle: iconStyle
     })
+    m.button3.iconStyle = iconStyle
+
     m.button4 = m.createSGNode("mv_Button", m.controlsGroup, "button4", {
       text: "autosize text that grows left"
       horizAlign: "left"
@@ -58,6 +71,7 @@ class ButtonScreen extends mv.BaseScreen
       size: [50, 50]
       autoSize: true
       horizAlign: "center"
+      styleKey: "buttons.blue"
       iconStyle: iconStyle
     })
     m.button5 = m.createSGNode("mv_Button", m.controlsGroup, "button5", {
@@ -77,12 +91,24 @@ class ButtonScreen extends mv.BaseScreen
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function setStyleColor(buttonStyle as mc.types.assocarray, bgn as string, bgf as string, bgs as string, ln as string, lf as string, ls as string)
+    mc.setPath(buttonStyle, "normal.backgroundPoster.blendColor", bgn)
+    mc.setPath(buttonStyle, "focused.backgroundPoster.blendColor", bgf)
+    mc.setPath(buttonStyle, "selected.backgroundPoster.blendColor", bgs)
+    mc.setPath(buttonStyle, "normal.label.color", ln)
+    mc.setPath(buttonStyle, "focused.label.color", lf)
+    mc.setPath(buttonStyle, "selected.label.color", ls)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onKeyPressBack() as boolean
     if m.top.isRoot <> true
-      m.list.isHidden = true
       m.pop()
     end if
     return true
@@ -96,7 +122,7 @@ class ButtonScreen extends mv.BaseScreen
     super.onGainedFocus(isSelfFocused)
 
     if isSelfFocused
-      mv.setFocus(m.controlsGroup)
+      m.setFocus(m.controlsGroup)
     end if
   end function
 

@@ -79,7 +79,7 @@ class ModuleScreen extends mv.BaseScreen
     listSettings.rowCreationBatchDelay = 0.3
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
-    items = m.createHeaderOnlyData(),
+    items = m.createHeaderOnlyData()
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
@@ -174,7 +174,7 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onRemoveItems(numItems as integer)
     row = m.list.content.getChild(m.list.focusedRowIndex)
-    startIndex = row.getChildCount() - items
+    startIndex = row.getChildCount() - numItems
     row@.removeChildrenIndex(startIndex, numItems)
   end function
 
@@ -284,17 +284,6 @@ class ModuleScreen extends mv.BaseScreen
     m.setFocus(m.list)
     return true
   end function
-
-  private function onKeyPressBack() as boolean
-    ? "FOCUS ON BUTTON"
-    if not m.button.isSameNode(m.focusedControl)
-      m.setFocus(m.button)
-      return true
-    end if
-    ? " EXIT"
-    return false
-  end function
-
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ lifecycle
