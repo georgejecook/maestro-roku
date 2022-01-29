@@ -1,3 +1,6 @@
+import "pkg:/source/tests/ViewBaseTestSuite.spec.bs"
+import "pkg:/source/view/FontManager.bs"
+
 namespace tests
   @suite("FontManager tests")
   class FontManagerTests extends mv.tests.BaseTestSuite
@@ -19,6 +22,7 @@ namespace tests
       m.assertInvalid(font)
     end function
 
+    '/* cspell:disable *\
     @it("gets filesystem fonts")
     @params("HelveticaNeue.ttf", 20)
     @params("HelveticaNeue.ttf", 30)
@@ -26,6 +30,7 @@ namespace tests
     @params("HelveticaNeue.ttf", 30)
     @params("HelveticaNeue.ttf", 30)
     function _(name, size)
+      '/* cspell:enable *\
       font = m.manager.getFont(name, size)
       m.assertEqual(font.uri, "pkg:/fonts/" + name)
       m.assertEqual(font.size, size)
@@ -46,12 +51,12 @@ namespace tests
 
     @it("caches font values")
     function _()
+      '/* cspell:disable *\
       m.manager.getFont("HelveticaNeue.ttf", 30)
       m.manager.getFont("HelveticaNeue.ttf", 30)
       m.manager.getFont("HelveticaNeue.ttf", 30)
       m.manager.getFont("HelveticaNeue.ttf", 30)
       m.manager.getFont("HelveticaNeue.ttf", 40)
-
       m.assertAAHasKey(m.manager.cachedFonts, "HelveticaNeue.ttf,30")
       m.assertAAHasKey(m.manager.cachedFonts, "HelveticaNeue.ttf,30")
       m.assertAAHasKey(m.manager.cachedFonts, "HelveticaNeue.ttf,40")
@@ -65,6 +70,7 @@ namespace tests
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 40), "Font")
+      '/* cspell:enable *\
     end function
   end class
 end namespace

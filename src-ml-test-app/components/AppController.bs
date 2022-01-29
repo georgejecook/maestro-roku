@@ -15,11 +15,15 @@ function Init()
   tick.repeat = true
   tick.control = "start"
   mc.setOrAddNodeField(m.global, "tick", tick)
-  mc.tasks.observeNodeField(tick, "fire", onInfoChange, "none")
+  ' mc.tasks.observeNodeField(tick, "fire", onInfoChange, "none")
   mioc.setInstance("focusedIndex", {
     row: 0
     cell: 0
   })
+
+  styleManager = mc.createSGNode("mv_StyleManager", invalid, "styleManager")
+  mioc.setInstance("styleManager", styleManager)
+  m.global.addFields({ "styleManager": styleManager })
 
   initFlyweight()
 end function
@@ -84,9 +88,10 @@ end function
 
 function onFirstShow()
   m.log.info("onFirstShow")
-  prebakeCells()
+  ' prebakeCells()
   ' m.screen = mc.createSGNode("TeamScreen", m.top.findNode("contentGroup"), "listScreen")
-  m.screen = mc.createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
+  ' m.screen = mc.createSGNode("ListScreen", m.top.findNode("contentGroup"), "listScreen")
+  m.screen = mc.createSGNode("ButtonScreen", m.top.findNode("contentGroup"), "buttonScreen")
   ' m.screen = mc.createSGNode("ModuleScreen", m.top.findNode("contentGroup"), "ModuleScreen")
   mv.setFocus(m.screen)
   m.loadingIndicator.isActive = false
