@@ -266,6 +266,13 @@ namespace mc
     return default
   end function
 
+  function append(source as mc.types.assocarray, other as mc.types.assocarray)
+    if mc.isAACompatible(source) and mc.isAACompatible(other)
+      source.append(other)
+    end if
+    return source
+  end function
+
   ' /**
   '  * @member setPath
   '  * @memberof module:Utils
@@ -324,6 +331,12 @@ namespace mc
         end if
       end if
     end if
+  end function
+
+  function createPath(path as string, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as mc.types.assocarray
+    content = {}
+    mc.setPath(content, path, value)
+    return content
   end function
 
   function setOrAddNodeField(node as mc.types.node, field as string, value = invalid as dynamic)
