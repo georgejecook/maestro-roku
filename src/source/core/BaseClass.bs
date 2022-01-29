@@ -34,20 +34,22 @@ namespace mc
     private function _addIOCObserver(fieldName as string, instanceName as string, path as string, observedPath as string, observedField as string, callback = invalid as function)
       'bs:disable-next-line
       instance = m.getInstance(instanceName)
-      mc.setPath(fieldName, mc.getPath(instance, path))
+      value = mc.getPath(instance, path)
       if observedPath <> ""
         instance = mc.getPath(instance, observedPath)
       end if
 
       if type(instance) = "roSGNode"
         if callback = invalid
-          m.observeNodeField(instance, observedField, invalid, "field")
+          m.observeNodeField(instance, observedField, fieldName, "field")
         else
           m.observeNodeField(instance, observedField, callback, "fieldAndValue")
         end if
       else
         m.log.warn("cannot add observer for injected field", fieldName, "from IOC", "instanceName", ".", path)
       end if
+
+      mc.setPath(m, fieldName, value)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
