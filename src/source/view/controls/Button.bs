@@ -1,0 +1,246 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/view/controls/Styles.bs"
+
+namespace mv.controls
+  @observersWaitInitialize
+  @node("mv_Button", "mv_BaseView")
+  class Button extends mv.BaseView
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Events
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @alwaysnotify
+    public clicked as boolean
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @alwaysnotify
+    @observer("onStyleKeyChange")
+    public styleKey = "mv.Button.default"
+
+    @alwaysnotify
+    @observer("onStyleChange")
+    public style as mc.types.assocarray
+
+    @alwaysnotify
+    @observer("onStyleKeyChange")
+    public buttonStyle as mc.types.assocarray
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public text = ""
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public subText = ""
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public iconStyle as mc.types.assocarray
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public size = [300, 60]
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public isDisabled = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public isFocused = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public isSelected = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public horizAlign = "left" 'none|left|center|right
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public autoSize = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private _style as mc.types.assocarray
+    private isStyleSet = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private label as mc.types.node
+    private subTextLabel as mc.types.node
+    private backgroundPoster as mc.types.node
+    private iconPoster as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("mv_Button")
+    end function
+
+    protected override function initialize() as void
+      super.initialize()
+      m.createViews()
+      m.onStyleKeyChange(m.styleKey)
+    end function
+
+    function createViews() as void
+      m.backgroundPoster = m.createSGNode("mv_Poster", m.top, "backgroundPoster")
+      m.iconPoster = m.createSGNode("mv_Poster", m.top, "iconPoster")
+      m.label = m.createSGNode("mv_Label", m.top, "label")
+      m.subTextLabel = m.createSGNode("mv_Label", m.top, "subTextLabel")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onStyleChange()
+      m.redraw()
+    end function
+
+    private function onStyleKeyChange(key as string)
+      if key = "mv.Button.default"
+        m._style = m.getDefaultStyle()
+        m.isStyleSet = true
+        m.redraw()
+      else
+        m._style = m.styleManager@.getStyle(key)
+        m.isStyleSet = m._style.count() > 0
+        m.redraw()
+      end if
+    end function
+
+    private function redraw() as void
+      if not m.isStyleSet
+        return
+      end if
+
+      'hack to allow this view to work in xml
+      if m.label = invalid
+        m.createViews()
+      end if
+
+      m.applyState()
+
+      if m.autoSize
+        m.label.width = 0
+      end if
+
+      m.label.text = m.text
+      m.subTextLabel.text = m.subText
+      hasIcon = m.iconStyle <> invalid and m.iconStyle.count() > 0
+      if hasIcon
+        m.iconPoster.setFields(m.iconStyle)
+      end if
+
+      'TODO measure
+      if m.autoSize
+        m.layout(hasIcon)
+      end if
+    end function
+
+    private function layout(hasIcon as boolean)
+      titleRect = m.label.boundingRect()
+      sw = m.size[0]
+      sh = m.size[1]
+
+      w = titleRect.width + (titleRect.x * 2)
+
+      horizAlign = m.horizAlign
+      iconTranslation = m.iconPoster.translation
+      tx = m.label.translation[0]
+      if m.text = ""
+        w = 0
+        tx = 0
+      end if
+      if hasIcon
+        iw = m.iconPoster.width
+        ix = m.iconPoster.translation[0]
+        if w < ix + iw
+          w = ix + iw
+        end if
+
+        if horizAlign = "left"
+          iconTranslation = iconTranslation
+          tx = iw + ix + tx
+          w = tx + w
+        else if horizAlign = "right"
+          iconTranslation = [w, iconTranslation[1]]
+          w = w + iw + ix
+        else if horizAlign = "center"
+          iconTranslation = [(w / 2) - (iw / 2), iconTranslation[1]]
+          w = tx + iw + ix
+        end if
+      else
+        'layout for label is already calculated
+      end if
+
+      if w < sw
+        w = sw
+      end if
+
+      m.backgroundPoster.size = [w, sh]
+      m.iconPoster.translation = iconTranslation
+      m.label.translation = [tx, titleRect.y]
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function applyState() as void
+      m.updateViewsWithStyleJson(m._style.normal)
+      if m.isSelected
+        m.updateViewsWithStyleJson(m._style.selected)
+      end if
+
+      if m.isDisabled
+        m.updateViewsWithStyleJson(m._style.disabled)
+      else if m.isFocused
+        m.updateViewsWithStyleJson(m._style.focused)
+      end if
+
+    end function
+
+    function getDefaultStyle()
+      return mv.controls.styles.getDefaultButtonStyle()
+    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.redraw()
+      end if
+    end function
+
+    protected override function onLostFocus()
+      super.onLostFocus()
+      m.redraw()
+    end function
+
+  end class
+end namespace
