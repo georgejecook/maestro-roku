@@ -25,10 +25,6 @@ namespace mv.controls
     @observer("onStyleChange")
     public style as mc.types.assocarray
 
-    @alwaysnotify
-    @observer("onStyleKeyChange")
-    public buttonStyle as mc.types.assocarray
-
     @debounce
     @alwaysnotify
     @observer("redraw")
@@ -101,7 +97,11 @@ namespace mv.controls
     protected override function initialize() as void
       super.initialize()
       m.createViews()
-      m.onStyleKeyChange(m.styleKey)
+      if m.style <> invalid and m.style.count() > 0
+        m.onStyleChange(m.style)
+      else
+        m.onStyleKeyChange(m.styleKey)
+      end if
     end function
 
     function createViews() as void
@@ -115,11 +115,18 @@ namespace mv.controls
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onStyleChange()
-      m.redraw()
+    private function onStyleChange(style as mc.types.assocarray)
+      if style <> invalid and style.count() > 0
+        m._style = style
+        m.isStyleSet = true
+        m.redraw()
+      end if
     end function
 
-    private function onStyleKeyChange(key as string)
+    private function onStyleKeyChange(key as string) as void
+      if m.style <> invalid and m.style.count() > 0
+        return
+      end if
       if key = "mv.Button.default"
         m._style = m.getDefaultStyle()
         m.isStyleSet = true
@@ -224,7 +231,7 @@ namespace mv.controls
     end function
 
     function getDefaultStyle()
-      return mv.controls.styles.getDefaultButtonStyle()
+      return mv.styles.getDefaultButtonStyle()
     end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Lifecycle
