@@ -32,6 +32,18 @@ namespace mv
       m.cachedStyles = {} ' we lazily pull out styles and parse them on demand
     end function
 
+    public function addStyles(json as mc.types.assocarray)
+      if mc.isAACompatible(json)
+        m.styles.append(json)
+      end if
+    end function
+
+    public function addStyle(key as string, json as mc.types.assocarray)
+      if mc.isAACompatible(json)
+        m.styles[key] = json
+      end if
+    end function
+
     ' loads the specified bundle file, with the required locale.
     ' bundle files contain json that can be used for views, with createViewsFromStyleJson method
     ' and/or other values which a view/screen might use.

@@ -2,6 +2,8 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/Tasks.bs"
 import "BaseObservable.bs"
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/view/ViewUtils.bs"
 
 namespace mx
   ' /**
@@ -126,6 +128,9 @@ namespace mx
       if mTarget = invalid
         mTarget = m
       end if
+
+      'FIXME - maestro-bsc needs to understand overloaded namespaces
+      'bs:disable-next-line
       mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
@@ -133,6 +138,8 @@ namespace mx
       if mTarget = invalid
         mTarget = m
       end if
+      'FIXME - maestro-bsc needs to understand overloaded namespaces
+      'bs:disable-next-line
       mv.updateViewsWithStyleJson(json, mTarget)
     end function
 

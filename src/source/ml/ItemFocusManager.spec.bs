@@ -1,147 +1,151 @@
-namespace tests
-  @ignore("fix me")
-  @tags("ml", "fixme")
-  @suite("ItemFocusManager tests")
-  class ItemFocusManagerTests extends tests.BaseTestSuite
+' import "pkg:/source/tests/BaseTestSuite.spec.bs"
+' import "pkg:/source/ml/ItemViewManager.bs"
+' import "pkg:/source/ml/ItemScroller.bs"
 
-    public owner
-    public container
-    public viewManager
-    public focusManager
-    public scrollerAnimation
-    public scrollerInterpolator
-    public scroller
-    public animation
-    public delegate
-    public ownerDelegate
+' namespace tests
+'   @ignore("fix me")
+'   @tags("ml", "fixme")
+'   @suite("ItemFocusManager tests")
+'   class ItemFocusManagerTests extends tests.BaseTestSuite
 
-    protected override function beforeEach()
-      super.beforeEach()
-      m.owner = new rooibos.utils.MockNode("owner")
-      m.owner.translation = [0, 0]
-      m.owner.width = 1920
-      m.owner.height = 1080
+'     public owner
+'     public container
+'     public viewManager
+'     public focusManager
+'     public scrollerAnimation
+'     public scrollerInterpolator
+'     public scroller
+'     public animation
+'     public delegate
+'     public ownerDelegate
 
-      m.container = new rooibos.utils.MockNode("container")
-      m.container.translation = [0, 0]
-      m.container.width = 1920
-      m.container.height = 1080
+'     protected override function beforeEach()
+'       super.beforeEach()
+'       m.owner = new rooibos.utils.MockNode("owner")
+'       m.owner.translation = [0, 0]
+'       m.owner.width = 1920
+'       m.owner.height = 1080
 
-      m.viewManager = new ml.ItemViewManager(m.owner, m.container, 1)
+'       m.container = new rooibos.utils.MockNode("container")
+'       m.container.translation = [0, 0]
+'       m.container.width = 1920
+'       m.container.height = 1080
 
-      m.scroller = new ml.ItemScroller(m.viewManager, 1)
-      m.configureScroller(1, 20)
+'       m.viewManager = new ml.ItemViewManager(m.owner, m.container, 1)
 
-      m.delegate = { "id": "delegate" }
-      m.ownerDelegate = { "id": "ownerDelegate" }
+'       m.scroller = new ml.ItemScroller(m.viewManager, 1)
+'       m.configureScroller(1, 20)
 
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, m.ownerDelegate)
-    end function
+'       m.delegate = { "id": "delegate" }
+'       m.ownerDelegate = { "id": "ownerDelegate" }
 
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests constructor")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("sets values")
-    function _()
-      m.assertArrayCount(m.focusManager.delegates, 2)
-      m.assertEqual(m.focusManager.delegates[0].id, "owner")
-      m.assertEqual(m.focusManager.delegates[1].id, "ownerDelegate")
-    end function
-
-    @it("does not need owner delegate")
-    function _()
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, invalid)
-      m.assertEqual(m.focusManager.delegates[0].id, "owner")
-      m.assertArrayCount(m.focusManager.delegates, 1)
-
-    end function
-
-    @it("sets rowIndex")
-    @params(0)
-    @params(1)
-    @params(2)
-    @params(3)
-    function _(index)
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, invalid, index)
-      m.assertEqual(m.focusManager.delegates[0].id, "owner")
-      m.assertArrayCount(m.focusManager.delegates, 1)
-      m.assertEqual(m.focusManager.rowIndex, index)
-
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests onFocusUpdate")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("initializes when not started")
-    function _()
-      m.expectOnce(m.focusManager, "setOwnerNextFocusIndex", [])
-      m.expectOnce(m.focusManager, "sendEvents", ["willLoseFocus", "willGainFocus", 0])
-
-      m.focusManager.onFocusUpdate(0)
-
-      m.assertTrue(m.focusManager.didStart)
-
-    end function
-
-    @it("does nothing on 0 fraction when started")
-    function _()
-      m.focusManager.didStart = true
-      m.expectNone(m.focusManager, "setOwnerNextFocusIndex")
-      m.expectNone(m.focusManager, "sendEvents")
-
-      m.focusManager.onFocusUpdate(0)
-
-    end function
-
-    @it("does nothing on 1 fraction when finished")
-    function _()
-      m.focusManager.didStart = true
-      m.focusManager.didFinish = true
-      m.expectNone(m.focusManager, "setOwnerNextFocusIndex")
-      m.expectNone(m.focusManager, "sendEvents")
-
-      m.focusManager.onFocusUpdate(0)
-
-    end function
-
-    @it("fraction 1 - not finished")
-    function _()
-      m.expectOnce(m.focusManager, "sendEvents", ["didLoseFocus", "didGainFocus", 1])
-      m.expectOnce(m.focusManager, "setOwnerIndexes", [])
-      m.focusManager.didStart = true
-      m.focusManager.onFocusUpdate(1)
-
-      m.assertTrue(m.focusManager.didStart)
-
-    end function
-
-    @it("various fractions")
-    @params(0.2)
-    @params(0.5)
-    @params(0.8)
-    function _(fraction)
-      m.expectOnce(m.focusManager, "sendEvents", ["losingFocus", "gainingFocus", fraction])
-      m.focusManager.didStart = true
-
-      m.focusManager.onFocusUpdate(fraction)
-      m.assertFalse(m.focusManager.didFinish)
-
-    end function
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ utils
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function configureScroller(axes, numItems = 20, itemSize = [300, 300], screenSize = [1920, 1080])
-      m.scroller.axes = axes
-
-      tests.utils.configureViewManager(m.viewManager, axes, numItems, itemSize, screenSize)
-
-      m.scroller.onViewManagerUpdate()
-    end function
+'       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, m.ownerDelegate)
+'     end function
 
 
-  end class
-end namespace
+'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'     @describe("tests constructor")
+'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'     @it("sets values")
+'     function _()
+'       m.assertArrayCount(m.focusManager.delegates, 2)
+'       m.assertEqual(m.focusManager.delegates[0].id, "owner")
+'       m.assertEqual(m.focusManager.delegates[1].id, "ownerDelegate")
+'     end function
+
+'     @it("does not need owner delegate")
+'     function _()
+'       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, invalid)
+'       m.assertEqual(m.focusManager.delegates[0].id, "owner")
+'       m.assertArrayCount(m.focusManager.delegates, 1)
+
+'     end function
+
+'     @it("sets rowIndex")
+'     @params(0)
+'     @params(1)
+'     @params(2)
+'     @params(3)
+'     function _(index)
+'       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, invalid, index)
+'       m.assertEqual(m.focusManager.delegates[0].id, "owner")
+'       m.assertArrayCount(m.focusManager.delegates, 1)
+'       m.assertEqual(m.focusManager.rowIndex, index)
+
+'     end function
+
+'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'     @describe("tests onFocusUpdate")
+'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'     @it("initializes when not started")
+'     function _()
+'       m.expectOnce(m.focusManager, "setOwnerNextFocusIndex", [])
+'       m.expectOnce(m.focusManager, "sendEvents", ["willLoseFocus", "willGainFocus", 0])
+
+'       m.focusManager.onFocusUpdate(0)
+
+'       m.assertTrue(m.focusManager.didStart)
+
+'     end function
+
+'     @it("does nothing on 0 fraction when started")
+'     function _()
+'       m.focusManager.didStart = true
+'       m.expectNone(m.focusManager, "setOwnerNextFocusIndex")
+'       m.expectNone(m.focusManager, "sendEvents")
+
+'       m.focusManager.onFocusUpdate(0)
+
+'     end function
+
+'     @it("does nothing on 1 fraction when finished")
+'     function _()
+'       m.focusManager.didStart = true
+'       m.focusManager.didFinish = true
+'       m.expectNone(m.focusManager, "setOwnerNextFocusIndex")
+'       m.expectNone(m.focusManager, "sendEvents")
+
+'       m.focusManager.onFocusUpdate(0)
+
+'     end function
+
+'     @it("fraction 1 - not finished")
+'     function _()
+'       m.expectOnce(m.focusManager, "sendEvents", ["didLoseFocus", "didGainFocus", 1])
+'       m.expectOnce(m.focusManager, "setOwnerIndexes", [])
+'       m.focusManager.didStart = true
+'       m.focusManager.onFocusUpdate(1)
+
+'       m.assertTrue(m.focusManager.didStart)
+
+'     end function
+
+'     @it("various fractions")
+'     @params(0.2)
+'     @params(0.5)
+'     @params(0.8)
+'     function _(fraction)
+'       m.expectOnce(m.focusManager, "sendEvents", ["losingFocus", "gainingFocus", fraction])
+'       m.focusManager.didStart = true
+
+'       m.focusManager.onFocusUpdate(fraction)
+'       m.assertFalse(m.focusManager.didFinish)
+
+'     end function
+'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'     '++ utils
+'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+'     private function configureScroller(axes, numItems = 20, itemSize = [300, 300], screenSize = [1920, 1080])
+'       m.scroller.axes = axes
+
+'       tests.utils.configureViewManager(m.viewManager, axes, numItems, itemSize, screenSize)
+
+'       m.scroller.onViewManagerUpdate()
+'     end function
+
+
+'   end class
+' end namespace
