@@ -43,13 +43,13 @@ namespace mc
         if callback = invalid
           m.observeNodeField(instance, observedField, fieldName, "field")
         else
-          m.observeNodeField(instance, observedField, callback, "fieldAndValue")
+          m.observeNodeField(instance, observedField, callback, "fieldAndValue", false, fieldName)
         end if
       else
         m.log.warn("cannot add observer for injected field", fieldName, "from IOC", "instanceName", ".", path)
       end if
 
-      mc.setPath(m, fieldName, value)
+      return value
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -86,8 +86,8 @@ namespace mc
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
-      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
+    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, fieldAndValueTargetField = invalid as string)
+      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m, fieldAndValueTargetField)
     end function
 
     protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)

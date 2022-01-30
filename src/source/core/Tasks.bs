@@ -99,7 +99,7 @@ namespace mc.tasks
   '  * @param {object|invalid} scope - scope on which to execute the callback (default to node's m)
   '  * @returns {boolean} true if set, false otherwise
   '  */
-  function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, scope = invalid as object) as boolean
+  function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, scope = invalid as object, fieldAndValueTargetField = invalid as string) as boolean
     targetField = invalid
     context = {}
     if mc.isInvalid(callback)
@@ -120,6 +120,9 @@ namespace mc.tasks
       targetField = callback
       sendMode = "field"
       callback = invalid
+    else if sendMode = "fieldAndValue"
+      targetField = fieldAndValueTargetField
+      context.dottedSet = false
     end if
 
     if mc.isInvalid(node)
@@ -193,8 +196,10 @@ namespace mc.tasks
       contexts = {}
     end if
 
+    ? "CB " ; fieldName
     for each key in contexts
       context = contexts[key]
+      ? "CTX " ; context
       if context.once
         ' ? "++ +removing CONTEXT "; key
         mc.tasks.cleanNodeObserver(node, fieldName)
@@ -215,16 +220,24 @@ namespace mc.tasks
       else if context.callback <> invalid
         if context.instance <> invalid
           context.instance.__cb = context.callback
-          if context.sendMode = "both"
+          if context.sendMode = "none"
+            'bs:disable-next-line
+            context.instance.__cb()
+          else if context.sendMode = "value"
+            'bs:disable-next-line
+            context.instance.__cb(node[fieldName])
+          else if context.sendMode = "both"
             'bs:disable-next-line
             context.instance.__cb(node[fieldName], context.node)
           else if context.sendMode = "node"
             'bs:disable-next-line
             context.instance.__cb(context.node)
-          else if context.sendMode = "none"
-            'bs:disable-next-line
-            context.instance.__cb()
-          else
+          else if context.sendMode = "fieldAndValue"
+            if context.dottedSet
+              mc.setPath(context.instance, context.targetField, node[fieldName])
+            else
+              context.instance[context.targetField] = node[fieldName]
+            end if
             'bs:disable-next-line
             context.instance.__cb(node[fieldName])
           end if
