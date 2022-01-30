@@ -11,8 +11,10 @@ namespace tests
     private v4 as mc.types.node
     createViewsFromStyleJson = mv.createViewsFromStyleJson
     updateViewsWithStyleJson = mv.updateViewsWithStyleJson
+    getCurrentValuesWithStyleJson = mv.getCurrentValuesWithStyleJson
   end class
 
+  @nocatch
   @suite("ViewUtils tests")
   class ViewUtilsTests extends mv.tests.BaseTestSuite
 
@@ -457,6 +459,213 @@ namespace tests
       m.assertNodeCount(grandChild2, 2)
       m.assertNode(target, grandChild2.getChild(0), "Poster", 4)
       m.assertNode(target, grandChild2.getChild(1), "Rectangle", 5)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @only
+    @describe("getCurrentValuesWithStyleJson")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private target
+    @beforeEach
+    function getcurrentValuesWithStyleJson_beforeEach()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      rootJson = [
+        {
+          "_type": "Rectangle"
+          "id": "v1"
+          "height": 1,
+          "width": 1,
+          "_children": [
+            {
+              "_type": "Label"
+              "id": "v4"
+              "height": 4
+              "width": 4
+            },
+            {
+              "_type": "Rectangle"
+              "id": "v5"
+              "height": 5
+              "width": 5
+            }
+          ]
+        },
+        {
+          "_type": "Label"
+          "id": "v2"
+          "height": 2
+          "width": 2
+        },
+        {
+          "_type": "Rectangle"
+          "id": "v3"
+          "height": 3
+          "width": 3
+        }
+      ]
+
+      m.target = m.executeCreateviews(rootJson, node)
+    end function
+
+    @it("returns empty when no ids match")
+    @params(invalid)
+    @params([])
+    @params({})
+    @params([{}])
+    @params([{ "no": "id" }])
+    @params({ "id": "notThere", "height": 100 })
+    function _(json)
+      'bs:disable-next-line
+      nodes = m.target.getCurrentValuesWithStyleJson(json)
+      m.assertEmpty(nodes)
+    end function
+
+    @it("gets one node when set")
+    function _()
+      json = [
+        {
+          "id": "v1"
+          "height": 100
+        }
+      ]
+      'bs:disable-next-line
+      nodes = m.target.getCurrentValuesWithStyleJson(json)
+      m.assertArrayCount(nodes, 1)
+      m.assertArrayCount(nodes.v1, 2)
+      m.assertEqual(mc.getPath(nodes.v1, "height"), 1.0)
+      m.assertEqual(nodes.v1.id, "v1")
+    end function
+
+    @it("gets multiple fields")
+    function _()
+      json = [
+        {
+          "id": "v1"
+          "height": 100
+          "width": 150
+        }
+      ]
+      'bs:disable-next-line
+      nodes = m.target.getCurrentValuesWithStyleJson(json)
+      m.assertArrayCount(nodes, 1)
+      m.assertArrayCount(nodes.v1, 3)
+      m.assertEqual(nodes.v1.id, "v1")
+      m.assertEqual(nodes.v1.height, 1.0)
+      m.assertEqual(nodes.v1.width, 1.0)
+    end function
+
+    @it("gets multiple nodes")
+    function _()
+      json = [
+        {
+          "id": "v1"
+          "height": 100
+        }
+        {
+          "id": "v3"
+          "height": 300
+        }
+      ]
+      'bs:disable-next-line
+      nodes = m.target.getCurrentValuesWithStyleJson(json)
+      m.assertArrayCount(nodes, 2)
+      m.assertArrayCount(nodes.v1, 2)
+      m.assertEqual(mc.getPath(nodes.v1, "height"), 1.0)
+      m.assertEqual(nodes.v1.id, "v1")
+      m.assertArrayCount(nodes.v3, 2)
+      m.assertEqual(mc.getPath(nodes.v3, "height"), 3.0)
+      m.assertEqual(nodes.v3.id, "v3")
+    end function
+
+    @it("gets nested nodes")
+    function _()
+      json = [
+        {
+          "id": "v1"
+          "height": 100,
+          "_children": [
+            {
+              "id": "v3"
+              "height": 300
+            }
+          ]
+        }
+      ]
+      'bs:disable-next-line
+      nodes = m.target.getCurrentValuesWithStyleJson(json)
+      m.assertArrayCount(nodes, 2)
+      m.assertArrayCount(nodes.v1, 2)
+      m.assertEqual(mc.getPath(nodes.v1, "height"), 1.0)
+      m.assertEqual(nodes.v1.id, "v1")
+      m.assertArrayCount(nodes.v3, 2)
+      m.assertEqual(mc.getPath(nodes.v3, "height"), 3.0)
+      m.assertEqual(nodes.v3.id, "v3")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getMapFromStyleJson")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates nested children")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      v4 = {
+        "_type": "Poster"
+        "id": "v4"
+        "height": 4
+      }
+      v5 = {
+        "_type": "Rectangle"
+        "id": "v5"
+        "height": 5
+        "width": 5
+      }
+      v2 = {
+        "_type": "Label"
+        "id": "v2"
+        "height": 2
+      }
+      v3 = {
+        "_type": "Rectangle"
+        "id": "v3"
+        "width": 3
+        "height": 3
+        "_children": [
+          v4
+          v5
+        ]
+      }
+      json = [
+        {
+          "_type": "Rectangle"
+          "id": "v1"
+          "height": 1
+          "_children": [
+            v2
+            v3
+          ]
+        }
+      ]
+
+      f = mv.getMapFromStyleJson(json)
+      m.assertArrayCount(f, 5)
+      m.assertEqual(f.v1.id, "v1")
+      m.assertEqual(f.v1.height, 1)
+      m.assertEqual(f.v2.id, "v2")
+      m.assertEqual(f.v2.height, 2)
+      m.assertEqual(f.v3.id, "v3")
+      m.assertEqual(f.v3.height, 3)
+      m.assertEqual(f.v3.width, 3)
+      m.assertEqual(f.v4.id, "v4")
+      m.assertEqual(f.v4.height, 4)
+      m.assertEqual(f.v5.id, "v5")
+      m.assertEqual(f.v5.height, 5)
+      m.assertEqual(f.v5.width, 5)
+
+
     end function
 
   end class
