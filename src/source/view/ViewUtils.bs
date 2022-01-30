@@ -69,19 +69,22 @@ namespace mv
           if nodeType <> invalid
             children = nodeJson._children
             id = nodeJson.id
+            _type = nodeJson._type
+            _children = nodeJson._children
             nodeJson.delete("id")
             nodeJson.delete("_type")
             nodeJson.delete("_children")
             view = mc.createSGNode(nodeType, targetNode, id, nodeJson, true, mTarget)
+            nodeJson.id = id
+            nodeJson._type = _type
+            nodeJson._children = _children
             if view <> invalid
               if children <> invalid
                 mv.createViewsFromStyleJson(children, view, assignViewsToM, mTarget)
               end if
               if assignViewsToM and id <> invalid
-                if not mTarget.doesExist(id)
-                  m.log.error("CREATE VIEW FROM STYLE JSON: Target view did not have field declared for id", id)
-                else if mTarget[id] <> invalid
-                  m.log.error("CREATE VIEW FROM STYLE JSON: Target view already had a view set for id", id)
+                if mTarget[id] <> invalid
+                  m.log.warn("CREATE VIEW FROM STYLE JSON: Target view already had a view set for id", id)
                 end if
                 mTarget[id] = view
               end if
@@ -98,26 +101,90 @@ namespace mv
     end if
   end function
 
-  ' assumes that all views exist on m, with the ids as described in childrenJson
-  function updateViewsWithStyleJson(json as mc.types.array, mTarget = invalid as mc.types.assocarray)
+  ' @param {assocarray|array} json - json to apply - either an array of views to update, or a nested json structure, as used in createViewsFromStyleJson
+  ' in which case all the
+  ' @param {assocarray} mTarget - the m to look up field names on
+  function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray, isChild = false as boolean)
     if mTarget = invalid
       mTarget = m
     end if
 
-    if mc.isAACompatible(json)
-      for each id in json
-        nodeJson = json[id]
-        if mc.isAACompatible(nodeJson)
-          node = mTarget[id]
+    if mc.isArray(json)
+      for each childJson in json
+        if childJson.id <> invalid and childJson.id <> ""
+          node = mTarget[childJson.id]
           if node <> invalid
-            node.setFields(nodeJson)
+            id = childJson.id
+            _type = childJson._type
+            _children = childJson._children
+
+            childJson.delete("id")
+            childJson.delete("_type")
+            childJson.delete("_children")
+            node.setFields(childJson)
+            childJson.id = id
+            childJson._type = _type
+            childJson._children = _children
           else
             m.log.error("could not find node with ", id, "on ", mc.getPath(mTarget, "__classname", "UNKNOWN CLASS"))
           end if
-        else
-          m.log.error("found illegal json with style id ", id)
+          if childJson._children <> invalid
+            mv.updateViewsWithStyleJson(childJson._children, mTarget, true)
+          end if
         end if
       end for
+    else if mc.isAACompatible(json)
+      if isChild
+          node = mTarget[json.id]
+          if node <> invalid
+            id = json.id
+            _type = json._type
+            _children = json._children
+
+            json.delete("id")
+            json.delete("_type")
+            json.delete("_children")
+            node.setFields(json)
+            json.id = id
+            json._type = _type
+            json._children = _children
+          else
+            m.log.error("could not find node with ", id, "on ", mc.getPath(mTarget, "__classname", "UNKNOWN CLASS"))
+          end if
+          if json._children <> invalid
+            mv.updateViewsWithStyleJson(json._children, mTarget, true)
+          end if
+      else
+        'legacy compatability
+        for each id in json
+          nodeJson = json[id]
+          if mc.isAACompatible(nodeJson)
+            node = mTarget[id]
+            if node <> invalid
+              id = nodeJson.id
+              _type = nodeJson._type
+              _children = nodeJson._children
+
+              nodeJson.delete("id")
+              nodeJson.delete("_type")
+              nodeJson.delete("_children")
+              node.setFields(nodeJson)
+              nodeJson.id = id
+              nodeJson._type = _type
+              nodeJson._children = _children
+
+            else
+              m.log.error("could not find node with ", id, "on ", mc.getPath(mTarget, "__classname", "UNKNOWN CLASS"))
+            end if
+            if nodeJson._children <> invalid
+              mv.updateViewsWithStyleJson(nodeJson._children, mTarget)
+            end if
+
+          else
+            m.log.error("found illegal json with style id ", id)
+          end if
+        end for
+      end if
     else
       m.log.error("could not apply style json in ", mc.getPath(mTarget, "__className", "UNKNOWN CLASS"), "json was invalid - expect key pairs for views that already exist on m")
     end if
