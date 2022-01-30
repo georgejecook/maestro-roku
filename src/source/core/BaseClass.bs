@@ -5,7 +5,6 @@ import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mc
-  @strict
   class BaseClass
 
     public state = "none"
@@ -29,6 +28,28 @@ namespace mc
 
     protected function initialize()
       'override me
+
+    end function
+
+    private function _addIOCObserver(fieldName as string, instanceName as string, path as string, observedPath as string, observedField as string, callback = invalid as function)
+      'bs:disable-next-line
+      instance = m.getInstance(instanceName)
+      value = mc.getPath(instance, path)
+      if observedPath <> ""
+        instance = mc.getPath(instance, observedPath)
+      end if
+
+      if type(instance) = "roSGNode"
+        if callback = invalid
+          m.observeNodeField(instance, observedField, fieldName, "field")
+        else
+          m.observeNodeField(instance, observedField, callback, "fieldAndValue", false, fieldName)
+        end if
+      else
+        m.log.warn("cannot add observer for injected field", fieldName, "from IOC", "instanceName", ".", path)
+      end if
+
+      return value
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,8 +86,8 @@ namespace mc
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
-      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
+    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, fieldAndValueTargetField = invalid as string)
+      mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m, fieldAndValueTargetField)
     end function
 
     protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
