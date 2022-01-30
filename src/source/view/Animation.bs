@@ -1,6 +1,7 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/view/ViewUtils.bs"
 
 namespace mv.animations.utils
   function colorTo(target as mc.types.node, duration as float, toValue as integer, start = true as boolean, delay = 0 as float) as mv.animations.Fade
@@ -44,6 +45,57 @@ namespace mv.animations.utils
     end if
   end function
 
+  function interpolate(a as dynamic, b as dynamic, fraction as float) as dynamic
+    if mc.isString(a)
+      return mv.animations.utils.interpolateString(a, b, fraction)
+    else if mc.isNumber(a)
+      return mv.animations.utils.interpolateArray(a, b, fraction)
+    else if mc.isPoint(a)
+      return mv.animations.utils.interpolatePoint(a, b, fraction)
+    else if mc.isAACompatible(a)
+      return mv.animations.utils.interpolateAA(a, b, fraction)
+    end if
+    return invalid
+  end function
+
+  function interpolatePoint(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
+    if mc.isPoint(a) and mc.isPoint(b)
+      return [a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction]
+    else
+      return [0, 0]
+    end if
+  end function
+
+  function interpolateNumber(a as dynamic, b as dynamic, fraction as float) as dynamic
+    if a <> invalid and b <> invalid
+      return a + (b - a) * fraction
+    else
+      return 0
+    end if
+  end function
+
+  function interpolateString(a as string, b as string, fraction as float) as string
+    if not mc.isString(a) or not mc.isString(b)
+      return ""
+    end if
+    if len(a) > 1 and left(a, 1) = "#" and len(b) > 1 and left(b, 1) = "#"
+      'assume it's a color
+      return mv.animations.utils.interpolateHexColors(a, b)
+    end if
+
+    if fraction > 0.5
+      return b
+    else
+      return a
+    end if
+  end function
+  function interpolateAA(a as mc.types.assocarray, b as mc.types.assocarray, fraction as float) as mc.types.assocarray
+    if fraction > 0.5
+      return b
+    else
+      return a
+    end if
+  end function
 
   function interpolateHexColors(hexColor1 as string, hexColor2 as string, fraction as float)
     c1 = mv.animations.private.convertHexToNumber(hexColor1)
@@ -152,6 +204,10 @@ namespace mv.animations
 
     function new(target as mc.types.node, field as string, duration as float, fromValue as dynamic, toValue as dynamic, name = "AbstractAnimation" as string, delay = 0 as float)
       super(name, target)
+      if field = "#ga_random"
+        field = "ga_" + rnd(2147483647).toStr()
+        mc.setOrAddNodeField(target, field, 1.0)
+      end if
       if target = invalid or target.id = invalid or target.id = ""
         m.log.error("target must be a valid node with an id")
       end if
@@ -676,7 +732,7 @@ namespace mv.animations
     end function
 
     function ceil(number as float) as integer
-      return - int(- number)
+      return -int(-number)
     end function
 
     function floor(number as float) as integer
@@ -775,6 +831,120 @@ namespace mv.animations
 
     public override function clone()
       return new mv.animations.VectorValue(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+    end function
+
+  end class
+
+  'animation type that allows for running an animation, without changing any particular value
+  'achieves it by adding a float field to the target node
+  class Generic extends mv.animations.AbstractAnimation
+
+    function new(target as mc.types.node, duration as float, delay = 0 as float)
+      super(target, "#ga_random", duration, 0, 1, "Generic", delay)
+    end function
+
+    protected override function createInterpolator()
+      m._createInterpolator("FloatFieldInterpolator")
+    end function
+
+    protected override function isValidValue(value as float) as boolean
+      return mc.isNumber(value)
+    end function
+
+    public override function clone()
+      return new mv.animations.Generic(m.target, m.duration, m.delay)
+    end function
+
+  end class
+
+  'special animation, which animates multiple views at once, based on view json
+  class ViewJson extends mv.animations.AbstractAnimation
+
+    private fromJson as mc.types.assocarray
+    private toJson as mc.types.assocarray
+    private startMap as mc.types.assocarray
+    private toMap as mc.types.assocarray
+    private targetM as mc.types.assocarray
+    private isObserving = false
+
+    function new(fromJson as mc.types.assocarray, toJson as mc.types.array, duration as float, delay = 0 as float)
+      super(mc.getTop(), "#ga_random", duration, 0, 1, "ViewJson", delay)
+      m.fromJson = fromJson
+      m.toJson = toJson
+      m.targetM = mc.getTopM()
+    end function
+
+    override function start(resume = false as boolean, useCurrentState = false as boolean)
+      if not m.isObserving
+        m.observeFraction(m.onViewAnimFraction, m)
+        m.isObserving = true
+      end if
+      if useCurrentState
+        ? " using current start map"
+        m.startMap = mv.getCurrentValuesWithStyleJson(m.toJson)
+      else
+        m.startMap = mv.getRootValuesWithStyleJson(m.fromJson, m.toJson)
+      end if
+      m.toMap = mv.getMapFromStyleJson(m.toJson)
+      super.start(resume)
+    end function
+
+    override function animateTo(toValue as dynamic, duration = invalid as float)
+      if m.node.control = "start" or m.node.control = "resume"
+        wasPlaying = true
+        m.pause()
+      else
+        wasPlaying = false
+      end if
+
+      if duration = invalid
+        duration = m.duration
+      end if
+      m.toJson = toValue
+      m.setDuration(duration)
+
+      if wasPlaying = true
+        m.start(false, true)
+      end if
+
+    end function
+
+    override function animateToWithSpeed(toValue as dynamic, stepSpeed as float, stepUnit = "pixel" as string)
+      m.log.error("not supported in ViewJson animation")
+    end function
+
+    override function setFromToValue(fromValue as dynamic, toValue as dynamic)
+      m.fromJson = fromValue
+      m.toJson = toValue
+    end function
+
+    protected override function createInterpolator()
+      m._createInterpolator("FloatFieldInterpolator")
+    end function
+
+    protected override function isValidValue(value as float) as boolean
+      return mc.isNumber(value)
+    end function
+
+    public override function clone()
+      return new mv.animations.Generic(m.target, m.duration, m.delay)
+    end function
+
+    private function onViewAnimFraction(fraction as float)
+      for each id in m.toMap
+        node = m.targetM[id]
+        if node <> invalid
+          toJson = m.toMap[id]
+          fromJson = m.startMap[id]
+          if fraction <> invalid
+            for each field in toJson
+              value = mv.animations.utils.interpolate(fromJson[field], toJson[field], fraction)
+              ' ? " SETTING "; field ; " to " ; value
+              node[field] = value
+            end for
+          end if
+        end if
+      end for
     end function
 
   end class
