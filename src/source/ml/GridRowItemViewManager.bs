@@ -299,7 +299,10 @@ namespace ml
       cell = invalid
       if item <> invalid
         itemId = item.id
+<<<<<<< Updated upstream
         ' ? " GRID===========================" ; itemid
+=======
+>>>>>>> Stashed changes
         if renderState = "rendered"
           cell = m.renderersByContentId[itemId]
           if cell = invalid
@@ -580,5 +583,20 @@ namespace ml
       end for
     end function
 
+<<<<<<< Updated upstream
+=======
+    protected override function tidyUpUnusedRenderers()
+      removedRows = []
+      for each id in m.previousRendereredByContentId
+        row = m.renderersByContentId[id]
+        row.content = invalid
+        removedRows.push(row)
+      end for
+      m.previousRendereredByContentId = {}
+      m.log.info("releasing", removedRows.count(), "rows")
+      m.componentPool@.releaseComponents(removedRows)
+    end function
+
+>>>>>>> Stashed changes
   end class
 end namespace

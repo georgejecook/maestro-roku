@@ -1,0 +1,153 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Registry.bs"
+import "pkg:/source/view/BaseAppController.bs"
+
+namespace mc.sample
+  @node("AppController", "mv_BaseView")
+  class AppController extends mv.BaseAppController
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public isFirstLoadComplete = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private navMenu as mc.types.node
+    private tabController as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ State
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private menuItems = []
+    private isFocusedOnContent = true
+    private isInitialLaunch = true
+    private homeItem as mc.types.node
+    private currentMenuItem as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private registry = new mc.Registry()
+    private bundle as mc.types.assocarray
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function new()
+      super("AppController")
+    end function
+
+
+    protected override function initialize()
+      super.initialize()
+      m.bundle = m.styleManager@.loadBundle("pkg:/source/main/AppController.bundle")
+
+      m.createViews()
+      m.configureMainMenu()
+
+      if m.isInitialLaunch
+        m.log.info("is first launch")
+
+        m.onMenuItemChange(0)
+        m.isInitialLaunch = false
+      else
+        m.onMenuItemChange(m.navMenu.selectedIndex)
+      end if
+      m.isFirstLoadComplete = true
+    end function
+
+    private function createViews() as void
+      if m.tabController <> invalid
+        m.log.warn("not creating AppController views, as they were previously instantiated")
+        return
+      end if
+
+      m.tabController = m.createSGNode("mv_TabController", m.top, "tabController")
+      m.navMenu = m.createSGNode("mv_ControlsGroup", m.top, "navMenu", {
+        translation: [200, 50]
+        layoutMode: "horiz"
+        keyDirection: "horiz"
+        itemSpacings: [40]
+        observe: {
+          "selectedIndex": m.onMenuItemChange
+        }
+      })
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Menu Management
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function configureMainMenu()
+      menuJson = m.bundle.menuItems
+      m.menuItems = []
+      buttons = []
+      for each itemJson in menuJson
+        item = m.createSGNode("ContentNode", invalid, itemJson.id, {
+          title: itemJson.title
+        })
+        mc.setOrAddNodeField(item, "screenType", itemJson.screen)
+        if itemJson.isDefault = true
+          m.homeItem = item
+        end if
+        m.menuItems.push(item)
+        m.createSGNode("mv_Button", m.navMenu, item.title, {
+          text: item.title
+        })
+      end for
+      m.navMenu.appendChildren(buttons)
+      m.navMenu@.updateChildren()
+    end function
+
+    private function onMenuItemChange(index as integer)
+      m.log.info("selected tab item", index)
+      m.currentMenuItem = m.menuItems[index]
+      m.tabController@.changeCurrentItem(m.currentMenuItem)
+      m.setFocus(m.tabController)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function setFocusOnContent(focusOnContent as boolean, animated = true as boolean)
+      m.isFocusedOnContent = focusOnContent
+      m.setFocus(focusOnContent ? m.tabController : m.navMenu)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressUp() as boolean
+      m.setFocusOnContent(false)
+      return true
+    end function
+
+    private function onKeyPressDown() as boolean
+      if not m.isFocusedOnContent
+        m.setFocusOnContent(true)
+      end if
+      return true
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ LifeCycle Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      if isSelfFocused
+        m.setFocusOnContent(m.isFocusedOnContent)
+      end if
+    end function
+  end class
+end namespace

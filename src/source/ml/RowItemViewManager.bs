@@ -109,7 +109,11 @@ namespace ml
 
     function applyrenderStateForCell(id as string, renderState as string)
       m.log.verbose("applyrenderStateForCell", id, renderState)
+<<<<<<< Updated upstream
       ' ? "APPLY RENDER STATE FOR CELL"
+=======
+      ? "APPLY RENDER STATE FOR CELL"
+>>>>>>> Stashed changes
       index = id.toInt()
       ' isRendered = m.row.isRendered
       item = m.content.getChild(index)
@@ -120,7 +124,7 @@ namespace ml
           cell = m.renderersByContentId[itemId]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
+            ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
             cell = m.componentPool@.getComponent(settings.compName)
 
             if cell = invalid
@@ -161,15 +165,26 @@ namespace ml
           if cell <> invalid
             m.renderersByContentId[itemId] = cell
             m.renderedComponents.push(cell)
+<<<<<<< Updated upstream
+=======
+            m.renderersByContentId[itemId] = cell
+>>>>>>> Stashed changes
             m.previousRendereredByContentId.delete(itemId)
           end if
         else
           cell = m.renderersByContentId[itemId]
           if cell <> invalid
+<<<<<<< Updated upstream
             m.componentPool@.releaseComponent(cell)
             m.renderersByContentId.delete(itemId)
             m.previousRendereredByContentId.delete(itemId)
             ' ? " REMOVING " ; cell.id
+=======
+            ? "RELEASING " ; id
+            m.componentPool@.releaseComponent(cell)
+            m.renderersByContentId.delete(itemId)
+            m.previousRendereredByContentId.delete(itemId)
+>>>>>>> Stashed changes
           else
             'this is almost certainly due to trying to release a cell during setting content
             ' ? " COULD NOT FIND CELL TO RELEASE" ; id.
@@ -242,6 +257,10 @@ namespace ml
       ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
       if m.itemScroller.index >= m.content.length
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
+<<<<<<< Updated upstream
+=======
+        ' ? "NEEDED TWEAK TO" ; m.itemScroller.index
+>>>>>>> Stashed changes
       end if
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)

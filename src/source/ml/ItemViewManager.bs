@@ -19,9 +19,12 @@ namespace ml
     public cellInfos = []
     private rowInfos as mc.types.array
     private renderersByContentId = {}
+<<<<<<< Updated upstream
 
 
     'tracking used for reusing cells during multi-render batches
+=======
+>>>>>>> Stashed changes
     private previousRendereredByContentId = {}
 
     'content
@@ -247,14 +250,19 @@ namespace ml
       m.log.info("+-renderedIndexes index", index, renderedIndexes)
       renderedStateMap = m.createRenderedStateMap(direction, index, renderedIndexes)
       m.renderedComponents = []
+<<<<<<< Updated upstream
       ' ? "TUR ::: AFTER STATE MAP" ; m.__classname
       ' ? " " ; formatJson(renderedStateMap)
+=======
+      m.previousRendereredByContentId = m.renderersByContentId
+>>>>>>> Stashed changes
       m.applyRenderStateMap(renderedStateMap)
 
       m.tidyUpUnusedRenderers()
       m.lastRenderedIndexes = renderedIndexes
     end function
 
+<<<<<<< Updated upstream
     protected function tidyUpUnusedRenderers() as void
       ' ? "Tidying up renderers " ; m.__classname
       removedRenderers = []
@@ -269,6 +277,21 @@ namespace ml
         end if
       end for
       ' ? " cleaning up "; removedRenderers.count() " renderers"
+=======
+    protected function tidyUpUnusedRenderers()
+      ? "Tidying up renderers"
+      ? "these are" ; m.previousRendereredByContentId.count() ; " left"
+
+      removedRenderers = []
+      for each id in m.previousRendereredByContentId
+        renderer = m.previousRendereredByContentId[id]
+        ? " cleaning up "; mc.dv(renderer)
+        renderer.content = invalid
+        removedRenderers.push(renderer)
+      end for
+      m.previousRendereredByContentId = {}
+      m.log.info("releasing", removedRenderers.count(), "rows")
+>>>>>>> Stashed changes
       m.componentPool@.releaseComponents(removedRenderers)
     end function
 
@@ -535,7 +558,10 @@ namespace ml
       end if
 
       if m.settings = invalid
+<<<<<<< Updated upstream
         ? "+!!!!!?!! INVALID SETTINGS"
+=======
+>>>>>>> Stashed changes
         return []
       end if
       if m.rowInfos = invalid

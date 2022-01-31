@@ -25,7 +25,6 @@ namespace mc.sample
     private loadingIndicator as mc.types.node
     private loadingPoster as mc.types.node
     private developerScreen as mc.types.node
-    private appController as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -139,8 +138,6 @@ namespace mc.sample
     end function
 
     private function onDeveloperScreenState(state as string)
-      a = invalid
-      a.blowup()
       if state = "success"
         m.showAppController()
       end if
@@ -152,15 +149,15 @@ namespace mc.sample
         m.developerScreen = invalid
         m.loadingIndicator.isActive = true
       end if
-      m.top.appController = createObject("roSGNode", "AppController")
-      mioc.setInstance("appController", m.top.appController)
-      m.top.insertChild(m.top.appController, 1)
-      m.top.appController@._initialize()
-      m.top.appController.opacity = 0
-      if m.top.appController.isFirstLoadComplete
+      m.top._appController = createObject("roSGNode", "AppController")
+      mioc.setInstance("appController", m.top._appController)
+      m.top.insertChild(m.top._appController, 1)
+      m.top._appController@._initialize()
+      m.top._appController.opacity = 0
+      if m.top._appController.isFirstLoadComplete
         m.onFirstLoadComplete()
       else
-        m.observeNodeField(m.top.appController, "isFirstLoadComplete", m.onFirstLoadComplete, "none")
+        m.observeNodeField(m.top._appController, "isFirstLoadComplete", m.onFirstLoadComplete, "none")
       end if
     end function
 
@@ -169,9 +166,9 @@ namespace mc.sample
     end function
 
     private function showApp()
-      m.global.addFields({ "appController": m.top.appController })
+      m.global.addFields({ "appController": m.top._appController })
       m.loadingIndicator.isActive = false
-      m.top.appController.opacity = 1
+      m.top._appController.opacity = 1
       mv.animations.utils.fadeTo(m.loadingBackground, 0.3, 0)
       mv.animations.utils.fadeTo(m.loadingPoster, 0.3, 0)
       m.waitAFrame(m.cleanUpLoadingViews, 0.5)
@@ -180,7 +177,7 @@ namespace mc.sample
     private function cleanUpLoadingViews()
       m.top.removeChild(m.loadingBackground)
       m.top.removeChild(m.loadingPoster)
-      mv.setFocus(m.appController)
+      mv.setFocus(m.top._appController)
     end function
 
   end class
