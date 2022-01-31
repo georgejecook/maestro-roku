@@ -1,0 +1,240 @@
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/NodeClass.bs"
+import "pkg:/source/view/FontManager.bs"
+import "pkg:/components/view/mixin/FocusMixin.bs"
+import "pkg:/source/core/Command.bs"
+import "pkg:/source/core/CommandSequence.bs"
+
+namespace mc.app
+  @node("mc_LaunchSequence", "Group")
+  class LaunchSequence extends mc.CommandSequence
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Events
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public output as mc.types.AssocArray
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    'can set this to false to cut out certain commands
+    public isIncludingView = true
+
+    'change this value if you have a different styles location
+    protected styleUrl = "pkg:/meta/Styles.json"
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private componentPool
+    private cellTracker
+    private cellBatchCount = 0
+    private prebakeCommand as mc.Command
+
+    protected override function createCommands()
+      iocCommand = new mc.Command("Init IOC", m.initializeIOC)
+      m.firstCommand.nextCommands = [iocCommand]
+
+      if m.isIncludingView
+        iocCommand.nextCommands = [
+          new mc.Command("Create FontManger", m.createFontManger)
+          new mc.Command("Load Styles", m.loadStyles)
+          new mc.Command("Setup Maestro", m.setupMaestro)
+          new mc.Command("Initialize ComponentPool", m.initializeComponentPool)
+          new mc.Command("Prebake Cells", m._prebakeViews)
+        ]
+        iocCommand.nextCommands.append(m.getCustomSteps())
+      else
+        m.log.warn("view commands are disabled")
+        iocCommand.nextCommands = m.getCustomSteps()
+      end if
+    end function
+
+    protected function getCustomSteps() as mc.types.array
+      'override point to provide custom steps
+      return []
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Marker functions
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    'these functions are used as markers to kick off the next block of steps that are waiting on these
+    private function startView(command as mc.Command)
+      'marker function implementation
+    end function
+
+    private function startCustomSteps(command as mc.Command)
+      'marker function implementation
+    end function
+
+    private function stepsFinished(command as mc.Command)
+      'marker function implementation
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Maestro
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function setupMaestro(command as mc.Command)
+      'bs:disable-next-line
+      mv.initializeFocusManager(m.global)
+
+      'note - this will become a framework function to call
+      tick = m.top.getScene().createChild("Timer")
+      tick.duration = 0.01
+      tick.repeat = true
+      tick.control = "start"
+      mc.setOrAddNodeField(m.global, "tick", tick)
+      m.setInstance("tick", tick)
+      m.finishCommand(command)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ IOC
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function initializeIOC(command as mc.Command)
+      m.log.info("initializing the IOC container")
+      mioc.createContainer()
+
+      delayedTaskManager = m.createSGNode("mc_delayedTaskManager", invalid, "delayedTaskManager")
+      m.setInstance("delayedTaskManager", delayedTaskManager)
+    m.setInstance("manifest", m.loadManifest())
+      m.finishCommand(command)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Flyweight
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function initializeComponentPool(command as mc.Command)
+      m.componentPool = m.createSGNode("mc_ComponentPool", invalid, "componentPool")
+      m.setInstance("componentPool", m.componentPool)
+      m.global.addFields({ "componentPool": m.componentPool })
+
+      m.cellTracker = m.createSGNode("mv_CellTracker", invalid, "cellTracker")
+      m.setInstance("cellTracker", m.cellTracker)
+      m.global.addFields({ "cellTracker": m.cellTracker })
+      m.finishCommand(command)
+    end function
+
+    protected function _prebakeViews(command as mc.Command) as void
+      m.prebakeCommand = command
+      m._prebakeViewsBatch()
+    end function
+
+    protected function _prebakeViewsBatch() as void
+      if m.cellBatchCount = 0
+        m.finishCommand(m.prebakeCommand)
+      end if
+
+      m.cellBatchCount++
+      if m.cellBatchCount = 3
+        m.log.info("all cells prebaked")
+        m.finishCommand(m.prebakeCommand)
+      else
+        m.log.info("baking more cells: batch #", m.cellBatchCount)
+        m.prebakeViews()
+        m.waitAFrame(m._prebakeViewsBatch, 0.15)
+      end if
+    end function
+
+    protected function prebakeViews()
+      'override point for prebaking your cells
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ View Related Setup
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function createFontManger(command as mc.Command)
+      fontManager = createObject("roSGNode", "mv_FontManager")
+      m.setInstance("fontManager", fontManager)
+      mc.setOrAddNodeField(m.global, "fontManager", fontManager)
+      m.finishCommand(command)
+    end function
+
+    private function loadStyles(command as mc.Command) as void
+      m.log.info("loading styles from", m.styleUrl)
+
+      styleManager = mc.createSGNode("mv_StyleManager", invalid, "styleManager")
+      m.setInstance("styleManager", styleManager)
+      m.global.addFields({ "styleManager": styleManager })
+
+      styleJson = m.loadJson(m.styleUrl)
+      styleManager@.setStyleJson(styleJson)
+
+      version = styleManager@.getStyle("version")
+      if version = invalid
+        m.failCommand("loadStyles", "Style json could not be parsed.")
+        return
+      end if
+      m.log.info("using style version", version)
+      m.finishCommand(command)
+    end function
+
+    protected override function failCommand(command as mc.Command, message as string)
+      m.log.error(`error executing loading step ${command.name}: `, message)
+      ' TODO(gcook):  what happens here?
+      m.showErrorDialog(`Loading step failed: ${command.name}`, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function loadJson(path as string) as mc.types.assocarray
+      text = readAsciiFile(path)
+      return text = invalid ? invalid : parseJson(text)
+    end function
+
+    public function showErrorDialog(title as string, message as string) as mc.types.node
+      dialog = m.createSGNode("Dialog")
+      dialog.title = title
+      dialog.message = message
+      dialog.buttons = ["Exit"]
+
+      m.top.getScene().dialog = dialog
+
+      m.observeNodeField(dialog, "buttonSelected", m.onErrorDialogClose, "none")
+      m.observeNodeField(dialog, "wasClosed", m.onErrorDialogClose, "none")
+      return dialog
+    end function
+
+    public function onErrorDialogClose()
+      m.top.getScene().dialog = invalid
+      m.top.getScene().closeChannel = true
+    end function
+
+    private function loadManifest()
+      manifest = {}
+
+      file = readAsciiFile("pkg:/manifest")
+      lines = file.split(Chr(10))
+
+      for each line in lines
+        line = line.trim()
+
+        if line.left(1) <> "#" and line.len() > 0
+          equal = line.instr(0, "=")
+
+          if equal = -1
+            equal = line.len()
+          end if
+
+          key = line.left(equal)
+          value = line.mid(equal + 1)
+          manifest[key] = value
+        end if
+      end for
+
+      return manifest
+    end function
+
+  end class
+end namespace

@@ -1,0 +1,326 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/Animation.bs"
+import "pkg:/source/core/Registry.bs"
+import "pkg:/source/view/BaseAppController.bs"
+import "pkg:/source/core/Date.bs"
+
+namespace mv.debug
+  @node("DeveloperScreen", "mv_BaseScreen")
+  class DeveloperScreen extends mv.BaseAppController
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private controls
+    private buttonGroup
+    private outputText
+    private statusText
+    private navController
+    private infoLabel
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private subScreen as mc.types.node
+    private isBusy = false
+    private pageIndex = 0
+    private numberOfPages = 0
+    private registry = new mc.Registry()
+    private pages = []
+    private activePage = {}
+
+    @inject("manifest", "version_number")
+    private applicationVersionNumber
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("DeveloperScreen")
+    end function
+
+    protected override function initialize()
+      'note, we set this dev screen as the appController so that
+      'the sub screens can still function without a real appController setup
+      m.setInstance("appController", m.top)
+      m.createViews()
+    end function
+
+    private function createViews()
+      m.createSGNode("mv_Rectangle", m.top, "backgroundRect", {
+        size: [1920, 1080]
+        color: "#000000"
+        opacity: 0.8
+      })
+
+      m.createSGNode("mv_Label", m.top, "titleLabel", {
+        text: "Developer Control Panel"
+        vertAlign: "center"
+        horizAlign: "center"
+        size: [1310, 50]
+        translation: [305, 50]
+        font: "font:LargeBoldSystemFont"
+      })
+
+      m.statusText = m.createSGNode("mv_Label", m.top, "statusText", {
+        vertAlign: "top"
+        horizAlign: "left"
+        size: [1800, 1000]
+        translation: [60, 120]
+        wrap: true
+        font: "font:SmallBoldSystemFont"
+      })
+
+      m.infoLabel = m.createSGNode("mv_Label", m.top, "infoLabel", {
+        vertAlign: "top"
+        horizAlign: "left"
+        size: [1310, 50]
+        translation: [300, 240]
+        font: "font:smallestSystemFont"
+      })
+
+      m.controls = m.createSGNode("mv_LayoutGroup", m.top, "controls", {
+        layoutDirection: "vert"
+        itemSpacings: [50],
+        translation: [300, 280]
+      })
+
+      hGroup = m.createSGNode("mv_LayoutGroup", m.controls, "hGroup", {
+        layoutDirection: "horiz"
+        horizAlignment: "center"
+        itemSpacings: [100]
+      })
+
+      m.buttonGroup = m.createSGNode("ButtonGroup", hGroup, "buttonGroup", {
+        textFont: "font:SmallestSystemFont"
+        focusedTextFont: "font:SmallestSystemFont"
+      })
+
+      m.outputText = m.createSGNode("mv_Label", hGroup, "outputText", {
+        vertAlign: "top"
+        horizAlign: "left"
+        size: [1000, 0]
+        wrap: true
+        font: "font:SmallBoldSystemFont"
+      })
+      m.navController = m.createSGNode("mv_navController", m.top)
+      m.pages = m.createMenuPages()
+      m.numberOfPages = m.pages.count()
+      m.updateButtons()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Protected Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createMenuPages() as mc.types.array
+      'override, and return your DeveloperMenuPage instances here
+      return [
+        m.getDefaultPage()
+        m.getDefaultPage2()
+      ]
+    end function
+
+    protected function updateStatusText()
+      text = `Version: ${m.applicationVersionNumber}`
+      m.statusText.text = text
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function updateButtons()
+      m.infoLabel.text = `Page ${m.pageIndex + 1}/${m.pages.count()}`
+      lastButtonFocused = m.buttonGroup.buttonFocused
+      m.updateStatusText()
+
+      m.activePage = m.pages[m.pageIndex]
+      m.setButtonFunctions(m.buttonGroup, m.activePage)
+
+      m.buttonGroup.buttonFocused = mc.clamp(lastButtonFocused, 0, m.buttonGroup.buttons.count() - 1)
+      m.buttonGroup.focusButton = mc.clamp(lastButtonFocused, 0, m.buttonGroup.buttons.count() - 1)
+      m.setFocus(m.buttonGroup)
+      m.isBusy = false
+    end function
+
+    protected function getDefaultPage()
+      return [
+        ["Launch", m.onLaunch]
+        ["Show registry", m.onShowRegistry]
+        ["Clear registry", m.onClearRegistry]
+        ["Change app major version", m.onChangeAppMajorVersion]
+        ["Change app minor version", m.onChangeAppMinorVersion]
+      ]
+    end function
+
+    protected function getDefaultPage2()
+      return [
+        ["Show Manifest", m.onShowManifest]
+      ]
+    end function
+
+    private function setButtonFunctions(control as mc.types.node, buttons as mc.types.array)
+      control.buttons = mc.collections.map(buttons, function(item as string)
+        return item[0]
+      end function)
+
+      m.activePage = m.pages[m.pageIndex]
+      m.observeNodeField(control, "buttonSelected", m.onButtonGroupSelectedChange, "both")
+    end function
+
+    function onButtonGroupSelectedChange(index as integer, node as mc.types.node) as void
+      if m.isBusy
+        m.log.info("ignoring - screen is still busy")
+        return
+      end if
+      m.activePage[index][1]()
+    end function
+
+    private function showScreen(screen as mc.types.node)
+      m.subScreen = screen
+      m.observeNodeField(screen, "state", m.onScreenStateChange)
+      m.navController@.push(screen)
+      m.setFocus(m.navController)
+    end function
+
+    private function hideSubScreen()
+      m.unobserveNodeField(m.subScreen, "state", m.onScreenStateChange)
+      if m.subScreen.getParent() <> invalid
+        m.navController@.pop()
+      end if
+      m.subScreen = invalid
+      m.updateButtons()
+    end function
+
+    private function onScreenStateChange(state as string)
+      m.log.info("screen changed state", state)
+      m.subScreen = invalid
+      'this should always mean the screen is dismissed
+      m.onGainedFocus(true)
+    end function
+
+    private function increaseVersionNumber(version as string, increaseMajor as boolean, increaseMinor as boolean, increasePatch as boolean) as string
+
+      parts = version.split(".")
+      for i = 0 to 2
+        if [increaseMajor, increaseMinor, increasePatch][i]
+          parts[i] = `${ parts[i].toInt() + 1 }`
+        end if
+      end for
+      return parts.join(".")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Default Page Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onLaunch()
+      m.state = "success"
+    end function
+
+    private function onShowRegistry()
+      m.log.info("onShowRegistry")
+
+      contents = m.registry.readAll()
+      mc.setOrAddNodeField(m.top.getScene(), "__reg", contents)
+      m.outputText.text = `registry contents (also available in RALE via scene __reg field)\n${formatJson(contents)}`
+    end function
+
+    private function onClearRegistry()
+      m.log.info("onClearRegistry")
+      m.registry.deleteAll()
+      m.outputText.text = "Registry cleared"
+    end function
+
+    private function onChangeAppMajorVersion()
+      manifest = m.getInstance("manifest")
+      m.updateInstance("manifest", "version_number", m.increaseVersionNumber(manifest.version_number, true, false, false))
+      m.applicationVersionNumber = manifest.version_number
+      m.updateButtons()
+    end function
+
+    private function onChangeAppMinorVersion()
+      manifest = m.getInstance("manifest")
+      m.updateInstance("manifest", "version_number", m.increaseVersionNumber(manifest.version_number, false, true, false))
+      m.applicationVersionNumber = manifest.version_number
+      m.updateButtons()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Default Page 2 methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onShowManifest()
+      m.outputText.text = `manifest contents:\n${formatJson(m.getInstance("manifest"))}`
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function onKeyPressBack() as boolean
+      if m.subScreen <> invalid
+        m.hideSubScreen()
+        return true
+      else
+        return false
+      end if
+    end function
+
+    function onKeyPressLeft() as boolean
+      m.pageIndex = mc.clamp(m.pageIndex - 1, 0, m.numberOfPages, true)
+      m.updateButtons()
+      m.buttonGroup.buttonFocused = 0
+      m.buttonGroup.focusButton = 0
+      return true
+    end function
+
+    function onKeyPressRight() as boolean
+      m.pageIndex = mc.clamp(m.pageIndex + 1, 0, m.numberOfPages, true)
+      m.updateButtons()
+      m.buttonGroup.buttonFocused = 0
+      m.buttonGroup.focusButton = 0
+      return true
+    end function
+
+    function onKeyPressOptions() as boolean
+      poster = mc.getScene()._debugOverlayPoster
+      if poster = invalid
+        poster = mc.createSGNode("mv_Poster", mc.getScene(), "_debugOverlayPoster", {
+          size: [1920, 1080]
+          opacity: 0.3
+          uri: "pkg:/images/debug/overlay.png"
+        })
+        mc.setOrAddNodeField(mc.getScene(), "_debugOverlayPoster", poster)
+        m.statusText.text = `Added overlay poster`
+      else
+        mc.getScene().removeChild(poster)
+        m.statusText.text = `Removed overlay poster`
+        mc.setOrAddNodeField(mc.getScene(), "_debugOverlayPoster", invalid)
+      end if
+      return true
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.setFocus(m.subScreen <> invalid ? m.navController : m.buttonGroup)
+      end if
+    end function
+
+    protected override function onShow()
+      super.onShow()
+      m.updateStatusText()
+      m.updateButtons()
+    end function
+
+  end class
+end namespace

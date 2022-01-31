@@ -241,7 +241,17 @@ namespace mv.controls
 
     private function getLongPressIntervalForKey(key as string) as float
       if (m.keyDirection = "vert" and (key = "up" or key = "down")) or (m.keyDirection = "horiz" and (key = "left" or key = "right"))
-        return 0.3
+        index = m.focusedIndex
+        if key = "up" or key = "left"
+          index--
+        else
+          index++
+        end if
+        if m.getNextEnabledIndex(index, index < m.focusedIndex ? - 1 : 1) <> -1
+          return 0.3
+        else
+          return 0
+        end if
       else
         return 0
       end if

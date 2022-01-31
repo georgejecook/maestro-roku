@@ -1,0 +1,184 @@
+import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/MIOC.bs"
+import "pkg:/source/core/Tasks.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/components/view/mixin/FocusMixin.bs"
+import "pkg:/source/view/Animation.bs"
+import "pkg:/source/view/NodeClass.bs"
+
+namespace mc.sample
+
+  @node("MainScene", "Scene")
+  class MainScene extends mv.NodeClass
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Debug Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public _rLog as mc.types.node
+    public _appController as mc.types.node
+    public _global as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private loadingBackground as mc.types.node
+    private loadingIndicator as mc.types.node
+    private loadingPoster as mc.types.node
+    private developerScreen as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private log as log.Logger
+    private args = {}
+    private launchSequence as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialize
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("MainScene")
+      m.createSGNode("TrackerTask")
+      m.configureLogger()
+      m.createView()
+    end function
+
+    private function createView()
+      m.loadingBackground = m.createSGNode("mv_Rectangle", m.top, "loadingBackground", {
+        color: "#000000"
+        width: 1920
+        height: 1080
+      })
+      m.loadingPoster = m.createSGNode("mv_Poster", m.top, "loadingPoster", {
+        uri: "pkg:/images/app/nba-tv-logo-and-text-medium-$$RES$$.png"
+        loadSync: true
+        width: 1920
+        height: 1080
+      })
+      m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
+        "width": 1920,
+        "height": 1080,
+        "backgroundVisible": false,
+        "text": "",
+        "translation": [0, 0]
+      })
+    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Log
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function configureLogger()
+      rLog = log.initializeLogManager(["log_PrintTransport"], 2)
+      m.log = new log.Logger("MainScene")
+      m.log.info("Configuring log")
+      rLog.excludeFilters = {
+        "ml_List": true
+        "ml_BaseRow": true
+        "ml_BaseCell": true
+        "ml_RowHeader": true
+        "ml_GridRow": true
+        "ml_HorizontalRow": true
+        "ItemViewManager": true
+        "ListItemViewManager": true
+        "RowItemViewManager": true
+        "GridRowItemViewManager": true
+        "ItemScroller": true
+        "RowItemScroller": true
+        "GridItemScroller": true
+        "ListItemScroller": true
+        "ItemFocusManager": true
+      }
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' This is called when all initial data is loaded. The app would show a loading spinner and loading background until this point
+    function begin(args = invalid as object)
+      m.log.info("begin")
+      m.args = args
+      m.top._global = m.global
+      m.startLaunchSequence()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function startLaunchSequence()
+      m.log.info("starting launch sequence")
+      m.launchSequence = m.createTask("mc_LaunchSequence", invalid, m.onLaunchSequenceResult)
+    end function
+
+    private function onLaunchSequenceResult(result as mc.Result)
+      if result.isOK
+        m.log.info("launch sequence is complete - showing main screen")
+        mioc.setInstance("appArgs", m.args)
+        m.showInitialScreen()
+      else
+        m.log.error("app failed to start")
+      end if
+    end function
+
+    private function showInitialScreen()
+      m.log.info("show initial screen")
+      m.developerScreen = mc.createSGNode("DeveloperScreen", m.top, "developerScreen")
+      if m.developerScreen <> invalid
+        m.log.warn("Launching in dev mode!")
+        m.observeNodeField(m.developerScreen, "state", m.onDeveloperScreenState)
+        m.loadingIndicator.isActive = false
+        m.top.appendChild(m.developerScreen)
+        mv.setFocus(m.developerScreen)
+      else
+        m.showAppController()
+      end if
+    end function
+
+    private function onDeveloperScreenState(state as string)
+      if state = "success"
+        m.showAppController()
+      end if
+    end function
+
+    private function showAppController()
+      if m.developerScreen <> invalid
+        m.top.removeChild(m.developerScreen)
+        m.developerScreen = invalid
+        m.loadingIndicator.isActive = true
+      end if
+      m.top._appController = createObject("roSGNode", "AppController")
+      mioc.setInstance("appController", m.top._appController)
+      m.top.insertChild(m.top._appController, 1)
+      m.top._appController@._initialize()
+      m.top._appController.opacity = 0
+      if m.top._appController.isFirstLoadComplete
+        m.onFirstLoadComplete()
+      else
+        m.observeNodeField(m.top._appController, "isFirstLoadComplete", m.onFirstLoadComplete, "none")
+      end if
+    end function
+
+    private function onFirstLoadComplete()
+      m.waitAFrame(m.showApp)
+    end function
+
+    private function showApp()
+      m.global.addFields({ "appController": m.top._appController })
+      m.loadingIndicator.isActive = false
+      m.top._appController.opacity = 1
+      mv.animations.utils.fadeTo(m.loadingBackground, 0.3, 0)
+      mv.animations.utils.fadeTo(m.loadingPoster, 0.3, 0)
+      m.waitAFrame(m.cleanUpLoadingViews, 0.5)
+    end function
+
+    private function cleanUpLoadingViews()
+      m.top.removeChild(m.loadingBackground)
+      m.top.removeChild(m.loadingPoster)
+      mv.setFocus(m.top._appController)
+    end function
+
+  end class
+end namespace

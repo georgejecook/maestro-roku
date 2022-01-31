@@ -104,6 +104,12 @@ namespace mioc
     return true
   end function
 
+  function updateInstance(instanceName as string, path as string, value as dynamic)
+    instance = mioc.getInstance(instanceName)
+    mc.setPath(instance, path, value)
+    mioc.setInstance(instanceName, instance)
+  end function
+
   function setInstanceField(field as string, instanceField as string, value as dynamic)
     instance = mioc.getInstance(field)
     if instance <> invalid
