@@ -27,7 +27,11 @@ namespace mv.transitions
 
     protected override function begin()
       if m.fadeRectangle = invalid
-        m.fadeRectangle = mc.createSGNode("mv_Rectangle", m.owner, "fadeRectangle")
+        m.fadeRectangle = mc.createSGNode("mv_Rectangle", m.owner, "fadeRectangle", {
+          "opacity": 0
+          "color": m.top.color
+          "size": m.top.size
+        })
         m.blackFadeAnim = mv.animations.utils.fadeTo(m.fadeRectangle, m.duration, 1, false)
         m.blackFadeAnim.setKeys([0, 0.5, 1.0], [0.0, 1.0, 0.0])
       end if
@@ -37,8 +41,11 @@ namespace mv.transitions
           m.source.visible = false
           m.owner.removeChild(m.source)
         end if
-        if m.owner.isShown
+        if m.owner.target <> invalid and not m.target.isSameNode(m.source)
+          m.owner.appendChild(m.target)
+          ' if m.owner.isShown
           m.target.visible = true
+          ' end if
         end if
       end function, m)
 
@@ -48,6 +55,8 @@ namespace mv.transitions
 
       m.fadeRectangle.size = m.top.size
       m.fadeRectangle.color = m.top.color
+      m.fadeRectangle.opacity = 0
+      m.owner.appendChild(m.fadeRectangle)
 
       m.blackFadeAnim.start()
     end function
