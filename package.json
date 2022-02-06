@@ -1,6 +1,6 @@
 {
   "name": "maestro-roku",
-  "version": "0.40.1",
+  "version": "0.40.2",
   "description": "A development platform for building roku channels in brighterscript",
   "directories": {
     "doc": "docs"
@@ -64,10 +64,13 @@
     "tag-pattern": ".+"
   },
   "scripts": {
+    "postinstall": "npx ropm copy",
+    "update-schema": "npm run build && cd build && npx scenegraph-schema -o ../.vscode/project.xsd",
+    "ropm": "ropm copy && ts-node scripts/fix-ropm-issues.js",
     "build": "node scripts/run.js && npx ts-node scripts/cleanup-build.js",
     "build-local": "node scripts/run-local.js && npx ts-node scripts/cleanup-build.js",
     "build-test": "node scripts/run-test.js",
-    "build-ml-app": "node scripts/run-ml-app.js",
+    "build-sample-app": "node scripts/run-sample-app.js",
     "changelog": "npx auto-changelog",
     "build-docs": "statigen -s docs -o .tmp/docs",
     "publish-docs": "npm run build-docs && git checkout docspub && rm -rf docs && cp -r .tmp/docs . && git add --all && git commit -m 'docs update' && git push -f && git checkout master",
