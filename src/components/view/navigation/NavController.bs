@@ -2,32 +2,36 @@ function init()
   m.log.info("init")
   m.viewStack = []
   m.currentView = invalid
+  m.tempTransition = false
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view as mc.types.node, animated = true as boolean) as void
+function push(view as mc.types.node, animated = true as boolean, transition = invalid as mc.types.node) as void
   m.log.method("push")
   if view = invalid
     m.log.warn(" push invalid view passed in : ignoring")
     return
   end if
+  m.tempTransition = transition
 
   m.log.info("pushing ", view.subType())
-  m.viewStack.Push(view)
+  m.viewStack.push(view)
   view.navController = m.top
   updatePublicFields()
 
   transitionToView(view, animated)
 end function
 
-function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean, transition = invalid as mc.types.node)
   m.log.info(" reset ", m.top.numberOfViews)
   if endIndex < -1
     endIndex = -1
   end if
+
+  m.tempTransition = transition
 
   m.log.info("endIndex is", endIndex)
   index = m.top.numberOfViews - 1
@@ -57,9 +61,10 @@ function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integ
 
 end function
 
-function pop(animated = true as boolean)
+function pop(animated = true as boolean, transition = invalid as mc.types.node)
   m.log.method("pop ", m.top.numberOfViews)
   previousView = m.top.currentView
+  m.tempTransition = transition
 
   nextView = invalid
 
@@ -78,9 +83,11 @@ function pop(animated = true as boolean)
   return previousView
 end function
 
-function replace(newView = invalid as mc.types.node, animated = false as boolean) as object
+function replace(newView = invalid as mc.types.node, animated = false as boolean, transition = invalid as mc.types.node) as object
   m.log.method("replace ", m.top.numberOfViews)
   previousView = m.top.currentView
+  m.tempTransition = transition
+
   if previousView <> invalid
     m.viewStack.Pop()
     previousView.navController = invalid
@@ -100,7 +107,6 @@ function replace(newView = invalid as mc.types.node, animated = false as boolean
 
   return previousView
 end function
-
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Private impl

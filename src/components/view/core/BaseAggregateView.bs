@@ -20,10 +20,16 @@ function hideView(view as mc.types.node)
 end function
 
 function transitionToView(view as mc.types.node, animated = true as boolean)
-  if m.top.transition = invalid
-    m.top.transition = createObject("roSGNode", "mv_SimpleTransition")
+  if m.tempTransition <> invalid
+    m.log.info("using temporary transition")
+    m.tempTransition@.execute(m.top, m.top.currentView, view, animated)
+    m.tempTransition = invalid
+  else
+    if m.top.transition = invalid
+      m.top.transition = createObject("roSGNode", "mv_SimpleTransition")
+    end if
+    m.top.transition@.execute(m.top, m.top.currentView, view, animated)
   end if
-  m.top.transition@.execute(m.top, m.top.currentView, view, animated)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -33,7 +39,7 @@ end function
 function onShow()
   m.log.verbose("onShow", m.top.subType(), ".", m.top.id)
   if m.top.currentView <> invalid
-    m.log.info("setting view visible: ",  m.top.currentView.subType(), ".", m.top.currentView.id)
+    m.log.info("setting view visible: ", m.top.currentView.subType(), ".", m.top.currentView.id)
     m.top.currentView.visible = true
   else
     m.log.warn("this aggregate view has no currentView")
@@ -43,7 +49,7 @@ end function
 function onHide()
   m.log.verbose("onHide", m.top.subType(), ".", m.top.id)
   if m.top.currentView <> invalid
-    m.log.info("setting view invisible: ",  m.top.currentView.subType(), ".", m.top.currentView.id)
+    m.log.info("setting view invisible: ", m.top.currentView.subType(), ".", m.top.currentView.id)
     m.top.currentView.visible = false
   else
     m.log.warn("this aggregate view has no currentView")
