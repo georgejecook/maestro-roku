@@ -20,6 +20,7 @@ namespace ml
     public content as mc.types.Node
     private _content
 
+    @alwaysnotify
     public state = "none"
 
     public width = 1920
@@ -143,9 +144,13 @@ namespace ml
       return node
     end function
 
+    private wasFocused = false
+
     private function resetState()
       m.log.info("resetState")
 
+      m.wasFocused = m.top.isFocused or m.top.isChildFocused
+      m.top.visible = false
       if m._content <> invalid
         m.log.info("new content is present")
         m.applyListSettings(m._content.listSettings)
@@ -155,7 +160,23 @@ namespace ml
         m.log.info("content is being set to invalid - resetting view manager")
         m.viewManager.reset()
       end if
-      m.focusIndicatorManager.isHidden = m.top.isFocused or m.top.isChildFocused
+      ' m.focusIndicatorManager.isHidden = not m.top.isFocused and not m.top.isChildFocused
+      if m.top.state = "rendered"
+        m.onListRenderState("rendered")
+      else
+        m.observeNodeField(m.top, "state", m.onListRenderState, "value", true)
+      end if
+
+    end function
+
+    private function onListRenderState(state as string)
+      m.log.info("onListRenderState", state)
+      if state = "rendered"
+        m.setFocus(m.rowsGroup)
+        m.setFocus(m.top)
+        m.moveToItem([0, 0], false)
+        m.top.visible = true
+      end if
     end function
 
     private function applyListSettings(settings as mc.types.node)
