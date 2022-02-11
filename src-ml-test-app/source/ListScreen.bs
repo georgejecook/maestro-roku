@@ -564,8 +564,13 @@ class ListScreen extends mv.BaseScreen
   private firstItem = invalid
   private dataIndex = 0
   private function onKeyPressOptions() as boolean
-    ? "OPTIONS "
-    m.changeContent()
+    if m.list.content <> invalid
+      ? "SET INVALID"
+      m.list.content = invalid
+    else
+      ? "CHANGE CONTENT"
+      m.changeContent()
+    end if
 
     ' m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 7)
 
