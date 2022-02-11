@@ -29,18 +29,22 @@ namespace ml
         if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.length > 0)
           ' component = m.viewManager.visibleComponents[i]
           component = m.viewManager.renderersByContentId[item.id]
-          infos = component@.getRowInfos(forceRecalculate)
+          if component <> invalid
+            infos = component@.getRowInfos(forceRecalculate)
 
-          contentIndex = component.index
-          for subIndex = 0 to infos.count() - 1
-            info = infos[subIndex]
-            componentInfo = ml.ComponentInfoUtils.componentInfoFromAA(info)
-            componentInfo.component = component
-            componentInfo.contentIndex = contentIndex
-            componentInfo.index = virtualIndex
-            m.componentInfos.push(componentInfo)
-            virtualIndex++
-          end for
+            contentIndex = component.index
+            for subIndex = 0 to infos.count() - 1
+              info = infos[subIndex]
+              componentInfo = ml.ComponentInfoUtils.componentInfoFromAA(info)
+              componentInfo.component = component
+              componentInfo.contentIndex = contentIndex
+              componentInfo.index = virtualIndex
+              m.componentInfos.push(componentInfo)
+              virtualIndex++
+            end for
+          end if
+        else
+          'FIXME - some race condition seems to occur here - probs multiple grids doing force recalculations
         end if
       end for
       m.numberOfComponents = m.componentInfos.count()
