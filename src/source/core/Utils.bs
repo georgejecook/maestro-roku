@@ -610,6 +610,21 @@ namespace mc.private
     if componentPool <> invalid
       componentPool@.releaseComponent(component)
     end if
+  end function
 
+  function logError(message as string, arg1 = "" as string, arg2 = "" as string, arg3 = "" as string)
+    if m.log <> invalid
+      m.log.error(message)
+    else
+      ? "ERROR: " ; message ; " " ; arg1; " " ; arg2; " " ; arg3
+    end if
+  end function
+
+  function logWarn(message as string, arg1 = "" as string, arg2 = "" as string, arg3 = "" as string)
+    if m.log <> invalid
+      m.log.warn(message)
+    else
+      ? "WARN: " ; message ; " " ; arg1; " " ; arg2; " " ; arg3
+    end if
   end function
 end namespace

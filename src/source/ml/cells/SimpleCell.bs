@@ -11,6 +11,10 @@ namespace ml
   @node("ml_SimpleCell", "ml_BaseCell")
   class SimpleCell extends ml.BaseCell
 
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     private poster
     private rectangle
     private label
@@ -19,9 +23,9 @@ namespace ml
 
     private posterSize = [307.0, 100.0]
 
-    function new()
-      super()
-    end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function createViews() as void
       m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
@@ -58,7 +62,6 @@ namespace ml
     end function
 
     protected override function onContentChange(content as mc.types.node)
-      ' ? " SC 1"
       m.poster.width = m.posterSize[0]
       m.poster.height = m.posterSize[1]
       m.setScale(0, true)
@@ -66,13 +69,11 @@ namespace ml
       m.label.text = "C:" + m.content.title
       m.poster.uri = m.content.HDGRIDPOSTERURL
       m.label.visible = true
-      ' m.onScrollingChange(m.row.isScrolling or m.list.isScrolling)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ delegate
+    '++ Delegate Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
 
     private function onScrollingChange(isScrolling as boolean, isLong as boolean)
       ' ? "SC: isScrolling " ; " " ; isScrolling ; " IL " ; isLong

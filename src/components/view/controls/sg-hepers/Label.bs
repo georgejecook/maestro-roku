@@ -5,6 +5,7 @@ function init()
   m.top.observeFieldScoped("fontKey", "onFontKeyChange")
   m.top.observeFieldScoped("style", "onStyleChange")
   m.top.observeFieldScoped("size", "onSizeChange")
+  m.top.observeFieldScoped("fontStyleKey", "onFontStyleKeyChange")
   m.top.observeFieldScoped("isHighlighted", "onIsHighlightedChange")
   onFontKeyChange()
 end function
@@ -12,6 +13,14 @@ end function
 function onFontKeyChange()
   if m.top.fontKey <> invalid and m.global.fontManager <> invalid
     m.top.font = m.global.fontManager@.getFontWithKey(m.top.fontKey)
+  end if
+end function
+
+function onFontStyleKeyChange()
+  styleKey = m.top.fontStyleKey
+  if styleKey <> "" and m.global.fontManager <> invalid and m.global.styleManager <> invalid
+    fontKey = m.global.styleManager@.getStyleValue("~" + styleKey)
+    m.top.font = m.global.fontManager@.getFontWithKey(fontKey)
   end if
 end function
 
