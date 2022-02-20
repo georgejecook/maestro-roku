@@ -1,0 +1,58 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/ml/BaseRow.bs"
+
+@node("DateHeaderRow", "ml_BaseRow")
+class DateHeaderRow extends ml.BaseRow
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private menu
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onMenuItemChange(index as integer)
+    m.log.info("selected tab item", index)
+    if index = 0
+      m.sendRowData({ offset: -1 })
+    else if index = 1
+      m.sendRowData({ offset: 1 })
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Overridden Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function createViews()
+    bundle = m.styleManager@.loadBundle("pkg:/source/rows/DateHeaderRow.bundle")
+    m.createViewsFromStyleJson(bundle.views)
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    'do stuff with content here
+  end function
+
+  public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings.focusSettings, true)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Row Delegate Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onDidGainFocus(direction as integer)
+    ' ? "CR: onDidGainFocus " ; " " ; direction
+    if m.owner.isFocused or m.owner.isChildFocused
+      m.setFocus(m.menu)
+    end if
+  end function
+
+end class
