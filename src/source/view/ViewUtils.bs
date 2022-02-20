@@ -71,10 +71,11 @@ namespace mv
             id = nodeJson.id
             _type = nodeJson._type
             _children = nodeJson._children
+            _initializeAfterCreatingChildren = nodeJson._initializeAfterCreatingChildren = true
             nodeJson.delete("id")
             nodeJson.delete("_type")
             nodeJson.delete("_children")
-            view = mc.createSGNode(nodeType, targetNode, id, nodeJson, true, mTarget)
+            view = mc.createSGNode(nodeType, targetNode, id, nodeJson, not _initializeAfterCreatingChildren, mTarget)
             nodeJson.id = id
             nodeJson._type = _type
             nodeJson._children = _children
@@ -90,6 +91,9 @@ namespace mv
               end if
             else
               m.log.error("CREATE VIEW FROM STYLE JSON: Could not create view ", id, "with type", nodeType)
+            end if
+            if _initializeAfterCreatingChildren
+              view@._initialize()
             end if
           else
             m.log.error("CREATE VIEW FROM STYLE JSON: Could not create view ", nodeJson.id, "no _type specified")
