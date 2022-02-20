@@ -135,6 +135,10 @@ namespace mv.controls
       m.focusedIndex = mc.clamp(m.focusedIndex, 0, m.visibleChildren.count() - 1)
     end function
 
+    function getSelectedButton()
+      return m.visibleChildren[m.selectedIndex]
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -171,20 +175,26 @@ namespace mv.controls
     private function updateIndex(index as integer) as boolean
 
       if index <> m.focusedIndex
-        m.log.info("changing index to ", index)
-        if m.visibleChildren[index].isDisabled = true
-          m.log.info("requested child is disabled")
-          index = m.getNextEnabledIndex(index, index < m.focusedIndex ? - 1 : 1)
-          if index = -1
-            m.log.warn("could not find another index to move to")
-            return true
+        control = m.visibleChildren[index]
+        if control <> invalid
+          m.log.info("changing index to ", index)
+          if control.isDisabled = true
+            m.log.info("requested child is disabled")
+            index = m.getNextEnabledIndex(index, index < m.focusedIndex ? - 1 : 1)
+            if index = -1
+              m.log.warn("could not find another index to move to")
+              return false
+            end if
           end if
+          m.focusedIndex = index
+          if m.selectOnFocus
+            m.selectedIndex = index
+          end if
+          return true
+        else
+          m.log.warn("control was invalid")
+          return false
         end if
-        m.focusedIndex = index
-        if m.selectOnFocus
-          m.selectedIndex = index
-        end if
-        return true
       else
         m.log.info("index unchanged")
         return false
