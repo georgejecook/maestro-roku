@@ -1,122 +1,119 @@
 import "pkg:/source/ml/cells/BaseCell.bs"
 
-@node("SimpleCell", "ml_BaseCell")
-class SimpleCell extends ml.BaseCell
+namespace sample
+  @node("SimpleCell", "ml_BaseCell")
+  class SimpleCell extends ml.BaseCell
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Views
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private poster as mc.types.node
-  private rectangle as mc.types.node
-  private label as mc.types.node
+    private poster as mc.types.node
+    private rectangle as mc.types.node
+    private label as mc.types.node
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Private Fields
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private styles as mc.types.assocarray
+    private styles as mc.types.assocarray
+    private scale = 1.0
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Overridden Methods
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  protected override function createViews() as void
-    bundle = m.styleManager@.loadBundle("pkg:/source/cells/SimpleCell.bundle")
-    m.styles = bundle.styles
-    m.createViewsFromStyleJson(bundle.views)
-  end function
+    protected override function createViews() as void
+      bundle = m.global.styleManager@.loadBundle("pkg:/source/cells/SimpleCell.bundle")
+      m.styles = bundle.styles
+      m.createViewsFromStyleJson(bundle.views)
+    end function
 
-  protected override function onContentChange(content as mc.types.node)
-    m.label.text = content.title
-    m.poster.uri = content.HDGRIDPOSTERURL
-    m.label.visible = true
-  end function
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Private Methods
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private function toggleHighlighted(highlighted)
-    if highlighted
-      m.updateViewsWithStyleJson(m.styles.normal)
-    else
-      m.updateViewsWithStyleJson(m.styles.highlighted)
-    end if
-  end function
-
-  private function setScale(fraction as float, isGaining as boolean) as void
-    if isGaining
-      m.scale = (fraction + 0.3)
-    else
-      m.scale = (1 - fraction) + 0.3
-    end if
-    m.scale = m.scale * 0.8
-    m.poster.width = m.posterSize[0] * m.scale
-    m.poster.height = m.posterSize[1] * m.scale
-
-    if isGaining
-      m.poster.opacity = 0.3 + fraction
-    else
-      m.poster.opacity = 0.3 + (1 - fraction)
-    end if
-  end function
-
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Delegate Methods
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private function onScrollingChange(isScrolling as boolean, isLong as boolean)
-    ' ? "SC: isScrolling " ; " " ; isScrolling ; " IL " ; isLong
-    if not isScrolling
+    protected override function onContentChange(content as mc.types.node)
+      m.label.text = content.title
+      m.poster.uri = content.HDGRIDPOSTERURL
       m.label.visible = true
-    end if
-  end function
+      m.setScale(1, false)
+    end function
 
-  private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
-    ' ? "SC: isScrolling UPDATE " ; " " ; startIndex ; " SI " ; currentIndex
-    textVisible = abs(startIndex - currentIndex) < 4
-    m.label.visible = textVisible
-  end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onWillExit(direction as integer)
-  end function
+    private function toggleHighlighted(highlighted as boolean)
+      if highlighted
+        m.updateViewsWithStyleJson(m.styles.normal)
+      else
+        m.updateViewsWithStyleJson(m.styles.highlighted)
+      end if
+    end function
 
-  private function onWillEnter(direction as integer)
-    m.toggleHighlighted(false)
-  end function
+    private function setScale(fraction as float, isGaining as boolean) as void
+      if isGaining
+        m.scale = mc.clamp((fraction + 0.8), 0.7, 1.0)
+      else
+        m.scale = mc.clamp((1 - fraction) + 0.3, 0.7, 1.0)
+      end if
 
-  private function onDidEnter(direction as integer)
-  end function
+      m.poster.scale = [m.scale, m.scale]
+    end function
 
-  private function onDidExit(direction as integer)
-    m.toggleHighlighted(true)
-  end function
 
-  private function onWillGainFocus(direction as integer)
-  end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Delegate Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onWillLoseFocus(direction as integer)
-    m.toggleHighlighted(false)
+    private function onScrollingChange(isScrolling as boolean, isLong as boolean)
+      ' ? "SC: isScrolling " ; " " ; isScrolling ; " IL " ; isLong
+      if not isScrolling
+        m.label.visible = true
+      end if
+    end function
 
-  end function
+    private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
+      ' ? "SC: isScrolling UPDATE " ; " " ; startIndex ; " SI " ; currentIndex
+      textVisible = abs(startIndex - currentIndex) < 4
+      m.label.visible = textVisible
+    end function
 
-  private function onDidGainFocus(direction as integer)
-    m.setScale(1, true)
-    m.toggleHighlighted(true)
-  end function
+    private function onWillExit(direction as integer)
+    end function
 
-  private function onDidLoseFocus(direction as integer)
-    m.setScale(1, false)
-    m.toggleHighlighted(false)
-  end function
+    private function onWillEnter(direction as integer)
+      m.toggleHighlighted(false)
+    end function
 
-  private function onGainingFocus(direction as integer, fraction as float)
-    m.setScale(fraction, true)
-  end function
+    private function onDidEnter(direction as integer)
+    end function
 
-  private function onLosingFocus(direction as integer, fraction as float)
-    m.setScale(fraction, false)
-  end function
-end class
+    private function onDidExit(direction as integer)
+      m.toggleHighlighted(true)
+    end function
+
+    private function onWillGainFocus(direction as integer)
+    end function
+
+    private function onWillLoseFocus(direction as integer)
+      m.toggleHighlighted(false)
+
+    end function
+
+    private function onDidGainFocus(direction as integer)
+      m.setScale(1, true)
+      m.toggleHighlighted(true)
+    end function
+
+    private function onDidLoseFocus(direction as integer)
+      m.setScale(1, false)
+      m.toggleHighlighted(false)
+    end function
+
+    private function onGainingFocus(direction as integer, fraction as float)
+      m.setScale(fraction, true)
+    end function
+
+    private function onLosingFocus(direction as integer, fraction as float)
+      m.setScale(fraction, false)
+    end function
+  end class
+end namespace

@@ -88,10 +88,11 @@ class UpdateListDataScreen extends mv.BaseScreen
 
   private function resetData()
     m.log.info("resetting data", m.isUsingGrids)
-    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [307, 100], 30)
+    m.cellSettings = ml.listMixin.createCellSettings("SimpleCell", [307, 100], 30)
     m.makeDayModules()
     m.makeListData()
     m.changeLoadedDay(0)
+    m.updateStatus()
   end function
 
   private function makeListData()
@@ -142,6 +143,8 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function makeDayModules()
+    m.dayModules = []
+
     for i = 0 to 3
       m.dayModules.push({
         live: m.createModule("live", 5)
@@ -162,12 +165,12 @@ class UpdateListDataScreen extends mv.BaseScreen
       m.log.info("is using grids")
       gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
       row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 310, numCols, 100, 5, 50)
-      row.firstRowScreenPos = 600
+      row.firstRowScreenPos = 330
       row.otherRowScreenPos = 70
     else
       m.log.info("is using rows")
       rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
-      row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 310)
+      row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 340)
     end if
 
     row.settings.contentOffset = [100, 30]
@@ -213,6 +216,7 @@ class UpdateListDataScreen extends mv.BaseScreen
 
   private function updateStatus()
     m.reloadTodayButton.text = `reload day ${m.dayIndex}`
+    m.useGridButton.text = `Use: ${m.isUsingGrids ? "grids" : "rows"}`
   end function
 
   private function changeLoadedDay(dayIndex as integer)
