@@ -51,7 +51,7 @@ namespace ml.listMixin
     settings.numColumns = numColumns
     settings.rowHeight = rowHeight
     settings.numRows = numRows
-    settings.space = cellSettings.space
+    settings.space = settings.cellSettings.space
     settings.rowSpace = space
     settings.screenPos = -1
     settings.firstRowScreenPos = screenPos
@@ -63,6 +63,7 @@ namespace ml.listMixin
   function configureRowSettings(settings as mc.types.node, cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
 
     if cellSettings = invalid
+      m.log.warn("there were no cell settings - this is probably a mistake - using defaults!")
       cellSettings = ml.listMixin.createCellSettings()
     end if
 
