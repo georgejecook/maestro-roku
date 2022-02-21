@@ -133,6 +133,14 @@ class UpdateListDataScreen extends mv.BaseScreen
     return row
   end function
 
+  private function makeVideoRow()
+    row = createObject("roSGNode", "ml_RowContent")
+    row.id = rnd(2147483647).toStr()
+    row.settings = ml.listMixin.createCustomRowSettings("VideoRow", 500)
+    row.settings.headerSettings.position = "none"
+    return row
+  end function
+
   private function onListRenderState(state as string)
     m.log.info("onListRenderState", state)
     if state = "rendered"
@@ -204,6 +212,23 @@ class UpdateListDataScreen extends mv.BaseScreen
     return child
   end function
 
+  private function makeSomeCoolRows()
+    modules = []
+    'ensure that row offsets are applied correctly
+    for i = 0 to 5
+      modules.push(m.createModule(`more ${i}`, 5))
+    end for
+    modules.push(m.makeVideoRow())
+    'ensure that row offsets are applied correctly
+    for i = 5 to 10
+      modules.push(m.createModule(`more ${i}`, 5))
+    end for
+
+    m.list.content@.appendChildren(modules)
+    m.list.content@.notifyUpdate()
+
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -260,27 +285,27 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function setRowOpacity(rowIndex as integer, opacity as float, direction as integer, applyToAll = false as boolean)
-    ' row = m.list@.getRowRenderer(rowIndex)
-    ' if rowIndex = 0
-    '   row.opacity = 1
-    ' else if row.subType() <> "ml_GridRow"
-    '   row.opacity = opacity
-    ' else
-    '   if applyToAll
-    '     startIndex = 0
-    '     endIndex = row.content.length - 1
-    '   else
-    '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 3, 0, row.content.length - 1)
-    '     endIndex = mc.clamp(startIndex + 2, 0, row.content.length - 1)
-    '   end if
-    '   for i = startIndex to endIndex
-    '     cell = m.list@.getCellRenderer(rowIndex, i)
-    '     if cell <> invalid
-    '       cell.opacity = opacity
-    '     end if
-    '   end for
-    ' end if
+    row = m.list@.getRowRenderer(rowIndex)
+    if rowIndex = 0
+      row.opacity = 1
+    else if row.subType() <> "ml_GridRow"
+      row.opacity = opacity
+    else
+      if applyToAll
+        startIndex = 0
+        endIndex = row.content.length - 1
+      else
+        'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
+        startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
+        endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
+      end if
+      for i = startIndex to endIndex
+        cell = m.list@.getCellRenderer(rowIndex, i)
+        if cell <> invalid
+          cell.opacity = opacity
+        end if
+      end for
+    end if
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -348,6 +373,11 @@ class UpdateListDataScreen extends mv.BaseScreen
 
   private function onKeyPressDown() as boolean
     m.setFocus(m.list)
+    return true
+  end function
+
+  private function onKeyPressOptions() as boolean
+    m.makeSomeCoolRows()
     return true
   end function
 

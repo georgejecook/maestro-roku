@@ -1,0 +1,39 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ItemDelegateMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/ml/BaseRow.bs"
+
+@node("VideoRow", "ml_BaseRow")
+class VideoRow extends ml.BaseRow
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private video
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Overridden Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function createViews()
+    bundle = m.styleManager@.loadBundle("pkg:/source/rows/VideoRow.bundle")
+    m.createViewsFromStyleJson(bundle.views)
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    'do stuff with content here
+    m.video.content = m.createSGNode("ContentNode", invalid, "content", {
+      streamFormat:"hls"
+      url:"https://bitmovin-a.akamaihd.net/content/sintel/hls/playlist.m3u8"
+    })
+    m.video.control = "play"
+  end function
+
+  public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings.focusSettings, true)
+  end function
+
+end class
