@@ -3,6 +3,7 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/NodeClass.bs"
 import "pkg:/source/core/JsonCombiner.bs"
 import "pkg:/source/core/DebugTimer.bs"
+import "pkg:/source/view/controls/Styles.bs"
 
 namespace mv
   @node("mv_StyleManager", "Node")
@@ -29,6 +30,7 @@ namespace mv
       else
         m.styles = {}
       end if
+      m.styles.mv = m.getDefaultStyles()
       m.cachedStyles = {} ' we lazily pull out styles and parse them on demand
     end function
 
@@ -38,9 +40,23 @@ namespace mv
       end if
     end function
 
-    public function addStyle(key as string, json as mc.types.assocarray)
+    public function addStyle(key as string, json as mc.types.assocarray, merge = true as boolean)
       if mc.isAACompatible(json)
-        m.styles[key] = json
+        if m.styles[key] <> invalid
+          if merge = true
+            m.log.warn("style existed at", key, "merging new style")
+            existingStyle = m.styles[key]
+            if mc.isArray(existingStyle) or mc.isAACompatible(existingStyle)
+              m.styles[key] = m.jsonCombiner.combine(existingStyle, json)
+            else
+              m.log.error("could not add style for key", key, "style already exists and is a not an array or aa, which can be merged")
+            end if
+          else
+            m.log.error("could not add style for key", key, "style already exists and merge is false")
+          end if
+        else
+          m.styles[key] = json
+        end if
       end if
     end function
 
@@ -84,6 +100,17 @@ namespace mv
             json = m.jsonCombiner.combine(json, localeJson)
           else
             m.log.error("Could not load locale (", locale, ") style from ", bundlePath, "missing/corrupt file", localeBundleFilename)
+          end if
+        end if
+        bundleStyles = json["$styles"]
+        if mc.isAACompatible(bundleStyles)
+          if bundleStyles.count() = 1
+            json.delete("$styles")
+            m.log.info("merging styles from bundle")
+            firstKey = bundleStyles.keys()[0]
+            m.addStyle(firstKey, bundleStyles[firstKey])
+          else
+            m.log.warn("could not merge bundle styles, because they are badly formatted - must have one top level aa")
           end if
         end if
         m.cachedStyles[styleKey] = m.resolveNestedStyles(json)
@@ -177,17 +204,20 @@ namespace mv
       if mc.isAACompatible(style)
         if style["$extends"] <> invalid
           baseStyle = m.getStyle(style["$extends"])
-          if baseStyle <> invalid
-            newStyle = {}
-            newStyle.append(baseStyle)
+          if baseStyle <> invalid and baseStyle.count() > 0
+            newStyle = parseJson(formatJson(baseStyle))
             for each key in style
               if key <> "$extends"
-                newStyle[key] = m.resolveNestedStyleValue(style[key])
+                if key.instr(".") <> -1
+                  mc.setPath(newStyle, key, style[key])
+                else
+                  newStyle[key] = m.resolveNestedStyleValue(style[key])
+                end if
               end if
             end for
             return newStyle
           else
-            m.log.warn("Could not find extended style", style["$extends"])
+            m.log.warn("Extended style", style["$extends"], "is empty or not found")
           end if
         else
           for each key in style
@@ -218,6 +248,14 @@ namespace mv
       else
         return value
       end if
+    end function
+
+    private function getDefaultStyles() as mc.types.assocarray
+      return {
+        Button: {
+          default: mv.styles.getDefaultButtonStyle()
+        }
+      }
     end function
   end class
 end namespace
