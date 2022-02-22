@@ -34,7 +34,7 @@ namespace tests
     @it("initializes")
     function _()
       m.manager = new mv.StyleManager()
-      m.assertEmpty(m.manager.styles)
+      m.assertNotEmpty(m.manager.styles, "should contain default styles")
       m.assertEmpty(m.manager.cachedStyles)
     end function
 
@@ -47,7 +47,7 @@ namespace tests
     @params([])
     function _(value)
       m.manager.setStyleJson(value)
-      m.assertEmpty(m.manager.styles)
+      m.assertNotEmpty(m.manager.styles, "should contain default styles ")
       m.assertEmpty(m.manager.cachedStyles)
     end function
 
@@ -279,7 +279,6 @@ namespace tests
       })
     end function
 
-    @only
     @it("allows for extending styles - with path update semantics")
     function _()
       '   "extend3": {
@@ -328,10 +327,9 @@ namespace tests
         "e": 2,
         "id": "base1",
         "p1": {
-          "e": true,
           "id": "p1",
-          "p2": { "e": true, "id": "p2", "translation": [200, 200] },
-          "translation": [110, 110]
+          "p2": { "id": "p2", "translation": [20, 20] },
+          "translation": [1, 1]
         },
         "p3": {
           "not": { "translation": [999, 999] },
@@ -347,10 +345,9 @@ namespace tests
         "e": 2,
         "id": "base1",
         "p1": {
-          "e": true,
           "id": "p1",
-          "p2": { "e": true, "id": "p2", "translation": [200, 200] },
-          "translation": [110, 110]
+          "p2": { "id": "p2", "translation": [20, 20] },
+          "translation": [1, 1]
         },
         "p3": {
           "not": { "translation": [999, 999] },
@@ -379,7 +376,7 @@ namespace tests
     @describe("getBundleFilename")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("returns empty for invalid name")
+    @it("returns empty for invalid name")n
     function _()
       m.assertEmpty(m.manager.getBundleFilename(invalid))
     end function
