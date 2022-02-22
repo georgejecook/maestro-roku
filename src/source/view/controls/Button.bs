@@ -1,6 +1,4 @@
-import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/BaseView.bs"
-import "pkg:/source/view/controls/Styles.bs"
 
 namespace mv.controls
   @observersWaitInitialize
@@ -75,6 +73,7 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private _style as mc.types.assocarray
+    private loadedStyleKey = "none"
     private isStyleSet = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -124,18 +123,13 @@ namespace mv.controls
     end function
 
     private function onStyleKeyChange(key as string) as void
-      if m.style <> invalid and m.style.count() > 0
+      if m.loadedStyleKey = key
         return
       end if
-      if key = "mv.Button.default"
-        m._style = m.getDefaultStyle()
-        m.isStyleSet = true
-        m.redraw()
-      else
-        m._style = m.styleManager@.getStyle(key)
-        m.isStyleSet = m._style.count() > 0
-        m.redraw()
-      end if
+      m.loadedStyleKey = key
+      m._style = m.styleManager@.getStyle(key)
+      m.isStyleSet = m._style.count() > 0
+      m.redraw()
     end function
 
     private function redraw() as void
@@ -240,9 +234,6 @@ namespace mv.controls
 
     end function
 
-    function getDefaultStyle()
-      return mv.styles.getDefaultButtonStyle()
-    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Lifecycle
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
