@@ -287,4 +287,20 @@ namespace mv
 
     return nodes
   end function
+
+  function getIdsFromStyleJson(childrenJson as mc.types.array, ids = [] as mc.types.array) as mc.types.array
+    for i = 0 to childrenJson.count() - 1
+      nodeJson = childrenJson[i]
+      id = nodeJson.id
+      if id <> invalid
+        ids.push(id)
+        children = nodeJson._children
+        if children <> invalid
+          mv.getIdsFromStyleJson(children, ids)
+        end if
+      end if
+    end for
+    return ids
+  end function
+
 end namespace
