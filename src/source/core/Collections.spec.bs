@@ -399,5 +399,40 @@ namespace tests
       m.assertEqual(mc.collections.getItemAtOffset(items, items[index], offset).id, expectedId)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("find")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("filters with value predicate")
+    @params(["US", "DE", "FR", "UK"], "US", "US")
+    @params(["US", "DE", "FR", "UK"], "UK", "UK")
+    @params(["US", "DE", "FR", "UK"], "FR", "FR")
+    @params(["US", "DE", "FR", "UK"], "DE", "DE")
+    @params(["US", "DE", "FR", "UK"], "SE", invalid)
+    @params(["DE", "US", "FR", "UK"], "CA", invalid)
+    @params(["US"], "US", "US")
+    @params(["US"], invalid, invalid)
+    @params([], "US", invalid)
+    @params(invalid, "US", invalid)
+    function _(codes, value, expected)
+      m.assertEqual(mc.collections.find(codes, new mc.collections.ValuePredicate(value)), expected)
+    end function
+
+    @it("filters with field predicate")
+    @params(["US", "DE", "FR", "UK"], "US", "US")
+    @params(["US", "DE", "FR", "UK"], "UK", "UK")
+    @params(["US", "DE", "FR", "UK"], "FR", "FR")
+    @params(["US", "DE", "FR", "UK"], "DE", "DE")
+    @params(["US", "DE", "FR", "UK"], "SE", invalid)
+    @params(["DE", "US", "FR", "UK"], "CA", invalid)
+    @params(["US"], "US", "US")
+    @params(["US"], invalid, invalid)
+    @params([], "US", invalid)
+    @params(invalid, "US", invalid)
+    function _(codes, value, expected)
+      items = mc.collections.map(codes, function(v): return { code: v }: end function)
+        foundItem = mc.collections.find(items, new mc.collections.FieldPredicate("code", value))
+      m.assertEqual(mc.getPath(foundItem, "code"), expected)
+    end function
   end class
 end namespace
