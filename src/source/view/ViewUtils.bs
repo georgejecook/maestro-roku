@@ -74,15 +74,20 @@ namespace mv
             id = nodeJson.id
             _type = nodeJson._type
             _children = nodeJson._children
+            _dataMap = nodeJson._dataMap
             _initializeAfterCreatingChildren = nodeJson._initializeAfterCreatingChildren = true
             nodeJson.delete("id")
             nodeJson.delete("_type")
             nodeJson.delete("_children")
+            nodeJson.delete("_dataMap")
             view = mc.createSGNode(nodeType, targetNode, id, nodeJson, not _initializeAfterCreatingChildren, mTarget)
             nodeJson.id = id
             nodeJson._type = _type
             nodeJson._children = _children
             if view <> invalid
+              if _dataMap <> invalid
+                mc.setOrAddNodeField(view, "_dataMap", _dataMap)
+              end if
               if children <> invalid
                 mv.createViewsFromStyleJson(children, view, assignViewsToM, mTarget)
               end if
@@ -301,6 +306,24 @@ namespace mv
       end if
     end for
     return ids
+  end function
+
+  ' params {node} control
+  ' params {node|assocarray|invalid} datasource
+  function applyDataMap(control as mc.types.node, dataSource = invalid as dynamic)
+    dataMaps = mc.getAA(control, "_dataMap")
+    for each field in dataMaps
+      dataMap = dataMaps[field]
+      if mc.isString(dataMap)
+        mc.setPath(control, field, mc.getPath(dataSource, dataMap))
+      else if mc.isAACompatible(dataMap)
+        if dataMap.field <> invalid
+          mc.setPath(control, field, mc.getPath(dataSource, dataMap.field))
+        else if dataMap.value <> invalid
+          mc.setPath(control, field, dataMap.value)
+        end if
+      end if
+    end for
   end function
 
 end namespace

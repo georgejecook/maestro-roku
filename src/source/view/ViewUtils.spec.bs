@@ -12,6 +12,7 @@ namespace tests
     createViewsFromStyleJson = mv.createViewsFromStyleJson
     updateViewsWithStyleJson = mv.updateViewsWithStyleJson
     getCurrentValuesWithStyleJson = mv.getCurrentValuesWithStyleJson
+    applyDataMap = mv.applyDataMap
   end class
 
   @nocatch
@@ -665,6 +666,190 @@ namespace tests
       m.assertEqual(f.v5.width, 5)
 
 
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("applyDataMap")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("applies static values to fields")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "height": 1
+          "_dataMap": {
+            "text": {
+              "value": "title"
+            }
+          }
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+      mv.applyDataMap(label)
+      m.assertEqual(label.text, "title")
+    end function
+
+    @it("does nothing with no values")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "height": 1
+          "_dataMap": {
+            "text": {
+            }
+          }
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+      mv.applyDataMap(label)
+      m.assertEqual(label.text, "")
+    end function
+
+    @it("applies multiple static values")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "height": 1
+          "_dataMap": {
+            "text": {
+              value: "t"
+            },
+            "height": {
+              value: 400
+            }
+          }
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+      mv.applyDataMap(label)
+      m.assertEqual(label.text, "t")
+      m.assertEqual(label.height, 400.0)
+    end function
+
+    @only
+    @it("applies values from a data source")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "height": 1
+          "_dataMap": {
+            "text": {
+              field: "json.title"
+            },
+            "height": {
+              field: "json.height"
+            }
+          }
+        }
+      ]
+
+      item = {
+        json: {
+          title: "t"
+          height: 400.0
+        }
+      }
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+
+      mv.applyDataMap(label, item)
+
+      m.assertEqual(label.text, "t")
+      m.assertEqual(label.height, 400.0)
+    end function
+
+    @it("allows for string short hand")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "height": 1
+          "_dataMap": {
+            "text": "json.title"
+            "height": "json.height"
+          }
+        }
+      ]
+
+      item = {
+        json: {
+          title: "t"
+          height: 400.0
+        }
+      }
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+
+      mv.applyDataMap(label, item)
+
+      m.assertEqual(label.text, "t")
+      m.assertEqual(label.height, 400.0)
+    end function
+
+    @it("does not crash with invalid datasource")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "height": 1
+          "_dataMap": {
+            "text": {
+              field: "json.title"
+            },
+            "height": {
+              field: "json.height"
+            }
+          }
+        }
+      ]
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+
+      mv.applyDataMap(label)
+
+      m.assertEqual(label.text, "t")
+      m.assertEqual(label.height, 400)
     end function
 
   end class
