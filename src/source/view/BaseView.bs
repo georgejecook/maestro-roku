@@ -12,6 +12,10 @@ namespace mv
   '  */
   class BaseView extends mv.NodeClass
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Protected Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     @inject("styleManager")
     protected styleManager
 
@@ -24,9 +28,17 @@ namespace mv
 
     private vm = invalid
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     function new(name as string)
       super(name)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ View Helpers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function initializeView(view as mc.types.node, args = invalid as mc.types.array)
       if view <> invalid
@@ -52,6 +64,31 @@ namespace mv
 
     protected function isControlFocused(control as mc.types.node)
       return m.focusedControl <> invalid and control <> invalid and m.focusedControl.id = control.id
+    end function
+
+    ' Given a datasource, applies the datamap to the controls
+    ' data maps are part of the maestro json-component spec and allow specifying the path to data
+    ' for a field
+    ' Views that create their child views from json, will automatically have a _dataMappedControlIds property, which tells this function which controls to apply the data source to.
+    ' Alternately, a _controls_ array can be used to apply the datamap to the passed in array of controls
+    protected function applyDataMapToControls(dataSource = invalid as dynamic, controls = invalid as mc.types.array) as boolean
+      if controls <> invalid
+        for each control in controls
+          mv.applyDataMap(control, dataSource)
+        end for
+        return true
+      end if
+      'bs:disable-next-line
+      if m._dataMappedControlIds = invalid
+        m.log.error("cannot apply data source, no explicit or implicit controls")
+        return false
+      end if
+      'bs:disable-next-line
+      for each id in m._dataMappedControlIds
+        control = m[id]
+        mv.applyDataMap(control, dataSource)
+      end for
+      return true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
