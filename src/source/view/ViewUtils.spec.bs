@@ -750,7 +750,6 @@ namespace tests
       m.assertEqual(label.height, 400.0)
     end function
 
-    @only
     @it("applies values from a data source")
     function _()
       node = mc.createSGNode("Label", invalid, "view")
@@ -821,6 +820,7 @@ namespace tests
       m.assertEqual(label.height, 400.0)
     end function
 
+    @only
     @it("does not crash with invalid datasource")
     function _()
       node = mc.createSGNode("Label", invalid, "view")
@@ -848,8 +848,8 @@ namespace tests
 
       mv.applyDataMap(label)
 
-      m.assertEqual(label.text, "t")
-      m.assertEqual(label.height, 400)
+      m.assertEqual(label.text, "")
+      m.assertEqual(label.height, 0.0)
     end function
 
   end class
