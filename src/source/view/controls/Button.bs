@@ -178,6 +178,12 @@ namespace mv.controls
         tx = 0
       end if
       if hasIcon
+        iconStyleTranslation = m.iconStyle.translation
+        if iconStyleTranslation = invalid
+          ixOffset = iconStyleTranslation[0]
+        else
+          ixOffset = 0
+        end if
         iw = m.iconPoster.width
         ix = m.iconPoster.translation[0]
         if w < ix + iw
@@ -185,11 +191,11 @@ namespace mv.controls
         end if
 
         if horizAlign = "left"
-          iconTranslation = iconTranslation
-          tx = iw + ix + tx
+          iconTranslation = [iconTranslation[0] + ixOffset, iconTranslation[1]]
+          tx = iw + ix + tx + ixOffset
           w = tx + w
         else if horizAlign = "right"
-          iconTranslation = [w, iconTranslation[1]]
+          iconTranslation = [w - ixOffset, iconTranslation[1]]
           w = w + iw + ix
         else if horizAlign = "center"
           iconTranslation = [(w / 2) - (iw / 2), iconTranslation[1]]
@@ -203,6 +209,7 @@ namespace mv.controls
         w = sw
       end if
 
+      ? " >>>>> LAYOUT WITH AUTOSIZE "; m.top.id
       m.backgroundPoster.size = [w, sh]
       m.iconPoster.translation = iconTranslation
       m.label.translation = [tx, titleRect.y]
@@ -211,7 +218,7 @@ namespace mv.controls
     private function layout(hasIcon as boolean)
       w = m.size[0]
       h = m.size[1]
-      m.label.width = mc.clamp(m.label.width - (m.label.translation[0] * 2), 0, w)
+      m.label.width = mc.clamp(w - (m.label.translation[0] * 2), 0, w)
       m.subTextLabel.width = mc.clamp(m.subTextLabel.width - (m.subTextLabel.translation[0] * 2), 0, w)
       m.backgroundPoster.size = [w, h]
     end function

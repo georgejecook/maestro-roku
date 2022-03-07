@@ -12,6 +12,7 @@ class ButtonScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private controlsGroup as mc.types.node
+  private controlsGroup2 as mc.types.node
   private button1 as mc.types.node
   private button2 as mc.types.node
   private button3 as mc.types.node
@@ -57,6 +58,22 @@ class ButtonScreen extends mv.BaseScreen
 
   private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
     return key <> "back" and key <> "up"
+  end function
+
+  protected override function onKeyPressLeft() as boolean
+  if m.controlsGroup2.isFocused
+    m.setFocus(m.controlsGroup)
+    return true
+  end if
+  return false
+  end function
+
+  protected override function onKeyPressRight() as boolean
+    if m.controlsGroup.isFocused:
+      m.setFocus(m.controlsGroup2)
+      return true
+    end if
+    return false
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
