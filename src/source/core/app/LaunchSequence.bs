@@ -26,6 +26,9 @@ namespace mc.app
     'change this value if you have a different styles location
     protected styleUrl = "pkg:/meta/Styles.json"
 
+    'TODO - where will this file actually be?
+    protected maestroStyleUrl = "pkg:/meta/maestroDefaultStyles.json"
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -104,7 +107,7 @@ namespace mc.app
 
       delayedTaskManager = m.createSGNode("mc_delayedTaskManager", invalid, "delayedTaskManager")
       m.setInstance("delayedTaskManager", delayedTaskManager)
-    m.setInstance("manifest", m.loadManifest())
+      m.setInstance("manifest", m.loadManifest())
       m.finishCommand(command)
     end function
 
@@ -160,14 +163,15 @@ namespace mc.app
     end function
 
     private function loadStyles(command as mc.Command) as void
-      m.log.info("loading styles from", m.styleUrl)
 
       styleManager = mc.createSGNode("mv_StyleManager", invalid, "styleManager")
       m.setInstance("styleManager", styleManager)
       m.global.addFields({ "styleManager": styleManager })
 
-      styleJson = m.loadJson(m.styleUrl)
-      styleManager@.setStyleJson(styleJson)
+      m.log.info("loading maestro-default styles from", m.maestroStyleUrl)
+      styleManager@.setStyleJson(m.loadJson(m.maestroStyleUrl))
+      m.log.info("loading styles from", m.styleUrl)
+      styleManager@.addStyles(m.loadJson(m.styleUrl))
 
       version = styleManager@.getStyle("version")
       if version = invalid
