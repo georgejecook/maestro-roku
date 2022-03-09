@@ -242,21 +242,32 @@ namespace mv.controls
 
         else if iconPosition = "right"
           ' ? " RIGHT"
+          ch = h / 2
           labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2) - iconSize[0], 0, w)
           subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2 - iconSize[0]), 0, w)
           labelTranslation = [iconTranslation[0] + iconSize[0], labelTranslation[1]]
-          m.iconPoster.translation = [w - iconTranslation[0] - iconSize[0], iconTranslation[1]]
+          iconTranslation[1] = ch - ((iconTranslation[1]) + (iconSize[1] / 2))
+          iconTranslation = [w - iconTranslation[0] - iconSize[0], iconTranslation[1]]
 
-        else if iconPosition = "leftCenter"
+        else if iconPosition = "centerLeft"
           ' ? " LEFT CENTER"
           cw = w / 2
           ch = h / 2
 
+          if iconTranslation[0] = 0
+            iconTranslation[0] = iconSize[0] / 2
+          end if
 
-        else if iconPosition = "rightCenter"
+          iconTranslation[1] = ch - ((iconTranslation[1]) + (iconSize[1] / 2))
+          labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2) - iconSize[0], 0, w)
+          labelTranslation = [(iconTranslation[0] * 2) + iconSize[0], labelTranslation[1]]
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+
+        else if iconPosition = "centerRight"
           ' ? " RIGHT CENTER"
           cw = w / 2
           ch = h / 2
+
 
         end if
       else
@@ -302,7 +313,6 @@ namespace mv.controls
         m.iconStyle = json.iconStyle
       end if
       if json.iconPosition <> invalid
-        m.iconPosition = json.iconPosition
         m.iconPosition = json.iconPosition
       end if
     end function
