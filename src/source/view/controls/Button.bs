@@ -9,7 +9,7 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @alwaysnotify
-    public clicked as boolean
+    public selected as boolean
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Fields
@@ -62,11 +62,6 @@ namespace mv.controls
     @alwaysnotify
     @observer("redraw")
     public isSelected = false
-
-    @debounce
-    @alwaysnotify
-    @observer("redraw")
-    public horizAlign = "left" 'none|left|center|right
 
     @debounce
     @alwaysnotify
@@ -222,7 +217,7 @@ namespace mv.controls
         ' ? " iconPosition "; iconPosition
 
         if iconPosition = "none"
-          m.label.width = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
+          labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
           subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
 
         else if iconPosition = "center"
@@ -272,8 +267,8 @@ namespace mv.controls
         end if
       else
         ' ? "no icon"
-        labelTranslation[0] = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
-        subTextLabelTranslation[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+        labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
+        subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
       end if
 
       m.label.width = labelSize[0]
@@ -315,6 +310,15 @@ namespace mv.controls
       if json.iconPosition <> invalid
         m.iconPosition = json.iconPosition
       end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressOK() as boolean
+      m.selected = true
+      return true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
