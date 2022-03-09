@@ -1,0 +1,95 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/ml/ListDelegateMixin.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("TaskRunnerScreen", "mv_BaseScreen")
+class TaskRunnerScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private startButton as mc.types.node
+  private cancelButton as mc.types.node
+  private resetButton as mc.types.node
+  private outputLabel as mc.types.node
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private taskRunner as mc.tasks.TaskRunner
+  private focusableControls = []
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("TaskRunnerScreen")
+  end function
+
+  private function onTaskResult(value as dynamic, task as mc.types.node)
+    m.log.info("task", mc.dv(task), "completed")
+    m.outputLabel.text += `\n task ${mc.dv(task)}completed`
+  end function
+
+  protected override function initialize()
+    super.initialize()
+
+    bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/TaskRunnerScreen.bundle")
+    m.createViewsFromStyleJson(bundle.views)
+    m.focusableControls = [m.startButton, m.cancelButton, m.resetButton]
+    m.focusedControl = m.startButton
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onTasksComplete(isOk as boolean, taskRunner as mc.tasks.TaskRunner)
+    m.log.info("all tasks finished with state", taskRunner.state, "isOK", isOk)
+    m.outputLabel.text += `\n all tasks finished with state: ${taskRunner.state} ok: ${isOk}`
+  end function
+
+  private function onStartButtonSelected(selected as boolean)
+    m.outputLabel.text += `\n Starting..`
+    m.taskRunner = new mc.tasks.TaskRunner(m)
+    m.taskRunner.createTask("WaitTask", { args: { delay: 5, isOK: true } }, m.onTaskResult, "both")
+    m.taskRunner.createTask("WaitTask", { args: { delay: 2, isOK: true } }, m.onTaskResult, "both")
+    m.taskRunner.run(m.onTasksComplete)
+  end function
+
+  private function onCancelButtonSelected(selected as boolean)
+    m.outputLabel.text += `\n Cancelling..`
+    if m.taskRunner <> invalid
+      m.taskRunner.cancel()
+    end if
+  end function
+  private function onResetButtonSelected(selected as boolean)
+    m.outputLabel.text += `\n Resetting..`
+    if m.taskRunner <> invalid
+      m.taskRunner.reset()
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+    return key <> "back" and key <> "up"
+  end function
+
+  protected override function onKeyPressLeft() as boolean
+    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, -1))
+    return true
+  end function
+
+  protected override function onKeyPressRight() as boolean
+    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, 1))
+    return true
+  end function
+
+end class

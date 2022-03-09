@@ -1,0 +1,276 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/Tasks.bs"
+
+namespace tests
+
+  @suite("TaskRunner tests")
+  class TaskRunnerTests extends tests.BaseTestSuite
+
+    private taskRunner as mc.tasks.TaskRunner
+    private delegate = {
+      cb: function(isOK as boolean, taskRunner as mc.tasks.TaskRunner)
+      end function
+    }
+
+    protected override function beforeEach()
+      super.beforeEach()
+      'bs:disable-next-line
+      tests.setNodeLogger()
+
+      m.taskRunner = new mc.tasks.TaskRunner(m.delegate)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stores reference to delegate")
+    function _()
+      m.assertEqual(m.taskRunner.delegate, m.delegate)
+      m.assertEqual(m.taskRunner.fieldName, "output")
+    end function
+
+    @it("uses non-standard fieldname")
+    function _()
+
+      m.taskRunner = new mc.tasks.TaskRunner(m.delegate, "other")
+      m.assertEqual(m.taskRunner.delegate, m.delegate)
+      m.assertEqual(m.taskRunner.fieldName, "other")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("run")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets fields and calls runNext")
+    function _()
+      m.expectOnce(m.taskRunner, "runNext", [])
+
+      m.taskRunner.run(m.delegate.cb)
+      m.assertEqual(m.taskRunner.callback, m.delegate.cb)
+      m.assertEqual(m.taskRunner.runMode, "sequential")
+      m.assertEqual(m.taskRunner.state, "running")
+    end function
+
+    @it("allows parallel runmode")
+    function _()
+      m.expectOnce(m.taskRunner, "runNext", [])
+
+      m.taskRunner.run(m.delegate.cb, "parallel")
+      m.assertEqual(m.taskRunner.callback, m.delegate.cb)
+      m.assertEqual(m.taskRunner.runMode, "parallel")
+      m.assertEqual(m.taskRunner.state, "running")
+    end function
+    @it("marshals unknown run mode to sequential")
+    function _()
+      m.expectOnce(m.taskRunner, "runNext", [])
+
+      m.taskRunner.run(m.delegate.cb, "wrong")
+      m.assertEqual(m.taskRunner.callback, m.delegate.cb)
+      m.assertEqual(m.taskRunner.runMode, "sequential")
+      m.assertEqual(m.taskRunner.state, "running")
+    end function
+
+    @it("allows adding of existing tasks")
+    function _()
+      m.expectOnce(m.taskRunner, "runNext", [])
+
+      tasks = [{ "id": "tasks" }]
+
+      m.taskRunner.run(m.delegate.cb, "parallel", tasks)
+      m.assertEqual(m.taskRunner.callback, m.delegate.cb)
+      m.assertEqual(m.taskRunner.runMode, "parallel")
+      m.assertEqual(m.taskRunner.tasks, tasks)
+      m.assertEqual(m.taskRunner.state, "running")
+
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createTask")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if not in pending state")
+    function _()
+
+      m.taskRunner.state = "running"
+      m.assertInvalid(m.taskRunner.createTask("mc_RequestTask", {}))
+    end function
+
+    @it("creates task, as specified; but does not run it")
+    function _()
+      task = m.taskRunner.createTask("mc_RequestTask", { args: { delay: 10 } }, m.delegate.cb, "both", "output")
+
+      m.assertSubType(task, "mc_RequestTask")
+      m.assertEqual(task.args, { delay: 10 })
+      m.assertNotEqual(task.control, "RUN")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("cancel")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets overall state to cancel")
+    function _()
+      t1 = { "_oid": "t1", "control": "RUN" }
+      t2 = { "_oid": "t2", "control": "RUN" }
+
+      m.taskRunner.tasks = [t1, t2]
+      m.taskRunner.cancel()
+      m.assertEqual(m.taskRunner.state, "cancelled")
+      m.assertEmpty(m.taskRunner.tasks)
+      m.assertEqual(t1.control, "stop")
+      m.assertEqual(t2.control, "stop")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onTaskComplete")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("completes one task")
+    function _()
+      t1 = { "_oid": "t1", "control": "RUN" }
+
+      m.taskRunner.tasks = [t1]
+      m.taskRunner.state = "running"
+      m.expectNone(m.taskRunner, "runNext")
+      m.expectOnce(m.taskRunner, "callDelegate", [])
+
+      m.taskRunner.callback = m.delegate.cb
+
+      m.taskRunner.onTaskComplete({ isOK: true, "id": "r1" }, t1)
+      m.assertEqual(m.taskRunner.taskResults.t1.id, "r1")
+      m.assertEqual(m.taskRunner.state, "success")
+      m.assertTrue(m.taskRunner.isOk)
+    end function
+
+    @it("stores result and works through to completion")
+    function _()
+      t1 = { "_oid": "t1", "control": "RUN" }
+      t2 = { "_oid": "t2", "control": "RUN" }
+
+      m.taskRunner.state = "running"
+      m.taskRunner.tasks = [t1, t2]
+      m.expectOnce(m.taskRunner, "runNext", [])
+
+      m.taskRunner.callback = m.delegate.cb
+
+      m.taskRunner.onTaskComplete({ isOK: true, "id": "r1" }, t1)
+      m.assertEqual(m.taskRunner.taskResults.t1.id, "r1")
+
+      m.assertEqual(m.taskRunner.state, "running")
+      m.assertFalse(m.taskRunner.isOk)
+
+      m.expectOnce(m.taskRunner, "callDelegate", [])
+
+      m.taskRunner.onTaskComplete({ isOK: true, "id": "r2" }, t2)
+      m.assertEqual(m.taskRunner.taskResults.t2.id, "r2")
+
+      m.assertEqual(m.taskRunner.state, "success")
+      m.assertTrue(m.taskRunner.isOk)
+
+    end function
+
+    @it("fails on one task")
+    function _()
+      t1 = { "_oid": "t1", "control": "RUN" }
+
+      m.taskRunner.state = "running"
+      m.taskRunner.tasks = [t1]
+      m.expectOnce(m.taskRunner, "callDelegate", [])
+      m.expectNone(m.taskRunner, "runNext")
+
+      m.taskRunner.callback = m.delegate.cb
+
+      m.taskRunner.onTaskComplete({ isOK: false, "id": "r1" }, t1)
+      m.assertEqual(m.taskRunner.taskResults.t1.id, "r1")
+      m.assertEqual(m.taskRunner.state, "error")
+      m.assertFalse(m.taskRunner.isOk)
+    end function
+
+    @it("Fails if first task fails")
+    function _()
+      t1 = { "_oid": "t1", "control": "RUN" }
+      t2 = { "_oid": "t2", "control": "RUN" }
+
+      m.taskRunner.state = "running"
+      m.taskRunner.tasks = [t1, t2]
+
+      m.taskRunner.callback = m.delegate.cb
+      m.expectOnce(m.taskRunner, "callDelegate", [])
+      m.taskRunner.onTaskComplete({ isOK: false, "id": "r1" }, t1)
+      m.assertEqual(m.taskRunner.taskResults.t1.id, "r1")
+
+
+      m.expectNone(m.taskRunner, "runNext")
+      m.assertEqual(m.taskRunner.state, "error")
+      m.assertFalse(m.taskRunner.isOk)
+
+
+      m.taskRunner.onTaskComplete({ isOK: true, "id": "r2" }, t2)
+      m.assertEqual(m.taskRunner.taskResults.t2.id, "r2")
+
+
+      m.assertEqual(m.taskRunner.state, "error")
+      m.assertFalse(m.taskRunner.isOk)
+
+    end function
+
+    @it("fails if second task fails")
+    function _()
+      t1 = { "_oid": "t1", "control": "RUN" }
+      t2 = { "_oid": "t2", "control": "RUN" }
+
+      m.taskRunner.state = "running"
+      m.taskRunner.tasks = [t1, t2]
+      m.expectOnce(m.taskRunner, "runNext", [])
+
+      m.taskRunner.callback = m.delegate.cb
+
+      m.taskRunner.onTaskComplete({ isOK: true, "id": "r1" }, t1)
+      m.assertEqual(m.taskRunner.taskResults.t1.id, "r1")
+
+      m.assertEqual(m.taskRunner.state, "running")
+      m.assertFalse(m.taskRunner.isOk)
+
+      m.expectOnce(m.taskRunner, "callDelegate", [])
+
+      m.taskRunner.onTaskComplete({ isOK: false, "id": "r2" }, t2)
+      m.assertEqual(m.taskRunner.taskResults.t2.id, "r2")
+
+      m.assertEqual(m.taskRunner.state, "error")
+      m.assertFalse(m.taskRunner.isOk)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("callDelegate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if already called")
+    function _()
+      m.taskRunner.isDelegateCalled = true
+
+      m.expectNone(m.taskRunner.delegate, "cb")
+      m.taskRunner.callback = m.delegate.cb
+
+      m.taskRunner.callDelegate()
+
+    end function
+
+    @it("calls with expected state")
+    @params(false)
+    @params(true)
+    function _(isOk)
+      m.taskRunner.isDelegateCalled = false
+      m.taskRunner.isOk = isOk
+      m.expectOnce(m.taskRunner.delegate, "cb", [isOk, m.taskRunner])
+      m.taskRunner.callback = m.delegate.cb
+
+      m.taskRunner.callDelegate()
+
+      m.assertTrue(m.taskRunner.isDelegateCalled)
+    end function
+
+  end class
+end namespace

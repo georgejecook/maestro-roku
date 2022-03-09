@@ -34,7 +34,7 @@ namespace tests
     @it("initializes")
     function _()
       m.manager = new mv.StyleManager()
-      m.assertNotEmpty(m.manager.styles, "should contain default styles")
+      m.assertEmpty(m.manager.styles, "should contain no styles")
       m.assertEmpty(m.manager.cachedStyles)
     end function
 
@@ -47,7 +47,7 @@ namespace tests
     @params([])
     function _(value)
       m.manager.setStyleJson(value)
-      m.assertNotEmpty(m.manager.styles, "should contain default styles ")
+      m.assertEmpty(m.manager.styles, "should contain no styles ")
       m.assertEmpty(m.manager.cachedStyles)
     end function
 
@@ -264,6 +264,7 @@ namespace tests
         "base": true
         "e": 1
         "id": "base1"
+        "color": "cp"
         "translation": [100, 100]
       })
       m.assertEqual(e2Style, {

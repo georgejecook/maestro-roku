@@ -37,7 +37,7 @@ namespace mc.collections
     if mc.isArray(arr) and mc.isString(keyPath) and keyPath <> ""
       dict = {}
       i = 0
-      for i = 0 to arr.count() -1
+      for i = 0 to arr.count() - 1
         item = arr[i]
         key = mc.getPath(item, keyPath, "")
         if mc.isString(key)
@@ -210,24 +210,44 @@ namespace mc.collections
   ' @returns {boolean} items that match the predicate
   function filter(array as mc.types.array, predicate as dynamic)
     items = []
-    if array <> invalid
-      isClass = mc.isClass(predicate)
-      for each item in array
-        if (isClass and predicate.isMatch(item)) or (not isClass and predicate(item))
-          items.push(item)
+    try
+      if array <> invalid
+        if mc.isClass(predicate)
+          for each item in array
+            if predicate.isMatch(item)
+              items.push(item)
+            end if
+          end for
+        else if mc.isFunction(predicate)
+          for each item in array
+            if predicate(item)
+              items.push(item)
+            end if
+          end for
+        else
+          for each item in array
+            if item = predicate
+              items.push(item)
+            end if
+          end for
         end if
-      end for
-    end if
+      end if
+    catch error
+      'bs:disable-next-line
+      mc.private.logError("error while filtering items", error)
+      return []
+    end try
+
     return items
   end function
 
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns the first item that matches, or invalid
-  function find(array as mc.types.array, predicate as dynamic)
+  function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic)
     items = mc.collections.filter(array, predicate)
     if items.count() = 0
-      return invalid
+      return default
     else
       return items[0]
     end if
