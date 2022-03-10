@@ -102,7 +102,7 @@ namespace mc
     return invalid
   end function
 
-  function apply(func as function, args = [] as mc.types.array, target = invalid as mc.types.assocarray) as dynamic
+  function apply(func as dynamic, args = [] as mc.types.array, target = invalid as mc.types.assocarray) as dynamic
     if not mc.isArray(args)
       m.log.error("apply expects an array of args")
       return invalid
@@ -115,6 +115,22 @@ namespace mc
     end if
 
     if target <> invalid
+      if mc.isFunction(func)
+        target.__cb = func
+        count = args.count()
+        if count = 0
+          return target.__cb()
+        else if count = 1
+          return target.__cb(args[0])
+        else if count = 2
+          return target.__cb(args[0], args[1])
+        else if count = 3
+          return target.__cb(args[0], args[1], args[2])
+        else if count = 4
+          return target.__cb(args[0], args[1], args[2], args[3])
+        end if
+        return invalid
+      end if
       if not mc.isFunction(target[func])
         m.log.error("target did not have function ", func)
         return invalid
