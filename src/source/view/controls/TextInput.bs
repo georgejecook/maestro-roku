@@ -1,0 +1,181 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/BaseView.bs"
+
+namespace mv.controls
+  @observersWaitInitialize
+  @node("mv_TextInput", "mv_BaseView")
+  class TextInput extends mv.BaseView
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' styles are expected to have json for states: (normal|focused|error|disabled)
+    @alwaysnotify
+    @observer("onStyleKeyChange")
+    public styleKey = "controls.TextInput.default"
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public text = ""
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public hintText = ""
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public subText = ""
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public errorText = ""
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public isFocused = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public isDisabled = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public hasError = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public size = [400, 50]
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private label as mc.types.node
+    private subTextLabel as mc.types.node
+    private errorLabel as mc.types.node
+    private divider as mc.types.node
+
+    private inputImage as mc.types.node
+    private backgroundColor as mc.types.node
+    private errorBackgroundPoster as mc.types.node
+
+    private style as mc.types.assocarray
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("mv_TextInput")
+    end function
+
+    protected override function initialize() as void
+      super.initialize()
+      m.createViews()
+      m.onStyleKeyChange(m.styleKey)
+    end function
+
+    function createViews() as void
+      m.inputImage = m.createSGNode("mv_Poster", m.top, "inputImage")
+      m.backgroundColor = m.createSGNode("mv_Rectangle", m.top, "backgroundColor")
+      m.divider = m.createSGNode("mv_Rectangle", m.top, "divider")
+
+      m.label = m.createSGNode("mv_Label", m.top, "label")
+      m.errorLabel = m.createSGNode("mv_Label", m.top, "errorLabel")
+      m.subTextLabel = m.createSGNode("mv_Label", m.top, "subTextLabel")
+
+      m.errorBackgroundPoster = m.createSGNode("mv_Poster", m.top, "errorBackgroundPoster")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function onStyleKeyChange(key as string)
+      m.style = m.styleManager@.getStyle(key)
+      m.redraw()
+    end function
+
+    private function redraw() as void
+      if m.style = invalid
+        m.style = m.styleManager@.getStyle(m.styleKey)
+      end if
+
+      'hack to allow this view to work in xml
+      if m.label = invalid
+        m.createViews()
+      end if
+
+      m.applyState(m.isFocused, m.isDisabled, m.hasError)
+
+      if m.text <> invalid and m.text.trim() <> ""
+        m.label.text = m.text
+      else
+        m.label.text = m.hintText
+      end if
+
+      m.divider.translation = [m.label.translation[0], m.label.translation[1] + m.label.boundingRect()["height"] + 10]
+      m.inputImage.translation = [m.divider.translation[0] + m.divider.width + m.inputImage.translation[0], m.divider.translation[1] - m.divider.size[1] / 2 - m.inputImage.size[1] / 2]
+
+      m.subTextLabel.text = m.subText
+      m.subTextLabel.width = m.divider.size[0]
+      m.subTextLabel.translation = [m.divider.translation[0], m.divider.translation[1] + m.divider.size[1] + 10]
+      m.subTextLabel.wrap = true
+
+      m.errorLabel.text = m.errorText
+      m.errorLabel.translation = [m.inputImage.translation[0] + m.inputImage.size[0] * 2,  m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
+      m.errorLabel.visible = m.errorText <> invalid and m.errorText.trim() <> ""
+
+      if m.backgroundColor.size[0] > 0:
+        m.divider.visible = false
+        m.label.translation = [m.backgroundColor.translation[0] + 10, m.backgroundColor.translation[1] + 10]
+        m.subTextLabel.translation = [m.label.translation[0], m.backgroundColor.translation[1] + m.backgroundColor.size[1] + 10]
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ private impl
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function applyState(isFocused as boolean, isDisabled as boolean, hasError = false as boolean) as void
+      'ensure view is correctly configured
+      m.updateViewsWithStyleJson(m.style.normal)
+
+      if isDisabled
+        m.updateViewsWithStyleJson(m.style.disabled)
+      else if isFocused and not hasError
+        m.updateViewsWithStyleJson(m.style.focused)
+      else if hasError:
+        m.updateViewsWithStyleJson(m.style.error)
+      end if
+    end function
+
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.redraw()
+      end if
+    end function
+
+    protected override function onLostFocus()
+      super.onLostFocus()
+      m.redraw()
+    end function
+
+  end class
+end namespace
