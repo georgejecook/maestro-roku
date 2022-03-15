@@ -1,7 +1,6 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
-import "pkg:/source/view/controls/Styles.bs"
 import "pkg:/source/core/Utils.bs"
 
 @node("ButtonScreen", "mv_BaseScreen")
@@ -12,18 +11,24 @@ class ButtonScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private controlsGroup as mc.types.node
+  private fixedLayoutGroup as mc.types.node
+  private autoSizeLayoutGroup as mc.types.node
   private button1 as mc.types.node
   private button2 as mc.types.node
   private button3 as mc.types.node
   private button4 as mc.types.node
   private button5 as mc.types.node
   private animButton as mc.types.node
+  @sync
+  @inject("user", "status")
+  private userStatus as boolean
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private spoilersActive as boolean
+  private focusableControls = []
 
   function new()
     super("ButtonScreen")
@@ -33,13 +38,14 @@ class ButtonScreen extends mv.BaseScreen
     super.initialize()
 
     bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/ButtonScreen.bundle")
-    m.styleManager@.addStyle("buttonScreen", bundle.styles)
     m.createViewsFromStyleJson(bundle.views)
     item = {
       json: {
         title: "I SET MY TEXT WITH A DATA MAP"
       }
     }
+    m.focusableControls = [m.controlsGroup, m.fixedLayoutGroup, m.autoSizeLayoutGroup]
+    m.focusedControl = m.controlsGroup
     m.applyDataMapToControls(item)
   end function
 
@@ -57,6 +63,16 @@ class ButtonScreen extends mv.BaseScreen
 
   private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
     return key <> "back" and key <> "up"
+  end function
+
+  protected override function onKeyPressLeft() as boolean
+    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, -1))
+    return true
+  end function
+
+  protected override function onKeyPressRight() as boolean
+    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, 1))
+    return true
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

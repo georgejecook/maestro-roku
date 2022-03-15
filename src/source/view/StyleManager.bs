@@ -3,22 +3,60 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/NodeClass.bs"
 import "pkg:/source/core/JsonCombiner.bs"
 import "pkg:/source/core/DebugTimer.bs"
-import "pkg:/source/view/controls/Styles.bs"
 
 namespace mv
   @node("mv_StyleManager", "Node")
   class StyleManager extends mv.NodeClass
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Debugging
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public _styles = {} 'used for debugging
+
+    @alwaysnotify
+    @observer("onLiveStyleDebugging")
+    public _liveStyleDebugging = false
+
+    @alwaysnotify
+    @observer("onUpdateDebugStyles")
+    public updateDebugStyles = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private styles = {}
     private defaultLocale = "en"
     private cachedStyles = {}
     private jsonCombiner = new mc.JsonCombiner()
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialize
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     function new()
       super("StyleManager")
       m.log = new log.Logger("StyleManager")
-      m.setStyleJson(invalid)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onLiveStyleDebugging(isActive as boolean)
+      if isActive
+        m._styles = m.styles
+      end if
+    end function
+
+    private function onUpdateDebugStyles(isActive as boolean)
+      m.styles = m._styles
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setDefaultLocale(locale = "en" as string)
       m.defaultLocale = locale
@@ -29,14 +67,16 @@ namespace mv
         m.styles = json
       else
         m.styles = {}
+        m.log.error("cannot setStyles: received illegal style json value", json)
       end if
-      m.styles.mv = m.getDefaultStyles()
       m.cachedStyles = {} ' we lazily pull out styles and parse them on demand
     end function
 
     public function addStyles(json as mc.types.assocarray)
       if mc.isAACompatible(json)
         m.styles.append(json)
+      else
+        m.log.error("cannot addStyles: received illegal style json value", json)
       end if
     end function
 
@@ -209,7 +249,7 @@ namespace mv
             for each key in style
               if key <> "$extends"
                 if key.instr(".") <> -1
-                  mc.setPath(newStyle, key, style[key])
+                  mc.setPath(newStyle, key, m.resolveNestedStyleValue(style[key]))
                 else
                   newStyle[key] = m.resolveNestedStyleValue(style[key])
                 end if
@@ -248,17 +288,6 @@ namespace mv
       else
         return value
       end if
-    end function
-
-    private function getDefaultStyles() as mc.types.assocarray
-      return {
-        Button: {
-          default: mv.styles.getDefaultButtonStyle()
-        },
-        TextInput: {
-          default: mv.styles.getDefaultTextInputStyle()
-        }
-      }
     end function
   end class
 end namespace

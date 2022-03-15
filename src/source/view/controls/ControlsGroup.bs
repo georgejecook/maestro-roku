@@ -157,7 +157,10 @@ namespace mv.controls
       selectedIndex = m.selectedIndex
       for i = 0 to m.visibleChildren.count() - 1
         child = m.visibleChildren[i]
-        child.isFocused = i = focusedIndex and m.isFocused
+        newChildFocus = i = focusedIndex and m.isFocused
+        if child.isFocused <> newChildFocus
+          child.isFocused = newChildFocus
+        end if
         if m.useFootPrint
           if not m.isFocused
             child.focusState = i = selectedIndex ? "footprint" : "none"
