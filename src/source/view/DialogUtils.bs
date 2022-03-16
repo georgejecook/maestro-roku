@@ -36,7 +36,7 @@ namespace mv
       ' bundle = m.styleManager@.loadBundle("pkg:/source/lib/DialogUtil.bundle")
       bundle = {
         text: {
-          onKeyboardDialogButtonSelected: {
+          onDialogButtonSelected: {
             continue: "Continue",
             clear: "Clear",
             back: "Back"
@@ -81,8 +81,6 @@ namespace mv
       return dialog
     end function
 
-
-
     'show any screen as a dialog. Must have a selectedIndex: integer field
     function showDialogScreen(dialog as mc.types.node, callback = invalid as function, lockFocus = true as boolean) as mc.types.node
       container = m.getDialogContainer()
@@ -106,42 +104,6 @@ namespace mv
       return dialog
     end function
 
-    ' show a keyboard dialog - this dialog will callback on m
-    '              usage:
-    ' @param {string} title, title to show
-    ' @param {string} text - text to show
-    ' @param {string} callback - function to call with updated text
-    ' @param {boolean} isSecure - true if it's a password
-    ' @param {array} buttons - buttons to show
-    ' @param {string} autoPopulate - (none|login|register)
-    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as mc.types.array, autoPopulate = "none" as string) as mc.types.node
-      m.dialog = createObject("roSGNode", "StandardKeyboardDialog")
-      if isSecure
-        m.dialog.textEditBox.secureMode = true
-      end if
-      m.dialog.buttons = buttons
-
-      m.dialog.addFields({
-        "isSecure": isSecure
-      })
-
-      m.callback = callback
-
-      m.dialog.title = title
-      m.dialog.keyColor = "0x878686"
-      m.dialog.focusedKeyColor = "#000000"
-
-      m.observeNodeField(m.dialog, "buttonSelected", m.onKeyboardDialogButtonSelected, "both")
-      m.observeNodeField(m.dialog, "wasClosed", m.closeDialog, "none")
-
-      m.dialog.text = text
-      m.dialog.textEditBox.cursorPosition = len(text)
-
-      mc.getScene().dialog = m.dialog
-
-      return m.dialog
-    end function
-
     function dismissDialog(dialog as mc.types.node)
       if dialog <> invalid
         dialog.selectedIndex = -1
@@ -153,10 +115,10 @@ namespace mv
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Keyboard Dialog Callbacks
+    '++ Dialog Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onKeyboardDialogButtonSelected(selectedButton as integer, dialog as mc.types.node)
+    private function ondDialogButtonSelected(selectedButton as integer, dialog as mc.types.node)
       selectedButtonText = dialog.buttons[selectedButton]
       m.log.info("keyboard button selected: ", selectedButtonText, ", text ", dialog.text)
       isClosing = false

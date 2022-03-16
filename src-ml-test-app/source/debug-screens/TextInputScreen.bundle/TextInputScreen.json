@@ -13,7 +13,8 @@
         "keyDirection": "vert",
         "itemSpacings": [40],
         "observe": {
-          "selectedIndex": "onButtonIndexChange"
+          "selectedIndex": "onButtonIndexChange",
+          "focusedIndex": "onButtonIndexFocused"
         },
         "_initializeAfterCreatingChildren": true,
         "_children": [
@@ -35,10 +36,11 @@
             "subText": "longer sub text that a bit longer and wraps on the next line",
             "text": "Regular",
             "hintText": "Hint",
-            "errorText": "error meessage"
+            "errorText": "error message",
+            "validatorType": "numericValidator"
           },
           {
-            "id": "textInpu3",
+            "id": "textInput3",
             "_type": "mv_TextInput",
             "styleKey": "textInputScreen.inputs.normal_with_image",
             "_dataMap": {
@@ -55,18 +57,18 @@
             "text": "Zipcode",
             "hintText": "",
             "subText": "Enter 5 digits",
-            "errorText": "Invalid Zipcode"
+            "errorText": "Invalid Zipcode",
+            "validatorType": "numericValidator"
           },
           {
             "id": "textInput5",
             "_type": "mv_TextInput",
             "styleKey": "textInputScreen.inputs.input_box",
-            "_dataMap": {
-              "text": "json.text",
-              "hintText": "json.hintText",
-              "subText": "json.subText",
-              "errorText": "json.errorText"
-            }
+            "text": "Email",
+            "hintText": "",
+            "subText": "",
+            "errorText": "Invalid Email Address",
+            "validatorType": "emailValidator"
           }
         ]
       }
@@ -77,27 +79,35 @@
                   "normal": {
                     "$extends": "mv.TextInput.default",
                     "normal.label.color": "#000000",
+                    "normal.inputImage.uri": "",
                     "focused.label.color": "#ffffff",
                     "error.label.color": "~colors.general.red",
-                    "disabled.label.color": "~colors.general.grey"
+                    "disabled.label.color": "~colors.general.grey",
+                    "error.inputImage.uri": "pkg:/images/error.png"
                   },
                  "input_box": {
                     "$extends": "mv.TextInput.default",
                     "normal.label.color": "#a9a9a9",
                     "normal.subTextLabel.color": "#000000",
                     "normal.backgroundColor.size": [400, 50],
-                    "focused.backgroundColor.size": [400, 50]
+                    "normal.inputImage.uri": "",
+                    "focused.backgroundColor.size": [400, 50],
+                    "error.inputImage.uri": "pkg:/images/error.png",
+                    "error.label.color": "~colors.general.red"
                   },
                   "normal_with_image": {
                     "$extends": "mv.TextInput.default",
                     "normal.label.color": "#000000",
-                    "focused.label.color": "#ffffff",
                     "normal.inputImage.uri": "pkg:/images/small-star-fhd.png",
+                    "focused.label.color": "#ffffff",
                     "focused.inputImage.uri": "pkg:/images/small-star-highlighted-fhd.png",
-                    "error.inputImage.uri": "pkg:/images/error.png"
+                    "error.inputImage.uri": "pkg:/images/error.png",
+                    "error.label.color": "~colors.general.red"
                   }
-            }
-        }
-    }
-}
+              }
+          }
+      }
+  }
+
+
 
