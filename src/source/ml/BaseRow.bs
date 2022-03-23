@@ -156,6 +156,16 @@ namespace ml
       m.onContentChange(m._content, keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true)
     end function
 
+    public function updateChangedItems()
+      '  ? " Base row updateChangedItems"
+      'bs:disable-next-line
+      if m.viewManager <> invalid and m.viewManager.updateChangedItems <> invalid
+        ' ? "invoking on view manager"
+        'bs:disable-next-line
+        m.viewManager.updateChangedItems()
+      end if
+    end function
+
     public function getRenderer(index as integer) as object
       'implement me
       return invalid

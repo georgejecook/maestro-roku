@@ -108,6 +108,7 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("This content has changed in some way")
+      ? " CHANGES "
       m.viewManager.onContentItemsChange(changes)
     end function
 
@@ -183,7 +184,7 @@ namespace ml
         end if
 
         if m.header <> invalid
-          m.header.translation = [- m.settings.contentOffset[0], 0] 'cancel out this row's offset
+          m.header.translation = [-m.settings.contentOffset[0], 0] 'cancel out this row's offset
           m.header.width = m.width
           m.header.height = headerSettings.height
           m.header@.setContent(m._content, headerSettings)
@@ -192,6 +193,10 @@ namespace ml
           m.contentGroup.translation = [0, 0]
         end if
       end if
+    end function
+
+    public override function updateChangedItems()
+      super.updateChangedItems()
     end function
 
     private function cleanHeader()
