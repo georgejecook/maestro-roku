@@ -192,6 +192,7 @@ namespace ml
 
     private function onContentChange()
       m.log.info("onContentChange")
+      ? "LIST ON CONTENT CHANGE"
       if m.isInitialized
         if m._content <> invalid and not m._content.isSameNode(m.content)
           m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
@@ -215,6 +216,7 @@ namespace ml
       m.viewManager.onContentItemsChange(changes)
       m.focusIndicatorManager@.cancelFlowFocus()
       m.viewManager.isScrolling = false
+      ' ? " LIST CHANGES "
       ' m.viewManager.forceUpdateLayout()
       ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
 
@@ -426,7 +428,7 @@ namespace ml
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
       if isScrolling
         m.log.info("was already scrolling - ignoring")
-        ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
         'TODO - improve this
         return true
       end if
@@ -473,7 +475,7 @@ namespace ml
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
       ' if m.itemScroller.direction = 1 and isScrolling
       if false and isScrolling
-        ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
         m.log.info("was already scrolling - ignoring")
         return true
       end if

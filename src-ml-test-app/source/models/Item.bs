@@ -1,0 +1,54 @@
+import "pkg:/source/core/Utils.bs"
+
+namespace models
+  ' /**
+  '  * @module nba.content.models.Item
+  '  * @description contains info pertinent to items, such as videos, etc.
+  '  */
+  @node("Item", "ContentNode")
+  class Item
+
+    public json as mc.types.assocarray
+
+    ' /**
+    '  * @member type
+    '  * @memberof module:nba.models.Item
+    '  * @instance
+    '  * @description Describes the type of the item:
+    '  *              types are (video|other|TBD)
+    '  */
+    public version = 0
+    public type = ""
+    public isSerializable = true
+
+    public function toString() as string
+      return "<Item> (" + m.top.id + ") - '" + mc.getPath(m.json, "title", "NO TITLE") + "'"
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Serialization support
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function serialize() as mc.types.assocarray
+      return {
+        type: m.type
+        json: m.json
+      }
+    end function
+
+    public function deserialize(data as mc.types.assocarray)
+      m.json = data.json
+      m.type = data.type
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Cloning
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function cloneCustomFieldsIntoNode(node as mc.types.node)
+      node.isSerializable = true
+      node.type = m.top.type
+    end function
+
+  end class
+end namespace
