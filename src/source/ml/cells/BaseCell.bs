@@ -40,7 +40,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function recycle()
-      ? "RECYCLE "
       if not m.isViewCreated
         m._createViews()
       end if
@@ -76,20 +75,16 @@ namespace ml
     end function
 
     private function _onContentChange(content as mc.types.node)
-      ? "_onContentChange "
       if content = invalid
-        ? "content is invalid"
         m.contentVersion = -1
       else if m.contentVersion = -1 or content.version <> invalid
         m.contentVersion = content.version
       end if
-      ? "content version is now "; m.contentVersion
       m.onContentChange(content)
       m.isRecyclePending = false
     end function
 
     protected function onInitialStateChange(state as string)
-      ? "onInitialStateChange "
       m.list = state.list
       m.row = state.row
       m.size = state.size
