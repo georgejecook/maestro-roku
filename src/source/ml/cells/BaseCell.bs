@@ -21,6 +21,7 @@ namespace ml
     public isInViewPort = false
 
     public listEvent as mc.types.AssocArray
+    public contentVersion = -1
 
     private isViewCreated = false
     private isRecyclePending = true
@@ -74,6 +75,11 @@ namespace ml
     end function
 
     private function _onContentChange(content as mc.types.node)
+      if content = invalid
+        m.contentVersion = -1
+      else if m.contentVersion = -1 or content.version <> invalid
+        m.contentVersion = content.version
+      end if
       m.onContentChange(content)
       m.isRecyclePending = false
     end function

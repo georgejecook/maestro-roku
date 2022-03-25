@@ -147,7 +147,7 @@ namespace ml
     end function
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
+      ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
       m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m.list.focusedCellIndex = focusIndicatorConfig.colIndex
       row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
@@ -219,21 +219,21 @@ namespace ml
 
       m.setActiveFocusSettings(m.nextConfig.settings)
 
-      ? ">>> NEXT FOCUS STYLE " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
-      ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
+      ' ? ">>> NEXT FOCUS STYLE " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
+      ' ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
       if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
-        ? ">>> HIDE INDICATOR"
-        ? "AA"
+        ' ? ">>> HIDE INDICATOR"
+        ' ? "AA"
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.nextFocusSettings.feedbackStyle))
-        ? "BB"
+        ' ? "BB"
         m.focusIndicator.visible = false
       else if m.isHidden
-        ? "CC"
+        ' ? "CC"
         m.focusIndicator.visible = false
       else
-        ? "DD"
+        ' ? "DD"
         m.rowHasIndicator = true
       end if
 

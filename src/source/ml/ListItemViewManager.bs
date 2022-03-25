@@ -78,6 +78,7 @@ namespace ml
         m.creationIndex = -1
         m.previousRendereredByContentId = m.renderersByContentId
         m.renderersByContentId = {}
+        m.reusedRenderers = []
         m.visibleComponents = []
         settings = content.listSettings
         if not forceSync and settings.rowCreationStrategy = "async" and not m.isUpdating
@@ -99,7 +100,7 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      ' ? "TUR ::: LIST onRenderersCreated"
+      ? "TUR ::: LIST onRenderersCreated"
       m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
@@ -110,7 +111,15 @@ namespace ml
         m.isUpdating = false
       end if
       m.itemScroller.getComponentInfos(true)
+      m.updateChangedItems()
       m.restorePreviousFocus()
+    end function
+
+    protected override function updateChangedItems()
+      for each component in m.reusedRenderers
+        'TODO - could consider optimizing further here by allowing rows to indicate they need updating
+        component@.updateChangedItems()
+      end for
     end function
 
     private function restorePreviousFocus()
@@ -157,6 +166,7 @@ namespace ml
             ' ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
+            m.reusedRenderers.push(comp)
             m.previousRendereredByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
           else

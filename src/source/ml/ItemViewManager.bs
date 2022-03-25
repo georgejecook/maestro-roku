@@ -23,6 +23,7 @@ namespace ml
 
     'tracking used for reusing cells during multi-render batches
     private previousRendereredByContentId = {}
+    private reusedRenderers = []
 
     'content
     public content = invalid
@@ -549,6 +550,19 @@ namespace ml
         m.rowInfos = [new ml.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)]
       end if
       return m.rowInfos
+    end function
+
+    protected function updateChangedItems()
+      for each item in m.visibleItems
+        if item.version <> invalid
+          renderer = m.renderersByContentId[item.id]
+          if renderer <> invalid and renderer.contentVersion <> item.version
+            ' m.log.info("updating renderer")
+            ? " updating render for item version "; item.version
+            renderer@.forceUpdate()
+          end if
+        end if
+      end for
     end function
 
   end class
