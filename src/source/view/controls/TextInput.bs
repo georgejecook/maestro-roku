@@ -55,11 +55,6 @@ namespace mv.controls
     @observer("redraw")
     public size = [400, 50]
 
-    @debounce
-    @alwaysnotify
-    @observer("validate")
-    public updatedText = ""
-
     public validatorType = ""
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -149,25 +144,6 @@ namespace mv.controls
         m.inputImage.translation = [m.backgroundColor.translation[0] + m.backgroundColor.size[0] + 10, m.backgroundColor.translation[1] + m.backgroundColor.size[1] / 2 - m.inputImage.size[1] / 2 ]
         m.errorLabel.translation =  [m.inputImage.translation[0] + m.inputImage.size[0] + 10, m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
       end if
-    end function
-
-    ' this is just a POC, validators should have their own class
-    private function validate() as void:
-      if m.validatorType <> "":
-        if m.validatorType = "numericValidator"
-            regex = createObject("roRegex", "^[0-9]+$", "i")
-            if regex.isMatch(m.updatedText) and len(m.updatedText) = 5:
-              m.hasError = false
-            else:
-              m.hasError = true
-            end if
-        else if m.validatorType = "emailValidator"
-          regex = createObject("roRegex", "^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$", "i")
-          m.hasError = not regex.isMatch(m.updatedText)
-        end if
-      end if
-      m.text = m.updatedText
-      m.redraw()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
