@@ -59,9 +59,10 @@ class TextInputScreen extends mv.BaseScreen
 
   private function updateTextInput(text as string)
     m.log.info("update text input -", m.selectedTextInput.id)
-    m.log.info("updated text", text)
-    m.log.info("AAAAAAAAAAAAAAAAAAA", "BBBBBBBB")
-    m.selectedTextInput.hasError = not m.inputValidator.isValid(m.selectedTextInput.validatorType, text)
+    validationData = m.inputValidator.validate(m.selectedTextInput.validatorType, text)
+
+    m.selectedTextInput.errorText = validationData.errorMessage
+    m.selectedTextInput.hasError = validationData.hasError
     m.selectedTextInput.text = text
 end function
 
