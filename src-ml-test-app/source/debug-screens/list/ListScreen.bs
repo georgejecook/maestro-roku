@@ -454,9 +454,15 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function makeItem(cellType as string, title as string) as mc.types.node
-    child = createObject("roSGNode", "ContentNode")
-    id = str(m.contentId).trim()
-    child.id = rnd(2147483647).toStr()
+    id = rnd(2147483647).toStr()
+    child = m.createSGNode("Item", invalid, id, {
+      json: {
+        title: title
+        description: "some really long " + id + "text in here " + id
+        posterUrl: "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340"
+      }
+    })
+
     child.description = "some really long " + id + "text in here " + id
     child.HDGRIDPOSTERURL = "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340"
     child.title = title
@@ -471,10 +477,6 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function addRow(index as integer)
-    ? ">>>ADD ROW"
-    ? ">>>ADD ROW"
-    ? ">>>ADD ROW"
-    ? ">>>ADD ROW"
     rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
     row = createObject("roSGNode", "ml_RowContent")
     rowFocusSettings.feedbackColor = "#F4D42A"
@@ -502,7 +504,6 @@ class ListScreen extends mv.BaseScreen
 
   private function removeCell()
     rowContent = m.list.content.getChild(m.list.focusedRowIndex)
-    ? "REMOVING CHILD AT "; m.list.focusedCellIndex
     rowContent@.removeChildIndex(m.list.focusedCellIndex)
   end function
 
@@ -565,10 +566,8 @@ class ListScreen extends mv.BaseScreen
   private dataIndex = 0
   private function onKeyPressOptions() as boolean
     if m.list.content <> invalid
-      ? "SET INVALID"
       m.list.content = invalid
     else
-      ? "CHANGE CONTENT"
       m.changeContent()
     end if
 
@@ -639,13 +638,11 @@ class ListScreen extends mv.BaseScreen
 
 
   private function onKeyPressRewind() as boolean
-    ? "REMOVING "
     m.removeCell()
     return true
   end function
 
   private function onKeyPressFastForward() as boolean
-    ? "ADDING"
     ' m.addRow(1)
     m.addCell()
     return true
@@ -775,9 +772,7 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
-    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
-    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
+    ' ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
     rowContent = m.list.content.getChild(rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)

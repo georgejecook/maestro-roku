@@ -71,6 +71,7 @@ class UpdateListDataScreen extends mv.BaseScreen
       m.resetData()
     else if button.isSameNode(m.reloadTodayButton)
       m.log.info("updating modules")
+      m.reload()
     else if button.isSameNode(m.moveItemUpButton)
       m.log.info("moving an item up")
     else if button.isSameNode(m.moveItemDownButton)
@@ -82,6 +83,23 @@ class UpdateListDataScreen extends mv.BaseScreen
     end if
   end function
 
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ updates
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private updateCount = 0
+  private function reload()
+    m.log.info("loading data again for dayIndex", m.dayIndex)
+    item = m.list.content.getChild(1).getChild(0)
+    if item <> invalid
+      m.updateCount++
+      json = item.json
+      json.title = `U: ${m.updateCount}`
+      item.json = json
+      item.version++
+    end if
+    m.changeLoadedDay(m.dayIndex)
+  end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ List Data - Initialization
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -202,12 +220,14 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function makeItem(cellType as string, title as string) as mc.types.node
-    child = createObject("roSGNode", "ContentNode")
     id = str(m.contentId).trim()
-    child.id = rnd(2147483647).toStr()
-    child.description = "some really long " + id + "text in here " + id
-    child.HDGRIDPOSTERURL = "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340"
-    child.title = title
+    child = m.createSGNode("Item", invalid, id, {
+      json: {
+        title: title
+        description: "some really long " + id + "text in here " + id
+        posterUrl: "https://picsum.photos/id/" + str(m.contentId mod 1000).trim() + "/340/340"
+      }
+    })
     m.contentId++
     return child
   end function
@@ -313,7 +333,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ? ">>>onItemSelected" ; rowIndex ; "," ; itemIndex
+    ' ? ">>>onItemSelected" ; rowIndex ; "," ; itemIndex
   end function
 
   private function onRowData(rowIndex as integer, data as dynamic)
