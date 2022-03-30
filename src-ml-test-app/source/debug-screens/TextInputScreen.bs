@@ -4,7 +4,7 @@ import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/view/controls/Styles.bs"
 import "pkg:/source/view/controls/ValidationUtils.bs"
 import "pkg:/source/core/Utils.bs"
-import "pkg:/source/view/KeyboardUtils.bs"
+import "pkg:/source/view/KeyboardDialogUtils.bs"
 
 @node("TextInputScreen", "mv_BaseScreen")
 class TextInputScreen extends mv.BaseScreen
@@ -42,9 +42,9 @@ class TextInputScreen extends mv.BaseScreen
         errorText: "this is the error"
       }
     }
-    m.inputValidator = new InputValidator()
+    m.inputValidator = mv.controls.InputValidator()
     m.applyDataMapToControls(item)
-    m.dialog = new mv.KeyboardUtil(m)
+    m.dialog = new mv.KeyboardDialogUtil(m)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -64,7 +64,7 @@ class TextInputScreen extends mv.BaseScreen
     m.selectedTextInput.errorText = validationData.errorMessage
     m.selectedTextInput.hasError = validationData.hasError
     m.selectedTextInput.text = text
-end function
+  end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses

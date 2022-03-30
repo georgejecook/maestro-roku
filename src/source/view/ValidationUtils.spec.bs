@@ -1,0 +1,51 @@
+import "pkg:/source/tests/ViewBaseTestSuite.spec.bs"
+import "pkg:/source/view/controls/ValidationUtils.bs"
+
+namespace tests
+  @only
+  @suite("ValidationUtils tests")
+  class ValidationUtilsTests extends mv.tests.BaseTestSuite
+
+    private validator
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests constructor")
+    ' +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes")
+    function _()
+      m.validator = new mv.controls.InputValidator()
+      m.assertEqual(m.validator.validationData, { hasError: false, errorMessage: "" })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("tests validate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it(" handles hasError")
+    @params("numeric", "12345", false)
+    @params("numeric", "1234567", true)
+    @params("numeric", "1111L", true)
+    @params("email", "invalidemail.com", true)
+    @params("email", "test@gmail.com", false)
+    @params("", "12345", false)
+    @params("", "abc", false)
+    function _(validatorType, value, expected)
+      m.validator.validate(validatorType, value)
+      m.assertEqual(m.validator.validationData.hasError, expected)
+    end function
+
+    @it("handles messages")
+    @params("numeric", "1111L", "Invalid.Must contain 5 digits.")
+    @params("numeric", "22222", "")
+    @params("email", "invalidemail.com", "Invalid email address.")
+    @params("email", "test@gmail.com", "")
+    @params("", "123", "")
+    @params("", "ab1", "")
+    @params("numeric", "1234567", "Invalid.Must contain 5 digits.")
+    function _(validatorType, value, expected)
+      m.validator.validate(validatorType, value)
+      m.assertEqual(m.validator.validationData.errorMessage, expected)
+    end function
+  end class
+end namespace
