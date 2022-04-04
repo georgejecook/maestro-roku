@@ -1,0 +1,234 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/ml/ListDelegateMixin.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/Animation.bs"
+
+@node("AdvancedAnimationExampleScreen", "mv_BaseScreen")
+class AdvancedAnimationExampleScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private controlsGroup as mc.types.node
+  private button1 as mc.types.node
+  private button2 as mc.types.node
+  private button3 as mc.types.node
+  private button4 as mc.types.node
+  private button5 as mc.types.node
+  private animButton as mc.types.node
+
+  private buttonJson = [
+    {
+      "_type": "mv_Rectangle",
+      "size": [1920, 1080],
+      "color": "~colors.background.darkPurple"
+    },
+    {
+      id: "buttonParent"
+      _type: "Group"
+      translation: [1000, 900]
+      _children: [
+        {
+          id: "bottomCircle"
+          _type: "mv_Poster"
+          translation: [0, 0]
+          blendColor: "#0000aa"
+          opacity: 0
+          size: [60, 60]
+          uri: "pkg:/images/backgrounds/button-circle.png"
+        },
+        {
+          id: "labelBackground"
+          _type: "mv_Poster"
+          translation: [30, 0]
+          blendColor: "#0000aa"
+          size: [340, 60]
+          uri: "pkg:/images/input-focusrect.9.png"
+          clippingRect: [0, 0, 340, 60]
+        },
+        {
+          id: "buttonLabel"
+          _type: "mv_Label"
+          text: "click to remove"
+          fontKey: "medium,30"
+          color: "#aa0000"
+          translation: [0, 0]
+          size: [400, 60]
+          clippingRect: [0, 0, 400, 60]
+          opacity: 1.0
+          horizAlign: "center"
+          vertAlign: "center"
+        },
+        {
+          id: "topCircle"
+          _type: "mv_Poster"
+          translation: [340, 0]
+          blendColor: "#0000aa"
+          size: [60, 60]
+          uri: "pkg:/images/backgrounds/button-circle.png"
+        },
+      ]
+    }
+  ]
+
+
+  private updatedButtonJson = [
+    {
+      id: "bottomCircle"
+      translation: [170, 0]
+      blendColor: "#ff0000"
+      opacity: 1
+    },
+    {
+      id: "labelBackground"
+      blendColor: "#ff0000"
+      clippingRect: [170, 0.0, 1, 60]
+    },
+    {
+      id: "buttonLabel"
+      clippingRect: [170, 0.0, 1, 60]
+      opacity: 0.0
+    },
+    {
+      id: "topCircle"
+      translation: [170, 0]
+      blendColor: "#ff0000"
+    },
+  ]
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Animations
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private buttonAnim as mv.animations.ViewJson
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  @sync
+  @observer("onTitleChange")
+  @inject("user", "settings.spoilers")
+  private title as string
+
+  function new()
+    super("AdvancedAnimationExampleScreen")
+  end function
+
+  protected override function initialize()
+    super.initialize()
+    m.createViews()
+    m.buttonAnim = new mv.animations.ViewJson(m.buttonJson, m.updatedButtonJson, 0.4)
+    m.buttonAnim.start()
+    m.observeNodeField(m.controlsGroup, "selectedIndex", m.onSelectButton)
+  end function
+
+  private function createViews()
+    m.createViewsFromStyleJson(m.buttonJson, m.top)
+
+    redButtonStyle = m.styleManager@.getStyle("mv.Button")
+    m.setStyleColor(redButtonStyle, "#aa0000", "#ff0000", "#aa0000", "#000000", "#ffffff", "#aaaaaa")
+
+    blueButtonStyle = m.styleManager@.getStyle("mv.Button")
+    m.setStyleColor(blueButtonStyle, "#0000aa", "#0000ff", "#0000aa", "#000000", "#ffffff", "#0000aa")
+
+    m.controlsGroup = m.createSGNode("mv_ControlsGroup", m.top, "controlsGroup", {
+      translation: [200, 200]
+      layoutMode: "vert"
+      keyDirection: "vert"
+      itemSpacings: [10]
+    })
+
+    m.button1 = m.createSGNode("mv_Button", m.controlsGroup, "button1", {
+      text: `pause`
+    })
+
+    m.styleManager@.addStyle("buttons", mc.createPath("blue", blueButtonStyle))
+
+    m.button2 = m.createSGNode("mv_Button", m.controlsGroup, "button1", {
+      text: "restart"
+    })
+
+    m.button3 = m.createSGNode("mv_Button", m.controlsGroup, "button3", {
+      text: "continue"
+    })
+    m.button4 = m.createSGNode("mv_Button", m.controlsGroup, "button4", {
+      text: "anim 2"
+    })
+
+    m.button5 = m.createSGNode("mv_Button", m.controlsGroup, "button5", {
+      text: "anim 1"
+    })
+    m.controlsGroup@.updateChildren()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onTitleChange(value as string)
+    m.log.info("the title changed")
+    m.button1.text = `spoilers: ${m.title}`
+  end function
+
+  private function setStyleColor(buttonStyle as mc.types.assocarray, bgn as string, bgf as string, bgs as string, ln as string, lf as string, ls as string)
+    mc.setPath(buttonStyle, "normal.backgroundPoster.blendColor", bgn)
+    mc.setPath(buttonStyle, "focused.backgroundPoster.blendColor", bgf)
+    mc.setPath(buttonStyle, "selected.backgroundPoster.blendColor", bgs)
+    mc.setPath(buttonStyle, "normal.label.color", ln)
+    mc.setPath(buttonStyle, "focused.label.color", lf)
+    mc.setPath(buttonStyle, "selected.label.color", ls)
+    return buttonStyle
+  end function
+
+  private function onSelectButton(index as integer)
+    m.log.info("selected button", index)
+    if index = 0
+      m.log.info("PAUSE")
+      m.buttonAnim.pause()
+    else if index = 1
+      m.log.info("RESTART")
+      m.buttonAnim.start()
+    else if index = 2
+      m.log.info("CONTINUE")
+      m.buttonAnim.start(true)
+    else if index = 3
+      m.log.info("CHANGE 2")
+      ' m.buttonAnim.animateTo(m.updatedViewJson2)
+      m.buttonAnim.start(true)
+    else if index = 4
+      m.log.info("CHANGE 1")
+      ' m.buttonAnim.animateTo(m.updatedViewJson)
+      m.buttonAnim.start(true)
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onKeyPressUp() as boolean
+    m.log.info("OK UP")
+    return false
+  end function
+
+
+  private function onKeyPressLeft() as boolean
+    m.log.info("OK LEFT")
+    return false
+  end function
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Lifecycle
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    super.onGainedFocus(isSelfFocused)
+
+    if isSelfFocused
+      m.setFocus(m.controlsGroup)
+    end if
+  end function
+
+end class
