@@ -49,13 +49,28 @@ namespace mv.animations.utils
     if mc.isString(a)
       return mv.animations.utils.interpolateString(a, b, fraction)
     else if mc.isNumber(a)
-      return mv.animations.utils.interpolateArray(a, b, fraction)
+      return mv.animations.utils.interpolateNumber(a, b, fraction)
     else if mc.isPoint(a)
       return mv.animations.utils.interpolatePoint(a, b, fraction)
     else if mc.isAACompatible(a)
       return mv.animations.utils.interpolateAA(a, b, fraction)
+    else if mc.isRectangle(a)
+      return mv.animations.utils.interpolateRectangle(a, b, fraction)
     end if
     return invalid
+  end function
+
+  function interpolateRectangle(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
+    if mc.isRectangle(a) and mc.isRectangle(b)
+      return [
+        mv.animations.utils.interpolateNumber(a[0], b[0], fraction)
+        mv.animations.utils.interpolateNumber(a[1], b[1], fraction)
+        mv.animations.utils.interpolateNumber(a[2], b[2], fraction)
+        mv.animations.utils.interpolateNumber(a[3], b[3], fraction)
+      ]
+    else
+      return [0, 0, 0, 0]
+    end if
   end function
 
   function interpolatePoint(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
@@ -80,7 +95,7 @@ namespace mv.animations.utils
     end if
     if len(a) > 1 and left(a, 1) = "#" and len(b) > 1 and left(b, 1) = "#"
       'assume it's a color
-      return mv.animations.utils.interpolateHexColors(a, b)
+      return mv.animations.utils.interpolateHexColors(a, b, fraction)
     end if
 
     if fraction > 0.5
@@ -100,7 +115,8 @@ namespace mv.animations.utils
   function interpolateHexColors(hexColor1 as string, hexColor2 as string, fraction as float)
     c1 = mv.animations.private.convertHexToNumber(hexColor1)
     c2 = mv.animations.private.convertHexToNumber(hexColor2)
-    return mv.animations.private.interpolateColors(c1, c2, fraction)
+    value = mv.animations.private.interpolateColors(c1, c2, fraction)
+    return value
   end function
 end namespace
 
@@ -117,11 +133,14 @@ namespace mv.animations.private
     rgb2 = mv.animations.private.toRGBArray(color2)
 
     q = 1 - p
+    ' rr = cInt((rgb1[0] * p) + (rgb2[0] * q))
+    ' rg = cInt((rgb1[1] * p) + (rgb2[1] * q))
+    ' rb = cInt((rgb1[2] * p) + (rgb2[2] * q))
+
     rr = cInt(rgb1[0] * p + rgb2[0] * q)
     rg = cInt(rgb1[1] * p + rgb2[1] * q)
-    rb = cInt(rgb1[0] * p + rgb2[2] * q)
-
-    return stri((rr << 16) + (rg << 8) + rb, 16)
+    rb = cInt(rgb1[2] * p + rgb2[2] * q)
+    return "#" + stri((rr << 16) + (rg << 8) + rb, 16)
   end function
 
   function toRGBArray(rgb as integer)
@@ -880,7 +899,6 @@ namespace mv.animations
         m.isObserving = true
       end if
       if useCurrentState
-        ? " using current start map"
         m.startMap = mv.getCurrentValuesWithStyleJson(m.toJson)
       else
         m.startMap = mv.getRootValuesWithStyleJson(m.fromJson, m.toJson)
@@ -938,9 +956,11 @@ namespace mv.animations
           fromJson = m.startMap[id]
           if fraction <> invalid
             for each field in toJson
-              value = mv.animations.utils.interpolate(fromJson[field], toJson[field], fraction)
-              ' ? " SETTING "; field ; " to " ; value
-              node[field] = value
+              if field <> "id"
+                value = mv.animations.utils.interpolate(fromJson[field], toJson[field], fraction)
+                ' ? " SETTING "; field ; " to " ; value ; "f" ; fraction ; " from "; fromJson.field ; " to "; toJson[field]
+                node[field] = value
+              end if
             end for
           end if
         end if
