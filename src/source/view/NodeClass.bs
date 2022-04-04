@@ -9,6 +9,9 @@ namespace mv
     @observer("onDebugMChange")
     public __debugM = false
 
+    @observer("onSyncMChange")
+    public __syncM = false
+
     function new(name as string)
       super(name)
     end function
@@ -16,6 +19,17 @@ namespace mv
     function onDebugMChange()
       'bs:disable-next-line
       mc.setOrAddNodeField(m.top, "__m", m)
+    end function
+
+    function onSyncMChange()
+      'bs:disable-next-line
+      for each field in m.top.__m
+        'bs:disable-next-line
+        if m.top.__m[field] <> invalid
+          'bs:disable-next-line
+          m[field] = m.top.__m[field]
+        end if
+      end for
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

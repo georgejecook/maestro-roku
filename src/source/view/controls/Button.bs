@@ -9,7 +9,7 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @alwaysnotify
-    public clicked as boolean
+    public selected as boolean
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Fields
@@ -41,6 +41,11 @@ namespace mv.controls
     @debounce
     @alwaysnotify
     @observer("redraw")
+    public iconPosition = "center" 'none|left|right|center|centerLeft|centerRight
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
     public size = [300, 60]
 
     @debounce
@@ -57,11 +62,6 @@ namespace mv.controls
     @alwaysnotify
     @observer("redraw")
     public isSelected = false
-
-    @debounce
-    @alwaysnotify
-    @observer("redraw")
-    public horizAlign = "left" 'none|left|center|right
 
     @debounce
     @alwaysnotify
@@ -146,80 +146,126 @@ namespace mv.controls
 
       if m.autoSize
         m.label.width = 0
+        m.subTextLabel.width = 0
       end if
 
       m.label.text = m.text
       m.subTextLabel.text = m.subText
-      hasIcon = m.iconStyle <> invalid and m.iconStyle.count() > 0
-      if hasIcon
-        m.iconPoster.setFields(m.iconStyle)
+
+      if m.autoSize
+        m.label.size = [m.label.boundingRect().width, m.label.size[1]]
+        m.subTextLabel.size = [m.subTextLabel.boundingRect().width, m.subTextLabel.size[1]]
+      end if
+
+      hasIcon = m.iconPosition <> "none" and m.iconStyle <> invalid and m.iconStyle.count() > 0
+      if not hasIcon
+        m.iconPoster.uri = ""
+        m.iconPoster.size = [0, 0]
       end if
 
       'TODO measure
-      if m.autoSize
-        m.layoutWithAutoSize(hasIcon)
-      else
-        m.layout(hasIcon)
-      end if
+      size = m.autoSize ? m.calculateSize(hasIcon): m.size
+      m.layout(size, hasIcon)
     end function
 
-    private function layoutWithAutoSize(hasIcon as boolean)
-      titleRect = m.label.boundingRect()
+    private function calculateSize(hasIcon as boolean)
       sw = m.size[0]
       sh = m.size[1]
 
-      w = titleRect.width + (titleRect.x * 2)
+      w = m.label.size[0] + (m.label.translation[0] * 2)
 
-      horizAlign = m.horizAlign
-      iconTranslation = m.iconPoster.translation
-      tx = m.label.translation[0]
+      iconPosition = m.iconPosition
+
       if m.text = ""
         w = 0
-        tx = 0
       end if
+
       if hasIcon
-        iconStyleTranslation = m.iconStyle.translation
-        if iconStyleTranslation = invalid
-          ixOffset = iconStyleTranslation[0]
-        else
-          ixOffset = 0
-        end if
         iw = m.iconPoster.width
-        ix = m.iconPoster.translation[0]
-        if w < ix + iw
-          w = ix + iw
+        ixOffset = 0
+        if iconPosition = "right" or iconPosition = "left"
+          ixOffset = m.iconPoster.translation[0]
         end if
 
-        if horizAlign = "left"
-          iconTranslation = [iconTranslation[0] + ixOffset, iconTranslation[1]]
-          tx = iw + ix + tx + ixOffset
-          w = tx + w
-        else if horizAlign = "right"
-          iconTranslation = [w - ixOffset, iconTranslation[1]]
-          w = w + iw + ix
-        else if horizAlign = "center"
-          iconTranslation = [(w / 2) - (iw / 2), iconTranslation[1]]
-          w = tx + iw + ix
-        end if
+        w += ixOffset + iw
       else
-        'layout for label is already calculated
+        'we've already correctly calculated this
       end if
 
       if w < sw
         w = sw
       end if
-
-      m.backgroundPoster.size = [w, sh]
-      m.iconPoster.translation = iconTranslation
-      m.label.translation = [tx, titleRect.y]
+      return [w, sh]
     end function
 
-    private function layout(hasIcon as boolean)
-      w = m.size[0]
-      h = m.size[1]
-      m.label.width = mc.clamp(w - (m.label.translation[0] * 2), 0, w)
-      m.subTextLabel.width = mc.clamp(m.subTextLabel.width - (m.subTextLabel.translation[0] * 2), 0, w)
+    private function layout(size as mc.types.array, hasIcon as boolean)
+      w = size[0]
+      h = size[1]
+      'note - all style sizes and translations have _only_ just been set at this point
+      iconSize = m.iconPoster.size
+      iconTranslation = m.iconPoster.translation
+      labelTranslation = m.label.translation
+      labelSize = m.label.size
+      subTextLabelTranslation = m.subTextLabel.translation
+      subTextLabelSize = m.subTextLabel.size
+
       m.backgroundPoster.size = [w, h]
+      if hasIcon
+        iconPosition = m.iconPosition
+
+        if iconPosition = "none"
+          labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+
+        else if iconPosition = "center"
+          cw = w / 2
+          ch = h / 2
+          labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+          iconTranslation[0] = cw - ((iconTranslation[0]) + (iconSize[0] / 2))
+          iconTranslation[1] = ch - ((iconTranslation[1]) + (iconSize[1] / 2))
+
+        else if iconPosition = "left"
+          labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2) - iconSize[0], 0, w)
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+          subTextLabelSize[0] = [iconTranslation[0] + iconSize[0], subTextLabelSize[1]]
+          labelTranslation = [iconTranslation[0] + labelTranslation[0] + iconSize[0], labelTranslation[1]]
+
+        else if iconPosition = "right"
+          ch = h / 2
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2 - iconSize[0]), 0, w)
+          iconTranslation[1] = ch - ((iconTranslation[1]) + (iconSize[1] / 2))
+          iconTranslation = [w - iconTranslation[0] - iconSize[0], iconTranslation[1]]
+
+        else if iconPosition = "centerLeft"
+          cw = w / 2
+          ch = h / 2
+
+          iconTranslation[0] = cw / 2 - iconSize[0] / 2
+          iconTranslation[1] = ch - ((iconTranslation[1]) + (iconSize[1] / 2))
+          labelTranslation = [(iconTranslation[0] * 2) + iconSize[0], labelTranslation[1]]
+          labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2) - iconSize[0], 0, w)
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+
+        else if iconPosition = "centerRight"
+          cw = w / 2
+          ch = h / 2
+
+          iconTranslation[0] = cw + cw / 2 - iconSize[0] / 2
+          iconTranslation[1] = ch - ((iconTranslation[1]) + (iconSize[1] / 2))
+          subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+        end if
+      else
+        labelSize[0] = mc.clamp(w - (labelTranslation[0] * 2), 0, w)
+        subTextLabelSize[0] = mc.clamp(w - (subTextLabelTranslation[0] * 2), 0, w)
+      end if
+
+      m.label.width = labelSize[0]
+      m.label.translation = labelTranslation
+      m.subTextLabel.width = subTextLabelSize[0]
+      m.subTextLabel.translation = subTextLabelTranslation
+      m.iconPoster.translation = iconTranslation
+
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -227,17 +273,41 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function applyState() as void
+
       m.updateViewsWithStyleJson(m._style.normal)
-      if m.isSelected
-        m.updateViewsWithStyleJson(m._style.selected)
-      end if
+
+      normalIconStyle = mc.getPath(m.iconStyle, "normal", m.iconStyle)
+      m.iconPoster.setFields(normalIconStyle)
 
       if m.isDisabled
         m.updateViewsWithStyleJson(m._style.disabled)
+        m.iconPoster.setFields(mc.getPath(m.iconStyle, "disabled", normalIconStyle))
+      else if m.isSelected
+        m.updateViewsWithStyleJson(m._style.selected)
+        m.iconPoster.setFields(mc.getPath(m.iconStyle, "selected", normalIconStyle))
       else if m.isFocused
         m.updateViewsWithStyleJson(m._style.focused)
+        m.iconPoster.setFields(mc.getPath(m.iconStyle, "focused", normalIconStyle))
       end if
+    end function
 
+    protected override function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+      super.updateViewsWithStyleJson(json, mTarget)
+      if json.iconStyle <> invalid
+        m.iconStyle = json.iconStyle
+      end if
+      if json.iconPosition <> invalid
+        m.iconPosition = json.iconPosition
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressOK() as boolean
+      m.selected = true
+      return true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
