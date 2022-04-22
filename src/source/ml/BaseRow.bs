@@ -148,12 +148,18 @@ namespace ml
       m.onRecycle(newContent)
     end function
 
-    public function forceUpdate(keepOldFocusIfPossible = true as boolean) as void
+    public function forceUpdate(keepOldFocusIfPossible = true as boolean, fullUpdate = false as boolean) as void
       if m.owner = invalid or m._content = invalid
         return
       end if
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
-      m.onContentChange(m._content, keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true)
+      m.onContentChange(m._content)
+
+      'bs:disable-next-line
+      if m.configureHeader <> invalid
+        'bs:disable-next-line
+        m.configureHeader(true)
+      end if
     end function
 
     public function updateChangedItems()

@@ -224,7 +224,7 @@ namespace ml
       return row
     end function
 
-    override function updateLayout()
+    override function updateLayout(fullUpdate = false as boolean)
       m.updateRects()
       for i = 0 to m.rects.count() - 1
         rect = m.rects[i]
@@ -232,6 +232,10 @@ namespace ml
         if comp <> invalid
           comp.translation = rect.translation
           comp.visible = rect.visible
+          if fullUpdate
+            ? " >>>> DO FULL UPDATE"
+            comp@.forceUpdate(true, fullUpdate)
+          end if
         end if
       end for
     end function
