@@ -44,6 +44,12 @@ namespace ml
     public animateToItemIndex = -1
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Debug Flags
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public _forceReloadListWhenPressingOption = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     public isScrolling = false
@@ -262,8 +268,8 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function forceUpdate() as void
-      ' ? "+>+>+>+> list forceUpdate"
+    public function forceUpdate(fullUpdate = false as boolean) as void
+      ? "+>+>+>+> list forceUpdate " ; fullUpdate
       ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
         ? "cannot forceUpdate list while rendering is taking place"
@@ -272,7 +278,7 @@ namespace ml
 
       ' ? m.focusedRowIndex ; " " m.focusedCellIndex
       ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
-      m.viewManager.forceUpdateLayout()
+      m.viewManager.forceUpdateLayout(fullUpdate)
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
 
@@ -417,6 +423,17 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressOptions() as boolean
+      m.log.info("updating list")
+
+      if m._forceReloadListWhenPressingOption
+        m.forceUpdate(true)
+        return true
+      end if
+
+      return false
+    end function
 
     private function onKeyPressUp() as boolean
       if not m.top.visible

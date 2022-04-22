@@ -104,8 +104,8 @@ namespace ml
       m.itemScroller.reset()
     end function
 
-    function forceUpdateLayout()
-      m._updateLayout()
+    function forceUpdateLayout(fullUpdate = false as boolean)
+      m._updateLayout(fullUpdate)
     end function
 
     function setContent(content as mc.types.node)
@@ -133,10 +133,10 @@ namespace ml
       m._updateLayout()
     end function
 
-    function _updateLayout()
+    function _updateLayout(fullUpdate = false as boolean)
       m.log.info("_updateLayout")
       m.updateScreenRect()
-      m.updateLayout()
+      m.updateLayout(fullUpdate)
     end function
 
     function onFocusIndexChange(direction as integer, index as integer)
@@ -513,7 +513,7 @@ namespace ml
       return false
     end function
 
-    function updateLayout()
+    function updateLayout(fullUpdate = false as boolean)
       m.log.error("You must override this method")
     end function
 

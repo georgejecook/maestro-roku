@@ -224,14 +224,35 @@ namespace ml
       return row
     end function
 
-    override function updateLayout()
+    override function updateLayout(fullUpdate = false as boolean)
+      if fullUpdate
+        'first check if any comps have changed type
+        for i = 0 to m.rects.count() - 1
+          rect = m.rects[i]
+          comp = m.visibleComponents[i]
+          if comp <> invalid and comp.content <> invalid and comp.subType() <> comp.content.settings.componentName
+            if comp.getParent() <> invalid
+              comp.getParent().removeChild(comp)
+            end if
+            comp = m.createRow(comp.content, comp.index, comp.content.settings, rect)
+            m.visibleComponents[i] = comp
+            m.renderersByContentId[comp.id] = comp
+          end if
+        end for
+      end if
+
       m.updateRects()
+
       for i = 0 to m.rects.count() - 1
         rect = m.rects[i]
         comp = m.visibleComponents[i]
         if comp <> invalid
           comp.translation = rect.translation
           comp.visible = rect.visible
+          if fullUpdate
+            ? " >>>> DO FULL UPDATE"
+            comp@.forceUpdate(true, fullUpdate)
+          end if
         end if
       end for
     end function

@@ -181,12 +181,12 @@ namespace ml
     '++ header
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function configureHeader()
+    private function configureHeader(forceUpdate = false as boolean)
       if m._content = invalid
         m.cleanHeader()
       else
         headerSettings = m.settings.headerSettings
-        if m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
+        if forceUpdate or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.currentHeaderType = headerSettings.compName
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
