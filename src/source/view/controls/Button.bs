@@ -205,9 +205,12 @@ namespace mv.controls
       iconSize = m.iconPoster.size
       iconTranslation = m.iconPoster.translation
       labelTranslation = m.label.translation
-      labelSize = m.label.size
-      subTextLabelTranslation = m.subTextLabel.translation
-      subTextLabelSize = m.subTextLabel.size
+      labelSize = asPoint(m.label.size)
+      subTextLabelTranslation = asPoint(m.subTextLabel.translation)
+      subTextLabelSize = asPoint(m.subTextLabel.size)
+      labelSize = [0, 0]
+      subTextLabelTranslation = [0, 0]
+      subTextLabelSize = [0, 0]
 
       m.backgroundPoster.size = [w, h]
       if hasIcon
@@ -274,20 +277,20 @@ namespace mv.controls
 
     private function applyState() as void
 
-      m.updateViewsWithStyleJson(m._style.normal)
+      m.updateViewsWithStyleJson(asAA(m._style.normal))
 
-      normalIconStyle = mc.getPath(m.iconStyle, "normal", m.iconStyle)
+      normalIconStyle = asAA(m.iconStyle.normal, m.iconStyle)
       m.iconPoster.setFields(normalIconStyle)
 
       if m.isDisabled
-        m.updateViewsWithStyleJson(m._style.disabled)
-        m.iconPoster.setFields(mc.getPath(m.iconStyle, "disabled", normalIconStyle))
+        m.updateViewsWithStyleJson(asAA(m._style.disabled))
+        m.iconPoster.setFields(asAA(m.iconStyle.disabled, normalIconStyle))
       else if m.isSelected
-        m.updateViewsWithStyleJson(m._style.selected)
-        m.iconPoster.setFields(mc.getPath(m.iconStyle, "selected", normalIconStyle))
+        m.updateViewsWithStyleJson(asAA(m._style.selected))
+        m.iconPoster.setFields(asAA(m.iconStyle.selected, normalIconStyle))
       else if m.isFocused
-        m.updateViewsWithStyleJson(m._style.focused)
-        m.iconPoster.setFields(mc.getPath(m.iconStyle, "focused", normalIconStyle))
+        m.updateViewsWithStyleJson(asAA(m._style.focused))
+        m.iconPoster.setFields(asAA(m.iconStyle.focused, normalIconStyle))
       end if
     end function
 
