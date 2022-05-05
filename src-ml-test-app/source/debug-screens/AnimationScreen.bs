@@ -3,6 +3,7 @@ import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/Animation.bs"
+import "pkg:/source/view/controls/Menu.bs"
 
 @node("AnimationScreen", "mv_BaseScreen")
 class AnimationScreen extends mv.BaseScreen
@@ -18,14 +19,14 @@ class AnimationScreen extends mv.BaseScreen
   private button4 as mc.types.node
   private button5 as mc.types.node
   private animButton as mc.types.node
+  private menu as mc.types.node
 
   private viewJson = [{
     id: "animButton"
     _type: "mv_Button"
     text: "longer text"
     translation: [100, 100]
-    size: [400, 60]
-    horizAlign: "left"
+    size: [400, 60],
     style: m.styleManager@.getStyle("mv.Button.default")
   }]
 
@@ -33,8 +34,7 @@ class AnimationScreen extends mv.BaseScreen
     id: "animButton"
     text: "small"
     translation: [1800, 600]
-    size: [200, 60]
-    horizAlign: "left"
+    size: [200, 60],
     style: m.setStyleColor(m.styleManager@.getStyle("mv.Button.default"), "#aa0000", "#ff0000", "#aa0000", "#000000", "#ffffff", "#aaaaaa")
   }]
 
@@ -42,8 +42,7 @@ class AnimationScreen extends mv.BaseScreen
     id: "animButton"
     text: "red"
     translation: [400, 100]
-    size: [800, 100]
-    horizAlign: "center"
+    size: [800, 100],
     style: m.setStyleColor(m.styleManager@.getStyle("mv.Button.default"), "#aa0000", "#ff0000", "#aa0000", "#000000", "#ffffff", "#aaaaaa")
 
   }]
@@ -76,6 +75,36 @@ class AnimationScreen extends mv.BaseScreen
   end function
 
   private function createViews()
+    menuItems = [
+      {
+        id: "button1",
+        text: "Music",
+        icon: "pkg:/images/music.png"
+        size: [200, 70]
+      },
+      {
+        id: "button2",
+        text: "Photos",
+        icon: "pkg:/images/photo.png"
+        size: [200, 70]
+      },
+      {
+        id: "button3",
+        text: "Video"
+        icon: "pkg:/images/video.png"
+        size: [200, 70]
+      },
+      {
+        id: "button4",
+        text: "Others",
+        icon: "pkg:/images/small-star-hd.png"
+        size: [200, 70]
+      }
+    ]
+
+    m.menu = m.createSGNode("mv_Menu", m.top, "sideMenu")
+    m.menu@.setItems(menuItems)
+
     m.createViewsFromStyleJson(m.viewJson, m.top)
 
     redButtonStyle = m.styleManager@.getStyle("mv.Button.default")
@@ -85,7 +114,7 @@ class AnimationScreen extends mv.BaseScreen
     m.setStyleColor(blueButtonStyle, "#0000aa", "#0000ff", "#0000aa", "#000000", "#ffffff", "#0000aa")
 
     m.controlsGroup = m.createSGNode("mv_ControlsGroup", m.top, "controlsGroup", {
-      translation: [200, 200]
+      translation: [400, 200]
       layoutMode: "vert"
       keyDirection: "vert"
       itemSpacings: [10]
@@ -167,6 +196,10 @@ class AnimationScreen extends mv.BaseScreen
 
   private function onKeyPressLeft() as boolean
     m.log.info("OK LEFT")
+    if not m.menu.isFocused
+      m.setFocus(m.menu)
+      return true
+    end if
     return false
   end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

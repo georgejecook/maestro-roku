@@ -1,0 +1,138 @@
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/Animation.bs"
+
+namespace mv.controls
+  @node("mv_Menu", "mv_BaseView")
+  class Menu extends mv.BaseView
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private prevState = ""
+    private state as string 'hidden|collapsed|expanded
+    private bgRect as mc.types.node
+    private focusIndicator as mc.types.node
+    private controlsGroup as mc.types.node
+    private menuIcon as mc.types.node
+    private focusAnimation as mc.types.node
+    private menuAnimation as mc.types.node
+    private menuIconFocused = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    public focusedIndex = -1
+    public selectedIndex = -1
+
+    function new()
+      super("mv_Menu")
+    end function
+
+    protected override function initialize() as void
+      super.initialize()
+      m.createViews()
+
+      m.observeNodeField(m.controlsGroup, "focusedIndex", m.onFocusedIndexChanged)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    function setState()
+    end function
+
+    function setItems(items as mc.types.array)
+      for each item in items
+        mc.setPath(item, "iconStyle.normal", {
+          uri: item.icon,
+          size: [40, 40],
+          translation: [10, 10]
+
+        })
+        mc.setPath(item, "iconPosition", "left")
+        m.createSGNode("mv_Button", m.controlsGroup, item.id, item)
+      end for
+      m.controlsGroup@.updateChildren()
+      m.updateMenuAndFocusSize()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function createViews() as void
+      bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/Menu.bundle")
+      m.createViewsFromStyleJson(bundle.views)
+
+      innerPadding = mc.getPoint(bundle, "styles.focusIndicator.innerPadding")
+      m.focusIndicator.addFields({ "innerPadding": innerPadding })
+    end function
+
+    private function updateMenuAndFocusSize()
+      button = m.controlsGroup.getChild(0)
+      if button <> invalid
+        m.bgRect.width = m.controlsGroup.translation[0] * 2 + button.size[0]
+        m.focusIndicator.width = button.size[0] + m.focusIndicator.innerPadding[0]
+        m.focusIndicator.height = button.size[1] + m.focusIndicator.innerPadding[1]
+        m.focusIndicator.translation = [
+          m.controlsGroup.translation[0] - m.focusIndicator.innerPadding[0] / 2,
+          m.controlsGroup.translation[1] - m.focusIndicator.innerPadding[1] / 2
+        ]
+        m.focusAnimation = new mv.animations.Move(m.focusIndicator, 0.2, m.focusIndicator.translation, m.focusIndicator.translation)
+        m.focusAnimation.start()
+      end if
+    end function
+
+    private function moveFocusIndicator()
+      focusedButton = m.controlsGroup.getChild(m.focusedIndex)
+      if m.focusAnimation <> invalid
+        newTranslation = [
+          m.controlsGroup.translation[0] - m.focusIndicator.innerPadding[0] / 2,
+          m.controlsGroup.translation[1] + focusedButton.translation[1] - m.focusIndicator.innerPadding[1] / 2
+        ]
+        m.focusAnimation.animateTo(newTranslation)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private function onFocusedIndexChanged(index as integer) as void
+      m.log.info("focused button index", index)
+
+      m.focusedIndex = index
+      m.moveFocusIndicator()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private function onKeyPressOK() as boolean
+      m.log.info("MENU OK PRESS")
+      if m.menuIconFocused
+        m.bgRect.visible = true
+        m.setFocus(m.controlsGroup)
+        m.menuIconFocused = false
+        return true
+      end if
+      return false
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      super.onGainedFocus(isSelfFocused)
+
+      if isSelfFocused
+        m.menuIcon.blendColor = "#ff0000"
+        if not m.menuIconFocused
+          m.menuIconFocused = true
+        end if
+      end if
+    end function
+
+  end class
+end namespace
