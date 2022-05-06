@@ -189,19 +189,29 @@ class AnimationScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onKeyPressUp() as boolean
-    m.log.info("OK UP")
+    m.menu@.setState("hidden")
     return false
   end function
 
-
   private function onKeyPressLeft() as boolean
-    m.log.info("OK LEFT")
+    m.log.info("ANIMATION LEFT PRESS")
+    m.log.info("menu is focused", m.menu.isFocused)
     if not m.menu.isFocused
       m.setFocus(m.menu)
       return true
     end if
     return false
   end function
+
+  private function onKeyPressRight() as boolean
+    m.log.info("ANIMATION RIGHT PRESS")
+    if m.menu.isFocused
+      m.setFocus(m.controlsGroup)
+      return true
+    end if
+    return false
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -9,8 +9,8 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    private prevState = ""
-    private state as string 'hidden|collapsed|expanded
+    private prevState = "hidden"
+    private currentState = "" 'hidden|collapsed|expanded
     private bgRect as mc.types.node
     private focusIndicator as mc.types.node
     private controlsGroup as mc.types.node
@@ -18,6 +18,15 @@ namespace mv.controls
     private focusAnimation as mc.types.node
     private menuAnimation as mc.types.node
     private menuIconFocused = false
+
+    private stateToTransition = [
+      { prevState: "hidden", currentState: "expanded", transition: m.animateFromHiddenToExpanded },
+      { prevState: "hidden", currentState: "collapsed", transition: m.animateFromHiddenToCollapsed },
+      { prevState: "expanded", currentState: "collapsed", transition: m.animateFromExpandedToCollapsed },
+      { prevState: "collapsed", currentState: "expanded", transition: m.animateFromCollapsedToExpanded },
+      { prevState: "expanded", currentState: "hidden", transition: m.animateFromExpandedToHidden },
+      { prevState: "collapsed", currentState: "hidden", transition: m.animateFromCollapsedToHidden }
+    ]
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public fields
@@ -32,14 +41,20 @@ namespace mv.controls
     protected override function initialize() as void
       super.initialize()
       m.createViews()
-
+      m.menuAnimation = new mv.animations.Move(m.bgRect, 0.2, m.bgRect.translation, m.bgRect.translation)
+      m.menuAnimation.start()
       m.observeNodeField(m.controlsGroup, "focusedIndex", m.onFocusedIndexChanged)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    function setState()
+    function setState(state as string, animated = true as boolean)
+      m.currentState = state
+      transition = m.getTransitionFromState()
+      if transition <> invalid
+        transition()
+      end if
     end function
 
     function setItems(items as mc.types.array)
@@ -47,14 +62,12 @@ namespace mv.controls
         mc.setPath(item, "iconStyle.normal", {
           uri: item.icon,
           size: [40, 40],
-          translation: [10, 10]
-
         })
         mc.setPath(item, "iconPosition", "left")
         m.createSGNode("mv_Button", m.controlsGroup, item.id, item)
       end for
       m.controlsGroup@.updateChildren()
-      m.updateMenuAndFocusSize()
+      m.updateMenu()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -69,19 +82,27 @@ namespace mv.controls
       m.focusIndicator.addFields({ "innerPadding": innerPadding })
     end function
 
-    private function updateMenuAndFocusSize()
+    private function updateMenu(animate = false as boolean)
       button = m.controlsGroup.getChild(0)
-      if button <> invalid
+      if not animate
         m.bgRect.width = m.controlsGroup.translation[0] * 2 + button.size[0]
-        m.focusIndicator.width = button.size[0] + m.focusIndicator.innerPadding[0]
-        m.focusIndicator.height = button.size[1] + m.focusIndicator.innerPadding[1]
-        m.focusIndicator.translation = [
-          m.controlsGroup.translation[0] - m.focusIndicator.innerPadding[0] / 2,
-          m.controlsGroup.translation[1] - m.focusIndicator.innerPadding[1] / 2
-        ]
-        m.focusAnimation = new mv.animations.Move(m.focusIndicator, 0.2, m.focusIndicator.translation, m.focusIndicator.translation)
-        m.focusAnimation.start()
+      else
+        m.menuAnimation = new mv.animations.Size(m.bgRect, 0.5, m.bgRect.translation[0], m.bgRect.translation[0])
+        m.menuAnimation.start()
+        m.menuAnimation.animateToWithSpeed(m.controlsGroup.translation[0] * 2 + button.size[0], 0.05)
       end if
+      m.updateFocusIndicator(button.size)
+    end function
+
+    private function updateFocusIndicator(size as mc.types.array)
+      m.focusIndicator.width = size[0] + m.focusIndicator.innerPadding[0]
+      m.focusIndicator.height = size[1] + m.focusIndicator.innerPadding[1]
+      m.focusIndicator.translation = [
+        m.controlsGroup.translation[0] - m.focusIndicator.innerPadding[0] / 2,
+        m.controlsGroup.translation[1] - m.focusIndicator.innerPadding[1] / 2
+      ]
+      m.focusAnimation = new mv.animations.Move(m.focusIndicator, 0.2, m.focusIndicator.translation, m.focusIndicator.translation)
+      m.focusAnimation.start()
     end function
 
     private function moveFocusIndicator()
@@ -95,12 +116,59 @@ namespace mv.controls
       end if
     end function
 
+    private function getTransitionFromState()
+      for each item in m.stateToTransition
+        if item.prevState = m.prevState and item.currentState = m.currentState
+          return item.transition
+        end if
+      end for
+      return invalid
+    end function
+
+    private function animateFromHiddenToExpanded()
+      m.menuAnimation.animateToWithSpeed([0, 0], 0.05)
+      m.prevState = m.currentState
+      m.menuIcon.visible = false
+      m.setFocus(m.controlsGroup)
+    end function
+
+    private function animateFromHiddenToCollapsed()
+    end function
+
+    private function animateFromExpandedToCollapsed()
+      m.menuIcon.visible = false
+
+      for i = 0 to m.controlsGroup.getChildCount() - 1
+        child = m.controlsGroup.getChild(i)
+        child.size = mc.getPoint(child, "iconStyle.normal.size")
+        label = child.getChild(2)
+        label.visible = false
+      end for
+      m.updateMenu()
+      m.prevState = m.currentState
+    end function
+
+    private function animateFromCollapsedToExpanded()
+    end function
+
+    private function animateFromExpandedToHidden()
+    end function
+
+    private function animateFromCollapsedToHidden()
+      m.menuAnimation = new mv.animations.Move(m.bgRect, 0.2, m.bgRect.translation, m.bgRect.translation)
+      m.menuAnimation.start()
+      m.menuAnimation.animateToWithSpeed([-300, 0], 0.05)
+      m.menuIcon.blendColor = "0xFFFFFFFF"
+      m.prevState = m.currentState
+      m.menuIcon.visible = true
+      m.setFocus(m.top.getParent())
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     private function onFocusedIndexChanged(index as integer) as void
       m.log.info("focused button index", index)
-
       m.focusedIndex = index
       m.moveFocusIndicator()
     end function
@@ -111,9 +179,18 @@ namespace mv.controls
     private function onKeyPressOK() as boolean
       m.log.info("MENU OK PRESS")
       if m.menuIconFocused
-        m.bgRect.visible = true
-        m.setFocus(m.controlsGroup)
+        m.setState("expanded")
         m.menuIconFocused = false
+        return true
+      end if
+      return false
+    end function
+
+    private function onKeyPressRight() as boolean
+      if m.controlsGroup.isFocused
+        m.setState("collapsed")
+        m.focusIndicator.visible = false
+        m.setFocus(m.top.getParent())
         return true
       end if
       return false
@@ -125,13 +202,17 @@ namespace mv.controls
 
     protected override function onGainedFocus(isSelfFocused as boolean)
       super.onGainedFocus(isSelfFocused)
-
+      m.log.info("MENU ON GAINED FOCUS")
       if isSelfFocused
         m.menuIcon.blendColor = "#ff0000"
-        if not m.menuIconFocused
-          m.menuIconFocused = true
-        end if
+        m.menuIconFocused = true
       end if
+    end function
+
+    protected override function onLostFocus()
+      super.onLostFocus()
+      m.menuIcon.blendColor = "0xFFFFFFFF"
+      m.menuIconFocused = false
     end function
 
   end class
