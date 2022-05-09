@@ -269,7 +269,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function forceUpdate(fullUpdate = false as boolean) as void
-      ? "+>+>+>+> list forceUpdate " ; fullUpdate
       ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
         ? "cannot forceUpdate list while rendering is taking place"
@@ -278,7 +277,7 @@ namespace ml
 
       ' ? m.focusedRowIndex ; " " m.focusedCellIndex
       ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
-      m.viewManager.forceUpdateLayout(fullUpdate)
+      m.viewManager.forceUpdateLayout(fullUpdate = true)
       m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
 
@@ -344,10 +343,10 @@ namespace ml
 
     public function moveToItem(indices as mc.types.array, animated = false as boolean)
       if m.content <> invalid
-        m.moveToRow(indices[0], animated)
+        m.moveToRow(indices[0], animated = true)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
-          m.moveToRowItem(indices[0], indices[1], animated)
+          m.moveToRowItem(indices[0], indices[1], animated = true)
           ' m.focusIndicatorManager.focusedCellIndex = indices[1]
           ' m.focusIndicatorManager@.setNextIndex(indices, 0)
         end if

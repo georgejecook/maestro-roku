@@ -84,7 +84,11 @@ namespace ml
 
     public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
       ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; componentInfo.componentIndex ; " D " ; direction
-      config = componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, true)
+      if componentInfo <> invalid and componentInfo <> invalid
+        config = componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, true)
+      else
+        return invalid
+      end if
       return config
     end function
 
