@@ -153,7 +153,7 @@ namespace ml
     end function
 
     public override function getRect(index as integer, useScreenCoords = false as boolean)
-      return m.viewManager.getRect(index, useScreenCoords)
+      return m.viewManager.getRect(index, useScreenCoords = true)
     end function
 
     public override function onFlowFocusFraction(fraction as float)
@@ -169,7 +169,7 @@ namespace ml
         m.cleanHeader()
       else
         headerSettings = m.settings.headerSettings
-        if forceUpdate or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
+        if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.currentHeaderType = headerSettings.compName
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)

@@ -161,7 +161,7 @@ namespace ml
     end function
 
     public override function getRect(index as integer, useScreenCoords = false as boolean)
-      return m.viewManager.getRect(index, useScreenCoords)
+      return m.viewManager.getRect(index, useScreenCoords = true)
     end function
 
     public override function getItemSize(index as integer) as mc.types.array
@@ -174,7 +174,7 @@ namespace ml
     end function
 
     function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
-      m.itemScroller.setFocusIndex(index, isMoving, notifyFocusManager)
+      m.itemScroller.setFocusIndex(index, isMoving, notifyFocusManager = true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -186,7 +186,7 @@ namespace ml
         m.cleanHeader()
       else
         headerSettings = m.settings.headerSettings
-        if forceUpdate or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
+        if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.currentHeaderType = headerSettings.compName
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
