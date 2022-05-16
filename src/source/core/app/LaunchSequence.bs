@@ -23,11 +23,12 @@ namespace mc.app
     'can set this to false to cut out certain commands
     public isIncludingView = true
 
+    'FIXME - ropm is renaming this line!!! it should not be renamed
     'change this value if you have a different styles location
-    protected styleUrl = "pkg:/meta/Styles.json"
+    protected styleUrl = "pkg:" + "/meta/Styles.json"
 
     'TODO - where will this file actually be?
-    protected maestroStyleUrl = "pkg:/meta/maestroDefaultStyles.json"
+    protected maestroStyleUrl = "pkg:/" + "meta/maestroDefaultStyles.json"
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -193,8 +194,14 @@ namespace mc.app
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function loadJson(path as string) as mc.types.assocarray
-      text = readAsciiFile(path)
-      return text = invalid ? invalid : parseJson(text)
+      try
+        text = readAsciiFile(path)
+        result = parseJson(text)
+        return result
+      catch error
+        throw "could not loadJson from path " + path
+      end try
+      return invalid
     end function
 
     public function showErrorDialog(title as string, message as string) as mc.types.node
@@ -218,7 +225,7 @@ namespace mc.app
     private function loadManifest()
       manifest = {}
 
-      file = readAsciiFile("pkg:/manifest")
+      file = readAsciiFile("pkg:/" + "manifest")
       lines = file.split(Chr(10))
 
       for each line in lines

@@ -76,10 +76,19 @@ namespace mc
       m.log.info("starting command", command.name)
       m.completedCommands[funcName] = false
 
-      'bs:disable-next-line
-      m.__cb = command.func
-      'bs:disable-next-line
-      m.__cb(command)
+      try
+        'bs:disable-next-line
+        m.__cb = command.func
+        'bs:disable-next-line
+        m.__cb(command)
+      catch error
+        'bs:disable-next-line
+        message = m.log.error("duplicate command name. Cannot proceed", command.name)
+        m.failCommand(command, "Duplicate command function")
+
+        m.log.error(message)
+        m.failCommand(command, message)
+      end try
     end function
 
     protected function finishCommand(command as mc.Command)
