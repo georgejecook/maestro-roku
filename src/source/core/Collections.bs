@@ -7,8 +7,11 @@ namespace mc.collections
   ' @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
   ' @returns {outputType} items mapped by the mapper
   '  */
-  function map(array as mc.types.array, mapper as mc.collections.BaseMapper)
+  function map(array as mc.types.array, mapper as mc.collections.BaseMapper, mTarget = invalid as mc.types.assocarray)
     items = []
+    if mTarget = invalid
+      mTarget = m
+    end if
     if array <> invalid
       isClass = mc.isClass(mapper)
       for each item in array
@@ -18,7 +21,7 @@ namespace mc.collections
             items.push(transformed)
           end if
         else
-          transformed = mapper(item)
+          transformed = mc.apply(mapper, [item], mTarget)
           if transformed <> invalid
             items.push(transformed)
           end if
@@ -55,12 +58,15 @@ namespace mc.collections
     return result
   end function
 
-  function getSortedArrayByFunction(arr as mc.types.array, func as function, ascending = true as boolean) as mc.types.array
+  function getSortedArrayByFunction(arr as mc.types.array, func as function, ascending = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.array
+    if mTarget = invalid
+      mTarget = m
+    end if
     result = []
     if mc.isArray(arr) and mc.isFunction(func)
       dict = {}
       for each item in arr
-        key = func(item)
+        key = mc.apply(func, [item], mTarget)
         if mc.isString(key)
           dict[key] = item
         end if
@@ -208,8 +214,11 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} items that match the predicate
-  function filter(array as mc.types.array, predicate as dynamic)
+  function filter(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.assocarray)
     items = []
+    if mTarget = invalid
+      mTarget = m
+    end if
     try
       if array <> invalid
         if mc.isClass(predicate)
@@ -220,7 +229,7 @@ namespace mc.collections
           end for
         else if mc.isFunction(predicate)
           for each item in array
-            if predicate(item)
+            if mc.apply(predicate, [item], mTarget)
               items.push(item)
             end if
           end for
@@ -244,8 +253,8 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns the first item that matches, or invalid
-  function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic)
-    items = mc.collections.filter(array, predicate)
+  function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as mc.types.array)
+    items = mc.collections.filter(array, predicate, mTarget)
     if items.count() = 0
       return default
     else
@@ -256,8 +265,8 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns true if the array matches the predicate
-  function contains(array as mc.types.array, predicate as dynamic) as boolean
-    items = mc.collections.filter(array, predicate)
+  function contains(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.array) as boolean
+    items = mc.collections.filter(array, predicate, mTarget)
     return items.count() > 0
   end function
 
@@ -344,5 +353,37 @@ namespace mc.collections
   function arrayContains(array as mc.types.array, value as dynamic) as boolean
     return mc.collections.getArrayIndex(array, value) <> -1
   end function
+
+  class Util
+    private mTarget
+
+    function new(mTarget as mc.types.assocarray)
+      m.mTarget = mTarget
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Collections
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function filter(array as mc.types.array, predicate as dynamic)
+      return mc.collections.filter(array, predicate, m.mTarget)
+    end function
+
+    function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic)
+      return mc.collections.find(array, predicate, default, m.mTarget)
+    end function
+
+    function contains(array as mc.types.array, predicate as dynamic) as boolean
+      return mc.collections.contains(array, predicate, m.mTarget)
+    end function
+
+    function map(array as mc.types.array, mapper as mc.collections.BaseMapper) as boolean
+      return mc.collections.map(array, mapper, m.mTarget)
+    end function
+
+    function getSortedArrayByFunction(array as mc.types.array, func as function, ascending = true as boolean) as mc.types.array
+      return mc.collections.getSortedArrayByFunction(array, func, ascending, m.mTarget)
+    end function
+  end class
 
 end namespace
