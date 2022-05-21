@@ -2,11 +2,34 @@ import "pkg:/source/core/Utils.bs"
 
 namespace mc.collections
 
-  ' @description returns an array with items mapped by the mapper
+  ' runs func on each item
+  ' @param {collection} collection to iterate over
+  ' @param {function} function to run on each item. For an array is form function(item), for dictionary function(key, value)
+  '  */
+  @injectLocalM
+  function forEach(collection as dynamic, func as function, mTarget = invalid as mc.types.assocarray)
+    items = []
+    if mTarget = invalid
+      mTarget = m
+    end if
+    if mc.isArray(collection)
+      for each item in collection
+        mc.apply(func, [item], mTarget)
+      end for
+    else if mc.isAACompatible(collection)
+      for each id in collection
+        mc.apply(func, [id, collection[id]], mTarget)
+      end for
+    end if
+    return items
+  end function
+
+  ' returns an array with items mapped by the mapper
   ' @param {array} array of items to map
   ' @param {class} mapper, function (transform):outputType, or class with a transform(item):outputType function
   ' @returns {outputType} items mapped by the mapper
   '  */
+  @injectLocalM
   function map(array as mc.types.array, mapper as mc.collections.BaseMapper, mTarget = invalid as mc.types.assocarray)
     items = []
     if mTarget = invalid
@@ -58,6 +81,7 @@ namespace mc.collections
     return result
   end function
 
+  @injectLocalM
   function getSortedArrayByFunction(arr as mc.types.array, func as function, ascending = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.array
     if mTarget = invalid
       mTarget = m
@@ -214,6 +238,7 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} items that match the predicate
+  @injectLocalM
   function filter(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.assocarray)
     items = []
     if mTarget = invalid
@@ -253,6 +278,7 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns the first item that matches, or invalid
+  @injectLocalM
   function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as mc.types.array)
     items = mc.collections.filter(array, predicate, mTarget)
     if items.count() = 0
@@ -265,6 +291,7 @@ namespace mc.collections
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns true if the array matches the predicate
+  @injectLocalM
   function contains(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.array) as boolean
     items = mc.collections.filter(array, predicate, mTarget)
     return items.count() > 0
@@ -353,37 +380,5 @@ namespace mc.collections
   function arrayContains(array as mc.types.array, value as dynamic) as boolean
     return mc.collections.getArrayIndex(array, value) <> -1
   end function
-
-  class Util
-    private mTarget
-
-    function new(mTarget as mc.types.assocarray)
-      m.mTarget = mTarget
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Collections
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function filter(array as mc.types.array, predicate as dynamic)
-      return mc.collections.filter(array, predicate, m.mTarget)
-    end function
-
-    function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic)
-      return mc.collections.find(array, predicate, default, m.mTarget)
-    end function
-
-    function contains(array as mc.types.array, predicate as dynamic) as boolean
-      return mc.collections.contains(array, predicate, m.mTarget)
-    end function
-
-    function map(array as mc.types.array, mapper as mc.collections.BaseMapper) as boolean
-      return mc.collections.map(array, mapper, m.mTarget)
-    end function
-
-    function getSortedArrayByFunction(array as mc.types.array, func as function, ascending = true as boolean) as mc.types.array
-      return mc.collections.getSortedArrayByFunction(array, func, ascending, m.mTarget)
-    end function
-  end class
 
 end namespace
