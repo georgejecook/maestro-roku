@@ -197,7 +197,7 @@ namespace mc
   '  * @param {string} field - path to field, with "items.2.path.syntax",
   '  * @returns {any} value if found, or default value
   '  */
-  function getPath(content as object, path as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
+  function getPath(content as object, path = invalid as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
     part = invalid
 
     if path <> invalid
@@ -235,7 +235,7 @@ namespace mc
     end if
   end function
 
-  function getString(content as object, path as string, default = "" as dynamic, disableIndexing = false as boolean) as dynamic
+  function getString(content as object, path = invalid as string, default = "" as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isString(value)
       return value
@@ -243,7 +243,7 @@ namespace mc
     return default
   end function
 
-  function getInteger(content as object, path as string, default = 0 as dynamic, disableIndexing = false as boolean) as dynamic
+  function getInteger(content as object, path = invalid as string, default = 0 as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isInteger(value)
       return value
@@ -251,7 +251,7 @@ namespace mc
     return default
   end function
 
-  function getArray(content as object, path as string, default = [] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getArray(content as object, path = invalid as string, default = [] as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isArray(value)
       return value
@@ -259,7 +259,7 @@ namespace mc
     return default
   end function
 
-  function getAA(content as object, path as string, default = {} as dynamic, disableIndexing = false as boolean) as dynamic
+  function getAA(content as object, path = invalid as string, default = {} as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isAACompatible(value)
       return value
@@ -267,7 +267,7 @@ namespace mc
     return default
   end function
 
-  function getFloat(content as object, path as string, default = 0.0 as dynamic, disableIndexing = false as boolean) as dynamic
+  function getFloat(content as object, path = invalid as string, default = 0.0 as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isFloat(value)
       return value
@@ -275,7 +275,7 @@ namespace mc
     return default
   end function
 
-  function getBoolean(content as object, path as string, default = false as dynamic, disableIndexing = false as boolean) as dynamic
+  function getBoolean(content as object, path = invalid as string, default = false as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isBoolean(value)
       return value
@@ -283,7 +283,7 @@ namespace mc
     return default
   end function
 
-  function getPoint(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getPoint(content as object, path = invalid as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isPoint(value)
       return value
@@ -291,7 +291,7 @@ namespace mc
     return default
   end function
 
-  function getNode(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getNode(content as object, path = invalid as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if type(value) = "roSGNode"
       return value
@@ -299,7 +299,7 @@ namespace mc
     return default
   end function
 
-  function getAny(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getAny(content as object, path = invalid as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
     return mc.getPath(content, path, default, disableIndexing)
   end function
 
