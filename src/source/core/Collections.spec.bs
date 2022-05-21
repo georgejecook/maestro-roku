@@ -509,15 +509,29 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("using collections.Util to give local context")
+    @only
+    @describe("using auto-injected m to give local context")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function printStuff(text)
+      ? text
+      m.localData++
+    end function
+
+    @it("works with forEach")
+    function _()
+      items = ["a", "b", "c"]
+      m.localData = 0
+      mc.collections.forEach(items, function(i): m.printStuff(i): end function)
+      m.assertEqual(m.localData, 3)
+    end function
 
     @it("works with map")
     function _()
       items = ["a", "b", "c"]
       m.localData = "l"
 
-      mappedItems = (new mc.collections.Util(m)).map(items, function(i)
+      mappedItems = mc.collections.map(items, function(i)
         return `${i}-${m.localData}`
       end function)
 
@@ -529,7 +543,7 @@ namespace tests
       items = ["a", "b", "c"]
       m.localData = "b"
 
-      item = (new mc.collections.Util(m)).filter(items, function(i): return i = m.localData: end function)
+      item = mc.collections.filter(items, function(i): return i = m.localData: end function)
 
       m.assertEqual(item, ["b"])
     end function
@@ -539,7 +553,7 @@ namespace tests
       items = ["a", "b", "c"]
       m.localData = "b"
 
-      item = (new mc.collections.Util(m)).find(items, function(i): return i = m.localData: end function)
+      item = mc.collections.find(items, function(i): return i = m.localData: end function)
 
       m.assertEqual(item, "b")
     end function
@@ -549,7 +563,8 @@ namespace tests
       items = ["a", "b", "c"]
       m.localData = "b"
 
-      m.assertTrue((new mc.collections.Util(m)).contains(items, function(i): return i = m.localData: end function))
+      result = mc.collections.contains(items, function(i): return i = m.localData: end function)
+      m.assertTrue(result)
     end function
 
     @it("works with sort")
@@ -557,10 +572,11 @@ namespace tests
       items = ["a", "b", "c"]
       m.localData = { "a": "3", "b": "2", "c": "1" }
 
-      items = (new mc.collections.Util(m)).getSortedArrayByFunction(items, function(i): return m.localData[i]: end function)
+      items = mc.collections.getSortedArrayByFunction(items, function(i): return m.localData[i]: end function)
 
       m.assertEqual(items, ["c", "b", "a"])
     end function
+
 
   end class
 end namespace
