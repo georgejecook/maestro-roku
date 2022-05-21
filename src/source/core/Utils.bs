@@ -291,6 +291,18 @@ namespace mc
     return default
   end function
 
+  function getNode(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if type(value) = "roSGNode"
+      return value
+    end if
+    return default
+  end function
+
+  function getAny(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+    return mc.getPath(content, path, default, disableIndexing)
+  end function
+
   function append(source as mc.types.assocarray, other as mc.types.assocarray)
     if mc.isAACompatible(source) and mc.isAACompatible(other)
       source.append(other)
