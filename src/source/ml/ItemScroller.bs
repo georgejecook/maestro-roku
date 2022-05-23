@@ -317,7 +317,7 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = - targetComponentInfo.getPosition(direction)
+      translation[m.axes] = -targetComponentInfo.getPosition(direction)
 
       ' ? "////// offset is "; translation[m.axes]
 
@@ -380,7 +380,7 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = - nextComponentInfo.getPosition(direction)
+      translation[m.axes] = -nextComponentInfo.getPosition(direction)
 
       ' ? "////// offset is "; translation[m.axes]
 
@@ -456,7 +456,7 @@ namespace ml
       else if m.isMovingMultiple
 
         if fraction = 1
-          isInPlace = (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
+          ' isInPlace = (m.targetComponentInfo = invalid or m.componentInfo.index <> m.targetComponentInfo.index)
           ' ? " REGULAR ANIM FINISHED " ; isInPlace '": BUT STILL NOT IN PLACE!"
           ' m.updateSrollOffsetFraction(1)
           m.finishMovingToIndex()
@@ -663,7 +663,7 @@ namespace ml
       if info <> invalid
         ' ? "SCI>>> (" ; m.__classname ; ") " ; info.index ; " CI " ; info.contentIndex
         m.index = info.index
-        m.activeScrollLocation = - info.getPosition(m.direction)
+        m.activeScrollLocation = -info.getPosition(m.direction)
         if not m.isLastMoveFlowFocus
           m.screenPos = info.getScreenPosition(m.direction)
         end if
@@ -692,7 +692,7 @@ namespace ml
 
       if info.index <> m.nextIndex
         m.nextIndex = info.index
-        m.nextScrollLocation = - info.getPosition(m.direction)
+        m.nextScrollLocation = -info.getPosition(m.direction)
         if not m.isLastMoveFlowFocus
           m.nextScreenPos = info.getScreenPosition(m.direction)
         end if
@@ -827,72 +827,72 @@ namespace ml
       end if
 
       if not isIndexUpdateRequired
-      isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-        return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
-      end function)
-    end if
+        ' isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+        ' return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
+        ' end function)
+      end if
 
-    'FIXME - this needs revisiting
-    ' ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
+      'FIXME - this needs revisiting
+      ' ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
 
-    'all changes result in downward movements
-    ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
-    ' if isIndexUpdateRequired
-    '   ? " NOTIFYING FOCUS"
-    '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
-    '   wasNotifying = m.focusManager.isNotifying
-    '   m.focusManager.isNotifying = true
-    '   m.reset(true)
-    '   m.focusManager.isNotifying = wasNotifying
-    ' else
-    '   ? " not notifying focus"
-    ' ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
-    m.reset(true)
-    ' end if
-  end function
+      'all changes result in downward movements
+      ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
+      ' if isIndexUpdateRequired
+      '   ? " NOTIFYING FOCUS"
+      '   ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
+      '   wasNotifying = m.focusManager.isNotifying
+      '   m.focusManager.isNotifying = true
+      '   m.reset(true)
+      '   m.focusManager.isNotifying = wasNotifying
+      ' else
+      '   ? " not notifying focus"
+      ' ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
+      m.reset(true)
+      ' end if
+    end function
 
-  public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
-    componentInfo = m.getCellComponentInfo(componentInfo, true)
-    if componentInfo <> invalid
-      m.setComponentInfo(componentInfo)
-      ' ? " GRID CHOICE IS MADE index is now "; m.index
-    end if
-  end function
+    public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+      componentInfo = m.getCellComponentInfo(componentInfo, true)
+      if componentInfo <> invalid
+        m.setComponentInfo(componentInfo)
+        ' ? " GRID CHOICE IS MADE index is now "; m.index
+      end if
+    end function
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ Focus Indicator
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Focus Indicator
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
-    info = m.getCellComponentInfo(componentInfo, isFromListScroll)
+      info = m.getCellComponentInfo(componentInfo, isFromListScroll)
 
-    rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
-    if info = invalid or info.component = invalid or m.settings = invalid
-      ' ? "cannot get focus indicator componentInfo or componentInfo.component is invalid "; m.__classname
-      return new ml.FocusIndicatorConfig(rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
-    end if
+      rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
+      if info = invalid or info.component = invalid or m.settings = invalid
+        ' ? "cannot get focus indicator componentInfo or componentInfo.component is invalid "; m.__classname
+        return new ml.FocusIndicatorConfig(rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
+      end if
 
-    size = m.viewManager.getItemSize(info.contentIndex)
-    translation = m.getFocusIndicatorTranslation(info, componentInfo, direction, isFloatingFocus)
+      size = m.viewManager.getItemSize(info.contentIndex)
+      translation = m.getFocusIndicatorTranslation(info, componentInfo, direction, isFloatingFocus)
 
-    indicatorTranslation = [translation[0] + m.settings.feedbackOffsets[0], translation[1] + m.settings.feedbackOffsets[1]]
+      indicatorTranslation = [translation[0] + m.settings.feedbackOffsets[0], translation[1] + m.settings.feedbackOffsets[1]]
 
-    indicatorSize = [size[0] + m.settings.feedbackOffsets[2] - m.settings.feedbackOffsets[0], size[1] + m.settings.feedbackOffsets[3] - m.settings.feedbackOffsets[1]]
+      indicatorSize = [size[0] + m.settings.feedbackOffsets[2] - m.settings.feedbackOffsets[0], size[1] + m.settings.feedbackOffsets[3] - m.settings.feedbackOffsets[1]]
 
-    isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
+      isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
 
-    return new ml.FocusIndicatorConfig(rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
-  end function
+      return new ml.FocusIndicatorConfig(rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
+    end function
 
 
-  protected function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
-    return invalid
-  end function
+    protected function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+      return invalid
+    end function
 
-  protected function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
-    return [0, 0]
-  end function
+    protected function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      return [0, 0]
+    end function
 
-end class
+  end class
 end namespace
