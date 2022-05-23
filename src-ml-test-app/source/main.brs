@@ -19,7 +19,7 @@ function initScreen() as void
   'I'm not a fan of that though; but just showing how it would work
   rootScene.callFunc("begin", m.args)
 
-  while(true)
+  while true
     msg = wait(0, m.port)
     msgType = type(msg)
 
