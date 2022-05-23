@@ -226,6 +226,8 @@ namespace mc
         end if
         i++
       end while
+    else
+      part = content
     end if
 
     if part <> invalid
@@ -291,7 +293,7 @@ namespace mc
     return default
   end function
 
-  function getNode(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getNode(content as object, path as string, default = createObject("roSGnode", "ContentNode") as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if type(value) = "roSGNode"
       return value
@@ -299,7 +301,7 @@ namespace mc
     return default
   end function
 
-  function getAny(content as object, path as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getAny(content as object, path as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
     return mc.getPath(content, path, default, disableIndexing)
   end function
 
@@ -629,6 +631,7 @@ namespace mc.private
   function getMaestroPooledComponent(componentType as string) as object
     componentPool = m.global.__m_componentPool
     if componentPool = invalid
+      'bs:disable-next-line
       componentPool = createObject("roSGNode", "mc_ComponentPool")
       componentPool.numberOfComponentsToCreateWhenDry = 5
       componentPool@.prebakeComponents(5, "Timer")

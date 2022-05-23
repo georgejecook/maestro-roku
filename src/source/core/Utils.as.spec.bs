@@ -1,0 +1,345 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace tests
+  @suite("UtilsAs Tests")
+  class UtilsAsTests extends tests.BaseTestSuite
+
+    protected override function setup()
+      super.setup()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asAny")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("ass values that are present")
+    function _()
+      a = {
+        v: 1
+        b: {
+          v: 2
+          c: {
+            v: 3
+          }
+
+        }
+      }
+      value = asAny(a.v.no)
+      m.assertEqual(value, invalid)
+      value = asAny(a.b.v, 1)
+      m.assertEqual(value, 2)
+      value = asAny(a.b.c.v, 2)
+      m.assertEqual(value, 3)
+    end function
+
+    @it("asAny default values")
+    function _()
+      a = {
+        v: 1
+        b: {
+          v: 2
+          c: {
+            v: 3
+          }
+
+        }
+      }
+      value = asAny(a.v.no, "default")
+      m.assertEqual(value, "default")
+      value = asAny(a.b.v, "default")
+      m.assertEqual(value, 2)
+      value = asAny(a.b.c.v, "default")
+      m.assertEqual(value, 3)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asFloat")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asFloat(data.v, 0.5)
+      m.assertLike(value, 0.5)
+      data = { v: 0 }
+      value = asFloat(data.v)
+      m.assertLike(value, 0)
+      value = asFloat(data.v, 0)
+      m.assertLike(value, 0)
+      data = { v: 3.0 }
+      value = asFloat(data.v)
+      m.assertLike(value, 3)
+      data = { v: 3.0 }
+      value = asFloat(data.v)
+      m.assertLike(value, 3)
+      value = asFloat(data.v, 5)
+      m.assertLike(value, 3)
+      data = { v: "3" }
+      value = asFloat(data.v, 2)
+      m.assertLike(value, 2)
+      data = { v: 3.1 }
+      value = asFloat(data.v, 1.1)
+      m.assertLike(value, 3.1)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asInteger")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asInteger(data.v, 3)
+      m.assertLike(value, 3)
+      value = asInteger(data.v, -3)
+      m.assertLike(value, -3)
+      data = { v: 0 }
+      value = asInteger(data.v)
+      m.assertLike(value, 0)
+      value = asInteger(data.v, 1)
+      m.assertLike(value, 0)
+      data = { v: 3 }
+      value = asInteger(data.v)
+      m.assertLike(value, 3)
+      value = asInteger(data.v, 5)
+      m.assertLike(value, 3)
+      data = { v: "3" }
+      value = asInteger(data.v, 2)
+      m.assertLike(value, 2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asString")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asString(data.v)
+      m.assertLike(value, "")
+      value = asString(data.v, "no")
+      m.assertLike(value, "no")
+      data = { v: "hello" }
+      value = asString(data.v)
+      m.assertLike(value, "hello")
+      value = asString(data.v, "hi")
+      m.assertLike(value, "hello")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asBoolean")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asBoolean(data.v)
+      m.assertLike(value, false)
+      value = asBoolean(data.v, false)
+      m.assertLike(value, false)
+      value = asBoolean(data.v, true)
+      m.assertLike(value, true)
+      data = { v: false }
+      value = asBoolean(data.v)
+      m.assertLike(value, false)
+      value = asBoolean(data.v, false)
+      m.assertLike(value, false)
+      value = asBoolean(data.v, true)
+      m.assertLike(value, false)
+      data = { v: true }
+      value = asBoolean(data.v)
+      m.assertLike(value, true)
+      value = asBoolean(data.v, false)
+      m.assertLike(value, true)
+      value = asBoolean(data.v, true)
+      m.assertLike(value, true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asArray")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asArray(data.v)
+      m.assertLike(value, [])
+      value = asArray(data.v, ["one"])
+      m.assertLike(value, ["one"])
+      data = { v: ["a", "b"] }
+      value = asArray(data.v)
+      m.assertLike(value, ["a", "b"])
+      value = asArray(data.v, ["other"])
+      m.assertLike(value, ["a", "b"])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asPoint")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asPoint(data.v)
+      m.assertLike(value, [0, 0])
+      value = asPoint(data.v, [1, 1])
+      m.assertLike(value, [1, 1])
+      data = { v: [5, 5] }
+      value = asPoint(data.v)
+      m.assertLike(value, [5, 5])
+      value = asPoint(data.v, [1, 1])
+      m.assertLike(value, [5, 5])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asAA")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asAA(data.v)
+      m.assertLike(value, {})
+      value = asAA(data.v, { id: "a" })
+      m.assertLike(value, { id: "a" })
+      data = { v: { id: "a" } }
+      value = asAA(data.v)
+      m.assertLike(value, { id: "a" })
+      value = asAA(data.v, { id: "b" })
+      m.assertLike(value, { id: "a" })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asNode")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("with and without defaults")
+    function _()
+      data = { v: invalid }
+      value = asNode(data.v)
+      m.assertSubType(value, "ContentNode")
+      node = mc.createSGNode("ContentNode")
+      data = { v: node }
+      value = asNode(data.v)
+      m.assertEqual(value, node)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("simple values")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("works for integers")
+    function _()
+      v = 2
+      value = asInteger(2)
+      m.assertEqual(value, 2)
+      value = asInteger(v)
+      m.assertEqual(value, 2)
+
+      value = asInteger(invalid)
+      m.assertEqual(value, 0)
+      value = asInteger(invalid, 3)
+      m.assertEqual(value, 3)
+    end function
+
+    @it("works for strings")
+    function _()
+      v = "valid"
+      value = asString("valid")
+      m.assertEqual(value, "valid")
+      value = asString(v)
+      m.assertEqual(value, "valid")
+
+      value = asString(invalid)
+      m.assertEqual(value, "")
+      value = asString(invalid, "default")
+      m.assertEqual(value, "default")
+    end function
+
+    @it("works for floats")
+    function _()
+      v = 1.5
+      value = asFloat(1.5)
+      m.assertEqual(value, 1.5)
+      value = asFloat(v)
+      m.assertEqual(value, 1.5)
+
+      value = asFloat(invalid)
+      m.assertEqual(value, 0.0)
+      value = asFloat(invalid, 2.1)
+      m.assertEqual(value, 2.1)
+    end function
+
+    @it("works for arrays")
+    function _()
+      v = ["valid"]
+      value = asArray(["valid"])
+      m.assertEqual(value, ["valid"])
+      value = asArray(v)
+      m.assertEqual(value, ["valid"])
+
+      value = asArray(invalid)
+      m.assertEqual(value, [])
+      value = asArray(invalid, ["default"])
+      m.assertEqual(value, ["default"])
+    end function
+
+    @it("works for aas")
+    function _()
+      v = { id: "valid" }
+      value = asAA({ id: "valid" })
+      m.assertEqual(value, { id: "valid" })
+      value = asAA(v)
+      m.assertEqual(value, { id: "valid" })
+
+      value = asAA(invalid)
+      m.assertEqual(value, {})
+      value = asAA(invalid, { id: "default" })
+      m.assertEqual(value, { id: "default" })
+    end function
+
+    @it("works for nodes")
+    function _()
+      v = "valid"
+      value = asString("valid")
+      m.assertEqual(value, "valid")
+      value = asString(v)
+      m.assertEqual(value, "valid")
+
+      value = asString(invalid)
+      m.assertEqual(value, "")
+      value = asString(invalid, "default")
+      m.assertEqual(value, "default")
+    end function
+
+    @it("works for booleans")
+    function _()
+      v = true
+      value = asBoolean(true)
+      m.assertEqual(value, true)
+      value = asBoolean(v)
+      m.assertEqual(value, true)
+
+      value = asBoolean(invalid)
+      m.assertEqual(value, false)
+      value = asBoolean(invalid, true)
+      m.assertEqual(value, true)
+    end function
+
+    @it("works for any")
+    function _()
+      v = "valid"
+      value = asAny("valid")
+      m.assertEqual(value, "valid")
+      value = asAny(v)
+      m.assertEqual(value, "valid")
+
+      value = asAny(invalid)
+      m.assertEqual(value, invalid)
+      value = asAny(invalid, "default")
+      m.assertEqual(value, "default")
+    end function
+
+  end class
+end namespace
