@@ -163,6 +163,28 @@ namespace tests
 
     end function
 
+    @only
+    @it("sets controls isSelected to true, if the control is not disabled")
+    @params(false, true)
+    @params(true, invalid)
+    @params(invalid, true)
+    function _(disabled, expectedIsSelected)
+      c1 = {
+        "id": "c1"
+        isDisabled: disabled
+      }
+
+      m.control.selectedIndex = -1
+      m.control.focusedIndex = 0
+      m.control.visibleChildren = [c1]
+
+      m.assertTrue(m.control.onKeyPressOK())
+      selectedControl = m.control.visibleChildren[0]
+
+      m.assertEqual(selectedControl.isSelected, expectedIsSelected)
+
+    end function
+
 
   end class
 end namespace
