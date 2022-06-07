@@ -34,7 +34,7 @@ namespace mioc
       m.__mioc = mc.getScene().__mioc
     end if
     if m.__mioc = invalid
-      m.log.error("call createContainer must be called before initializing any scopes")
+      mc.private.logError("call createContainer must be called before initializing any scopes")
     end if
   end function
 
@@ -59,7 +59,7 @@ namespace mioc
 
     instance = m.__mioc[name]
     if instance = invalid
-      m.log.warn("value", name, "was not found in IOC")
+      mc.private.logWarn("value", name, "was not found in IOC")
     end if
 
     if path = invalid
@@ -86,7 +86,7 @@ namespace mioc
   '  */
   function setInstance(field as string, instance as dynamic)
     if type(instance) = "<uninitialized>"
-      m.log.error("tried to add uninitialized instance to IOC container for field ", field)
+      mc.private.logError("tried to add uninitialized instance to IOC container for field ", field)
       return false
     end if
 
@@ -147,10 +147,10 @@ namespace mioc
       if not m._instancesByType.doesExist(instance.__classname)
         m._instancesByType[instance.__classname] = instance
       else
-        m.log.error("instance with type", instance.__classname, "already existed")
+        mc.private.logError("instance with type", instance.__classname, "already existed")
       end if
     else
-      m.log.error("passed non class value")
+      mc.private.logError("passed non class value")
     end if
   end function
 
@@ -210,14 +210,14 @@ namespace mioc
       else
         subType = "UNKNOWN SCOPE"
       end if
-      m.log.error("class", classType, "is not in scope inside", subType)
+      mc.private.logError("class", classType, "is not in scope inside", subType)
     end if
 
     return invalid
   end function
 
   function clearClassInstances()
-    ' m.log.warn("WARN clearing class instance store")
+    ' mc.private.logWarn("WARN clearing class instance store")
     m._instancesByType = {}
   end function
 end namespace
