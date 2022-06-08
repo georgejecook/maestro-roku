@@ -39,8 +39,12 @@ namespace mc
     return type(value) <> "<uninitialized>" and GetInterface(value, "ifInt") <> invalid
   end function
 
+  function isDouble(value as dynamic) as boolean
+    return type(value) <> "<uninitialized>" and GetInterface(value, "ifDouble") <> invalid
+  end function
+
   function isNumber(value as dynamic) as boolean
-    return type(value) <> "<uninitialized>" and (GetInterface(value, "ifFloat") <> invalid or GetInterface(value, "ifInt") <> invalid)
+    return type(value) <> "<uninitialized>" and (GetInterface(value, "ifFloat") <> invalid or GetInterface(value, "ifInt") <> invalid or GetInterface(value, "ifDouble") <> invalid)
   end function
 
   function isFloat(value as dynamic) as boolean
@@ -291,7 +295,7 @@ namespace mc
     return default
   end function
 
-  function getNode(content as object, path = invalid as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getNode(content as object, path = invalid as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
     value = mc.getPath(content, path, invalid, disableIndexing)
     if type(value) = "roSGNode"
       return value
@@ -299,7 +303,15 @@ namespace mc
     return default
   end function
 
-  function getAny(content as object, path = invalid as string, default = [0, 0] as dynamic, disableIndexing = false as boolean) as dynamic
+  function getNumber(content as object, path = invalid as string, default = 0 as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isNumber(content)
+      return value
+    end if
+    return default
+  end function
+
+  function getAny(content as object, path = invalid as string, default = invalid as dynamic, disableIndexing = false as boolean) as dynamic
     return mc.getPath(content, path, default, disableIndexing)
   end function
 
