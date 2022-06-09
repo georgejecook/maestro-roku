@@ -34,6 +34,10 @@ class ButtonScreen extends mv.BaseScreen
     super("ButtonScreen")
   end function
 
+
+  private timer1 as mc.types.node
+  private timer2 as mc.types.node
+
   protected override function initialize()
     super.initialize()
 
@@ -47,8 +51,52 @@ class ButtonScreen extends mv.BaseScreen
     m.focusableControls = [m.controlsGroup, m.fixedLayoutGroup, m.autoSizeLayoutGroup]
     m.focusedControl = m.controlsGroup
     m.applyDataMapToControls(item)
+    m.toggleTimer1(true)
   end function
 
+
+  private function toggleTimer1(active as boolean)
+    m.cancelWaitTimer(m.timer1)
+    m.timer1 = m.waitAFrame(m.doTimer1, 2)
+    'somwher this bcomes the same as timer 1
+    ? "IS SAME NODE?" m.timer1.isSameNode(m.timer1)
+  end function
+
+
+  private function toggleTimer2(active as boolean)
+  'trigger from right key press or something
+    m.cancelWaitTimer(m.timer2)
+    m.timer2 = m.waitAFrame(m.doTimer2, 2)
+
+    'somwher this bcomes the same as timer 2
+    ? "IS SAME NODE?" m.timer2.isSameNode(m.timer1)
+  end function
+
+  private function recreateTimer2()
+  'trigger this somehow
+    m.toggleTimer2(true)
+  end function
+
+  private function canceltImer2()
+  'trigger this somehow
+    m.toggleTimer2(false)
+  end function
+
+  private function startTimer1()
+  'trigger this somehow
+    m.toggleTimer2(false)
+  end function
+
+  private function doTimer1()
+    m.log.info("timer 1 fired")
+    'maybe have to make a task that does anything - like WaitTask - anything
+    'but then make anew timer
+    m.toggleTimer1(true)
+  end function
+
+  private function doTimer2()
+
+  end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
