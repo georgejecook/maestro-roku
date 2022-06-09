@@ -199,16 +199,7 @@ namespace mc.tasks
 
     for each key in contexts
       context = contexts[key]
-      if context.once
-        ' ? "++ +removing CONTEXT "; key
-        mc.tasks.cleanNodeObserver(node, fieldName)
-        if node.isFrameTimer = true
-          mc.private.releaseMaestroPooledComponent(node)
-          node.getParent().removeChild(node)
-        else if node.removeOnObserve = true and node.getParent() <> invalid
-          node.getParent().removeChild(node)
-        end if
-      end if
+
 
       if context.sendMode = "field" and context.targetField <> invalid
       if context.dottedSet
@@ -256,6 +247,16 @@ namespace mc.tasks
       end function
 
       executeInScope(context.scope, context.callback, node[fieldName], context.sendMode, node)
+    end if
+    if context.once
+      ' ? "++ +removing CONTEXT "; key
+      mc.tasks.cleanNodeObserver(node, fieldName)
+      if node.isFrameTimer = true
+        mc.private.releaseMaestroPooledComponent(node)
+        node.getParent().removeChild(node)
+      else if node.removeOnObserve = true and node.getParent() <> invalid
+        node.getParent().removeChild(node)
+      end if
     end if
   else
     m.log.error("could not identify callback for context: ", context)

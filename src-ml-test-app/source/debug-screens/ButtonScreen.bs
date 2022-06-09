@@ -59,43 +59,62 @@ class ButtonScreen extends mv.BaseScreen
     m.cancelWaitTimer(m.timer1)
     m.timer1 = m.waitAFrame(m.doTimer1, 2)
     'somwher this bcomes the same as timer 1
-    ? "IS SAME NODE?" m.timer1.isSameNode(m.timer1)
+    if m.timer1.isSameNode(m.timer2)
+      stop
+    end if
   end function
 
 
   private function toggleTimer2(active as boolean)
-  'trigger from right key press or something
+    'trigger from right key press or something
     m.cancelWaitTimer(m.timer2)
-    m.timer2 = m.waitAFrame(m.doTimer2, 2)
+    m.timer2 = m.waitAFrame(m.doTimer2, 3)
+    ? m.timer2
 
     'somwher this bcomes the same as timer 2
-    ? "IS SAME NODE?" m.timer2.isSameNode(m.timer1)
+    if m.timer2.isSameNode(m.timer1)
+      stop
+    end if
   end function
 
   private function recreateTimer2()
-  'trigger this somehow
+    ? "triggered by ON KEY PRESS DOWN"
     m.toggleTimer2(true)
   end function
 
-  private function canceltImer2()
-  'trigger this somehow
+  private function cancelTimer2()
+    ? "triggered by ON KEY PRESS LEFT"
     m.toggleTimer2(false)
   end function
 
-  private function startTimer1()
-  'trigger this somehow
+  private function startTimer2()
+    ?"triggered by ON KEY PRESS UP"
     m.toggleTimer2(false)
   end function
 
   private function doTimer1()
     m.log.info("timer 1 fired")
+    args = { args: { delay: 5, isOK: true } }
+    task = m.createTask("WaitTask", args, m.onWaitTask)
     'maybe have to make a task that does anything - like WaitTask - anything
     'but then make anew timer
-    m.toggleTimer1(true)
   end function
 
   private function doTimer2()
+    m.log.info("timer 2 fired")
+    ' args = { args: { delay: 3, isOK: true } }
+    ' task = m.createTask("WaitTask", args, m.onWaitTask2)
+    ' m.toggleTimer2(true)
+  end function
 
+  private function onWaitTask(result as mc.types.node)
+    ? "FINISHED TASK WAIT"
+    m.toggleTimer1(true)
+  end function
+
+  private function onWaitTask2(result as mc.types.node)
+    ? "FINISHED TASK WAIT2"
+    ' m.toggleTimer2(true)
   end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Methods
@@ -110,11 +129,12 @@ class ButtonScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
-    return key <> "back" and key <> "up"
+    return key <> "back"
   end function
 
   protected override function onKeyPressLeft() as boolean
-    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, -1))
+    m.cancelTimer2()
+    ' m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, -1))
     return true
   end function
 
@@ -123,6 +143,16 @@ class ButtonScreen extends mv.BaseScreen
     return true
   end function
 
+
+  protected override function onKeyPressUp() as boolean
+    m.startTimer2()
+    return true
+  end function
+
+  protected override function onKeyPressDown() as boolean
+    m.recreateTimer2()
+    return true
+  end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

@@ -77,7 +77,6 @@ namespace mc
     function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as mc.types.node
 
       pool = m.getComponentPool(componentType)
-
       if pool.freeComponentsById.count() = 0
         ' ? ">>>> RAN OUT OF " ; componentType
         m.log.warn("ran out of components getting type :", componentType)
@@ -107,14 +106,21 @@ namespace mc
       end if
 
       id = invalid
+
+      ? "POOL FREE COMPONENTS ID >>>>"; pool.freeComponentsById
       for each id in pool.freeComponentsById
         exit for
       end for
 
       if id <> invalid
+        ? "FREE COMPONENT ID "; id
+        ? "USED COMPOMENTS "; pool.usedComponentsById
         component = pool.freeComponentsById[id]
         pool.freeComponentsById.delete(id)
+        ? "DELETED"; id
         pool.usedComponentsById[id] = component
+        ? "ADDED TO USED COMPONENTS "; id
+        ? "USED COMPOMENTS "; pool.usedComponentsById
         m.numberOfComponentsInUse++
         return component
       else
@@ -125,7 +131,7 @@ namespace mc
 
     function releaseComponent(component as mc.types.node)
       if component <> invalid
-        ' ? ">>>>releasing component "; mc.dv(component)
+        ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid
           component.getParent().removeChild(component)
         end if
