@@ -47,14 +47,18 @@ namespace mc.tasks
   end function
 
   function cancelWaitTimer(timer as mc.types.node)
-    if timer <> invalid and timer.isReleased <> true
-      mc.tasks.cleanNodeObserver(timer, "fire")
-      timer.isFrameTimer = false
-      timer.control = "stop"
-      mc.setOrAddNodeField(timer, "isReleased", true)
-      mc.private.releaseMaestroPooledComponent(timer)
-      if timer.getParent() <> invalid
-        timer.getParent().removeChild(timer)
+    if timer <> invalid
+      if timer.isReleased <> true
+        mc.tasks.cleanNodeObserver(timer, "fire")
+        timer.isFrameTimer = false
+        timer.control = "stop"
+        mc.setOrAddNodeField(timer, "isReleased", true)
+        mc.private.releaseMaestroPooledComponent(timer)
+        if timer.getParent() <> invalid
+          timer.getParent().removeChild(timer)
+        end if
+      else
+        mc.private.logError("attempted to cancel previously cancelled timeout", mc.dv(timer))
       end if
     end if
   end function
