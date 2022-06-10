@@ -106,7 +106,23 @@ namespace mc
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
+    protected function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+      return mc.tasks.waitAFrame(callback, duration, sendMode, m)
+    end function
+
+    protected function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+      return mc.tasks.waitAFrame(callback, duration, sendMode, m)
+    end function
+
     protected function cancelWaitTimer(timer as mc.types.node)
+      mc.tasks.cancelWaitTimer(timer)
+    end function
+
+    protected function cancelTimeout(timer as mc.types.node)
+      mc.tasks.cancelWaitTimer(timer)
+    end function
+
+    protected function cancelInterval(timer as mc.types.node)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
