@@ -5,7 +5,23 @@ import "pkg:/source/core/BaseClass.bs"
 
 namespace mc.tasks
 
-  function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as mc.types.node) as mc.types.node
+  function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as mc.types.node) as mc.types.node
+    return mc.tasks.waitAFrame(callback, duration, sendMode, scope, parent)
+  end function
+
+  function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as mc.types.node) as mc.types.node
+    return mc.tasks.waitAFrame(callback, duration, sendMode, scope, parent, true)
+  end function
+
+  function cancelTimeout(timer as mc.types.node)
+    mc.tasks.cancelWaitTimer(timer)
+  end function
+
+  function cancelInterval(timer as mc.types.node)
+    mc.tasks.cancelWaitTimer(timer)
+  end function
+
+  function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as mc.types.node, repeat = false as boolean) as mc.types.node
     callbackName = mc.getFunctionName(callback)
     if callbackName = invalid
       m.log.error("function ", callback, "does not exist, or is not in scope")
@@ -22,21 +38,27 @@ namespace mc.tasks
 
     frameTimer = mc.private.getMaestroPooledComponent("Timer")
     frameTimer.duration = duration
-    frameTimer.repeat = false
-    mc.tasks.observeNodeField(frameTimer, "fire", callback, sendMode, true, scope)
+    frameTimer.repeat = repeat
+    mc.tasks.observeNodeField(frameTimer, "fire", callback, sendMode, repeat, scope)
     mc.setOrAddNodeField(frameTimer, "isFrameTimer", true)
+    mc.setOrAddNodeField(frameTimer, "isReleased", false)
     frameTimer.control = "start"
     return frameTimer
   end function
 
   function cancelWaitTimer(timer as mc.types.node)
     if timer <> invalid
-      mc.tasks.cleanNodeObserver(timer, "fire")
-      timer.isWaitTimer = false
-      timer.control = "stop"
-      mc.private.releaseMaestroPooledComponent(timer)
-      if timer.getParent() <> invalid
-        timer.getParent().removeChild(timer)
+      if timer.isReleased <> true
+        mc.tasks.cleanNodeObserver(timer, "fire")
+        timer.isFrameTimer = false
+        timer.control = "stop"
+        mc.setOrAddNodeField(timer, "isReleased", true)
+        mc.private.releaseMaestroPooledComponent(timer)
+        if timer.getParent() <> invalid
+          timer.getParent().removeChild(timer)
+        end if
+      else
+        mc.private.logError("attempted to cancel previously cancelled timeout", mc.dv(timer))
       end if
     end if
   end function
@@ -197,14 +219,18 @@ namespace mc.tasks
       contexts = {}
     end if
 
+
     for each key in contexts
       context = contexts[key]
+
       if context.once
         ' ? "++ +removing CONTEXT "; key
-        mc.tasks.cleanNodeObserver(node, fieldName)
+        mc.tasks.unobserveNodeField(node, fieldName, context.callback, context.instance)
         if node.isFrameTimer = true
+          if node.getParent() <> invalid
+            node.getParent().removeChild(node)
+          end if
           mc.private.releaseMaestroPooledComponent(node)
-          node.getParent().removeChild(node)
         else if node.removeOnObserve = true and node.getParent() <> invalid
           node.getParent().removeChild(node)
         end if
