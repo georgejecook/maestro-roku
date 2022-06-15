@@ -108,9 +108,12 @@ namespace ml
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)
-      m.log.info("This content has changed in some way")
-      ? " GRID CHANGES"
-      m.viewManager.onContentItemsChange(changes)
+      if changes <> invalid and changes.count() > 0
+        m.log.info("This content has changed in some way")
+        m.viewManager.onContentItemsChange(changes)
+      else
+        m.viewManager.updateChangedItems()
+      end if
     end function
 
     public override function jumpToItem(index as integer, animated as boolean)
