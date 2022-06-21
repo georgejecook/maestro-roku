@@ -1,0 +1,498 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/Collections.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace tests
+  @suite("Core tests")
+  class CoreTests extends tests.BaseTestSuite
+
+    private Core
+
+    protected override function setup()
+      super.setup()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asFloat")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as floats, with defaults")
+    @params({ v: invalid }, 0.5, 0.5)
+    @params({ v: 0 }, 1.1, 0)
+    @params({ v: 3 }, 2.1, 3)
+    @params({ v: "3" }, 2.1, 2.1)
+    @params({ v: 3.1 }, 1.1, 3.1)
+    function _(json, default, expected)
+      value = asFloat(json.v, default)
+
+      m.assertEqual(value, expected * 1.0)
+    end function
+
+    @it("casts as floats, with no defaults")
+    @params({ v: invalid }, 0)
+    @params({ v: 0 }, 0)
+    @params({ v: 3 }, 3)
+    @params({ v: "3" }, 0)
+    @params({ v: 3.1 }, 3.1)
+    function _(json, expected)
+      value = asFloat(json.v)
+      m.assertLike(value, expected * 1.0)
+    end function
+
+    @it("works for simple values")
+    @params(2.3, 2.3)
+    @params(invalid, 0)
+    @params("2.3", 0)
+    function _(value, expected)
+      v = asFloat(value)
+      m.assertLike(v, expected * 1.0)
+    end function
+
+    @it("works for simple values, with default")
+    @params(2.3, 1.5, 2.3)
+    @params(invalid, 1.5, 1.5)
+    @params("2.3", 1.5, 1.5)
+    function _(value, default, expected)
+      v = asFloat(value, default)
+      m.assertLike(v, expected * 1.0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asInteger")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as integer, with defaults")
+    @params({ v: invalid }, 1, 1)
+    @params({ v: 3.1 }, 2, 2)
+    @params({ v: "3" }, 2, 2)
+    @params({ v: 3 }, 1, 3)
+    function _(json, default, expected)
+      value = asInteger(json.v, default)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("casts as integer, with no defaults")
+    @params({ v: invalid }, 0)
+    @params({ v: 3.1 }, 0)
+    @params({ v: "3" }, 0)
+    @params({ v: 3 }, 3)
+    function _(json, expected)
+      value = asInteger(json.v)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("works for simple values")
+    @params(2, 2)
+    @params(invalid, 0)
+    @params("2", 0)
+    function _(value, expected)
+      v = asInteger(value)
+      m.assertLike(v, expected)
+    end function
+
+    @it("works for simple values, with default")
+    @params(2, 1, 2)
+    @params(invalid, 1, 1)
+    @params("2.3", 1, 1)
+    function _(value, default, expected)
+      v = asInteger(value, default)
+      m.assertLike(v, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asString")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as string, with defaults")
+    @params({ v: invalid }, "0.5", "0.5")
+    @params({ v: 3.1 }, "2", "2")
+    @params({ v: 3 }, "1", "1")
+    @params({ v: ["3"] }, "1", "1")
+    @params({ v: "3" }, 2, "3")
+    function _(json, default, expected)
+      value = asString(json.v, default)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("casts as string, with no defaults")
+    @params({ v: invalid }, "")
+    @params({ v: 3.1 }, "")
+    @params({ v: 3 }, "")
+    @params({ v: ["3"] }, "")
+    @params({ v: "3" }, "3")
+    function _(json, expected)
+      value = asString(json.v)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("works for simple values")
+    @params("2", "2")
+    @params(invalid, "")
+    @params(2, "")
+    function _(value, expected)
+      v = asString(value)
+      m.assertLike(v, expected)
+    end function
+
+    @it("works for simple values, with default")
+    @params("2", 1, "2")
+    @params(invalid, "1", "1")
+    @params(2.3, "1", "1")
+    function _(value, default, expected)
+      v = asString(value, default)
+      m.assertLike(v, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asBoolean")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as boolean, with defaults")
+    @params({ v: invalid }, true, true)
+    @params({ v: invalid }, false, false)
+    @params({ v: 3.1 }, true, true)
+    @params({ v: 3.1 }, false, false)
+    @params({ v: 3 }, true, true)
+    @params({ v: 3 }, false, false)
+    @params({ v: ["3"] }, "1", "1")
+    @params({ v: true }, false, true)
+    @params({ v: false }, true, false)
+    function _(json, default, expected)
+      value = asBoolean(json.v, default)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("casts as boolean, with no defaults")
+    @params({ v: invalid }, false)
+    @params({ v: invalid }, false)
+    @params({ v: 3.1 }, false)
+    @params({ v: 3.1 }, false)
+    @params({ v: 3 }, false)
+    @params({ v: 3 }, false)
+    @params({ v: ["3"] }, false)
+    @params({ v: true }, true)
+    @params({ v: false }, false)
+    function _(json, expected)
+      value = asBoolean(json.v)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("works for simple values")
+    @params(true, true)
+    @params(invalid, false)
+    @params(2, false)
+    function _(value, expected)
+      v = asBoolean(value)
+      m.assertLike(v, expected)
+    end function
+
+    @it("works for simple values, with default")
+    @params(true, false, true)
+    @params(invalid, true, true)
+    @params(2.3, true, true)
+    function _(value, default, expected)
+      v = asBoolean(value, default)
+      m.assertLike(v, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asArray")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as array, with defaults")
+    @params({ v: invalid }, ["d"], ["d"])
+    @params({ v: "3.1" }, ["d"], ["d"])
+    @params({ v: 3 }, ["d"], ["d"])
+    @params({ v: [] }, ["d"], [])
+    @params({ v: ["3"] }, "1", ["3"])
+    function _(json, default, expected)
+      value = asArray(json.v, default)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("casts as array, with no defaults")
+    @params({ v: invalid }, [])
+    @params({ v: "3.1" }, [])
+    @params({ v: 3 }, [])
+    @params({ v: false }, [])
+    @params({ v: ["3"] }, ["3"])
+    function _(json, expected)
+      value = asArray(json.v)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("works for simple values")
+    @params([true], [true])
+    @params(invalid, [])
+    @params(2, [])
+    function _(value, expected)
+      v = asArray(value)
+      m.assertLike(v, expected)
+    end function
+
+    @it("works for simple values, with default")
+    @params([true], [false], [true])
+    @params(invalid, [true], [true])
+    @params(2.3, [true], [true])
+    function _(value, default, expected)
+      v = asArray(value, default)
+      m.assertLike(v, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asPoint")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as point, with defaults")
+    @params({ v: invalid }, [1, 1], [1, 1])
+    @params({ v: "3.1" }, [1, 1], [1, 1])
+    @params({ v: 3 }, [1, 1], [1, 1])
+    @params({ v: [] }, [1, 1], [1, 1])
+    @params({ v: [3] }, [1, 1], [1, 1])
+    @params({ v: [3, 3] }, [1, 1], [3, 3])
+    function _(json, default, expected)
+      point = asPoint(json.v, default)
+      m.assertEqual(point, expected)
+    end function
+
+    @it("casts as point, with no defaults")
+    @params({ v: invalid }, [0, 0])
+    @params({ v: "3.1" }, [0, 0])
+    @params({ v: 3 }, [0, 0])
+    @params({ v: false }, [0, 0])
+    @params({ v: [3, 3] }, [3, 3])
+    function _(json, expected)
+      value = asPoint(json.v)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("works for simple values")
+    @params([1, 1], [1, 1])
+    @params(invalid, [0, 0])
+    @params(2, [0, 0])
+    function _(value, expected)
+      v = asPoint(value)
+      m.assertLike(v, expected)
+    end function
+
+    @it("works for simple values, with default")
+    @params([1, 1], [2, 2], [1, 1])
+    @params(invalid, [2, 2], [2, 2])
+    @params(2.3, [2, 2], [2, 2])
+    function _(value, default, expected)
+      v = asPoint(value, default)
+      m.assertLike(v, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asAA")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as aa, with defaults")
+    @params({ v: invalid }, { id: "d" }, { id: "d" })
+    @params({ v: "3.1" }, { id: "d" }, { id: "d" })
+    @params({ v: 3 }, { id: "d" }, { id: "d" })
+    @params({ v: {} }, { id: "d" }, {})
+    @params({ v: { id: "3" } }, "1", { id: "3" })
+    function _(json, default, expected)
+      value = asAA(json.v, default)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("casts as aa, with no defaults")
+    @params({ v: invalid }, {})
+    @params({ v: "3.1" }, {})
+    @params({ v: 3 }, {})
+    @params({ v: false }, {})
+    @params({ v: { id: "3" } }, { id: "3" })
+    function _(json, expected)
+      value = asAA(json.v)
+      m.assertEqual(value, expected)
+    end function
+
+    @it("works for simple values")
+    @params({ id: "1" }, { id: "1" })
+    @params(invalid, {})
+    @params(2, {})
+    function _(value, expected)
+      v = asAA(value)
+      m.assertLike(v, expected)
+    end function
+
+    @it("works for simple values, with default")
+    @params({ id: "1" }, { id: "2" }, { id: "1" })
+    @params(invalid, { id: "2" }, { id: "2" })
+    @params(2.3, { id: "2" }, { id: "2" })
+    function _(value, default, expected)
+      v = asAA(value, default)
+      m.assertLike(v, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asNode")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as node")
+    function _()
+      node = mc.createSGNode("ContentNode")
+      json = {
+        v: node
+      }
+      value = asNode(json.v)
+      m.assertEqual(value, node)
+    end function
+
+    @it("casts as node - valid value, with defaults")
+    function _()
+      node = mc.createSGNode("ContentNode")
+      node2 = mc.createSGNode("ContentNode")
+      json = {
+        v: node
+      }
+      value = asNode(json.v, node2)
+      m.assertEqual(value, node)
+    end function
+
+    @it("casts as node invalid value")
+    @params(invalid)
+    @params("2")
+    @params(2)
+    @params({ id: "2" })
+    function _(node)
+      json = {
+        v: node
+      }
+      value = asNode(json.v)
+      m.assertInvalid(value)
+    end function
+
+    @it("casts as node invalid value, with defaults")
+    @params(invalid)
+    @params("2")
+    @params(2)
+    @params({ id: "2" })
+    function _(node)
+      node2 = mc.createSGNode("ContentNode")
+      json = {
+        v: node
+      }
+      value = asNode(json.v, node2)
+      m.assertEqual(value, node2)
+    end function
+
+    @it("works for simple values - invalid")
+    @params(1)
+    @params("a")
+    @params({ id: "a" })
+    function _(node)
+      node2 = mc.createSGNode("ContentNode")
+      value = asNode(node, node2)
+      m.assertEqual(value, node2)
+    end function
+
+    @it("works for simple values")
+    function _()
+      node = mc.createSGNode("ContentNode")
+      node2 = mc.createSGNode("ContentNode")
+      value = asNode(node, node2)
+      m.assertEqual(value, node)
+    end function
+
+    @it("works for simple values, with default")
+    function _()
+      node = invalid
+      node2 = mc.createSGNode("ContentNode")
+      value = asNode(node, node2)
+      m.assertEqual(value, node2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("asAny")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("casts as any")
+    function _()
+      any = mc.createSGNode("ContentNode")
+      json = {
+        v: any
+      }
+      value = asAny(json.v)
+      m.assertEqual(value, any)
+    end function
+
+    @it("casts as any - valid value, with defaults")
+    function _()
+      any = mc.createSGNode("ContentNode")
+      node2 = mc.createSGNode("ContentNode")
+      json = {
+        v: any
+      }
+      value = asAny(json.v, node2)
+      m.assertEqual(value, any)
+    end function
+
+    @it("casts as any invalid value")
+    @params(invalid)
+    @params("2")
+    @params(2)
+    @params({ id: "2" })
+    function _(any)
+      json = {
+        v: any
+      }
+      value = asAny(json.v)
+      m.assertEqual(value, any)
+    end function
+
+    @it("casts as any invalid value, with defaults")
+    @params("2")
+    @params(2)
+    @params({ id: "2" })
+    function _(any)
+      node2 = mc.createSGNode("ContentNode")
+      json = {
+        v: any
+      }
+      value = asAny(json.v, node2)
+      m.assertEqual(value, any)
+    end function
+
+    @it("casts invalid to default value")
+    @params(invalid)
+    function _(any)
+      node2 = mc.createSGNode("ContentNode")
+      json = {
+        v: any
+      }
+      value = asAny(json.v, node2)
+      m.assertEqual(value, node2)
+    end function
+
+    @it("works for simple values - invalid")
+    @params(1)
+    @params("a")
+    @params({ id: "a" })
+    function _(any)
+      node2 = mc.createSGNode("ContentNode")
+      value = asAny(any, node2)
+      m.assertEqual(value, any)
+    end function
+
+    @it("works for simple values")
+    function _()
+      any = mc.createSGNode("ContentNode")
+      node2 = mc.createSGNode("ContentNode")
+      value = asAny(any, node2)
+      m.assertEqual(value, any)
+    end function
+
+    @it("works for simple values, with default")
+    function _()
+      any = invalid
+      node2 = mc.createSGNode("ContentNode")
+      value = asAny(any, node2)
+      m.assertEqual(value, node2)
+    end function
+
+  end class
+end namespace

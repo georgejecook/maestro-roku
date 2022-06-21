@@ -230,6 +230,8 @@ namespace mc
         end if
         i++
       end while
+    else if not mc.isInvalid(content)
+      part = content
     end if
 
     if part <> invalid
@@ -275,6 +277,8 @@ namespace mc
     value = mc.getPath(content, path, invalid, disableIndexing)
     if mc.isFloat(value)
       return value
+    else if mc.isInteger(value)
+      return value * 1.0
     end if
     return default
   end function
