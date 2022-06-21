@@ -243,6 +243,7 @@ namespace mv
           else
             m.log.info("selection requires async resolution")
             m.observeNodeField(selection, "state", m.onSelectionStateChange, "both", true)
+            m.observeNodeField(selection, "itemCompletionState", m.onSelectionCompletionStateChange, "both", true)
           end if
         end if
       else
@@ -252,6 +253,7 @@ namespace mv
 
     protected function cancelPendingSelection(selection as mc.types.node)
       m.unobserveNodeField(selection, "state")
+      m.unobserveNodeField(selection, "itemCompletionState")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -290,6 +292,10 @@ namespace mv
 
     protected function onSelectionStateChange(state as string, selection as mc.types.node)
       m.log.info("selection", mc.dv(selection), "changed state to", state)
+    end function
+
+    protected function onSelectionCompletionStateChange(completionState as string, selection as mc.types.node)
+      m.log.info("selection", mc.dv(selection), "changed completionState to", completionState)
     end function
 
   end class
