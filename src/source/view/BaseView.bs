@@ -216,12 +216,12 @@ namespace mv
     '++ Selection Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSelection(initialItem as mc.types.node, action = "display" as string, parentCollection = invalid as mc.types.node, actionInfo = {} as mc.types.assocarray, targetScreen = "" as string)
+    protected function createSelection(initialItem as mc.types.node, action = "display" as string, actionInfo = {} as mc.types.assocarray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
       id = `${m.name}-${mc.getString(initialItem, "id")}-${action}`
-      selection = mc.createSGNode("mc_Selection", invalid, id, {
+      selection = mc.createSGNode(selectionCompName, invalid, id, {
         initialItem: initialItem
         currentItem: initialItem
-        parentCollection: parentCollection
+        parentCollection: invalid
         action: action
         originScreen: m.getMField("top")
         targetScreen: targetScreen
