@@ -389,7 +389,10 @@ class ValueObserver
   end function
 
   function onValue(value as dynamic, func as function, comparator = "=" as string, mode = "value" as string)
-    m.comparators[`${value}_${comparator}`] = { v: value, cb: func, c: comparator, mode: mode }
+    c = { v: value, cb: func, c: comparator, mode: mode }
+    key = `${value}_${comparator}`
+    m.comparators[key] = c
+    m.pendingComparators[key] = c
   end function
 
   function valueCallback(value as dynamic, node as mc.types.node)
