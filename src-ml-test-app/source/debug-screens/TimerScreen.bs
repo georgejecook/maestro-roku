@@ -1,0 +1,185 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("TimerScreen", "mv_BaseScreen")
+class TimerScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private background as mc.types.node
+  private label as mc.types.node
+
+  private controlsGroup as mc.types.node
+  private startIntervalButton as mc.types.node
+  private stopIntervalButton as mc.types.node
+  private startTimeoutButton as mc.types.node
+  private stopTimeoutButton as mc.types.node
+
+  private runningTimers = []
+  private intervalTimerStarted = false
+  private timeoutTimerStarted = false
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("TimerScreen")
+  end function
+
+  protected override function initialize()
+    super.initialize()
+    m.createViews()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function createViews()
+    m.background = m.createSGNode("mv_Rectangle", m.top, "background", {
+      size: [1920, 1080]
+      color: "#778899"
+      translation: [0, 0]
+    })
+    m.label = m.createSGNode("mv_Label", m.top, "label", {
+      translation: [600, 200]
+      color: "#ff0000"
+      visible: true
+      font: "font:LargeBoldSystemFont"
+
+    })
+    m.controlsGroup = m.createSGNode("mv_ControlsGroup", m.top, "controlsGroup", {
+      translation: [200, 200]
+      layoutMode: "vert"
+      keyDirection: "vert"
+      itemSpacings: [30]
+    })
+    m.observe(m.controlsGroup.selectedIndex, m.onSelectButton)
+
+
+    m.startIntervalButton = m.createSGNode("mv_Button", m.controlsGroup, "startIntervalButton", {
+      text: "Start interval"
+    })
+
+    m.stopIntervalButton = m.createSGNode("mv_Button", m.controlsGroup, "stopIntervalButton", {
+      text: "Stop interval"
+    })
+
+    m.startTimeoutButton = m.createSGNode("mv_Button", m.controlsGroup, "startTimeoutButton", {
+      text: "Start timeout"
+    })
+
+    m.stopTimeoutButton = m.createSGNode("mv_Button", m.controlsGroup, "stopTimeoutButton", {
+      text: "Stop timeout"
+    })
+    m.controlsGroup@.updateChildren()
+  end function
+
+  private function startInterval()
+    m.log.info("Setting timer interval")
+    m.intervalTimerStarted = true
+    m.cancelPreviousTimers()
+    duration = 4
+    m.label.text = `Showing a message every ${duration} seconds`
+
+    intervalTimer = m.setInterval(m.onInterval, duration)
+    m.runningTimers.push(intervalTimer)
+
+    m.startIntervalButton.isSelected = false
+  end function
+
+  private function stopInterval()
+    if m.intervalTimerStarted
+      m.cancelPreviousTimers()
+      m.log.info("Canceling timer interval")
+      m.label.text = "Stopped interval message"
+      m.label.visible = true
+      m.intervalTimerStarted = false
+    end if
+    m.stopIntervalButton.isSelected = false
+  end function
+
+  private function startTimeout()
+    m.log.info("Setting timer timeout")
+    m.timeoutTimerStarted = true
+    m.cancelPreviousTimers()
+
+    duration = 5
+    m.label.text = `Message will change after ${duration} seconds`
+    m.label.visible = true
+
+    timeOutTimer = m.setTimeout(m.onTimeOut, 3)
+    m.runningTimers.push(timeOutTimer)
+    m.startTimeoutButton.isSelected = false
+  end function
+
+  private function stopTimeout()
+    if m.timeoutTimerStarted
+      m.cancelPreviousTimers()
+      m.log.info("Canceling timer timeout")
+      m.label.text = "Canceling message change"
+      m.label.visible = true
+      m.timeoutTimerStarted = false
+    end if
+    m.stopTimeoutButton.isSelected = false
+  end function
+
+  private function hideLabel()
+    m.label.visible = false
+  end function
+
+  private function cancelPreviousTimers()
+    while m.runningTimers.count() > 0
+      timer = m.runningTimers.shift()
+      if timer.control <> "stop"
+        m.cancelWaitTimer(timer)
+      end if
+    end while
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onSelectButton(index as integer)
+    m.log.info("selected button", index)
+    if index = 0
+      m.startInterval()
+    else if index = 1
+      m.stopInterval()
+    else if index = 2
+      m.startTimeout()
+    else if index = 3
+      m.stopTimeout()
+    end if
+  end function
+
+  private function onInterval()
+    m.log.info("Calling set interval callback")
+    m.label.visible = true
+    labelTimer = m.setTimeout(m.hideLabel, 2)
+    m.runningTimers.push(labelTimer)
+  end function
+
+  private function onTimeOut()
+    m.log.info("Calling set timeout callback")
+    m.label.text = "This is a new message"
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Lifecycle
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    super.onGainedFocus(isSelfFocused)
+
+    if isSelfFocused
+      m.setFocus(m.controlsGroup)
+    end if
+  end function
+
+end class
+
