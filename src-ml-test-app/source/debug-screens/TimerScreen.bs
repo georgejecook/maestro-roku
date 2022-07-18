@@ -1,0 +1,171 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("TimerScreen", "mv_BaseScreen")
+class TimerScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+  private background as mc.types.node
+  private label as mc.types.node
+
+  private controlsGroup as mc.types.node
+  private button1 as mc.types.node
+  private button2 as mc.types.node
+  private button3 as mc.types.node
+  private button4 as mc.types.node
+
+  private timer as mc.types.node
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("TimerScreen")
+  end function
+
+  protected override function initialize()
+    super.initialize()
+    m.createViews()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function createViews()
+    m.background = m.createSGNode("mv_Rectangle", m.top, "background", {
+      size: [1920, 1080]
+      color: "#778899"
+      translation: [0, 0]
+    })
+    m.label = m.createSGNode("mv_Label", m.top, "label", {
+      translation: [600, 200]
+      color: "#ff0000"
+      visible: true
+      font: "font:LargeBoldSystemFont"
+
+    })
+    m.controlsGroup = m.createSGNode("mv_ControlsGroup", m.top, "controlsGroup", {
+      translation: [200, 200]
+      layoutMode: "vert"
+      keyDirection: "vert"
+      itemSpacings: [30]
+    })
+    m.observe(m.controlsGroup.selectedIndex, m.onSelectButton)
+
+
+    m.button1 = m.createSGNode("mv_Button", m.controlsGroup, "button1", {
+      text: "Start interval"
+    })
+
+    m.button2 = m.createSGNode("mv_Button", m.controlsGroup, "button2", {
+      text: "Stop interval"
+    })
+
+    m.button3 = m.createSGNode("mv_Button", m.controlsGroup, "button3", {
+      text: "Start timeout"
+    })
+
+    m.button4 = m.createSGNode("mv_Button", m.controlsGroup, "button4", {
+      text: "Stop timeout"
+    })
+    m.controlsGroup@.updateChildren()
+  end function
+
+  private function startInterval()
+    m.log.info("Setting timer interval")
+
+    duration = 4
+    m.label.text = `Showing a message every ${duration} seconds`
+    m.timer = m.setInterval(m.intervalCallback, duration)
+    m.button1.isSelected = false
+  end function
+
+  private function stopInterval()
+    if m.timer <> invalid
+      m.log.info("Canceling timer interval")
+
+      m.cancelInterval(m.timer)
+      m.label.text = "Stopped interval message"
+      m.label.visible = true
+    end if
+    m.button2.isSelected = false
+  end function
+
+  private function startTimeout()
+    m.log.info("Setting timer timeout")
+
+    duration = 5
+    m.label.text = `Message will change after ${duration} seconds`
+    m.label.visible = true
+    m.timer = m.setTimeout(m.timeOutCallback, 3)
+    m.button3.isSelected = false
+  end function
+
+  private function stopTimeout()
+    if m.timer <> invalid
+      m.log.info("Canceling timer timeout")
+
+      m.label.text = "Canceling message change"
+      m.label.visible = true
+      m.cancelTimeout(m.timer)
+    end if
+    m.button4.isSelected = false
+  end function
+
+  private function hideLabel()
+    m.label.visible = false
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onSelectButton(index as integer)
+    m.log.info("selected button", index)
+    if index = 0
+      m.startInterval()
+    else if index = 1
+      m.stopInterval()
+    else if index = 2
+      m.startTimeout()
+    else if index = 3
+      m.stopTimeout()
+    end if
+  end function
+
+  private function intervalCallback()
+    m.log.info("Calling set interval callback")
+    m.label.visible = true
+    m.waitAFrame(m.hideLabel, 2)
+    m.timer = invalid
+
+  end function
+
+  private function timeOutCallback()
+    m.log.info("Calling set timeout callback")
+    m.label.text = "This is a new message"
+    m.timer = invalid
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Lifecycle
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    super.onGainedFocus(isSelfFocused)
+
+    if isSelfFocused
+      m.setFocus(m.controlsGroup)
+    end if
+  end function
+
+end class
+
