@@ -12,12 +12,14 @@ class TimerScreen extends mv.BaseScreen
   private label as mc.types.node
 
   private controlsGroup as mc.types.node
-  private button1 as mc.types.node
-  private button2 as mc.types.node
-  private button3 as mc.types.node
-  private button4 as mc.types.node
+  private startIntervalButton as mc.types.node
+  private stopIntervalButton as mc.types.node
+  private startTimeoutButton as mc.types.node
+  private stopTimeoutButton as mc.types.node
 
-  private timer as mc.types.node
+  private runningTimers = []
+  private intervalTimerStarted = false
+  private timeoutTimerStarted = false
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Initialization
@@ -58,19 +60,19 @@ class TimerScreen extends mv.BaseScreen
     m.observe(m.controlsGroup.selectedIndex, m.onSelectButton)
 
 
-    m.button1 = m.createSGNode("mv_Button", m.controlsGroup, "button1", {
+    m.startIntervalButton = m.createSGNode("mv_Button", m.controlsGroup, "startIntervalButton", {
       text: "Start interval"
     })
 
-    m.button2 = m.createSGNode("mv_Button", m.controlsGroup, "button2", {
+    m.stopIntervalButton = m.createSGNode("mv_Button", m.controlsGroup, "stopIntervalButton", {
       text: "Stop interval"
     })
 
-    m.button3 = m.createSGNode("mv_Button", m.controlsGroup, "button3", {
+    m.startTimeoutButton = m.createSGNode("mv_Button", m.controlsGroup, "startTimeoutButton", {
       text: "Start timeout"
     })
 
-    m.button4 = m.createSGNode("mv_Button", m.controlsGroup, "button4", {
+    m.stopTimeoutButton = m.createSGNode("mv_Button", m.controlsGroup, "stopTimeoutButton", {
       text: "Stop timeout"
     })
     m.controlsGroup@.updateChildren()
@@ -78,47 +80,64 @@ class TimerScreen extends mv.BaseScreen
 
   private function startInterval()
     m.log.info("Setting timer interval")
-
+    m.intervalTimerStarted = true
+    m.cancelPreviousTimers()
     duration = 4
     m.label.text = `Showing a message every ${duration} seconds`
-    m.timer = m.setInterval(m.intervalCallback, duration)
-    m.button1.isSelected = false
+
+    intervalTimer = m.setInterval(m.onInterval, duration)
+    m.runningTimers.push(intervalTimer)
+
+    m.startIntervalButton.isSelected = false
   end function
 
   private function stopInterval()
-    if m.timer <> invalid
+    if m.intervalTimerStarted
+      m.cancelPreviousTimers()
       m.log.info("Canceling timer interval")
-
-      m.cancelInterval(m.timer)
       m.label.text = "Stopped interval message"
       m.label.visible = true
+      m.intervalTimerStarted = false
     end if
-    m.button2.isSelected = false
+    m.stopIntervalButton.isSelected = false
   end function
 
   private function startTimeout()
     m.log.info("Setting timer timeout")
+    m.timeoutTimerStarted = true
+    m.cancelPreviousTimers()
 
     duration = 5
     m.label.text = `Message will change after ${duration} seconds`
     m.label.visible = true
-    m.timer = m.setTimeout(m.timeOutCallback, 3)
-    m.button3.isSelected = false
+
+    timeOutTimer = m.setTimeout(m.onTimeOut, 3)
+    m.runningTimers.push(timeOutTimer)
+    m.startTimeoutButton.isSelected = false
   end function
 
   private function stopTimeout()
-    if m.timer <> invalid
+    if m.timeoutTimerStarted
+      m.cancelPreviousTimers()
       m.log.info("Canceling timer timeout")
-
       m.label.text = "Canceling message change"
       m.label.visible = true
-      m.cancelTimeout(m.timer)
+      m.timeoutTimerStarted = false
     end if
-    m.button4.isSelected = false
+    m.stopTimeoutButton.isSelected = false
   end function
 
   private function hideLabel()
     m.label.visible = false
+  end function
+
+  private function cancelPreviousTimers()
+    while m.runningTimers.count() > 0
+      timer = m.runningTimers.shift()
+      if timer.control <> "stop"
+        m.cancelWaitTimer(timer)
+      end if
+    end while
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -138,13 +157,14 @@ class TimerScreen extends mv.BaseScreen
     end if
   end function
 
-  private function intervalCallback()
+  private function onInterval()
     m.log.info("Calling set interval callback")
     m.label.visible = true
-    m.waitAFrame(m.hideLabel, 2)
+    labelTimer = m.setTimeout(m.hideLabel, 2)
+    m.runningTimers.push(labelTimer)
   end function
 
-  private function timeOutCallback()
+  private function onTimeOut()
     m.log.info("Calling set timeout callback")
     m.label.text = "This is a new message"
   end function
