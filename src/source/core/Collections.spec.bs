@@ -454,6 +454,40 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("filter")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("filters all with value predicate")
+    @params(["US", "US", "FR", "UK"], "US", ["US", "US"])
+    @params(["US", "DE", "FR", "UK"], "UK", ["UK"])
+    @params(["FR", "FR", "FR", "UK"], "FR", ["FR", "FR", "FR"])
+    @params(["US", "DE", "FR", "UK"], "DE", ["DE"])
+    @params(["US", "DE", "FR", "UK"], "SE", [])
+    @params(["DE", "US", "FR", "UK"], "CA", [])
+    @params(["US"], "US", ["US"])
+    @params(["US"], invalid, [])
+    @params([], "US", [])
+    @params(invalid, "US", [])
+    function _(codes, value, expected)
+      m.assertEqual(mc.collections.filter(codes, new mc.collections.ValuePredicate(value)), expected)
+    end function
+
+    @it("filters first matched with value predicate")
+    @params(["US", "DE", "FR", "UK"], "US", ["US"])
+    @params(["US", "DE", "FR", "UK"], "UK", ["UK"])
+    @params(["US", "FR", "FR", "UK"], "FR", ["FR"])
+    @params(["US", "DE", "UK", "UK"], "UK", ["UK"])
+    @params(["US", "DE", "FR", "UK"], "SE", [])
+    @params(["DE", "US", "FR", "UK"], "CA", [])
+    @params(["US"], "US", ["US"])
+    @params(["US"], invalid, [])
+    @params([], "US", [])
+    @params(invalid, "US", [])
+    function _(codes, value, expected)
+      m.assertEqual(mc.collections.filter(codes, new mc.collections.ValuePredicate(value), false), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("using m as context")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -474,7 +508,7 @@ namespace tests
       items = ["a", "b", "c"]
       m.localData = "b"
 
-      item = mc.collections.filter(items, function(i): return i = m.localData: end function, m)
+      item = mc.collections.filter(items, function(i): return i = m.localData: end function, true, m)
 
       m.assertEqual(item, ["b"])
     end function
