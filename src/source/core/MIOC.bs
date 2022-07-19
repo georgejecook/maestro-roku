@@ -94,7 +94,7 @@ namespace mioc
       mioc.initialize()
     end if
 
-    if mioc.isValid(instance)
+    if mioc.isValidType(instance)
       if m.__mioc.doesExist(field)
         m.__mioc[field] = instance
       else
@@ -226,7 +226,7 @@ namespace mioc
     m._instancesByType = {}
   end function
 
-  function isValid(instance as dynamic)
+  function isValidType(instance as dynamic)
     validTypes = ["String", "Float", "Integer", "roArray", "roAssociativeArray", "roSGNode"]
     if mc.collections.arrayContains(validTypes, type(instance))
       return true
