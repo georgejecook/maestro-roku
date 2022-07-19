@@ -32,4 +32,4 @@ COMING SOON: Separate sample project.
 NOTE: To debug with RALE, you need to use a specific version, as the RALETracker task in my project is locked at 2.1.7 - I have downloads of those versions [here](https://drive.google.com/drive/folders/1gZZcndEpSO6zDVkx09UpYJtPb7OTf6Nq?usp=sharing).
 ## Docs
 
-Maestro-roku docs can be found [here](https://georgejecook.github.io/maestro-roku/index.html)
+Maestro-roku docs can be found [here](https://github.com/georgejecook/maestro-roku/wiki)
