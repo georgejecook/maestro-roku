@@ -94,19 +94,14 @@ namespace mioc
       mioc.initialize()
     end if
 
-    if mioc.isValidType(instance)
-      if m.__mioc.doesExist(field)
-        m.__mioc[field] = instance
-      else
-        newFields = {}
-        newFields[field] = instance
-        m.__mioc.addfields(newFields)
-      end if
-      return true
+    if m.__mioc.doesExist(field)
+      m.__mioc[field] = instance
     else
-      mc.private.logWarn("Instance type", type(instance), "is not supported in IOC")
-      return false
+      newFields = {}
+      newFields[field] = instance
+      m.__mioc.addfields(newFields)
     end if
+    return true
   end function
 
   function updateInstance(instanceName as string, path as string, value as dynamic)
@@ -224,14 +219,6 @@ namespace mioc
   function clearClassInstances()
     ' mc.private.logWarn("WARN clearing class instance store")
     m._instancesByType = {}
-  end function
-
-  function isValidType(instance as dynamic)
-    validTypes = ["String", "Float", "Integer", "roArray", "roAssociativeArray", "roSGNode"]
-    if mc.collections.arrayContains(validTypes, type(instance))
-      return true
-    end if
-    return false
   end function
 end namespace
 
