@@ -13,7 +13,7 @@ function hideView(view as mc.types.node)
     if view.isSameNode(m.top.currentView)
       m.top.currentView = invalid
     end if
-    view.visible = false
+    view@._setShown(false)
     m.top.removeChild(view)
   end if
 
@@ -41,7 +41,7 @@ function onShow()
   m.log.verbose("onShow", m.top.subType(), ".", m.top.id)
   if m.top.currentView <> invalid
     m.log.info("setting view visible: ", m.top.currentView.subType(), ".", m.top.currentView.id)
-    m.top.currentView.visible = true
+    m.top.currentView@._setShown(true)
   else
     m.log.warn("this aggregate view has no currentView")
   end if
@@ -51,7 +51,7 @@ function onHide()
   m.log.verbose("onHide", m.top.subType(), ".", m.top.id)
   if m.top.currentView <> invalid
     m.log.info("setting view invisible: ", m.top.currentView.subType(), ".", m.top.currentView.id)
-    m.top.currentView.visible = false
+    m.top.currentView@._setShown(false)
   else
     m.log.warn("this aggregate view has no currentView")
   end if

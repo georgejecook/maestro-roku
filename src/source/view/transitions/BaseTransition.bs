@@ -80,7 +80,7 @@ namespace mv.transitions
 
     protected function transitionWithoutAnimation()
       if m.source <> invalid and not m.source.isSameNode(m.target)
-        m.source.visible = false
+        m.source@._setShown(false)
         m.owner.removeChild(m.source)
       end if
       if m.target <> invalid
@@ -89,7 +89,7 @@ namespace mv.transitions
         m.owner.appendChild(m.target)
 
         if m.owner.isShown
-          m.target.visible = true
+          m.target@._setShown(true)
         end if
 
       end if

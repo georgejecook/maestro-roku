@@ -23,6 +23,7 @@ function init() as void
   m.top.observeFieldScoped("__debugM", "onDebugMChange")
 
   m.wasShown = false
+  m.isInAggregateView = false
 end function
 
 function getViewName()
@@ -146,7 +147,11 @@ function _initialize(args = invalid as mc.types.assocarray)
       'bs:disable-next-line
       m_createVM()
     end if
-    m.top.observeFieldScoped("visible", "onVisibleChange")
+
+    if not m.isInAggregateView
+      m.top.observeFieldScoped("visible", "onVisibleChange")
+    end if
+
     if m.top.visible and not m.top.isShown
       _onShow(invalid)
     end if
@@ -156,6 +161,8 @@ function _initialize(args = invalid as mc.types.assocarray)
 end function
 
 function onAddedToAggregateView(view as mc.types.node)
+  m.isInAggregateView = true
+  m.top.unObserveFieldScoped("visible")
   if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
     m.vm.onAddedToAggregateView(view)
   else if m.onAddedToAggregateView <> invalid
@@ -164,11 +171,18 @@ function onAddedToAggregateView(view as mc.types.node)
 end function
 
 function onRemovedFromAggregateView(view as mc.types.node)
+  m.isInAggregateView = false
+  m.top.observeFieldScoped("visible", "onVisibleChange")
+
   if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
     m.vm.onRemovedFromAggregateView(view)
   else if m.onRemovedFromAggregateView <> invalid
     m.onRemovedFromAggregateView(view)
   end if
+end function
+
+function _setShown(visible as boolean)
+  m.top.visible = visible
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
