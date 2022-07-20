@@ -237,9 +237,10 @@ namespace mc.collections
 
   ' @param {array} array of items to filter
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
-  ' @returns {boolean} items that match the predicate
+  ' @param {boolean} findAll, boolean to filter all occurrences
+  ' @returns {array} items that match the predicate
   @injectLocalM
-  function filter(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.assocarray)
+  function filter(array as mc.types.array, predicate as dynamic, findAll = true as boolean, mTarget = invalid as mc.types.assocarray)
     items = []
     if mTarget = invalid
       mTarget = m
@@ -250,18 +251,27 @@ namespace mc.collections
           for each item in array
             if predicate.isMatch(item)
               items.push(item)
+              if not findAll
+                exit for
+              end if
             end if
           end for
         else if mc.isFunction(predicate)
           for each item in array
             if mc.apply(predicate, [item], mTarget)
               items.push(item)
+              if not findAll
+                exit for
+              end if
             end if
           end for
         else
           for each item in array
             if item = predicate
               items.push(item)
+              if not findAll
+                exit for
+              end if
             end if
           end for
         end if
@@ -280,7 +290,7 @@ namespace mc.collections
   ' @returns {boolean} returns the first item that matches, or invalid
   @injectLocalM
   function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as mc.types.array)
-    items = mc.collections.filter(array, predicate, mTarget)
+    items = mc.collections.filter(array, predicate, false, mTarget)
     if items.count() = 0
       return default
     else
@@ -293,7 +303,7 @@ namespace mc.collections
   ' @returns {boolean} returns true if the array matches the predicate
   @injectLocalM
   function contains(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.array) as boolean
-    items = mc.collections.filter(array, predicate, mTarget)
+    items = mc.collections.filter(array, predicate, true, mTarget)
     return items.count() > 0
   end function
 
