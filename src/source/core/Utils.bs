@@ -677,4 +677,14 @@ namespace mc.private
       ? "WARN: " ; message ; " " ; arg1; " " ; arg2; " " ; arg3
     end if
   end function
+
+  function getDebugMObject(node as mc.types.assocarray)
+    mObject = {}
+    for each field in node.items()
+      if not mc.isFunction(field.value)
+        mObject[field.key] = field.value
+      end if
+    end for
+    return mObject
+  end function
 end namespace

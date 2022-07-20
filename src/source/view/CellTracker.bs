@@ -1,4 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Utils.bs"
 
 ' /**
 '  * @module CellTracker
@@ -29,7 +30,7 @@ namespace mv
     end function
 
     private function onDebugMChange()
-      m.__m = m
+      mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
     end function
 
     function reset()
