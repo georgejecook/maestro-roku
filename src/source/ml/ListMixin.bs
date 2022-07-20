@@ -75,6 +75,11 @@ namespace ml.listMixin
       focusSettings = ml.listMixin.createFocusSettings()
     end if
 
+    if compName = "ml_HorizontalRow" and focusSettings.horizAnimStyle <> "fixed"
+      m.log.warn("Horizontal row cannot use floating focus for horizontal animation - forcing fixed focus!")
+      focusSettings.horizAnimStyle = "fixed"
+    end if
+
     settings.update({
       componentName: compName
       screenPos: screenPos
