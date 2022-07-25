@@ -134,5 +134,52 @@ namespace mc
       mc.tasks.cancelTask(task)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Notification Center
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function sendNotification(notification as mc.notification)
+      'bs:disable-next-line
+      notificationCenter = m.getInstance("notificationCenter")
+      notificationCenter@.sendNotification(notification)
+    end function
+
+    protected function isNotificationObservingSupported() as boolean
+      'bs:disable-next-line
+      if m.top <> invalid
+        return true
+      end if
+      m.log.warn("class", m.__classname, "cannot support notification observing - only nodes can support this feature")
+      return false
+    end function
+
+    protected function observeNotification(name as string, callback as function)
+      if m.isNotificationObservingSupported()
+        callbacks = m["_notificationCallbacks"]
+        if callbacks = invalid
+          m["_notificationCallbacks"] = {}
+          callbacks = m["_notificationCallbacks"]
+        end if
+        callbacks[name] = callback
+        'bs:disable-next-line
+        notificationCenter = m.getInstance("notificationCenter")
+        'bs:disable-next-line
+        notificationCenter@.addObserver(m.top, name)
+      end if
+    end function
+
+    protected function unobserveNotification(name as string)
+      if m.isNotificationObservingSupported()
+        callbacks = m["_notificationCallbacks"]
+        if callbacks <> invalid
+          callbacks.delete(name)
+          'bs:disable-next-line
+          notificationCenter = m.getInstance("notificationCenter")
+          'bs:disable-next-line
+          notificationCenter@.removeObserver(m.top, name)
+        end if
+      end if
+    end function
+
   end class
 end namespace

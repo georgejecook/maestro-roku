@@ -1,0 +1,79 @@
+import "pkg:/source/core/BaseClass.bs"
+import "pkg:/source/core/Utils.bs"
+
+namespace mc
+
+  @observersWaitInitialize
+  @node("mc_NotificationCenter", "Node")
+  class mc_NotificationCenter extends mc.BaseClass
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Field
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private observersByNotificationKey = {}
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("mc_NotificationCenter")
+    end function
+
+    protected override function initialize() as void
+      super.initialize()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function addObserver(observer as mc.types.node, functionName as string, name as string)
+      key = asString(name)
+      if key <> ""
+
+        observers = m.observersByNotificationKey[key]
+
+        if observers = invalid
+          observers = {}
+          m.observersByNotificationKey[key] = observers
+        end if
+        observers[observer.id] = observer
+      else
+        m.log.error("could not addObserver for empty name")
+      end if
+    end function
+
+    function removeObserver(observer as mc.types.node, name as string)
+      key = asString(name)
+      if key <> ""
+        observers = m.observersByNotificationKey[key]
+
+        if observers <> invalid
+          observers.delete(observer.id)
+          if observers.count() = 0
+            m.observersByNotificationKey.delete(key)
+          end if
+        end if
+      else
+        m.log.error("could not addObserver for empty name")
+      end if
+    end function
+
+    protected override function sendNotification(notification as mc.Notification)
+      try
+        observers = m.observersByNotificationKey[notification.name]
+        for each observer in observers.items()
+          observer@.callVMFunc("_onNotification", notification)
+        end for
+      catch error
+        m.log.error("error sending notification", error)
+      end try
+    end function
+  end class
+end namespace
