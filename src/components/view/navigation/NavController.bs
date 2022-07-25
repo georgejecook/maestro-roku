@@ -3,6 +3,7 @@ function init()
   m.viewStack = []
   m.currentView = invalid
   m.tempTransition = false
+  m.isManagingVisibilityCallbacks = true
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -15,6 +16,7 @@ function push(view as mc.types.node, animated = true as boolean, transition = in
     m.log.warn(" push invalid view passed in : ignoring")
     return
   end if
+  m.top.shouldRemoveFromAggregateView = false
   m.tempTransition = transition
 
   m.log.info("pushing ", view.subType())
@@ -78,7 +80,7 @@ function pop(animated = true as boolean, transition = invalid as mc.types.node)
 
   updatePublicFields()
 
-
+  m.top.shouldRemoveFromAggregateView = true
   transitionToView(nextView, animated)
 
   return previousView

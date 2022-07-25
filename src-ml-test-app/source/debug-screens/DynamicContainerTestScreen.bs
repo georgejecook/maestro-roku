@@ -1,37 +1,45 @@
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/core/Utils.bs"
 
-@node("NavControllerTestScreen", "mv_BaseScreen")
-class NavControllerTestScreen extends mv.BaseScreen
+@node("DynamicContainerTestScreen", "mv_BaseScreen")
+class DynamicContainerTestScreen extends mv.BaseScreen
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   private bgRect as mc.types.node
-  private navController as mc.types.node
+  private label as mc.types.node
+
+  private dynamicContainer as mc.types.node
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Initialization
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   function new()
-    super("NavControllerTestScreen")
+    super("DynamicContainerTestScreen")
   end function
 
   protected override function initialize()
-    m.log.info("Initialized NavControllerTestScreen")
+    m.log.info("Initialized DynamicContainerTestScreen")
     super.initialize()
 
     m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
       size: [1920, 1080]
-      color: "#b2f3b2"
-    })
-
-    m.navController = m.createSGNode("mv_navController", m.top, "navController")
-    transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
       color: "#ff0000"
     })
-    m.navController.transition = transition
+
+    m.label = m.createSGNode("mv_Label", m.bgRect, "label", {
+      text: "Dynamic container test screen"
+      font: "font:MediumSystemFont"
+      color: "#000000"
+      translation: [500, 500]
+    })
+    transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+      color: "#ffff00"
+    })
+    m.dynamicContainer = m.createSGNode("mv_DynamicContainer", m.top, "dynamicContainer")
+    m.dynamicContainer.transition = transition
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,22 +47,10 @@ class NavControllerTestScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   protected override function onKeyPressLeft() as boolean
-    m.log.info("Pushing a screen")
-    childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, "NavControllerTestChildScreen")
-    m.navController@.push(childScreen)
-    return true
-  end function
+    m.log.info("Adding a screen")
 
-  protected override function onKeyPressRight() as boolean
-    m.log.info("Popping a screen")
-    m.navController@.pop(true)
-    return true
-  end function
-
-  private function onKeyPressDown() as boolean
-    shown = not m.navController.visible
-    m.log.info("toggling navcontroller visibility", shown)
-    m.navController@._setShown(shown)
+    view = m.createSgNode("NavControllerTestChildScreen", invalid, "NavControllerTestChildScreen")
+    m.dynamicContainer@.setNextView(view)
     return true
   end function
 
