@@ -14,6 +14,7 @@ import "pkg:/source/core/Types-Polyfill.bs"
 function init() as void
   m.log = new log.Logger(getViewName())
   mioc.initialize()
+  m.isManagingVisibilityCallbacks = true
   m.top.observeFieldScoped("isFocused", "onIsFocusedChange")
   m.top.observeFieldScoped("isChildFocused", "onIsChildFocusedChange")
 
@@ -148,7 +149,7 @@ function _initialize(args = invalid as mc.types.assocarray)
       m_createVM()
     end if
 
-    if not m.isInAggregateView
+    if m.isManagingVisibilityCallbacks
       m.top.observeFieldScoped("visible", "onVisibleChange")
     end if
 
@@ -162,7 +163,7 @@ end function
 
 function onAddedToAggregateView(view as mc.types.node)
   m.isInAggregateView = true
-  m.top.unObserveFieldScoped("visible")
+
   if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
     m.vm.onAddedToAggregateView(view)
   else if m.onAddedToAggregateView <> invalid
@@ -172,7 +173,6 @@ end function
 
 function onRemovedFromAggregateView(view as mc.types.node)
   m.isInAggregateView = false
-  m.top.observeFieldScoped("visible", "onVisibleChange")
 
   if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
     m.vm.onRemovedFromAggregateView(view)
@@ -183,6 +183,7 @@ end function
 
 function _setShown(visible as boolean)
   m.top.visible = visible
+  onVisibleChange()
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

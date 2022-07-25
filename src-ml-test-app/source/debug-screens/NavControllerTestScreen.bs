@@ -39,9 +39,22 @@ class NavControllerTestScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   protected override function onKeyPressLeft() as boolean
-    m.log.info("ON KEY PRESS LEFT")
+    m.log.info("Pushing a screen")
     childScreen = m.createScreen("NavControllerTestChildScreen", "NavControllerTestChildScreen")
     m.navController@.push(childScreen)
+    return true
+  end function
+
+  protected override function onKeyPressRight() as boolean
+    m.log.info("Popping a screen")
+    m.navController@.pop()
+    return true
+  end function
+
+  private function onKeyPressDown() as boolean
+    shown = not m.navController.visible
+    m.log.info("toggling navcontroller visibility", shown)
+    m.navController@._setShown(shown)
     return true
   end function
 
