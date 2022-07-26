@@ -1,3 +1,8 @@
+---
+priority: 0
+title: Maestro-roku
+---
+
 ## A development platform for building roku channels in brighterscript.
 
 
@@ -5,13 +10,14 @@
 [![GitHub](https://img.shields.io/github/release/georgejecook/maestro-roku.svg?style=flat-square)](https://github.com/georgejecook/maestro-roku/releases)
 [![NPM Version](https://badge.fury.io/js/maestro-roku.svg?style=flat)](https://npmjs.org/package/maestro-roku)
 
+
 ## Why maestro?
 
 ### Maestro Makes roku development easier, especially for experienced software engineers from other platforms:
 
 I believe that experienced developers from android, ios, c#, web, node, etc, should be able to be productive on a roku app in no more than a week, just as they would on any other platform. So I wrote maestro to make that possible.
 
-Maestro is built to:
+## Maestro is built to:
 
  - Raise velocity
  - Increase productivity
@@ -22,14 +28,36 @@ Maestro is built to:
  - Produce roku apps that can be unit tested easily
  - Write code that can be tested and breakpoint debugged, outside of SG views (which are slow as hell, and prone to crashing when breakpoint debugging)
 
-## Quick start
 
-COMING SOON: Separate sample project.
+## Maestro is easy to use:
 
-  - Clone this repo
-  - `npm install`
+ - Delivered as ropm module for easy installation
+ - Has sample app, which is ready to roll for production ready roku apps
 
-NOTE: To debug with RALE, you need to use a specific version, as the RALETracker task in my project is locked at 2.1.7 - I have downloads of those versions [here](https://drive.google.com/drive/folders/1gZZcndEpSO6zDVkx09UpYJtPb7OTf6Nq?usp=sharing).
+## Maestro is aligned with community best practices and tools
 
-## Docs
-Maestro-roku docs can be found [here](./docs/)
+ - Uses ropm
+ - Written in [brighterscript](https://github.com/rokucommunity/brighterscript)
+ - Uses brighterscript plugins for compile time and IDE diagnostics
+ - No need for complex build scripts or bespoke build processes (like bash/gulp etc); maestro apps can run simply by executing `bsc`  (brighterscript compiler)
+
+
+## Maestro is performant
+
+ - Runs great on all roku devices
+ - Maestro apps launch quick and are snappy
+
+## Maestro is installed on millions of devices
+
+Been in production for > 2 years at:
+
+  - applicaster, and their various clients
+  - smithsonian
+  - corco
+  - other clients (names pending permission ;) )
+
+# Contributing:
+
+ - Please feel free to raise issues with features/bug reports
+ - And feel free to submit prs
+ - Or reach out to me on the roku-slack channel
