@@ -4,6 +4,15 @@ title: Overview
 ---
 # Node classes
 
+## Table of Contents
+- [Testing](/docs/3.%20Node%20Classes/testing.md)
+- [Config](/docs/3.%20Node%20Classes/config.md)
+- [How to write](/docs/3.%20Node%20Classes/how-to-write.md)
+- [Implementation](/docs/3.%20Node%20Classes/implemenation.md)
+- [Node task](/docs/3.%20Node%20Classes/node-task.md)
+
+---
+
 Maestro exists to save you writing error prone boilerplate code.
 For this reason it allows the creation of node classes, which are annotations you can add to a class, which will automatically generate xml and brs code for you, allowing:
 

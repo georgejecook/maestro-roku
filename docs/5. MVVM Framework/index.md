@@ -2,6 +2,12 @@
 priority: 0
 title: Overview
 ---
+
+## Table of Contents
+- [Observables and ViewModels](/docs/5.%20MVVM%20Framework/observables-and-vms.md)
+- [XML binding syntax](/docs/5.%20MVVM%20Framework/xml-bindings.md)
+---
+
 # Overview
 
 Maestro is an MVVM (Model View View Model) framework. This pattern is, in the author's opinion, well suited to Roku development:
