@@ -38,13 +38,15 @@ namespace mv.transitions
 
       m.blackFadeAnim.onFraction(0.5, function(f as float)
         if m.source <> invalid and not m.source.isSameNode(m.target)
-          m.source.visible = false
+          m.source@._setShown(false)
           m.owner.removeChild(m.source)
         end if
         if m.target <> invalid and not m.target.isSameNode(m.source)
           m.owner.appendChild(m.target)
           m.owner.appendChild(m.fadeRectangle)
-          m.target.visible = true
+          'TODO - investigate if m.owner.isShown is more accurate
+          ' m.target@._setShown(true)
+          m.target@._setShown(m.owner.isShown)
         end if
       end function, m)
 
