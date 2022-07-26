@@ -32,8 +32,10 @@ function getViewName()
 end function
 
 function onDebugMChange()
-  mc.setOrAddNodeField(m.top, "__m", m)
-  mc.setOrAddNodeField(m.top, "__vm", m.vm)
+  mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
+  if m.vm <> invalid
+    mc.setOrAddNodeField(m.top, "__vm", mc.private.getDebugMObject(m.vm))
+  end if
 end function
 
 ' /**
