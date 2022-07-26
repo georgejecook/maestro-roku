@@ -9,6 +9,9 @@ class NavControllerTestScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   private bgRect as mc.types.node
   private navController as mc.types.node
+  private lastPoppedView as mc.types.node
+  private transition as mc.types.node
+  private childId = 0
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Initialization
@@ -28,10 +31,20 @@ class NavControllerTestScreen extends mv.BaseScreen
     })
 
     m.navController = m.createSGNode("mv_navController", m.top, "navController")
-    transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+    m.transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
       color: "#ff0000"
     })
-    m.navController.transition = transition
+
+    m.createSGNode("mv_Label", m.bgRect, "label", {
+      font: "font:mediumBoldSystemFont"
+      color: "#000000"
+      wrap: true
+      translation: [100, 500]
+      size: [1300, 0]
+      text: `Left: push new, Right: pop, Down: toggle nav visibility
+      Up: Push previously popped, Play: toggle transition`
+    })
+    m.navController.transition = m.transition
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -40,14 +53,15 @@ class NavControllerTestScreen extends mv.BaseScreen
 
   protected override function onKeyPressLeft() as boolean
     m.log.info("Pushing a screen")
-    childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, "NavControllerTestChildScreen")
+    childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, m.childId)
     m.navController@.push(childScreen)
+    m.childId++
     return true
   end function
 
   protected override function onKeyPressRight() as boolean
     m.log.info("Popping a screen")
-    m.navController@.pop(true)
+    m.lastPoppedView = m.navController@.pop(true)
     return true
   end function
 
@@ -58,4 +72,16 @@ class NavControllerTestScreen extends mv.BaseScreen
     return true
   end function
 
+  private function onKeyPressUp() as boolean
+    m.log.info("pushing last popped view")
+    m.navController@.push(m.lastPoppedView)
+    return true
+  end function
+
+  private function onKeyPressPlay() as boolean
+    transition = m.navController.transition = invalid ? m.transition: invalid
+    m.log.info("setting transition to ", mc.dv(transition))
+    m.navController.transition = transition
+    return true
+  end function
 end class

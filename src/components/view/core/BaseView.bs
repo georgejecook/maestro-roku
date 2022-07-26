@@ -13,8 +13,8 @@ import "pkg:/source/core/Types-Polyfill.bs"
 '  */
 function init() as void
   m.log = new log.Logger(getViewName())
-  mioc.initialize()
   m.isManagingVisibilityCallbacks = true
+  mioc.initialize()
   m.top.observeFieldScoped("isFocused", "onIsFocusedChange")
   m.top.observeFieldScoped("isChildFocused", "onIsChildFocusedChange")
 
@@ -58,10 +58,12 @@ end function
 
 function onVisibleChange()
   'TODO - does the nav controller handle this in future?
-  m.log.info(m.top.id, "onVisibleChange visible ", m.top.visible)
-  if m.top.visible
+  visible = m.top.visible
+  m.log.info(m.top.id, "onVisibleChange visible ", visible)
+  isShown = m.top.isShown
+  if visible and not isShown
     _onShow(invalid)
-  else
+  else if not visible and isShown
     _onHide(invalid)
   end if
 end function
@@ -149,35 +151,46 @@ function _initialize(args = invalid as mc.types.assocarray)
       m_createVM()
     end if
 
-    if m.isManagingVisibilityCallbacks
-      m.top.observeFieldScoped("visible", "onVisibleChange")
-    end if
-
-    if m.top.visible and not m.top.isShown
-      _onShow(invalid)
-    end if
+    _observeVisibilityIfRequired()
   else
     m.log.warn("View was already initialized. Ignoring subsequent call ", m.top)
   end if
 end function
 
-function onAddedToAggregateView(view as mc.types.node)
-  m.isInAggregateView = true
+function _observeVisibilityIfRequired()
+  if m.isManagingVisibilityCallbacks
+    m.top.observeFieldScoped("visible", "onVisibleChange")
 
-  if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
-    m.vm.onAddedToAggregateView(view)
-  else if m.onAddedToAggregateView <> invalid
-    m.onAddedToAggregateView(view)
+    if m.top.visible and not m.top.isShown
+      _onShow(invalid)
+    end if
+  else
+    m.top.unobserveFieldScoped("visible")
+  end if
+end function
+
+function onAddedToAggregateView(view as mc.types.node)
+  if not m.isInAggregateView
+    m.isInAggregateView = true
+    _observeVisibilityIfRequired()
+    if m.vm <> invalid and m.vm.onAddedToAggregateView <> invalid
+      m.vm.onAddedToAggregateView(view)
+    else if m.onAddedToAggregateView <> invalid
+      m.onAddedToAggregateView(view)
+    end if
   end if
 end function
 
 function onRemovedFromAggregateView(view as mc.types.node)
-  m.isInAggregateView = false
+  if m.isInAggregateView
+    m.isInAggregateView = false
 
-  if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
-    m.vm.onRemovedFromAggregateView(view)
-  else if m.onRemovedFromAggregateView <> invalid
-    m.onRemovedFromAggregateView(view)
+    _observeVisibilityIfRequired()
+    if m.vm <> invalid and m.vm.onRemovedFromAggregateView <> invalid
+      m.vm.onRemovedFromAggregateView(view)
+    else if m.onRemovedFromAggregateView <> invalid
+      m.onRemovedFromAggregateView(view)
+    end if
   end if
 end function
 

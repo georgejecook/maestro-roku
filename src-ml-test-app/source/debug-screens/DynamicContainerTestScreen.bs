@@ -9,6 +9,9 @@ class DynamicContainerTestScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   private bgRect as mc.types.node
   private label as mc.types.node
+  private previousView as mc.types.node
+  private transition as mc.types.node
+  private childId = 0
 
   private dynamicContainer as mc.types.node
 
@@ -35,11 +38,21 @@ class DynamicContainerTestScreen extends mv.BaseScreen
       color: "#000000"
       translation: [500, 500]
     })
-    transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+    m.transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
       color: "#ffff00"
     })
+
+    m.createSGNode("mv_Label", m.bgRect, "label", {
+      font: "font:mediumBoldSystemFont"
+      color: "#000000"
+      wrap: true
+      translation: [100, 700]
+      size: [1300, 0]
+      text: `Left: set new, Right: set invalid, Up: set to previous view
+      Play: toggle transition, Down: toggle visibility`
+    })
     m.dynamicContainer = m.createSGNode("mv_DynamicContainer", m.top, "dynamicContainer")
-    m.dynamicContainer.transition = transition
+    m.dynamicContainer.transition = m.transition
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -49,8 +62,34 @@ class DynamicContainerTestScreen extends mv.BaseScreen
   protected override function onKeyPressLeft() as boolean
     m.log.info("Adding a screen")
 
-    view = m.createSgNode("NavControllerTestChildScreen", invalid, "NavControllerTestChildScreen")
+    view = m.createSgNode("NavControllerTestChildScreen", invalid, `child_${m.childId}`)
+    m.childId++
+    m.previousView = m.dynamicContainer.currentView
     m.dynamicContainer@.setNextView(view)
+    return true
+  end function
+
+  private function onKeyPressUp() as boolean
+    m.log.info("reusing previous screen: ", mc.dv(m.previousView))
+    m.dynamicContainer@.setNextView(m.previousView)
+    return true
+  end function
+
+  private function onKeyPressRight() as boolean
+    m.log.info("setting screen to invalid")
+    m.dynamicContainer@.setNextView(invalid)
+    return true
+  end function
+
+  private function onKeyPressPlay() as boolean
+    transition = m.dynamicContainer.transition = invalid ? m.transition: invalid
+    m.log.info("setting transition to ", mc.dv(transition))
+    m.dynamicContainer.transition = transition
+    return true
+  end function
+
+  private function onKeyPressDown() as boolean
+    m.dynamicContainer.visible = not m.dynamicContainer.visible
     return true
   end function
 
