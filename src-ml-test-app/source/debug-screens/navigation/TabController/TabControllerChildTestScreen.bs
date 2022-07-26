@@ -1,0 +1,83 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("TabControllerChildTestScreen", "mv_BaseScreen")
+class TabControllerChildTestScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("TabControllerChildTestScreen")
+  end function
+
+  protected override function initialize()
+    m.log.info("Initialized TabControllerChildTestScreen")
+    super.initialize()
+
+    bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [1920, 1080]
+      color: "##0000cd"
+    })
+
+    m.createSGNode("mv_Label", bgRect, "label", {
+      font: "font:mediumBoldSystemFont"
+      color: "#000000"
+      wrap: true
+      translation: [500, 500]
+      size: [1300, 0]
+      text: `Showing screen for ${m.top.id}. Nav menu lost focus.Press up to gain focus to nav menu.`
+    })
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onKeyPressOK() as boolean
+    m.log.info("TabControllerChildTestScreen - on KEY PRESS OK")
+    return true
+  end function
+
+  private function onKeyPressLeft() as boolean
+    m.log.info("on KEY PRESS LEFT")
+    return true
+  end function
+
+  private function onKeyPressRight() as boolean
+    m.log.info("on KEY PRESS RIGHT")
+    return true
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Life cycles
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onFirstShow()
+    m.log.info("On first show", m.top.id)
+    super.onFirstShow()
+  end function
+
+  protected override function onShow()
+    m.log.info("On show", m.top.id)
+    super.onShow()
+  end function
+
+  protected override function onAddedToAggregateView(view as mc.types.node)
+    m.log.info("Added to aggregated view", m.top.id)
+    super.onAddedToAggregateView(view)
+  end function
+
+  protected override function onRemovedFromAggregateView(view as mc.types.node)
+    m.log.info("Remove from aggregated view", m.top.id)
+    super.onRemovedFromAggregateView(view)
+  end function
+
+  protected override function onHide()
+    m.log.info("onHide", m.top.id)
+    super.onHide()
+  end function
+end class
