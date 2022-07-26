@@ -2,6 +2,14 @@
 priority: 9000
 title: Overview
 ---
+
+## Table of Contents
+- [Sample](/docs/8.%20List%20Component/sample.md)
+- [Getting started](/docs/8.%20List%20Component/getting-started.md)
+- [Callbacks](/docs/8.%20List%20Component/callbacks.md)
+- [CustomCells](/docs/8.%20List%20Component/custom-cells.md)
+---
+
 # Overview
 
 Lists on roku, without the headache and heartbreak
