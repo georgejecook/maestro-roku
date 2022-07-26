@@ -50,7 +50,7 @@ namespace mc.sample
       'for mucking around with @sync injection
       settings = m.createSGNode("ContentNode")
       mc.setOrAddNodeField(settings, "spoilersActive", false)
-      m.setInstance("user", {settings: settings})
+      m.setInstance("user", { settings: settings })
 
       m.bundle = m.styleManager@.loadBundle("pkg:/source/main/AppController.bundle")
 
@@ -146,6 +146,14 @@ namespace mc.sample
         m.setFocusOnContent(true)
       end if
       return true
+    end function
+
+    protected override function onKeyPressBack() as boolean
+      if m.isFocusedOnContent
+        m.setFocusOnContent(false)
+        return true
+      end if
+      return false
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
