@@ -15,6 +15,7 @@ function push(view as mc.types.node, animated = true as boolean, transition = in
     m.log.warn(" push invalid view passed in : ignoring")
     return
   end if
+  m.top.shouldRemoveFromAggregateView = false
   m.tempTransition = transition
 
   m.log.info("pushing ", view.subType())
@@ -22,6 +23,7 @@ function push(view as mc.types.node, animated = true as boolean, transition = in
   view.navController = m.top
   updatePublicFields()
 
+  'for a navcontroller we are added here
   transitionToView(view, animated)
 end function
 
@@ -77,7 +79,7 @@ function pop(animated = true as boolean, transition = invalid as mc.types.node)
 
   updatePublicFields()
 
-
+  m.top.shouldRemoveFromAggregateView = true
   transitionToView(nextView, animated)
 
   return previousView

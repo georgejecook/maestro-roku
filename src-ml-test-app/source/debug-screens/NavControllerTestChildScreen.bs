@@ -1,0 +1,84 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("NavControllerTestChildScreen", "mv_BaseScreen")
+class NavControllerTestChildScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private bgRect as mc.types.node
+  private label as mc.types.node
+  private navController as mc.types.node
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("NavControllerTestChildScreen ")
+  end function
+
+  protected override function initialize()
+    m.log.info("Initialized NavControllerTestChildScreen ")
+    super.initialize()
+    m.createViews()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function createViews()
+    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [1000, 400]
+      color: "#b4b4b4"
+    })
+    m.label = m.createSGNode("mv_Label", m.bgRect, "label", {
+      font: "font:mediumBoldSystemFont"
+      color: "#000000"
+      translation: [100, 100]
+      text: `${m.top.id}`
+    })
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onKeyPressOK() as boolean
+    m.log.info("NavControllerTestChildScreen - on KEY PRESS OK")
+    return true
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Life cycles
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onFirstShow()
+    m.log.info("NavControllerTestChildScreen -On first show", m.top.id)
+    super.onFirstShow()
+  end function
+
+  protected override function onShow()
+    m.log.info("NavControllerTestChildScreen - On show", m.top.id)
+    super.onShow()
+  end function
+
+  protected override function onAddedToAggregateView(view as mc.types.node)
+    m.log.info("NavControllerTestChildScreen - Added to aggregated view", m.top.id)
+    super.onAddedToAggregateView(view)
+  end function
+
+  protected override function onRemovedFromAggregateView(view as mc.types.node)
+    m.log.info("NavControllerTestChildScreen - Remove from aggregated view", m.top.id)
+    super.onRemovedFromAggregateView(view)
+  end function
+
+  protected override function onHide()
+    m.log.info("NavControllerTestChildScreen - onHide", m.top.id)
+    super.onHide()
+  end function
+
+end class
