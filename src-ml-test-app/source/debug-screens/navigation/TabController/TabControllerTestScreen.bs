@@ -1,0 +1,122 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("TabControllerTestScreen", "mv_BaseScreen")
+class TabControllerTestScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private bgRect as mc.types.node
+
+  private tabController as mc.types.node
+  private navMenu as mc.types.node
+  private currentMenuItem as mc.types.node
+  private menuItems = []
+
+  private isFocusedOnContent = false
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("TabControllerTestScreen")
+  end function
+
+  protected override function initialize()
+    m.log.info("Initialized TabControllerTestScreen")
+    super.initialize()
+    m.createViews()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Public Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  public function setFocusOnContent(focusOnContent as boolean, animated = true as boolean)
+    m.isFocusedOnContent = focusOnContent
+    m.setFocus(focusOnContent ? m.tabController : m.navMenu)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function createViews()
+    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [1920, 1080]
+      color: "#c4c4c4"
+    })
+
+    m.tabController = m.createSGNode("mv_TabController", m.top, "controller")
+    m.setNavMenu()
+    m.onMenuItemChange(0)
+  end function
+
+  private function setNavMenu()
+    m.navMenu = m.createSGNode("mv_ControlsGroup", m.top, "navMenu", {
+      translation: [200, 50]
+      layoutMode: "horiz"
+      keyDirection: "horiz"
+      itemSpacings: [40]
+      observe: {
+        "selectedIndex": m.onMenuItemChange
+      }
+    })
+
+    m.createSGNode("mv_Button", m.navMenu, "Tab1", {
+      text: "Tab1"
+    })
+
+    item = m.createSGNode("ContentNode", invalid, "tab1")
+    mc.setOrAddNodeField(item, "screenType", "TabControllerChildTestScreen")
+    m.menuItems.push(item)
+
+    m.createSGNode("mv_Button", m.navMenu, "Tab2", {
+      text: "Tab2"
+    })
+    item = m.createSGNode("ContentNode", invalid, "tab2")
+    mc.setOrAddNodeField(item, "screenType", "TabControllerChildTestScreen")
+    m.menuItems.push(item)
+
+    m.createSGNode("mv_Button", m.navMenu, "Tab3", {
+      text: "Tab3"
+    })
+    item = m.createSGNode("ContentNode", invalid, "tab3")
+    mc.setOrAddNodeField(item, "screenType", "TabControllerChildTestScreen")
+    m.menuItems.push(item)
+    m.navMenu@.updateChildren()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onMenuItemChange(index as integer)
+    m.log.info("selected tab item", index)
+    m.currentMenuItem = m.menuItems[index]
+    m.tabController@.changeCurrentItem(m.currentMenuItem)
+    m.setFocus(m.tabController)
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ LifeCycle Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    if isSelfFocused
+      m.setFocusOnContent(m.isFocusedOnContent)
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  private function onKeyPressUp() as boolean
+    m.setFocusOnContent(false)
+    return true
+  end function
+end class
