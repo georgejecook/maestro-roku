@@ -8,10 +8,6 @@ namespace mc
   class mc_NotificationCenter extends mc.BaseClass
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Public fields
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Field
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -33,12 +29,11 @@ namespace mc
     '++ Public methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function addObserver(observer as mc.types.node, functionName as string, name as string)
+    function addObserver(observer as mc.types.node, name as string)
       key = asString(name)
       if key <> ""
 
         observers = m.observersByNotificationKey[key]
-
         if observers = invalid
           observers = {}
           m.observersByNotificationKey[key] = observers
@@ -65,11 +60,19 @@ namespace mc
       end if
     end function
 
+    function send(notification as mc.Notification)
+      m.sendNotification(notification)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overrides
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     protected override function sendNotification(notification as mc.Notification)
       try
         observers = m.observersByNotificationKey[notification.name]
         for each observer in observers.items()
-          observer@.callVMFunc("_onNotification", notification)
+          observer.value@.callVMFunc("_onNotification", notification)
         end for
       catch error
         m.log.error("error sending notification", error)
