@@ -1,0 +1,139 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/core/Notification.bs"
+
+@node("NotificationScreen", "mv_BaseScreen")
+class NotificationScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  private dynamicContainer1 as mc.types.node
+  private dynamicContainer2 as mc.types.node
+
+  private buttonGroup as mc.types.node
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("NotificationScreen")
+  end function
+
+  protected override function initialize()
+    m.log.info("Initialized NotificationScreen")
+
+    super.initialize()
+    m.createViews()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function createViews()
+    m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [1920, 1080]
+      color: "#b4b4b4"
+    })
+
+    m.createSGNode("mv_Label", m.top, "label", {
+      font: "font:smallSystemFont"
+      color: "#000000"
+      wrap: true
+      size: [1000, 0]
+      translation: [50, 50]
+      text: `Press up to add a new screen to dynamic container 1,
+      press down to add a new screen to dynamic container2`
+
+    })
+
+    m.buttonGroup = m.createSGNode("mv_ControlsGroup", m.top, "buttonGroup", {
+      translation: [300, 300]
+      layoutMode: "horiz"
+      keyDirection: "horiz"
+      itemSpacings: [40]
+      observe: {
+        "selectedIndex": m.onSelectedIndexChange
+      }
+    })
+    m.createSGNode("mv_Button", m.buttonGroup, "button1", {
+      text: "Send OK"
+    })
+
+    m.createSGNode("mv_Button", m.buttonGroup, "button2", {
+      text: "Send Error"
+    })
+
+    m.buttonGroup@.updateChildren()
+
+    transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+      color: "#ff0000"
+    })
+    m.dynamicContainer1 = m.createSGNode("mv_DynamicContainer", m.top, "dynamicContainer1")
+    m.dynamicContainer2 = m.createSGNode("mv_DynamicContainer", m.top, "dynamicContainer2")
+
+    m.dynamicContainer1.transition = transition
+    m.dynamicContainer2.transition = transition
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onKeyPressUp() as boolean
+    m.log.info("Adding a screen to dynamic container 1")
+
+    view = m.createSGNode("NotificationChildScreen", invalid, "childScreen1", {
+      translation: [150, 500]
+    })
+    m.dynamicContainer1@.setNextView(view)
+    return true
+  end function
+
+  protected override function onKeyPressDown() as boolean
+    m.log.info("Adding a screen to dynamic container 2")
+
+    view = m.createSGNode("NotificationChildScreen", invalid, "childScreen2", {
+      translation: [800, 500]
+    })
+    m.dynamicContainer2@.setNextView(view)
+    return true
+  end function
+
+  protected override function onKeyPressLeft() as boolean
+    return true
+  end function
+
+  protected override function onKeyPressRight() as boolean
+    return true
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onSelectedIndexChange(index as integer)
+    if index = 0
+      notification = mc.createNotification("Success", { id: 1 })
+      m.sendNotification(notification)
+    else if index = 1
+      notification = mc.createNotification("Error", invalid)
+      m.sendNotification(notification)
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Lifecycle
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onGainedFocus(isSelfFocused as boolean)
+    super.onGainedFocus(isSelfFocused)
+
+    if isSelfFocused
+      m.setFocus(m.buttonGroup)
+    end if
+  end function
+end class
+
