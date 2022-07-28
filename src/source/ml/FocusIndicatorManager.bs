@@ -81,6 +81,8 @@ namespace ml
     private isFocusSettingsChangePending = false
     private minFocusChangeFraction = 0.5
 
+    private manualMode = false
+
     function new()
       super("ml_FocusIndicatorManager")
     end function
@@ -157,6 +159,10 @@ namespace ml
       'We must be already prepared
       m.applyFocusSettings(true)
       m.moveFocusIndicatorToTargetPosition(1)
+    end function
+
+    public function setManualFocusIndicatorControl(active as boolean)
+      m.manualMode = active
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -283,8 +289,10 @@ namespace ml
 
       end if
 
-      m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
-      m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
+      if not m.manualControl
+        m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
+        m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
+      end if
 
       m.isFocusSettingsChangePending = false
     end function
@@ -296,14 +304,15 @@ namespace ml
 
       if fraction = 1
         translation = m.nextConfig.indicatorTranslation
-        m.focusIndicator.translation = translation
-        m.focusIndicator.size = m.nextConfig.indicatorSize
+        size = m.nextConfig.indicatorSize
         m.focusScreenPosition = m.nextConfig.indicatorTranslation
         ' ? "ACTIVE FOCUS POS IS NOW "; formatJson(m.nextConfig.indicatorTranslation)
-
       else
         translation = mc.interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
         size = mc.interpolateArray(m.previousSize, m.nextConfig.indicatorSize, fraction)
+      end if
+
+      if not m.manualControl
         m.focusIndicator.translation = translation
         m.focusIndicator.size = size
       end if
