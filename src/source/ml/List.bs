@@ -198,7 +198,12 @@ namespace ml
 
     private function onContentChange()
       m.log.info("onContentChange")
-      ' ? "LIST ON CONTENT CHANGE"
+
+      if m.content = invalid
+        m.content = ml.listMixin.createListContent()
+        m.content.id = "invalidContent"
+      end if
+
       if m.isInitialized
         if m._content <> invalid and not m._content.isSameNode(m.content)
           m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
