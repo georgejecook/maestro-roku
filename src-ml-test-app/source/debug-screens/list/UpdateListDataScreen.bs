@@ -370,6 +370,24 @@ class UpdateListDataScreen extends mv.BaseScreen
       m.setRowOpacity(rowIndex, 1 - fraction, direction)
     end if
   end function
+
+  private function toggleListUpdates(enabled as boolean)
+    m.log.info("Setting list updates to ", enabled)
+    m.list@.setUpdatesEnabled(enabled)
+  end function
+
+  private function changeContent()
+    row = m.list@.getRow(1)
+    child = m.makeItem(m.defaultCellType, "New item")
+    row@.insertChild(child, 0)
+
+    child = m.makeItem(m.defaultCellType, "Second New item")
+    row@.insertChild(child, 1)
+
+    row = m.list@.getRow(3)
+    row@.removeChildrenIndex(row.getChildCount() - 1, 0)
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -398,6 +416,17 @@ class UpdateListDataScreen extends mv.BaseScreen
 
   private function onKeyPressOptions() as boolean
     m.makeSomeCoolRows()
+    return true
+  end function
+
+  private function onKeyPressRewind() as boolean
+    m.toggleListUpdates(false)
+    m.changeContent()
+    return true
+  end function
+
+  private function onKeyPressFastForward() as boolean
+    m.toggleListUpdates(true)
     return true
   end function
 
