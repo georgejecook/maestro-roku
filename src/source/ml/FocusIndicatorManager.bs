@@ -26,15 +26,6 @@ namespace ml
     @observer("onNextScreenPosChange")
     public nextScreenPos = 0
 
-    @alwaysnotify
-    @observer("onFocusedRowIndexChange")
-    private focusedRowIndex = 0
-
-    @alwaysnotify
-    @observer("onFocusedCellIndexChange")
-    private focusedCellIndex = 0
-
-    @observer("onFocusedFractionChange")
     public focusedFraction = 0.0
 
     private nextFocusIndex as mc.types.Array
@@ -80,6 +71,8 @@ namespace ml
     private rowHasIndicator = true
     private isFocusSettingsChangePending = false
     private minFocusChangeFraction = 0.5
+
+    private manualMode = false
 
     function new()
       super("ml_FocusIndicatorManager")
@@ -159,6 +152,13 @@ namespace ml
       m.moveFocusIndicatorToTargetPosition(1)
     end function
 
+    public function setManualFocusIndicatorMode(active as boolean)
+      m.manualMode = active
+      if not active
+        m.applyFocusSettings(true)
+      end if
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -166,15 +166,21 @@ namespace ml
     private function onIsHiddenChange(isHidden as boolean)
       m.isHidden = isHidden
       ' ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
-      m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
+      if not m.manualMode
+        m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
+      end if
     end function
 
     private function onActiveScreenPosChange(y as integer) as void
-      m.activeFocusView.translation = [200, y]
+      if not m.manualMode
+        m.activeFocusView.translation = [200, y]
+      end if
     end function
 
     private function onNextScreenPosChange(y as integer) as void
-      m.nextFocusView.translation = [220, y]
+      if not m.manualMode
+        m.nextFocusView.translation = [220, y]
+      end if
     end function
 
     private function onFocusedFractionChange(fraction as float) as void
@@ -283,8 +289,10 @@ namespace ml
 
       end if
 
-      m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
-      m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
+      if not m.manualMode
+        m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
+        m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
+      end if
 
       m.isFocusSettingsChangePending = false
     end function
@@ -296,14 +304,15 @@ namespace ml
 
       if fraction = 1
         translation = m.nextConfig.indicatorTranslation
-        m.focusIndicator.translation = translation
-        m.focusIndicator.size = m.nextConfig.indicatorSize
+        size = m.nextConfig.indicatorSize
         m.focusScreenPosition = m.nextConfig.indicatorTranslation
         ' ? "ACTIVE FOCUS POS IS NOW "; formatJson(m.nextConfig.indicatorTranslation)
-
       else
         translation = mc.interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
         size = mc.interpolateArray(m.previousSize, m.nextConfig.indicatorSize, fraction)
+      end if
+
+      if not m.manualMode
         m.focusIndicator.translation = translation
         m.focusIndicator.size = size
       end if
