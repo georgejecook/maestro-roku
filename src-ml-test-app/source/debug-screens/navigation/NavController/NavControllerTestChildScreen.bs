@@ -10,7 +10,6 @@ class NavControllerTestChildScreen extends mv.BaseScreen
 
   private bgRect as mc.types.node
   private label as mc.types.node
-  private navController as mc.types.node
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Initialization
@@ -57,27 +56,33 @@ class NavControllerTestChildScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   protected override function onFirstShow()
-    m.log.info("NavControllerTestChildScreen -On first show", m.top.id)
+    m.log.info("On first show", m.top.id)
     super.onFirstShow()
   end function
 
   protected override function onShow()
-    m.log.info("NavControllerTestChildScreen - On show", m.top.id)
+    pushedView = m.top.navController.pushedView
+    poppedView = m.top.navController.poppedView
+
+    m.log.info("Pushed view", mc.dv(pushedView))
+    m.log.info("Popped view", mc.dv(poppedView))
+
+    m.log.info("On show", m.top.id)
     super.onShow()
   end function
 
   protected override function onAddedToAggregateView(view as mc.types.node)
-    m.log.info("NavControllerTestChildScreen - Added to aggregated view", m.top.id)
+    m.log.info("Added to aggregated view", m.top.id)
     super.onAddedToAggregateView(view)
   end function
 
   protected override function onRemovedFromAggregateView(view as mc.types.node)
-    m.log.info("NavControllerTestChildScreen - Remove from aggregated view", m.top.id)
+    m.log.info("Remove from aggregated view", m.top.id)
     super.onRemovedFromAggregateView(view)
   end function
 
   protected override function onHide()
-    m.log.info("NavControllerTestChildScreen - onHide", m.top.id)
+    m.log.info("onHide", m.top.id)
     super.onHide()
   end function
 
