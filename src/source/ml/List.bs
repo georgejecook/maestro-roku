@@ -67,6 +67,8 @@ namespace ml
     @alwaysnotify
     public itemSelected as mc.types.array
 
+    public _updatesEnabled = true
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Shared managers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -119,6 +121,10 @@ namespace ml
       m.isInitialized = true
       m.onContentChange()
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function createViews()
       'TODO - might still end up needing this... depends on how floating focus lands
@@ -192,6 +198,17 @@ namespace ml
       end if
     end function
 
+    private function updateListContent()
+      if m.content <> invalid and m.content.getChildCount() > 0
+        rows = m.content.getChildren(-1, 0)
+        for each row in rows
+          if row.changes <> invalid and row.changes.count() > 0
+            row@.notifyUpdate()
+          end if
+        end for
+      end if
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -217,18 +234,20 @@ namespace ml
     end function
 
     private function onContentItemsChange(changes as mc.types.array)
-      m.log.info("The content items have changed")
-      m.focusIndicatorManager@.cancelFlowFocus()
-      m.viewManager.onContentItemsChange(changes)
-      m.focusIndicatorManager@.cancelFlowFocus()
-      m.viewManager.isScrolling = false
-      ' ? " LIST CHANGES "
-      ' m.viewManager.forceUpdateLayout()
-      ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+      if m._updatesEnabled
+        m.log.info("The content items have changed")
+        m.focusIndicatorManager@.cancelFlowFocus()
+        m.viewManager.onContentItemsChange(changes)
+        m.focusIndicatorManager@.cancelFlowFocus()
+        m.viewManager.isScrolling = false
+        ' ? " LIST CHANGES "
+        ' m.viewManager.forceUpdateLayout()
+        ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
 
-      'TODO - need to ensure that the current focus and scroll position is valid after an update!
-      ' m.itemScroller.move(0)
-      ' m.viewManager.onContentItemsChange(changes)
+        'TODO - need to ensure that the current focus and scroll position is valid after an update!
+        ' m.itemScroller.move(0)
+        ' m.viewManager.onContentItemsChange(changes)
+      end if
     end function
 
     private function onAnimateToRowIndexChange(index as integer)
@@ -364,6 +383,13 @@ namespace ml
         end if
         ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
         ' ? "DONE"
+      end if
+    end function
+
+    public function setUpdatesEnabled(enabled as boolean)
+      m._updatesEnabled = enabled
+      if enabled
+        m.updateListContent()
       end if
     end function
 
