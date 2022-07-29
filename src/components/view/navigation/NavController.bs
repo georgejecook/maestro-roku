@@ -24,6 +24,7 @@ function push(view as mc.types.node, animated = true as boolean, transition = in
   updatePublicFields()
 
   'for a navcontroller we are added here
+  m.top.pushedView = view
   transitionToView(view, animated)
 end function
 
@@ -71,7 +72,7 @@ function pop(animated = true as boolean, transition = invalid as mc.types.node)
   nextView = invalid
 
   if previousView <> invalid
-    m.viewStack.pop()
+    m.top.poppedView = m.viewStack.pop()
     previousView.navController = invalid
 
     nextView = m.viewStack.Peek()
