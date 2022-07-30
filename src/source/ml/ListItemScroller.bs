@@ -118,8 +118,8 @@ namespace ml
       fraction = mc.clamp(fraction, 0, 1)
 
       if fraction < m.lastScrollOffsetFraction
-        ' ? "Experimental hack to stop the offsets getting updated multiple times when cancelling a scroll"
-        return
+        ' ? "Fixing offset position, to prevent 'jumping' after cancelling a scroll"
+        m.previousScreenPos = m.offsetContainer.translation[1]
       end if
 
       m.lastScrollOffsetFraction = fraction
