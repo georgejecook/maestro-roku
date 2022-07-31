@@ -184,8 +184,9 @@ namespace ml
     private function onListRenderState(state as string)
       m.log.info("onListRenderState", state)
       if state = "rendered"
-        m.setFocus(m.rowsGroup)
-        m.setFocus(m.top)
+        'FIXME: WHAT IS THIS?!
+        ' m.setFocus(m.rowsGroup)
+        ' m.setFocus(m.top)
         m.moveToItem([0, 0], false)
         m.top.visible = true
       end if
@@ -199,8 +200,8 @@ namespace ml
     end function
 
     private function updateListContent()
-      if m.content <> invalid and m.content.getChildCount() > 0
-        rows = m.content.getChildren(-1, 0)
+      if m._content <> invalid and m._content.getChildCount() > 0
+        rows = m._content.getChildren(-1, 0)
         for each row in rows
           if row.changes <> invalid and row.changes.count() > 0
             row@.notifyUpdate()
@@ -213,12 +214,13 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onContentChange()
+    private function onContentChange() as void
       m.log.info("onContentChange")
 
       if m.content = invalid
         m.content = ml.listMixin.createListContent()
         m.content.id = "invalidContent"
+        return
       end if
 
       if m.isInitialized
@@ -325,7 +327,7 @@ namespace ml
       end if
 
       ' ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
-      m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
     end function
 
     public function getRow(index as integer) as dynamic
@@ -348,7 +350,7 @@ namespace ml
     end function
 
     public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
-      ' ? " MOVE TO ROW ITEM" ; rowIndex ; " " ; index
+      ? " MOVE TO ROW ITEM" ; rowIndex ; " " ; index
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
         if row <> invalid
@@ -432,10 +434,11 @@ namespace ml
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
       m.itemScroller.processChanges(changes)
+      '// cspell:disable-next-line
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)
       ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
-      m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
 
       if m.top.isChildFocused or m.top.isFocused
         m.focusOnCurrentRow()
