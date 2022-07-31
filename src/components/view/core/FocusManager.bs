@@ -20,13 +20,17 @@ function onDebugMChange()
   mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
 end function
 
-
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Protected api - only call from mixin
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
   ' m.log.method("setFocusOn", node)
+
+  if m.top.enabled = false
+    m.log.error("DISABLED: cannot set focus on", mc.dv(node))
+    return
+  end if
 
   if m.top.isLocked
     if isForced
@@ -62,10 +66,19 @@ end function
 
 function _unsetFocusOn(node as mc.types.node)
   m.log.info("manually unsetting focus on node")
-  node.setFocus(false)
+  if m.top.enabled = true
+    node.setFocus(false)
+  else
+    m.log.error("DISABLED cannot unset focus on", mc.dv(node))
+  end if
 end function
 
-function _setFocusLocked(node as mc.types.node, reason = "" as string)
+function _setFocusLocked(node as mc.types.node, reason = "" as string) as void
+
+  if m.top.enabled = false
+    m.log.error("DISBALED: cannot set focuslocked on", mc.dv(node))
+    return
+  end if
 
   if node <> invalid
     _setFocusOn(node, true)
@@ -84,8 +97,12 @@ end function
 
 function onFocusTimerFire()
   ' m.log.info("onFocusTimerFire")
-  if m.focusedNode <> invalid
-    m.focusedNode.setFocus(true)
+  if m.top.enabled = true
+    if m.focusedNode <> invalid
+      m.focusedNode.setFocus(true)
+    end if
+  else
+    m.log.error("DISABLED: cannot set focus on timer fire focusedNode", mc.dv(m.focusedNode))
   end if
 end function
 
