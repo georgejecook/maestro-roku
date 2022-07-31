@@ -124,12 +124,12 @@ namespace ml
     end function
 
     public override function jumpToItem(index as integer, animated as boolean)
+
       if m._content <> invalid and index <> -1
-        ? " JUMP TO ITEM ::: DO A MOVE TO INDEX "; index, animated
-        m.itemScroller.moveToIndex(index, animated)
-        m.itemScroller.index = index
-        m.focusedCellIndex = index
-        m.owner.focusedCellIndex = index
+        ' m.itemScroller.index = index
+        ' m.focusedCellIndex = index
+        ' m.owner.focusedCellIndex = index
+        m.focusOnIndexNow(index)
       end if
     end function
 
@@ -236,25 +236,23 @@ namespace ml
       end if
     end function
 
-    public override function focusOnContentsNow() as void
-      ' ? "GRID FORCE FOCUS ON CONTENTS"
-      'bs:disable-next-line
-      if m.itemScroller <> invalid and m.itemScroller.componentInfo <> invalid
-        rowIndex = fix(m.itemScroller.componentInfo.index / m.viewManager.numCols)
-        if m.viewManager.rowInfos = invalid
-          return
-        end if
-        rowInfo = m.viewManager.rowInfos[rowIndex]
-        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
-        m.focusedCellIndex = m.itemScroller.index
-        m.owner.focusedCellIndex = m.itemScroller.index
-        'bs:disable-next-line
-        ' ? "MI" ; m.itemScroller.index ; " NC " ; m.itemScroller.numberOfComponents
+    private function focusOnIndexNow(index as integer) as void
+      m.log.info("updating focus on cellIndex", index)
 
-        'bs:disable-next-line
-        config = m.itemScroller.getFocusIndicatorConfig(rowInfo, m.itemScroller.direction, false, false)
+      if m.itemScroller <> invalid
+        componentInfo = m.itemScroller.getComponentInfoForContentindex(index)
+        if componentInfo = invalid
+          m.log.error("No component info")
+        end if
+
+        m.itemScroller.forceFocusOnIndex(index, true, false)
+        m.itemScroller.setComponentInfo(componentInfo)
+
+        ' m.setFocusIndex(index, false)
+
+        config = m.itemScroller.getFocusIndicatorConfig(componentInfo, m.itemScroller.direction, false, false)
         if config <> invalid
-          config.colIndex = m.itemScroller.index
+          config.colIndex = m.focusedCellIndex
           m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
           m.owner.focusIndicatorManager@.setFocusComplete(config)
         else
@@ -262,7 +260,6 @@ namespace ml
         end if
       end if
     end function
-
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
@@ -272,6 +269,7 @@ namespace ml
       m.log.verbose("onKeyPressLeft")
       m.itemScroller.isDoingLongPress = false
       if m.isAlreadyScrolling()
+        ? " IS ALREADY SCROLLING"
         return true
       end if
       if m.canScroll("left")
@@ -305,10 +303,13 @@ namespace ml
     private function canScroll(key as string)
 
       if m.isAlreadyScrolling()
+        ? " cannot scroll - already scrolling"
         return false
       end if
       index = m.itemScroller.index
       normalizedColumn = index mod m.viewManager.numCols
+
+      ' ? " m.isScrollingEnabled "; m.isScrollingEnabled ; " index " ; index
       return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
     end function
 

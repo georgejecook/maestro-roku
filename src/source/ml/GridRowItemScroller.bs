@@ -56,6 +56,7 @@ namespace ml
       if componentInfo = invalid
         return invalid
       end if
+
       if isFromListScroll
         ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex ; " is List scroll? "; isFromListScroll
         focusX = m.focusIndicatorManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
@@ -99,7 +100,11 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      ? " GET GRID FOCUS INIDICATOR CONFIG "
+      if componentInfo = invalid
+        ? "ERROR grid got invalid componentInfo"
+        return invalid
+      end if
+      ' ? " GET GRID FOCUS INDICATOR CONFIG "
       info = m.getCellComponentInfo(componentInfo, isFromListScroll)
       config = super.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromListScroll)
       config.gridIndex = info.contentIndex
@@ -107,8 +112,8 @@ namespace ml
     end function
 
     protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, parentComponentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
-      ? " START GRID GET FOCUS INDICATOR TRANS INFO : " ; info
-      ? " Parent info " ; parentComponentInfo
+      ' ? " START GRID GET FOCUS INDICATOR TRANS INFO : " ; info
+      ' ? " GFIT Parent info " ; parentComponentInfo
       if info = invalid or m.viewManager.settings = invalid
         return [0, 0]
       end if
@@ -121,22 +126,22 @@ namespace ml
         else
           yScreenPos = m.viewManager.downScreenPosition
         end if
-      else
-        yScreenPos = parentComponentInfo.getScreenPosition(direction)
-        ' rect = m.viewManager.rects[info.contentIndex]
-        ' if rect <> invalid and rect.gridRow <> invalid
-        '   rowInfo = m.viewManager.rowInfos[rect.gridRow]
-        '   if rowInfo <> invalid
-        '     ' yScreenPos = rowInfo.getScreenPosition(direction)
-        '     yScreenPos += rowInfo.getPosition(direction)
-        '   end if
-        ' end if
+      else if m.viewManager.rowInfos <> invalid
+        rect = m.viewManager.rects[info.contentIndex]
+        ' ? " SUB ROW INDEX " ; rect.gridRow
+        rowInfo = m.viewManager.rowInfos[rect.gridRow]
+        if rowInfo <> invalid
+          yScreenPos = rowInfo.getScreenPosition(direction)
+        else
+          ? " ERROR GETTING ROW INFO"
+        end if
       end if
+      ' yScreenPos = 0
       contentOffset = m.viewManager.settings.contentOffset
 
-      ? " info CI "; info.contentIndex ; " " ; yScreenPos ; " axes "; m.axes ; " isFloatingFocus" ; isFloatingFocus
+      ' ? " info CI "; info.contentIndex ; " " ; yScreenPos ; " axes "; m.axes ; " isFloatingFocus" ; isFloatingFocus
 
-      ? " contentOffset "; formatJson(contentOffset)
+      ' ? " contentOffset "; formatJson(contentOffset)
       ' translation = [contentOffset[0], contentOffset[1]]
       translation = [contentOffset[0], contentOffset[1] + yScreenPos]
 
@@ -155,11 +160,10 @@ namespace ml
       else
 
         translation[0] += info.getScreenPosition(direction)
-        ? " INFO TRANSLATION "; translation[0]
+        ' ? " INFO TRANSLATION "; translation[0]
       end if
 
-      ? " END GRID GET FOCUS INDICATOR TRANS"
-
+      ' ? " END GRID GET FOCUS INDICATOR TRANS"
       return translation
     end function
 

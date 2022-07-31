@@ -26,6 +26,8 @@ namespace ml
     @observer("onNextScreenPosChange")
     public nextScreenPos = 0
 
+    @alwaysnotify
+    @observer("onFocusedFractionChange")
     public focusedFraction = 0.0
 
     private nextFocusIndex as mc.types.array
@@ -134,7 +136,7 @@ namespace ml
     end function
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer) as void
-      ' ? "[[[ON NEXT INDICATOR CHANGE" ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
+      ' ? "[[ Next FIC is: " ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
       m.direction = direction
       m.preprareNextFocusConfig(focusIndicatorConfig)
     end function
@@ -184,7 +186,7 @@ namespace ml
     end function
 
     private function onFocusedFractionChange(fraction as float) as void
-      ' ? "ON ROW Fraction CHANGE" ; fraction " " ; m.focusedRowIndex ; " "; m.isDoingFlowFocus
+      ' ? "ON ROW Fraction CHANGE" ; fraction " " ; m.isDoingFlowFocus
       m.list.focusedFraction = fraction
 
       if m.isDoingFlowFocus
@@ -197,7 +199,6 @@ namespace ml
       else if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
         m.applyFocusSettings(false)
       end if
-
 
       m.moveFocusIndicatorToTargetPosition(fraction)
     end function
