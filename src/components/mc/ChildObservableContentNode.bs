@@ -58,6 +58,7 @@ function peek(args = invalid as dynamic) as dynamic
 end function
 
 function appendChild(child as object)
+  notifyParentOfRemoval(child)
   m.top.appendChild(child)
   m.top.length = m.top.getChildCount()
   addChanges([{ type: "add", child: child, index: m.top.getChildCount() - 1 }])
@@ -69,13 +70,26 @@ function replaceChild(child as object, index as integer)
   addChanges([{ type: "change", child: child, index: index, oldValue: oldValue }])
 end function
 
+function notifyParentOfRemoval(child as object)
+  if child <> invalid
+    oldParent = child.getParent()
+    if oldParent <> invalid and not m.top.isSameNode(oldParent)
+      oldParent@.removeChild(child)
+    end if
+  end if
+end function
+
 function insertChild(child as object, index as integer)
+  notifyParentOfRemoval(child)
   m.top.insertChild(child, index)
   m.top.length = m.top.getChildCount()
   addChanges([{ type: "change", child: child, index: index }])
 end function
 
 function insertChildren(children as mc.types.array, index as integer)
+  for each child in children
+    notifyParentOfRemoval(child)
+  end for
   m.top.insertChildren(children, index)
   m.top.length = m.top.getChildCount()
   addChanges([{ type: "change", children: children, index: index }])
@@ -91,6 +105,9 @@ function removeChildIndex(index as integer)
 end function
 
 function appendChildren(children as mc.types.array)
+  for each child in children
+    notifyParentOfRemoval(child)
+  end for
   m.top.appendChildren(children)
   m.top.length = m.top.getChildCount()
   addChanges([{ type: "append", children: children, index: m.top.getChildCount() - 1 }])
