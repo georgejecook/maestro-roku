@@ -131,9 +131,14 @@ namespace mv
       timer = new mc.utils.DebugTimer("load bundle :" + styleKey)
       bundleFilename = m.getBundleFilename(bundlePath, "en")
       json = m.loadJson(bundleFilename)
+      isUsingBundlePath = json <> invalid
+      if not isUsingBundlePath
+        bundleFilename = bundlePath
+        json = m.loadJson(bundleFilename)
+      end if
 
       if mc.isAACompatible(json)
-        if locale <> "en"
+        if isUsingBundlePath and locale <> "en"
           localeBundleFilename = m.getBundleFilename(bundlePath, locale)
           localeJson = m.loadJson(localeBundleFilename)
           if mc.isAACompatible(localeJson)
