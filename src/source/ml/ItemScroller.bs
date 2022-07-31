@@ -54,6 +54,7 @@ namespace ml
     public moveAnimation
 
     private animSpeed = 0.05
+    private currentAnimSpeed = 0.05
     private longPressEndItemOffset = 0
 
     private activeScrollLocation = 0
@@ -66,6 +67,7 @@ namespace ml
     protected previousScreenPos = 0
 
     private isMultiMoveFinished = false
+    private disableNonAnimatedFocusUpdates = false
 
     function new(name as string, viewManager as ml.ItemViewManager, focusManager as ml.ItemFocusManager)
       super(name)
@@ -297,20 +299,24 @@ namespace ml
       ' ? " NI " ; nextComponentInfo.index
       ' ? " TI " ; targetComponentInfo.index
 
+      m.currentAnimSpeed = m.animSpeed
+      if fast
+        m.currentAnimSpeed = m.animSpeed * 0.7
+      end if
 
       '////////////////////////////////////////////////////////////////////////
       ' ? "//// 2. Ascertain offset "; m.__classname
       '////////////////////////////////////////////////////////////////////////
 
       ' ? "2.b IS FLOW POSSIBLE ??? " ; m.screenPos ; "m.viewManager.maxPos " ;m.viewManager.maxPos; " NFA "; nextComponentInfo.isFlowFocusAllowed
-      isFlowPossible = m.viewManager.isFlowFocusPossible(nextComponentInfo, direction, m.screenPos)
+      isFlowPossible = animated and m.viewManager.isFlowFocusPossible(nextComponentInfo, direction, m.screenPos)
 
       ' ? " ::::::::::::::: setNextComponentInfo DDD"
-      m.isLastMoveFlowFocus = isFlowPossible and animated
+      m.isLastMoveFlowFocus = isFlowPossible
       m.setNextComponentInfo(nextComponentInfo)
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
-      if isFlowPossible and animated
+      if isFlowPossible
         ' ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
         return true
@@ -330,19 +336,28 @@ namespace ml
         m.toggleScrolling(true)
         m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
+
+        m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
         m.moveAnimation.start()
       else
         '////////////////////////////////////////////////////////////////////////
-        ' 4. non-animated move
+        ' ? " ///////// 4. non-animated move"
         '////////////////////////////////////////////////////////////////////////
+
+        ' ? "HERE HERE " ; m.__classname
         m.toggleScrolling(false)
         m.container.translation = translation
+        ' ? " TCI " ; targetComponentInfo.index ; " Content index "; targetComponentInfo.componentIndex ; " C " ; mc.dv (targetComponentInfo.component)
         m.nextScreenPos = targetComponentInfo.getScreenPosition(m.direction)
+        ' ? "nextScreenpos " ; m.nextScreenPos ; " index " ; index
+
         m.updateSrollOffsetFraction(1)
         m.viewManager.updateRenderedComponents(m.direction, index)
-        m.setFocusIndex(index, false, true)
-        m.forceFocusOnIndex(index, true)
+        if not m.disableNonAnimatedFocusUpdates
+          'Grid rows will handle getting their own focus, as they may have called this as part of going to a specific subrow
+          m.setFocusIndex(index, false, true)
+          m.forceFocusOnIndex(index, true)
+        end if
         m.setComponentInfo(targetComponentInfo)
       end if
 
@@ -393,7 +408,7 @@ namespace ml
         ' m.toggleScrolling(true)
         ' m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
+        m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
         m.moveAnimation.start()
       else
         '////////////////////////////////////////////////////////////////////////
@@ -402,8 +417,9 @@ namespace ml
         m.toggleScrolling(false)
         m.container.translation = translation
         m.nextScreenPos = m.nextComponentInfo.getScreenPosition(m.direction)
-        m.updateSrollOffsetFraction(1)
         index = m.nextComponentInfo.index
+        ' ? " NI " ; index
+        m.updateSrollOffsetFraction(1)
         m.viewManager.updateRenderedComponents(m.direction, index)
 
         m.setFocusIndex(index, false, true)
@@ -770,15 +786,23 @@ namespace ml
       m.setFocusOnRenderer(isMoving)
     end function
 
-    function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean) as void
+    function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean, notifyOwner = true as boolean) as void
+
+      ' ? " >>>> forceFocusOnIndex " ; m.__classname
       if m.numberOfComponents = 0
+        ' ? " no components!!"
         return
       end if
       index = mc.clamp(index, 0, m.numberOfComponents - 1)
-      m.setComponentInfo(m.componentInfos[index])
-      ' ? " ::::::::::::::: setNextComponentInfo CCC"
+      if m.componentInfo = invalid
+        ' ? " ERROR - there was no componentInfo"
+        m.setComponentInfo(m.componentInfos[index])
+      end if
+      ' ? " ::::::::::::::: CURRENT index "; m.index
+      ' ? " ::::::::::::::: CURRENT ComponentInfo "; m.componentInfo.contentIndex
       m.setNextComponentInfo(m.componentInfos[index])
-
+      ' ? " ::::::::::::::: index "; m.nextIndex
+      ' ? " ::::::::::::::: NEXT componentINfo "; m.nextComponentInfo.contentIndex
       ' m.viewManager.updateRenderedComponents(m.direction, m.index)
       ' m.notifyViewportEvents(true)
 
@@ -788,7 +812,7 @@ namespace ml
       end if
 
       m.setFocusOnRenderer(false)
-      if m.viewManager.row <> invalid
+      if notifyOwner and m.viewManager.row <> invalid
         m.viewManager.owner.focusedCellIndex = m.componentInfo.contentIndex
       end if
     end function
@@ -807,6 +831,7 @@ namespace ml
 
     protected function processChanges(changes as mc.types.array) as void
       isIndexUpdateRequired = false
+      ' ? " +:+:+:+:+: processChanges"
       if m.numberOfComponents = 0
         ' ? "THERE ARE NO MORE ITEMS!"
         return

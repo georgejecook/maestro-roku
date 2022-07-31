@@ -185,9 +185,10 @@ namespace ml
       m.log.info("onListRenderState", state)
       if state = "rendered"
         'FIXME: WHAT IS THIS?!
-        ' m.setFocus(m.rowsGroup)
-        ' m.setFocus(m.top)
-        m.moveToItem([0, 0], false)
+        if m.top.isFocused or m.top.isChildFocused
+          m.top.focusIndicatorManager.isHidden = false
+        end if
+        m.moveToItem([m.focusedRowIndex, m.focusedCellIndex], false)
         m.top.visible = true
       end if
     end function
@@ -350,19 +351,19 @@ namespace ml
     end function
 
     public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
-      ? " MOVE TO ROW ITEM" ; rowIndex ; " " ; index
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
         if row <> invalid
           if row.subType() = "ml_GridRow"
             rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
             if rowInfo <> invalid
-              ' ? " ROW INFO INDEX " ; rowInfo.index
-              m.moveToSubRowIndex(rowInfo.index + index)
+              ' ? " ROW INFO FOR INDEX " ; rowInfo
+              rect = row@.getRect(index)
+              ' ? " RECT INFO FOR INDEX " ; rect
+              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated, false, true)
             end if
           end if
           row@.jumpToItem(index, animated)
-          row@.focusOnContentsNow()
         end if
       end if
     end function
@@ -379,12 +380,14 @@ namespace ml
       end if
     end function
 
-    public function moveToSubRowIndex(index as integer)
+    public function moveToSubRowIndex(index as integer, animated as boolean, setFocusIndex as boolean, useGridHack as boolean)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        m.itemScroller.moveToIndex(index, false, false)
+        m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
+        m.itemScroller.moveToIndex(index, animated)
+        m.itemScroller.disableNonAnimatedFocusUpdates = false
         ' ? " MOVING TO SUB ROW INDEX " ; index
         compInfo = m.itemScroller.componentInfos[index]
-        if compInfo <> invalid
+        if setFocusIndex and compInfo <> invalid
           compInfo.component.focusedCellIndex = index
           m.focusedCellIndex = compInfo.component.focusedCellIndex
         end if

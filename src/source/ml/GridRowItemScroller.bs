@@ -50,9 +50,13 @@ namespace ml
     end function
 
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+
+      'TODO - add the ability for a given row to _remember_ or choose the
+      'default index it should give us
       if componentInfo = invalid
         return invalid
       end if
+
       if isFromListScroll
         ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex ; " is List scroll? "; isFromListScroll
         focusX = m.focusIndicatorManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
@@ -96,34 +100,50 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      if componentInfo = invalid
+        ? "ERROR grid got invalid componentInfo"
+        return invalid
+      end if
+      ' ? " GET GRID FOCUS INDICATOR CONFIG "
       info = m.getCellComponentInfo(componentInfo, isFromListScroll)
       config = super.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromListScroll)
       config.gridIndex = info.contentIndex
       return config
     end function
 
-    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
-      ' ? " START GRID GET FOCUS INDICATOR TRANS"
+    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, parentComponentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+      ' ? " START GRID GET FOCUS INDICATOR TRANS INFO : " ; info
+      ' ? " GFIT Parent info " ; parentComponentInfo
       if info = invalid or m.viewManager.settings = invalid
         return [0, 0]
       end if
 
+      yScreenPos = 0
+
       if not isFloatingFocus and info.contentIndex > 1 and m.viewManager.isVerticalFlowFocusAllowed
         if direction = -1
-          screenPos = m.viewManager.upScreenPosition
+          yScreenPos = m.viewManager.upScreenPosition
         else
-          screenPos = m.viewManager.downScreenPosition
+          yScreenPos = m.viewManager.downScreenPosition
         end if
-      else
-        ' screenPos = info.getScreenPosition(direction)
-        screenPos = componentInfo.getScreenPosition(direction)
+      else if m.viewManager.rowInfos <> invalid
+        rect = m.viewManager.rects[info.contentIndex]
+        ' ? " SUB ROW INDEX " ; rect.gridRow
+        rowInfo = m.viewManager.rowInfos[rect.gridRow]
+        if rowInfo <> invalid
+          yScreenPos = rowInfo.getScreenPosition(direction)
+        else
+          ? " ERROR GETTING ROW INFO"
+        end if
       end if
+      ' yScreenPos = 0
       contentOffset = m.viewManager.settings.contentOffset
 
-      ' ? " info CI "; info.contentIndex ; " " ; screenPos ; " axes "; m.axes ; " isFloatingFocus" ; isFloatingFocus
+      ' ? " info CI "; info.contentIndex ; " " ; yScreenPos ; " axes "; m.axes ; " isFloatingFocus" ; isFloatingFocus
 
       ' ? " contentOffset "; formatJson(contentOffset)
-      translation = [contentOffset[0], contentOffset[1] + screenPos]
+      ' translation = [contentOffset[0], contentOffset[1]]
+      translation = [contentOffset[0], contentOffset[1] + yScreenPos]
 
       headerOffset = m.viewManager.settings.headerSettings.height
       translation[1] += headerOffset
@@ -138,11 +158,12 @@ namespace ml
           translation = [bounds.x, bounds.y]
         end if
       else
+
         translation[0] += info.getScreenPosition(direction)
+        ' ? " INFO TRANSLATION "; translation[0]
       end if
 
       ' ? " END GRID GET FOCUS INDICATOR TRANS"
-
       return translation
     end function
 
