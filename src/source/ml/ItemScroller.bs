@@ -54,6 +54,7 @@ namespace ml
     public moveAnimation
 
     private animSpeed = 0.05
+    private currentAnimSpeed = 0.05
     private longPressEndItemOffset = 0
 
     private activeScrollLocation = 0
@@ -298,6 +299,10 @@ namespace ml
       ' ? " NI " ; nextComponentInfo.index
       ' ? " TI " ; targetComponentInfo.index
 
+      m.currentAnimSpeed = m.animSpeed
+      if fast
+        m.currentAnimSpeed = m.animSpeed * 0.7
+      end if
 
       '////////////////////////////////////////////////////////////////////////
       ' ? "//// 2. Ascertain offset "; m.__classname
@@ -331,7 +336,8 @@ namespace ml
         m.toggleScrolling(true)
         m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
+
+        m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
         m.moveAnimation.start()
       else
         '////////////////////////////////////////////////////////////////////////
@@ -402,7 +408,7 @@ namespace ml
         ' m.toggleScrolling(true)
         ' m.setFocusIndex(m.index, true)
         m.viewManager.updateRenderedComponents(m.direction, m.index)
-        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
+        m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
         m.moveAnimation.start()
       else
         '////////////////////////////////////////////////////////////////////////

@@ -185,9 +185,10 @@ namespace ml
       m.log.info("onListRenderState", state)
       if state = "rendered"
         'FIXME: WHAT IS THIS?!
-        ' m.setFocus(m.rowsGroup)
-        ' m.setFocus(m.top)
-        m.moveToItem([0, 0], false)
+        if m.top.isFocused or m.top.isChildFocused
+          m.top.focusIndicatorManager.isHidden = false
+        end if
+        m.moveToItem([m.focusedRowIndex, m.focusedCellIndex], false)
         m.top.visible = true
       end if
     end function
