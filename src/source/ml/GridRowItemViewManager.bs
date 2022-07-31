@@ -177,6 +177,7 @@ namespace ml
 
       ' ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
 
+      renderedIds = {}
       while i < numItems
         m.rowOffsets.push(y)
 
@@ -185,6 +186,7 @@ namespace ml
           if item = invalid
             exit for
           end if
+          renderedIds[item.id] = true
           ' ? "ITEM " ; item.title
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
@@ -215,6 +217,16 @@ namespace ml
         rowIndex++
       end while
 
+      ? "::>: ODL COUNT" ; m.renderersByContentId.count(), "NEW COUNT" ; renderedIds.count()
+      if m.renderersByContentId.count() > renderedIds.count()
+        m.log.warn("had dangling renderers - needs fixing")
+        for each id in m.renderersByContentId
+          if renderedIds[id] = invalid
+            ? "::: it was removed"
+            m.processRemovedItem(id)
+          end if
+        end for
+      end if
       m.numRows = mc.clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
       m.numberOfItems = m.visibleItems.count()
     end function
@@ -335,6 +347,7 @@ namespace ml
             else
               m.log.error("could not make cell of type ", settings.compName)
             end if
+            m.previousRendereredByContentId.delete(itemId)
           else
             cell.translation = m.rects[index].translation
             ' might have changed
@@ -484,32 +497,32 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
-      ' ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
+      ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
       numRows = m.rowOffsets.count()
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
 
-
       m.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
+      m.previousRendereredByContentId = m.renderersByContentId
 
       m.itemScroller.getComponentInfos(true)
       if m.itemScroller.index >= m.itemScroller.numberOfComponents
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
-        ' ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
+        ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
       end if
       if m.itemScroller.componentInfos.count() <> numRows
         m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
-        ' ? "NEED TO TELL LIST!!!  num rows now " ; m.itemScroller.componentInfos.count()
+        ? "NEED TO TELL LIST!!!  num rows now " ; m.itemScroller.componentInfos.count()
         m.owner@.forceUpdate()
       end if
 
       m.itemScroller.processChanges(changes)
-      ' if m.row.isFocused
-      '   m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-      '   m.owner.focusedCellIndex = m.itemScroller.index
-      ' end if
+      if m.row.isFocused
+        m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+        m.owner.focusedCellIndex = m.itemScroller.index
+      end if
 
-      ' ? "+++++++++++++++++++++++++++++++++++++++++++"
+      ? "+++++++++++++++++++++++++++++++++++++++++++"
     end function
 
 
@@ -553,22 +566,11 @@ namespace ml
     private function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
-        ' ? "GOT CHANGE TYPE "; change.type
+        ' ? "PRC GOT CHANGE TYPE "; change.type
         if change.type = "remove"
-          m.log.info("removing cell at index", change.index)
-          item = change.child
-
-          if item <> invalid
-            ' ? " REMOVING CELL", item.id
-            cell = m.renderersByContentId[item.id]
-            if cell <> invalid
-              m.componentPool@.releaseComponent(cell)
-              m.renderersByContentId.delete(item.id)
-            else
-              'this is almost certainly due to trying to release a cell during setting content
-              ' ? "NO CELL item.id", item.id
-              m.log.error("could not find cell to release", item.id)
-            end if
+          ' m.log.info("removing cell at index", change.index)
+          if change.child <> invalid
+            m.processRemovedItem(change.child.id)
           else
             ' ? "NO CELL item.id", change.index
             m.log.error("could not find cell to release")
@@ -577,5 +579,19 @@ namespace ml
       end for
     end function
 
+    private function processRemovedItem(id as string)
+      ' ? " REMOVING CELL FOR ITEM ID "; id
+      cell = m.renderersByContentId[id]
+      if cell <> invalid
+        ' ? " FOUND CELL AND REMOVED IT"
+        m.componentPool@.releaseComponent(cell)
+        m.renderersByContentId.delete(id)
+      else
+        'this is almost certainly due to trying to release a cell during setting content
+        ' ? "NO CELL id", id
+        m.log.error("could not find cell to release", id)
+      end if
+
+    end function
   end class
 end namespace

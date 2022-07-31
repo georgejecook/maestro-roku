@@ -13,13 +13,6 @@ namespace mv
     @observer("onDebugMChange")
     public __debugM = false
 
-    @observer("onSyncMChange")
-    public __syncM = false
-
-    @observer("onCallFunctionNow")
-    @alwaysnotify
-    public __callFunctionNow as string
-
     function new(name as string)
       super(name)
     end function
@@ -31,6 +24,12 @@ namespace mv
     function onDebugMChange()
       'bs:disable-next-line
       mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
+      'bs:disable-next-line
+      mc.setOrAddNodeField(m.top, "__syncM", false)
+      'bs:disable-next-line
+      mc.setOrAddNodeField(m.top, "__callFunction", "")
+      'bs:disable-next-line
+      m.observe(m.top.__callFunction, m.___onDebugCallFunction)
     end function
 
     function onSyncMChange()
@@ -44,14 +43,17 @@ namespace mv
       end for
     end function
 
-    private function onCallFunctionNow(name as string)
+    private function ___onDebugCallFunction(name as string)
       if name <> ""
         m.log.debug("calling function now:", name)
+        if not m.doesExist(name)
+          m.log.error("function does not exist on:", m.__classname)
+        end if
         'bs:disable-next-line
-        result = m.top.callFunc(name)
+        result = m[name]()
         m.log.info("got result", result)
         'bs:disable-next-line
-        mc.setOrAddNodeField(m.top, "__functionResult", result)
+        mc.setOrAddNodeField(m.top, "__callFunctionRESULT", result)
       end if
     end function
 
