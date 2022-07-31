@@ -3,8 +3,8 @@ import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/core/DebugTimer.bs"
 
-@node("UpdateListDataScreen", "mv_BaseScreen")
-class UpdateListDataScreen extends mv.BaseScreen
+@node("UpdateGridItemsScreen", "mv_BaseScreen")
+class UpdateGridItemsScreen extends mv.BaseScreen
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Views
@@ -14,13 +14,10 @@ class UpdateListDataScreen extends mv.BaseScreen
   private menu as mc.types.node
 
   'buttons
-  private resetButton as mc.types.node
-  private reloadTodayButton as mc.types.node
+  private listUpdateActiveButton as mc.types.node
+  private applyChangeButton as mc.types.node
   private moveItemUpButton as mc.types.node
-  private dayBackButton as mc.types.node
-  private dayForwardButton as mc.types.node
   private moveItemDownButton as mc.types.node
-  private useGridButton as mc.types.node
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
@@ -36,24 +33,28 @@ class UpdateListDataScreen extends mv.BaseScreen
   private numberOfRows = 20
   private defaultCellType = "ml_SimpleCell"
 
+  private isListActive = true
+  private isRowSelectionMode = false
   private firstItem = invalid
   private dataIndex = 0
-  private isUsingGrids = false
+  private selectedRow as mc.types.node
+  private selectedRowIndex as integer
+  private selectedItemIndex as integer
+  private selectedItem as mc.types.node
 
-  private dayIndex = 0
-  private dayModules = []
+  private rows = []
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Initialization
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   function new()
-    super("UpdateListDataScreen")
+    super("UpdateGridItemsScreen")
   end function
 
   protected override function initialize()
     super.initialize()
-    bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/list/UpdateListDataScreen.json")
+    bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/list/UpdateGridItemsScreen.json")
     m.createViewsFromStyleJson(bundle.views)
     ml.delegateMixin.setListDelegate(m.list)
     m.resetData()
@@ -66,51 +67,57 @@ class UpdateListDataScreen extends mv.BaseScreen
   private function onMenuItemChange(index as integer)
     m.log.info("selected tab item", index)
     button = m.menu@.getSelectedButton()
-    if button.isSameNode(m.resetButton)
+    if button.isSameNode(m.listUpdateActiveButton)
       m.log.info("resetting")
-      m.resetData()
-    else if button.isSameNode(m.reloadTodayButton)
-      m.log.info("updating modules")
+      m.isListActive = not m.isListActive
+      m.listUpdateActiveButton.text = `List updates: ${m.isListActive ? "On": "Off"}`
+      m.list@.setUpdatesEnabled(m.isListActive)
+    else if button.isSameNode(m.applyChangeButton)
+      m.log.info("applying changes")
       m.reload()
     else if button.isSameNode(m.moveItemUpButton)
       m.log.info("moving an item up")
+      m.moveItem(-1)
     else if button.isSameNode(m.moveItemDownButton)
       m.log.info("moving an item down")
-    else if button.isSameNode(m.useGridButton)
-      m.isUsingGrids = not m.isUsingGrids
-      m.log.info("changing to useGrids", m.isUsingGrids)
-      m.resetData()
+      m.moveItem(1)
     end if
   end function
 
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ updates
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  private function moveItem(direction as integer)
+    if m.selectedItem <> invalid
+      nextIndex = m.selectedRowIndex + direction
+      nextRow = m.rows[nextIndex]
+      if nextRow <> invalid
+        m.selectedRowIndex = nextIndex
+        m.log.info("moving item", mc.dv(m.selectedItem), "to row", nextIndex)
 
-  private updateCount = 0
-  private function reload()
-    m.log.info("loading data again for dayIndex", m.dayIndex)
-    item = m.list.content.getChild(1).getChild(0)
-    if item <> invalid
-      m.updateCount++
-      json = item.json
-      json.title = `U: ${m.updateCount}`
-      item.json = json
-      item.version++
+        if m.isRowSelectionMode
+          m.log.warn("moving entire row")
+          children = []
+          for i = m.selectedItemIndex to m.selectedItemIndex + 3
+            children.push(m.selectedRow.getChild(i))
+          end for
+          nextRow@.appendChildren(children)
+        else
+          nextRow@.appendChild(m.selectedItem)
+        end if
+
+      else
+        m.log.error("no next row at index", nextIndex)
+      end if
+    else
+      m.log.error("no item selected")
     end if
-    m.changeLoadedDay(m.dayIndex)
   end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ List Data - Initialization
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function resetData()
-    m.log.info("resetting data", m.isUsingGrids)
     m.cellSettings = ml.listMixin.createCellSettings("SimpleCell", [307, 100], 30)
-    m.makeDayModules()
     m.makeListData()
-    m.changeLoadedDay(0)
-    m.updateStatus()
+    m.reload()
   end function
 
   private function makeListData()
@@ -131,7 +138,6 @@ class UpdateListDataScreen extends mv.BaseScreen
 
     m.setFocus(m.loadingIndicator)
 
-    content@.appendChildren([m.makeHeader()])
     m.list.content = content
 
     timer.log("set content")
@@ -143,22 +149,6 @@ class UpdateListDataScreen extends mv.BaseScreen
     end if
   end function
 
-  private function makeHeader()
-    row = createObject("roSGNode", "ml_RowContent")
-    row.id = rnd(2147483647).toStr()
-    row.settings = ml.listMixin.createCustomRowSettings("DateHeaderRow", 310)
-    row.settings.headerSettings.position = "none"
-    return row
-  end function
-
-  private function makeVideoRow()
-    row = createObject("roSGNode", "ml_RowContent")
-    row.id = rnd(2147483647).toStr()
-    row.settings = ml.listMixin.createCustomRowSettings("VideoRow", 500)
-    row.settings.headerSettings.position = "none"
-    return row
-  end function
-
   private function onListRenderState(state as string)
     m.log.info("onListRenderState", state)
     if state = "rendered"
@@ -168,41 +158,21 @@ class UpdateListDataScreen extends mv.BaseScreen
     end if
   end function
 
-  private function makeDayModules()
-    m.dayModules = []
-
-    for i = 0 to 3
-      m.dayModules.push({
-        live: m.createModule("live", 5)
-        upcoming: m.createModule("upcoming", 5)
-        complete: m.createModule("complete", 5)
-      })
-    end for
-  end function
-
-  private function createModule(title as string, numItems as integer)
+  private function createRow(title as string, numItems as integer)
     numCols = 4
-    prefix = m.isUsingGrids ? "G " : "H "
-
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
 
-    if m.isUsingGrids
-      m.log.info("is using grids")
-      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
-      row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 310, numCols, 100, 5, 50)
-      row.firstRowScreenPos = 330
-      row.otherRowScreenPos = 70
-    else
-      m.log.info("is using rows")
-      rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
-      row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 340)
-    end if
+    m.log.info("is using grids")
+    gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
+    row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 70, numCols, 100, 5, 50)
+    row.firstRowScreenPos = 70
+    row.otherRowScreenPos = 70
 
     row.settings.contentOffset = [100, 30]
-    numItems = rnd(5) + (m.isUsingGrids ? 6 : 0)
+    numItems = rnd(5) + 6
     row.title = title
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
+    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, ""))
     return row
   end function
 
@@ -232,64 +202,20 @@ class UpdateListDataScreen extends mv.BaseScreen
     return child
   end function
 
-  private function makeSomeCoolRows()
-    modules = []
-    'ensure that row offsets are applied correctly
-    for i = 0 to 5
-      modules.push(m.createModule(`more ${i}`, 5))
-    end for
-    modules.push(m.makeVideoRow())
-    'ensure that row offsets are applied correctly
-    for i = 5 to 10
-      modules.push(m.createModule(`more ${i}`, 5))
-    end for
-
-    m.list.content@.appendChildren(modules)
-    m.list.content@.notifyUpdate()
-
-  end function
-
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function moveDay(offset as integer)
-    m.dayIndex = mc.clamp(m.dayIndex + offset, 0, m.dayModules.count() - 1, true)
-    m.changeLoadedDay(m.dayIndex)
-    m.updateStatus()
-  end function
-
-  private function updateStatus()
-    m.reloadTodayButton.text = `reload day ${m.dayIndex}`
-    m.useGridButton.text = `Use: ${m.isUsingGrids ? "grids" : "rows"}`
-  end function
-
-  private function changeLoadedDay(dayIndex as integer)
+  private function reload()
     m.removeNonHeaderRows(false)
-    newModules = []
-    modules = []
-    numModules = 0
-    dayData = m.dayModules[m.dayIndex]
-    for each moduleType in ["live", "upcoming", "complete"]
-      if dayData[moduleType].count() > 0
-        modules.push(dayData[moduleType])
-      end if
-    end for
+    m.rows = [
+      m.createRow("live", 5)
+      m.createRow("upcoming", 5)
+      m.createRow("complete", 5)
+    ]
 
-    'ensure that row offsets are applied correctly
-    for each module in modules
-      if module.getChildCount() > 0
-        if numModules > 0 and module.settings.subType() = "ml_GridRowSettings"
-          settings = module.settings.clone(true)
-          settings.firstRowScreenPos = settings.otherRowScreenPos
-          module.settings = settings
-        end if
-        newModules.push(module)
-        numModules++
-      end if
-    end for
 
-    m.list.content@.insertChildren(newModules, 1)
+    m.list.content@.insertChildren(m.rows, 1)
     m.list.content@.notifyUpdate()
   end function
 
@@ -305,27 +231,29 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function setRowOpacity(rowIndex as integer, opacity as float, direction as integer, applyToAll = false as boolean)
-    row = m.list@.getRowRenderer(rowIndex)
-    if rowIndex = 0
-      row.opacity = 1
-    else if row.subType() <> "ml_GridRow"
-      row.opacity = opacity
-    else
-      if applyToAll
-        startIndex = 0
-        endIndex = row.content.length - 1
-      else
-        'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-        startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
-        endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
-      end if
-      for i = startIndex to endIndex
-        cell = m.list@.getCellRenderer(rowIndex, i)
-        if cell <> invalid
-          cell.opacity = opacity
-        end if
-      end for
-    end if
+    'FIXME - need to have separate callback for subrows too
+
+    ' row = m.list@.getRowRenderer(rowIndex)
+    ' if rowIndex = 0
+    '   row.opacity = 1
+    ' else if row.subType() <> "ml_GridRow"
+    '   row.opacity = opacity
+    ' else
+    '   if applyToAll
+    '     startIndex = 0
+    '     endIndex = row.content.length - 1
+    '   else
+    '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
+    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
+    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
+    '   end if
+    '   for i = startIndex to endIndex
+    '     cell = m.list@.getCellRenderer(rowIndex, i)
+    '     if cell <> invalid
+    '       cell.opacity = opacity
+    '     end if
+    '   end for
+    ' end if
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -333,15 +261,12 @@ class UpdateListDataScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ' ? ">>>onItemSelected" ; rowIndex ; "," ; itemIndex
-  end function
+    m.selectedRowIndex = rowIndex
+    m.selectedRow = m.rows[rowIndex]
+    m.selectedItem = m.selectedRow.getChild(itemIndex)
+    m.selectedItemIndex = itemIndex
+    m.log.info("selected item ", mc.dv(m.selectedItem), "from row", mc.dv(m.selectedRow))
 
-  private function onRowData(rowIndex as integer, data as dynamic)
-    if rowIndex = 0
-      offset = mc.getInteger(data, "offset")
-      m.log.info(`moving day by ${offset}`)
-      m.moveDay(offset)
-    end if
   end function
 
   private function onRowDidGainFocus(rowIndex as integer, direction as integer)
@@ -388,6 +313,21 @@ class UpdateListDataScreen extends mv.BaseScreen
     row@.removeChildrenIndex(row.getChildCount() - 1, 0)
   end function
 
+  private function onKeyPressFastForward() as boolean
+    m.moveItem(1)
+    return true
+  end function
+
+  private function onKeyPressRewind() as boolean
+    m.moveItem(-1)
+    return true
+  end function
+
+  private function onKeyPressPlay() as boolean
+    m.isRowSelectionMode = not m.isRowSelectionMode
+    m.log.info("row selection mode is now: ", m.isRowSelectionMode)
+    return true
+  end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -397,9 +337,10 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   protected override function onKeyPressBack() as boolean
-    if m.top.isRoot <> true
-      m.list.isHidden = true
-      m.dismiss("success")
+    if m.isControlFocused(m.menu)
+      super.onKeyPressBack()
+    else
+      m.setFocus(m.menu)
     end if
     return true
   end function
@@ -414,21 +355,6 @@ class UpdateListDataScreen extends mv.BaseScreen
     return true
   end function
 
-  private function onKeyPressOptions() as boolean
-    m.makeSomeCoolRows()
-    return true
-  end function
-
-  private function onKeyPressRewind() as boolean
-    m.toggleListUpdates(false)
-    m.changeContent()
-    return true
-  end function
-
-  private function onKeyPressFastForward() as boolean
-    m.toggleListUpdates(true)
-    return true
-  end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Lifecycle

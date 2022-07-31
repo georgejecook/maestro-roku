@@ -132,9 +132,11 @@ namespace ml
         ' ? " is float"
         'replace with actual screen location
         cell = m.viewManager.getRenderer(info.contentIndex)
-        'bs:disable-next-line
-        bounds = cell.sceneBoundingRect()
-        translation = [bounds.x, bounds.y]
+        if cell <> invalid
+          'bs:disable-next-line
+          bounds = cell.sceneBoundingRect()
+          translation = [bounds.x, bounds.y]
+        end if
       else
         translation[0] += info.getScreenPosition(direction)
       end if

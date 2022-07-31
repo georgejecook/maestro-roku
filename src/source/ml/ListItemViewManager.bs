@@ -124,7 +124,7 @@ namespace ml
 
     private function restorePreviousFocus()
       focusIndex = [0, 0]
-
+      ? " RESTORE PRE FOCUS"
       if m.previousFocusedRow <> invalid
         row = m.renderersByContentId[m.previousFocusedRow.id]
         if row = invalid
@@ -141,6 +141,7 @@ namespace ml
       m.previousFocusedRow = invalid
       ' 'TODO need to actually set the focus properly
       m.itemScroller.moveToIndex(focusIndex[0], false)
+      ? " RESTORE PRE FOCUS : END"
       ' m.itemScroller.forceFocusOnIndex(focusIndex[0])
     end function
 
@@ -148,7 +149,7 @@ namespace ml
       if m.content <> invalid
         index = 0
         for i = 0 to m.batchSize
-          m.log.info(">>> BEGIN CREATE ROW", i)
+          ' m.log.info(">>> BEGIN CREATE ROW", i)
           m.creationIndex++
           index = m.creationIndex
           if m.creationIndex >= m.content.getChildCount()
@@ -162,7 +163,7 @@ namespace ml
 
           comp = m.previousRendereredByContentId[rowContent.id]
           if comp <> invalid
-            m.log.info("using comp for the same row")
+            ' m.log.info("using comp for the same row")
             ' ? " REUSING COMP FOR SAME ROW "; index
             comp.index = index
             comp.translation = rect.translation
@@ -170,7 +171,7 @@ namespace ml
             m.previousRendereredByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
           else
-            m.log.info("creating row for this item")
+            ' m.log.info("creating row for this item")
             comp = m.createRow(rowContent, index, settings, rect)
           end if
 
@@ -183,7 +184,7 @@ namespace ml
           end if
           m.visibleComponents.push(comp)
           index++
-          m.log.info(">>> END CREATE ROW", i)
+          ' m.log.info(">>> END CREATE ROW", i)
         end for
         if m.creationIndex < m.content.getChildCount()
           m.waitAFrame(m.createRendererBatch, 0.15)
