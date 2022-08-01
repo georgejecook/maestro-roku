@@ -80,13 +80,13 @@ namespace mc
 
       if pool.freeComponentsById.count() = 0
         ' ? ">>>> RAN OUT OF " ; componentType
-        m.log.warn("ran out of components getting type :", componentType)
-
+        m.log.warn("no free components of type :", componentType)
         if m.isCreateMoreEnabled
-          m.log.warn("creating", m.numberOfComponentsToCreateWhenDry, "more", componentType, "components")
           if numToCreateIfDry = -1
             numToCreateIfDry = m.numberOfComponentsToCreateWhenDry
           end if
+          m.log.warn("creating", numToCreateIfDry, "more", componentType, "components")
+
           numberOfComponents = m.numberOfComponents
           for i = 0 to numToCreateIfDry
             component = m.createComponent(componentType)
