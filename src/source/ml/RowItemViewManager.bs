@@ -246,15 +246,16 @@ namespace ml
       m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
       m.itemScroller.getComponentInfos(true)
       m.itemScroller.processChanges(changes)
-      ' ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents
+      ' ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents ; " FI "; m.itemScroller.index
       m.rowInfos = invalid
       if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
         ' ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
         m.owner@.forceUpdate()
       end if
       if m.row.isFocused
-        ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-        m.owner.focusedCellIndex = m.itemScroller.index
+        ' ? " IS FOCUSED ON" ; m.itemScroller.index
+        m.itemScroller.moveToIndex(m.itemScroller.index, false)
+        m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
       end if
     end function
 

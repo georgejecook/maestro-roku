@@ -7,6 +7,8 @@ namespace ml.itemDelegateMixin
     if m.listEventMap = invalid
       m.listEventMap = {}
     end if
+    m.__lastMaestroEventName = ""
+
     if instance = invalid
       instance = m
     end if
@@ -70,8 +72,11 @@ namespace ml.itemDelegateMixin
     else if eventName = "gainingFocus" or eventName = "losingFocus"
       m.listItemDelegate[m.listEventMap[eventName]](event.direction, event.fraction)
     else
-      m.listItemDelegate[m.listEventMap[eventName]](event.direction)
+      if eventName <> m.__lastMaestroEventName
+        m.listItemDelegate[m.listEventMap[eventName]](event.direction)
+      end if
     end if
+    m.__lastMaestroEventName = eventName
 
   end function
 
