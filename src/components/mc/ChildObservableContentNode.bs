@@ -73,7 +73,7 @@ end function
 function notifyParentOfRemoval(child as object)
   if child <> invalid
     oldParent = child.getParent()
-    if oldParent <> invalid and not m.top.isSameNode(oldParent)
+    if oldParent <> invalid and oldParent.isSubtype("mc_ChildObservableContentNode") and not m.top.isSameNode(oldParent)
       oldParent@.removeChild(child)
     end if
   end if
