@@ -59,6 +59,9 @@ namespace mv.transitions
 
       if m.source <> invalid and m.owner.shouldRemoveFromAggregateView
         m.source@.onRemovedFromAggregateView(m.owner)
+        if m.owner.pushedView <> invalid
+          m.owner.pushedView = invalid
+        end if
       end if
 
       if m.target <> invalid
@@ -66,6 +69,9 @@ namespace mv.transitions
         if m.owner.isAutoFocusEnabled and (m.owner.isFocused or m.owner.isChildFocused)
           'bs:disable-next-line
           mv.setFocus(m.target)
+          if m.owner.poppedView <> invalid
+            m.owner.poppedView = invalid
+          end if
         end if
       end if
     end function
@@ -82,9 +88,6 @@ namespace mv.transitions
       if m.source <> invalid and not m.source.isSameNode(m.target)
         m.source@._setShown(false)
         m.owner.removeChild(m.source)
-        if m.owner.poppedView <> invalid
-          m.owner.poppedView = invalid
-        end if
 
       end if
       if m.target <> invalid
@@ -94,10 +97,6 @@ namespace mv.transitions
 
         if m.owner.isShown
           m.target@._setShown(true)
-          if m.owner.pushedView <> invalid
-            m.owner.pushedView = invalid
-          end if
-
         end if
 
       end if
