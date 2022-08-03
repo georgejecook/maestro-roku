@@ -71,21 +71,16 @@ class NavControllerTestChildScreen extends mv.BaseScreen
     pushedView = m.top.navController.pushedView
     poppedView = m.top.navController.poppedView
 
-    m.log.info("On show", m.top.id)
-    m.log.info("Pushed view", mc.dv(pushedView))
-    m.log.info("Popped view", mc.dv(poppedView))
-
+    m.log.info("On show", m.top.id, "pushed", mc.dv(pushedView), "popped", mc.dv(poppedView))
   end function
 
   protected override function onHide()
     super.onHide()
-    m.log.info("On hide", m.top.id)
+    m.log.info("On hide", m.top.id, mc.dv(m.top.navController))
     if m.top.navController <> invalid
       pushedView = m.top.navController.pushedView
       poppedView = m.top.navController.poppedView
-
-      m.log.info("Pushed view", mc.dv(pushedView))
-      m.log.info("Popped view", mc.dv(poppedView))
+      m.log.info("pushed", mc.dv(pushedView), "popped", mc.dv(poppedView))
     end if
   end function
 
