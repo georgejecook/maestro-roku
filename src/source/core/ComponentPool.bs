@@ -53,12 +53,15 @@ namespace mc
       return pool
     end function
 
+    'RobotCell.hero
     function prebakeComponents(number as integer, componentType as string)
       m.log.info("adding ", number, componentType, "components")
+      parts = componentType.split(".")
+      compName = parts[0]
       pool = m.getComponentPool(componentType)
 
       for i = 0 to number
-        component = createObject("roSGNode", componentType)
+        component = createObject("roSGNode", compName)
         if component <> invalid
           component.id = rnd(2147483647).toStr()
           if component.isPrebaked <> invalid
