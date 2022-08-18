@@ -60,7 +60,7 @@ namespace mv
         {
           title: title
           message: message
-          buttonTitles: buttonTitles
+          buttons: buttonTitles
       }, additionalArgs])
       m.showDialogScreen(dialog, callback)
       return dialog
@@ -75,13 +75,13 @@ namespace mv
         {
           title: json.title
           message: json.message
-          buttonTitles: json.buttonTitles
+          buttons: json.buttonTitles
       }, additionalArgs])
       m.showDialogScreen(dialog, callback)
       return dialog
     end function
 
-    'show any screen as a dialog. Must have a selectedIndex: integer field
+    'show any screen as a dialog. Must have a buttonSelected: integer field
     function showDialogScreen(dialog as mc.types.node, callback = invalid as function, lockFocus = true as boolean) as mc.types.node
       container = m.getDialogContainer()
       if not container.getParent().isSameNode(dialog.getParent())
@@ -89,10 +89,10 @@ namespace mv
         container.appendChild(dialog)
       end if
       mc.setOrAddNodeField(dialog, "dialogLocksFocus", lockFocus)
-      m.observeNodeField(dialog, "selectedIndex", m.onDialogDismiss, "both", true)
+      m.observeNodeField(dialog, "buttonSelected", m.onDialogDismiss, "both", true)
       if callback <> invalid
         m.log.info("delegate is observing this dialog")
-        m.delegate.observeNodeField(dialog, "selectedIndex", callback, "both", true)
+        m.delegate.observeNodeField(dialog, "buttonSelected", callback, "both", true)
       end if
       'FIXME(gcook): need to add a new feature to maestro's focus manager to allow it to set focus on child of focus-locked view : https://github.com/georgejecook/maestro-roku/issues/108
       if lockFocus
