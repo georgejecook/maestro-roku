@@ -6,21 +6,29 @@ import "pkg:/source/core/DebugTimer.bs"
 @node("ModuleScreen", "mv_BaseScreen")
 class ModuleScreen extends mv.BaseScreen
 
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Public Debug Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   @observer("onRemoveItems")
   @alwaysnotify
   public removeItems = 0
 
-  'views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   private list
   private listHolder
   private bgRect
   private button
 
-  'style
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
   private numberOfRows = 20
   private defaultCellType = "ml_SimpleCell"
-
-  'state
   public componentPool as mc.types.node
   private contentId = 0
   private rowSettings
@@ -28,6 +36,8 @@ class ModuleScreen extends mv.BaseScreen
   private cellSettings
   private loadingIndicator
   private scrollSpeed = 2
+  private firstItem = invalid
+  private dataIndex = 0
 
   function new()
     super("ModuleScreen")
@@ -67,12 +77,12 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onResetChange()
     m.list.content = invalid
-    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 450], 30)
+    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [307, 100], 30)
 
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
+    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-5, -5, 5, 5])
     listSettings = ml.listMixin.createListSettings(-1, -1)
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
@@ -92,6 +102,9 @@ class ModuleScreen extends mv.BaseScreen
     else
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
+
+
+    m.mergeLoadedData()
   end function
 
   private function onListRenderState(state as string)
@@ -106,8 +119,6 @@ class ModuleScreen extends mv.BaseScreen
 
   private function createHeaderOnlyData()
     content = []
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
-
     i = 0
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
@@ -131,11 +142,9 @@ class ModuleScreen extends mv.BaseScreen
 
   private function createModule(title as string, numItems as integer)
     gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
-    numCols = 4
-    prefix = "G "
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
-    row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 474, 5, 50)
+    row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, 3, 150, 3)
     row.screenPos = 0
     row.firstRowScreenPos = 400
     row.otherRowScreenPos = 70
@@ -144,7 +153,7 @@ class ModuleScreen extends mv.BaseScreen
     numItems = rnd(5)
     ' numItems = 4
     row.title = title
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
+    row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     return row
   end function
 
@@ -185,30 +194,55 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ keypresses
+  '++ List Delegate Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  private firstItem = invalid
-  private dataIndex = 0
-  private function onKeyPressOptions() as boolean
 
-    m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 6, true)
-    ? "UPDATING DATA " ; m.dataIndex
+  private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  end function
 
-    m.mergeLoadedData()
-    ' if m.firstItem = invalid
-    '   m.firstItem = m.list.content.getChild(0)
-    '   m.list.content.removeChild(m.firstItem)
-    ' else
-    '   m.list.content.insertChild(m.firstItem, 0)
-    '   m.firstItem = invalid
-    ' end if
+  private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  end function
 
-    ' m.firstItem = m.list.content.getChild(0)
-    ' m.firstItem.isHidden = not m.firstItem.isHidden
-    ' row.isHidden = not row.isHidden
-    ' m.list.content = invalid
-    ' m.onResetChange()
-    return true
+
+  private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  end function
+
+  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
+    ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+  end function
+
+  private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
+    ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+  end function
+
+  private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
+    ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  end function
+
+  private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
+    ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  end function
+
+  private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+    ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
+  end function
+
+  private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+    ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
+  end function
+
+  private function onItemSelected(rowIndex as integer, itemIndex as integer)
+    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
+    rowContent = m.list.content.getChild(rowIndex)
+    title = `NEW Item ${m.contentId}`
+    child = m.makeItem("SimpleCell", title)
+    rowContent.insertChild(child, itemIndex)
+    ' rowContent.removeChild(child)
+    row = m.list@.getRowRenderer(rowIndex)
+    row@.forceUpdate()
   end function
 
   private function mergeLoadedData()
@@ -216,15 +250,15 @@ class ModuleScreen extends mv.BaseScreen
     newModules = []
     modules = []
     numModules = 0
-    if m.dataIndex = 0 or m.dataIndex = 3 or m.dataIndex = 5 or m.dataIndex = 6
+    if m.dataIndex <= 2 or m.dataIndex = 3 or m.dataIndex = 5 or m.dataIndex = 6
       ? "ADDING LIVE"
       modules.push(m.createModule("LIVE", 4))
     end if
-    if m.dataIndex = 1 or m.dataIndex = 3 or m.dataIndex = 4 or m.dataIndex = 6
+    if m.dataIndex <= 2 or m.dataIndex = 4 or m.dataIndex = 6
       ? "ADDING UPCOMING"
       modules.push(m.createModule("UPCOMING", 5))
     end if
-    if m.dataIndex = 2 or m.dataIndex = 4 or m.dataIndex = 5 or m.dataIndex = 6
+    if m.dataIndex <= 2 or m.dataIndex = 4 or m.dataIndex = 5 or m.dataIndex = 6
       ? "ADDING FINAL"
       modules.push(m.createModule("FINAL", 3))
     end if
@@ -260,14 +294,57 @@ class ModuleScreen extends mv.BaseScreen
     end if
   end function
 
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onKeyPressOptions() as boolean
+
+    m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 6, true)
+    ? "UPDATING DATA " ; m.dataIndex
+
+    m.mergeLoadedData()
+    ' if m.firstItem = invalid
+    '   m.firstItem = m.list.content.getChild(0)
+    '   m.list.content.removeChild(m.firstItem)
+    ' else
+    '   m.list.content.insertChild(m.firstItem, 0)
+    '   m.firstItem = invalid
+    ' end if
+
+    ' m.firstItem = m.list.content.getChild(0)
+    ' m.firstItem.isHidden = not m.firstItem.isHidden
+    ' row.isHidden = not row.isHidden
+    ' m.list.content = invalid
+    ' m.onResetChange()
+    return true
+  end function
+
+  private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+    return true
+  end function
 
   private function onKeyPressRewind() as boolean
-    ? "REMOVING "
+    ? " MOVE A CELL TO PREVIOUS"
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    item = row.getChild(m.list.focusedCellIndex)
+
+    row = m.list.content.getChild(m.list.focusedRowIndex - 1)
+    if row <> invalid
+      row@.appendChild(item)
+    end if
     return true
   end function
 
   private function onKeyPressFastForward() as boolean
-    ? "ADDING"
+    ? " MOVE A CELL TO NEXT"
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    item = row.getChild(m.list.focusedCellIndex)
+
+    row = m.list.content.getChild(m.list.focusedRowIndex + 1)
+    if row <> invalid
+      row@.appendChild(item)
+    end if
     return true
   end function
 
@@ -291,8 +368,9 @@ class ModuleScreen extends mv.BaseScreen
     return true
   end function
 
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ lifecycle
+  '++ Lifecycle Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   protected override function onShow()
@@ -313,111 +391,6 @@ class ModuleScreen extends mv.BaseScreen
     if isSelfFocused
       m.setFocus(m.list)
     end if
-  end function
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ list delegate
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    mioc.setInstance("focusedIndex", {
-      row: rowIndex
-      cell: itemIndex
-    })
-  end function
-
-  private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    mioc.setInstance("focusedIndex", {
-      row: rowIndex
-      cell: itemIndex
-    })
-  end function
-
-
-  private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-  end function
-
-  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-    ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
-
-    row = m.list@.getRowRenderer(rowIndex)
-    if row <> invalid
-      mioc.setInstance("focusedIndex", {
-        row: rowIndex
-        cell: row.focusedCellIndex
-      })
-    else
-      mioc.setInstance("focusedIndex", {
-        row: -1
-        cell: -1
-      })
-
-    end if
-
-    ' if direction = -1
-    '   row = m.list@.getRowRenderer(rowIndex)
-    '   row.opacity = 1
-    ' end if
-  end function
-
-  private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-    ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
-
-    ' row = m.list@.getRowRenderer(rowIndex)
-    ' if direction = 1
-    '   row.opacity = 0
-    ' end if
-
-  end function
-
-  private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-    ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
-    ' if direction = -1
-    '   row = m.list@.getRowRenderer(rowIndex)
-    '   row.opacity = fraction
-    ' end if
-  end function
-
-  private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-    ' ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
-    ' if direction = 1
-    '   row = m.list@.getRowRenderer(rowIndex)
-    '   row.opacity = 1 - fraction
-    ' end if
-
-  end function
-  private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-    ' ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
-    ' if direction = -1
-    '   row = m.list@.getRowRenderer(rowIndex)
-    '   row.opacity = fraction
-    ' end if
-  end function
-
-  private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-    ' ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
-    ' if direction = 1
-    '   row = m.list@.getRowRenderer(rowIndex)
-    '   row.opacity = 1 - fraction
-    ' end if
-
-  end function
-
-  private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ' ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
-    rowContent = m.list.content.getChild(rowIndex)
-    title = `NEW Item ${m.contentId}`
-    child = m.makeItem("SimpleCell", title)
-    rowContent.insertChild(child, itemIndex)
-    ' rowContent.removeChild(child)
-    row = m.list@.getRowRenderer(rowIndex)
-    row@.forceUpdate()
-    ' newScreen = createObject("roSGNode", "ModuleScreen")
-    ' m.push(newScreen)
-    ' m.setFocus(newScreen)
   end function
 
 end class
