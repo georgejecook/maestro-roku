@@ -38,6 +38,8 @@ class ModuleScreen extends mv.BaseScreen
   private scrollSpeed = 2
   private firstItem = invalid
   private dataIndex = 0
+  private downInterval as mc.types.node
+  private nextMoveIsUp = false
 
   function new()
     super("ModuleScreen")
@@ -73,6 +75,9 @@ class ModuleScreen extends mv.BaseScreen
     })
     ml.delegateMixin.setListDelegate(m.list)
     m.onResetChange()
+
+    m.downInterval = m.setInterval(m.moveAnItem, 5)
+
   end function
 
   private function onResetChange()
@@ -150,8 +155,7 @@ class ModuleScreen extends mv.BaseScreen
     row.otherRowScreenPos = 70
 
     row.settings.contentOffset = [100, 30]
-    numItems = rnd(5)
-    ' numItems = 4
+    numItems = 5
     row.title = title
     row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     return row
@@ -245,6 +249,48 @@ class ModuleScreen extends mv.BaseScreen
     row@.forceUpdate()
   end function
 
+
+  private function moveAnItem()
+    m.nextMoveIsUp = not m.nextMoveIsUp
+
+    if m.nextMoveIsUp
+      m.moveUp()
+    else
+      m.moveDown()
+    end if
+    m.changeFocus(m.nextMoveIsUp)
+  end function
+
+  private function changeFocus(isButton as boolean)
+    ? "CHANGE FOCUS button? "; isButton
+    m.setFocus(m.button)
+    m.setTimeout(m.focusBackOnList, 0.5)
+  end function
+
+  private function focusBackOnList()
+    m.setFocus(m.list)
+  end function
+
+  private function moveDown()
+    row = m.list.content.getChild(1)
+    item = row.getChild(0)
+
+    row = m.list.content.getChild(3)
+    if row <> invalid
+      row@.appendChild(item)
+    end if
+  end function
+
+  private function moveUp()
+    row = m.list.content.getChild(3)
+    item = row.getChild(0)
+
+    row = m.list.content.getChild(1)
+    if row <> invalid
+      row@.appendChild(item)
+    end if
+  end function
+
   private function mergeLoadedData()
     m.removeNonHeaderRows(false)
     newModules = []
@@ -300,10 +346,21 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onKeyPressOptions() as boolean
 
-    m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 6, true)
-    ? "UPDATING DATA " ; m.dataIndex
 
-    m.mergeLoadedData()
+    if m.downInterval = invalid
+      ? "DISABLING INTERVALS"
+      m.downInterval = m.setInterval(m.moveAnItem, 7)
+    else
+      ? "ENABLING INTERVALS"
+      m.cancelInterval(m.downInterval)
+
+      m.downInterval = invalid
+    end if
+
+
+    ' m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 6, true)
+    ' ? "UPDATING DATA " ; m.dataIndex
+    ' m.mergeLoadedData()
     ' if m.firstItem = invalid
     '   m.firstItem = m.list.content.getChild(0)
     '   m.list.content.removeChild(m.firstItem)
