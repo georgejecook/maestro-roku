@@ -180,7 +180,7 @@ namespace ml
     end function
 
     function canMoveToIndex(index as integer, direction as integer) as boolean
-      ' ? "CMTI D "; direction; " MI " ; index ; " NC "; m.numberOfComponents
+      ? "CMTI D "; direction; " MI " ; index ; " NC "; m.numberOfComponents
       return m.numberOfComponents > 0 and ((direction = -1 and index > -1) or (direction = 1 and index < m.numberOfComponents))
     end function
 
@@ -462,7 +462,7 @@ namespace ml
     end function
 
     function onAnimationFractionChange(fraction as float) as void
-      ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
+      ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
       if fraction = 1 and not m.isMovingMultiple
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
@@ -514,8 +514,8 @@ namespace ml
 
     function finishMovingToIndex(isFromFlow = false as boolean) as boolean
 
-      ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
-      ' ? m.__classname ; " " ; m.isScrollCancelled
+      ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
+      ? m.__classname ; " " ; m.isScrollCancelled
 
       if m.isScrollCancelled
         ' ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
@@ -610,7 +610,7 @@ namespace ml
     end function
 
     function toggleScrolling(active as boolean)
-      ' ? "+>+>+>+> toggleScrolling " ; active ; " IS " ; m.viewManager.isScrolling ; " " ; m.__classname
+      ? "+>+>+>+> toggleScrolling " ; active ; " IS " ; m.viewManager.isScrolling ; " " ; m.__classname
       if m.viewManager.isScrolling <> active
         if active
           m.scrollStartIndex = m.index
@@ -651,7 +651,7 @@ namespace ml
     end function
 
     function onFlowFocusFraction(fraction as float)
-      ' ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
+      ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
       ' m.log.info("onFlowFocusFraction", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex)
 
       if fraction = 1

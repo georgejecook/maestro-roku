@@ -301,7 +301,6 @@ namespace ml
     end function
 
     private function canScroll(key as string)
-
       if m.isAlreadyScrolling()
         ? " cannot scroll - already scrolling"
         return false
@@ -309,11 +308,14 @@ namespace ml
       index = m.itemScroller.index
       normalizedColumn = index mod m.viewManager.numCols
 
+      ? "CAN SCROLL KEY"; key
+
       ' ? " m.isScrollingEnabled "; m.isScrollingEnabled ; " index " ; index
       return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
     private function isAlreadyScrolling() as boolean
+      ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling
       return m.viewManager.isScrolling or m.isDoingFlowFocus
     end function
 
@@ -321,6 +323,7 @@ namespace ml
       m.log.verbose(">>>>onLongPressStart", key)
       ' ? " ON LONG PRESS START GRID ROW "; key
       if m.canScroll(key)
+        ? "onLongPressStart - CAN SCROL KEY "; key
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
         m.itemScroller.isDoingLongPress = true
         if key = "left"
