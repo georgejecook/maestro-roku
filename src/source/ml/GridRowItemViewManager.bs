@@ -496,7 +496,7 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
-      ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
+      ' ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
       numRows = m.rowOffsets.count()
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
@@ -517,8 +517,9 @@ namespace ml
 
       m.itemScroller.processChanges(changes)
       if m.row.isFocused
-        m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-        m.owner.focusedCellIndex = m.itemScroller.index
+        ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+        ' m.owner.focusedCellIndex = m.itemScroller.index
+        m.owner@.moveToRowItem(m.row.index, m.itemScroller.index, false)
       end if
     end function
 

@@ -101,6 +101,7 @@ namespace ml
 
     public function reset(keepOldFocusIfPossible = false as boolean) as void
 
+      ' ? " RESET keepOldFocusIfPossible "; keepOldFocusIfPossible
       m.focusIndicatorManager = m.viewManager.owner.focusIndicatorManager
 
       if keepOldFocusIfPossible
@@ -113,9 +114,9 @@ namespace ml
 
       'FIXME - fix recovering focus
       if keepOldFocusIfPossible
-        ' ? m.__classname ; " KEEP INDEX"
+        ? m.__classname ; " KEEP INDEX"
         if index >= m.numberOfComponents
-          ' ? m.__classname ; " NEEDS FIXING TO LAST "
+          ? m.__classname ; " NEEDS FIXING TO LAST "
           'move to next item
           index = m.numberOfComponents - 1
         end if
@@ -178,15 +179,18 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveInDirection(direction as integer) as boolean
+      m.getComponentInfos(false)
       return m.canMoveToIndex(m.index + direction, direction)
     end function
 
     function canMoveToIndex(index as integer, direction as integer) as boolean
-      ? "CMTI D "; direction; " MI " ; index ; " NC "; m.numberOfComponents
+      ' ? "CMTI D "; direction; " MI " ; index ; " NC "; m.numberOfComponents
+      m.getComponentInfos(false)
       return m.numberOfComponents > 0 and ((direction = -1 and index > -1) or (direction = 1 and index < m.numberOfComponents))
     end function
 
     function moveToContentIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
+      m.getComponentInfos(false)
       info = m.getComponentInfoForContentIndex(index)
       if info <> invalid
         ' ? " INFO INDEX IS "; info.index
@@ -262,12 +266,16 @@ namespace ml
       ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
 
+      m.getComponentInfos(false)
       m.focusIndicatorManager@.cancelFlowFocus()
+      m.numberOfComponents = m.componentInfos.count()
 
       if m.numberOfComponents = 0
+        ' ? " MTI AA"
         return false
       end if
 
+      ' ? " MTI BB"
       if direction = invalid
         direction = 0
         if index < m.index
@@ -306,6 +314,7 @@ namespace ml
         m.currentAnimSpeed = m.animSpeed * 0.7
       end if
 
+      ' ? " MTI CC"
       '////////////////////////////////////////////////////////////////////////
       ' ? "//// 2. Ascertain offset "; m.__classname
       '////////////////////////////////////////////////////////////////////////
@@ -318,6 +327,7 @@ namespace ml
       m.setNextComponentInfo(nextComponentInfo)
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
+      ' ? " MTI DD"
       if isFlowPossible
         ' ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.componentInfo, nextComponentInfo, m.direction)
@@ -329,6 +339,7 @@ namespace ml
 
       ' ? "////// offset is "; translation[m.axes]
 
+      ' ? " MTI EE"
       if animated
         '////////////////////////////////////////////////////////////////////////
         ' ? "/////// 3. animated move"
@@ -345,7 +356,7 @@ namespace ml
         '////////////////////////////////////////////////////////////////////////
         ' ? " ///////// 4. non-animated move"
         '////////////////////////////////////////////////////////////////////////
-
+        ' ? " MTI FF"
         ' ? "HERE HERE " ; m.__classname
         m.toggleScrolling(false)
         m.container.translation = translation
@@ -355,7 +366,9 @@ namespace ml
 
         m.updateSrollOffsetFraction(1)
         m.viewManager.updateRenderedComponents(m.direction, index)
+        ' ? " MTI GG"
         if not m.disableNonAnimatedFocusUpdates
+          ' ? " MTI HH"
           'Grid rows will handle getting their own focus, as they may have called this as part of going to a specific subrow
           m.setFocusIndex(index, false, true)
           m.forceFocusOnIndex(index, true)
@@ -464,7 +477,7 @@ namespace ml
     end function
 
     function onAnimationFractionChange(fraction as float) as void
-      ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
+      ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetComponentInfo, "index") ; " NCI " ;m.componentInfo.index
       if fraction = 1 and not m.isMovingMultiple
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
@@ -516,7 +529,7 @@ namespace ml
 
     function finishMovingToIndex(isFromFlow = false as boolean) as boolean
 
-      ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
+      ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetComponentInfo, "index") ; " IS " ; m.viewManager.isScrolling
       ? m.__classname ; " " ; m.isScrollCancelled
 
       if m.isScrollCancelled
@@ -612,7 +625,7 @@ namespace ml
     end function
 
     function toggleScrolling(active as boolean)
-      ? "+>+>+>+> toggleScrolling " ; active ; " IS " ; m.viewManager.isScrolling ; " " ; m.__classname
+      ' ? "+>+>+>+> toggleScrolling " ; active ; " IS " ; m.viewManager.isScrolling ; " " ; m.__classname
       if m.viewManager.isScrolling <> active
         if active
           m.scrollStartIndex = m.index
@@ -653,7 +666,7 @@ namespace ml
     end function
 
     function onFlowFocusFraction(fraction as float)
-      ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
+      ' ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
       ' m.log.info("onFlowFocusFraction", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex)
 
       if fraction = 1
@@ -686,7 +699,8 @@ namespace ml
           m.screenPos = info.getScreenPosition(m.direction)
         end if
       else
-        m.index = -1
+        ' m.index = -1
+        m.index = 0
         m.activeScrollLocation = 0
         m.screenPos = 0
       end if
@@ -697,7 +711,8 @@ namespace ml
 
       if info = invalid
         m.nextComponentInfo = invalid
-        m.nextIndex = -1
+        m.nextIndex = 0
+        ' m.nextIndex = -1
         m.nextScrollLocation = 0
         m.nextFocusIndicatorConfig = invalid
         if not m.isLastMoveFlowFocus
@@ -734,7 +749,8 @@ namespace ml
         m.targetIndex = info.index
       else
         ' ? " >>>>>>>>>>>>>>>> Target is invalid "
-        m.targetIndex = -1
+        ' m.targetIndex = -1
+        m.targetIndex = 0
       end if
     end function
 
@@ -753,17 +769,22 @@ namespace ml
       ' TODO - check if index is actually changed
       ' ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
 
+      ' ? " SFI AA"
       if m.numberOfComponents = 0
+        ' ? " SFI BB"
         return
       end if
 
-      if index = -1
+      if false and index = -1
+        ' ? " SFI CC"
         m.setComponentInfo(m.componentInfos[0])
         ' ? " ::::::::::::::: setNextComponentInfo AAA"
         m.setNextComponentInfo(m.componentInfos[0])
         ' m.setNextIndex(0)
       else
+        ' ? " SFI DD"
         if index >= m.numberOfComponents - 1
+          ' ? " SFI EE"
           index = m.numberOfComponents - 1
         end if
 
@@ -777,6 +798,7 @@ namespace ml
 
       m.viewManager.updateRenderedComponents(m.direction, m.index)
 
+      ' ? " >>> SFI 2222222"
       if m.sendViewPortEvents
         m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
       end if
@@ -815,7 +837,7 @@ namespace ml
 
       m.setFocusOnRenderer(false)
       if notifyOwner and m.viewManager.row <> invalid
-        ? " >>>>>>>>> SETTING focusedCellIndex " ; m.componentInfo.contentIndex
+        ' ? " >>>>>>>>> SETTING focusedCellIndex " ; m.componentInfo.contentIndex
         m.viewManager.owner.focusedCellIndex = m.componentInfo.contentIndex
       end if
     end function
@@ -840,7 +862,7 @@ namespace ml
         return
       end if
 
-      ' ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
+      ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
       if m.index < 0
         index = m.numberOfComponents - 1
         m.index = index
@@ -855,6 +877,7 @@ namespace ml
       end if
 
       if not isIndexUpdateRequired
+        ' ? " INDEX UPDATE REQUIRED"
         ' isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
         ' return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
         ' end function)

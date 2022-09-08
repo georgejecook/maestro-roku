@@ -356,14 +356,17 @@ namespace ml
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
+      ? " ON FLOW FRACTION CHANGE"
       m.moveFocusIndicatorToTargetPosition(fraction)
       if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
         m.applyFocusSettings(false)
       end if
 
       if m.flowFocusDelegate <> invalid
-        ' ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
+      else
+        ? " NO FOCUS"
       end if
 
       if fraction = 1

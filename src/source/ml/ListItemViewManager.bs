@@ -126,20 +126,25 @@ namespace ml
       focusIndex = [0, 0]
       ' ? " RESTORE PRE FOCUS"
       if m.previousFocusedRow <> invalid
+        ' ? " RESTORE PRE FOCUS AAA"
         row = m.renderersByContentId[m.previousFocusedRow.id]
         if row = invalid
+          ' ? " RESTORE PRE FOCUS BBB"
           index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
           row = m.visibleComponents[index]
         end if
 
         if row <> invalid
+          ' ? " RESTORE PRE FOCUS CCC"
           focusIndex[0] = row.index
           focusIndex[1] = row.focusedCellIndex
         end if
       end if
+      ' ? " RESTORE PRE FOCUS DDDD"
       m.previousFocusedIndex = 0
       m.previousFocusedRow = invalid
       ' 'TODO need to actually set the focus properly
+      ' ? " RESTORE PRE FOCUS EEE " ;focusIndex[0]
       m.itemScroller.moveToIndex(focusIndex[0], false)
       ' ? " RESTORE PRE FOCUS : END"
       ' m.itemScroller.forceFocusOnIndex(focusIndex[0])
@@ -252,7 +257,7 @@ namespace ml
           comp.translation = rect.translation
           comp.visible = rect.visible
           if fullUpdate
-            ? " >>>> DO FULL UPDATE"
+            ' ? " >>>> DO FULL UPDATE"
             comp@.forceUpdate(true, fullUpdate)
           end if
         end if
