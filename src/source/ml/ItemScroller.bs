@@ -101,6 +101,8 @@ namespace ml
 
     public function reset(keepOldFocusIfPossible = false as boolean) as void
 
+      m.focusIndicatorManager = m.viewManager.owner.focusIndicatorManager
+
       if keepOldFocusIfPossible
         index = m.index
       else
@@ -813,6 +815,7 @@ namespace ml
 
       m.setFocusOnRenderer(false)
       if notifyOwner and m.viewManager.row <> invalid
+        ? " >>>>>>>>> SETTING focusedCellIndex " ; m.componentInfo.contentIndex
         m.viewManager.owner.focusedCellIndex = m.componentInfo.contentIndex
       end if
     end function
