@@ -66,7 +66,6 @@ class ModuleScreen extends mv.BaseScreen
       width: size[0]
       height: size[1]
     })
-    mioc.setInstance("list", m.list)
     m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
       isActive: true
       width: 1920
@@ -76,7 +75,7 @@ class ModuleScreen extends mv.BaseScreen
     ml.delegateMixin.setListDelegate(m.list)
     m.onResetChange()
 
-    m.downInterval = m.setInterval(m.moveAnItem, 5)
+    ' m.downInterval = m.setInterval(m.moveAnItem, 5)
 
   end function
 
@@ -94,12 +93,13 @@ class ModuleScreen extends mv.BaseScreen
     listSettings.rowCreationBatchDelay = 0.3
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
-    items = m.createHeaderOnlyData()
+    ' items = m.createHeaderOnlyData()
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
-    content@.appendChildren(items)
+    ' content@.appendChildren(items)
     m.list.visible = false
     m.list.content = content
+    m.content = content
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
@@ -155,7 +155,7 @@ class ModuleScreen extends mv.BaseScreen
     row.otherRowScreenPos = 70
 
     row.settings.contentOffset = [100, 30]
-    numItems = 5
+    numItems = 2
     row.title = title
     row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
     return row
@@ -296,18 +296,19 @@ class ModuleScreen extends mv.BaseScreen
     newModules = []
     modules = []
     numModules = 0
-    if m.dataIndex <= 2 or m.dataIndex = 3 or m.dataIndex = 5 or m.dataIndex = 6
-      ? "ADDING LIVE"
-      modules.push(m.createModule("LIVE", 4))
-    end if
-    if m.dataIndex <= 2 or m.dataIndex = 4 or m.dataIndex = 6
-      ? "ADDING UPCOMING"
-      modules.push(m.createModule("UPCOMING", 5))
-    end if
-    if m.dataIndex <= 2 or m.dataIndex = 4 or m.dataIndex = 5 or m.dataIndex = 6
-      ? "ADDING FINAL"
-      modules.push(m.createModule("FINAL", 3))
-    end if
+    modules.push(m.createModule("LIVE", 4))
+    ' if m.dataIndex <= 2 or m.dataIndex = 3 or m.dataIndex = 5 or m.dataIndex = 6
+    '   ? "ADDING LIVE"
+    '   modules.push(m.createModule("LIVE", 4))
+    ' end if
+    ' if m.dataIndex <= 2 or m.dataIndex = 4 or m.dataIndex = 6
+    '   ? "ADDING UPCOMING"
+    '   modules.push(m.createModule("UPCOMING", 5))
+    ' end if
+    ' if m.dataIndex <= 2 or m.dataIndex = 4 or m.dataIndex = 5 or m.dataIndex = 6
+    '   ? "ADDING FINAL"
+    '   modules.push(m.createModule("FINAL", 3))
+    ' end if
     'ensure that row offsets are applied correctly
     for each module in modules
       if module.getChildCount() > 0
@@ -340,22 +341,45 @@ class ModuleScreen extends mv.BaseScreen
     end if
   end function
 
+  private function removeList()
+    ? "REMOVING LIST"
+    m.list.getParent().removeChild(m.list)
+    m.list = invalid
+  end function
+
+  private function recreateList()
+    ? "RECREATING LIST"
+
+    m.list = m.createSGNode("ml_List", m.listHolder, "list", {
+      width: 1920
+      height: 1080
+    })
+    m.top.appendChild(m.list)
+    ml.delegateMixin.setListDelegate(m.list)
+    m.onResetChange()
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  private content as mc.types.node
   private function onKeyPressOptions() as boolean
 
+    ? "RESETTING LIST"
+    m.list.content = ml.listMixin.createListContent()
 
-    if m.downInterval = invalid
-      ? "DISABLING INTERVALS"
-      m.downInterval = m.setInterval(m.moveAnItem, 7)
-    else
-      ? "ENABLING INTERVALS"
-      m.cancelInterval(m.downInterval)
+    m.setTimeout(m.removeList(), 1)
+    m.setTimeout(m.recreateList(), 2)
+    ' if m.downInterval = invalid
+    '   ? "DISABLING INTERVALS"
+    '   m.downInterval = m.setInterval(m.moveAnItem, 7)
+    ' else
+    '   ? "ENABLING INTERVALS"
+    '   m.cancelInterval(m.downInterval)
 
-      m.downInterval = invalid
-    end if
+    '   m.downInterval = invalid
+    ' end if
 
 
     ' m.dataIndex = mc.clamp(m.dataIndex + 1, 0, 6, true)
