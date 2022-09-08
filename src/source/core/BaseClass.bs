@@ -181,5 +181,17 @@ namespace mc
       end if
     end function
 
+    protected function _onNotification(notification as mc.Notification)
+      try
+        callbacks = m["_notificationCallbacks"]
+        if callbacks <> invalid
+          callback = m["_notificationCallbacks"][notification.name]
+          mc.apply(callback, [notification], m)
+        end if
+      catch error
+        m.log.error("error handling notification", error)
+      end try
+    end function
+
   end class
 end namespace

@@ -95,5 +95,25 @@ namespace mv
       return true
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function cleanup()
+      m.log.info("using default cleanup strategy for screen:", mc.dv(m.__classname))
+
+      'bs:disable-next-line
+      if m.list <> invalid and m.list.isSubType("ml_List")
+        m.log.info("Resetting list content so it will free up renderers")
+        'bs:disable-next-line
+        m.list.content = ml.listMixin.createListContent()
+      end if
+    end function
+
+    protected override function onRemovedFromAggregateView(view as mc.types.node)
+      super.onRemovedFromAggregateView(view)
+      m.cleanup()
+    end function
+
   end class
 end namespace
