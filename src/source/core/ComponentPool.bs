@@ -150,7 +150,9 @@ namespace mc
 
     private function createComponent(componentType as string) as dynamic
       pool = m.getComponentPool(componentType)
-      component = createObject("roSGNode", componentType)
+      parts = componentType.split(".")
+      compName = parts[0]
+      component = createObject("roSGNode", compName)
       if component <> invalid
         component.id = rnd(2147483647).toStr()
         pool.allComponents.push(component)
