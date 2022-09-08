@@ -36,6 +36,14 @@ namespace ml
 
     function new(viewManager as ml.ItemViewManager, ownerDelegate = invalid as object, rowIndex = -1 as integer)
       super("ItemFocusManager")
+      m.reset(viewManager, ownerDelegate, rowIndex)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function reset(viewManager as ml.ItemViewManager, ownerDelegate = invalid as object, rowIndex = -1 as integer)
       m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
 
       m.viewManager = viewManager
@@ -56,10 +64,6 @@ namespace ml
         m.delegates.push(owner.delegate)
       end if
     end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Public Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function setItemScroller(itemScroller as ml.ListItemScroller)
       m.itemScroller = itemScroller
