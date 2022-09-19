@@ -63,7 +63,7 @@ Been in production for > 2 years at:
  - Or reach out to me on the roku-slack channel
 
 ## Table of Contents
-* [About](/docs/1.%20About/index.md)
+* [About](/docs/About.md)
    - [Getting started](/docs/About:-Getting-started.md)
    - [Bsc plugin](/docs/About:-Bsc-plugin.md)
    - [Justification](/docs/About:-Justification.md)
