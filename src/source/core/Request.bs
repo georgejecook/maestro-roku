@@ -7,12 +7,27 @@ import "pkg:/source/core/QueryStringBuilder.bs"
 
 namespace mc.net
 
-class Request
+  class Request
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public isLoggingAsCurl = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     private log
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function new()
       m.log = new log.Logger("Request")
     end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -44,7 +59,7 @@ class Request
       if mc.isAACompatible(params)
         args.params = params
       else if params <> invalid
-        m.log.error("received illegal headers type", type(headers))
+        m.log.error("received illegal params type", type(params))
       end if
 
       if mc.isAACompatible(headers)
@@ -54,6 +69,24 @@ class Request
       end if
 
       return m.runRequest(method, url, args)
+    end function
+
+    function logAsCurl(method as string, url as string, headers as mc.types.assocarray, data as string)
+      globalObject = mc.getGlobal()
+      method = ucase(method)
+      m.isLoggingAsCurl = asBoolean(globalObject.isRequestLoggingAsCurl) = true
+      headers = m.getHeadersAsCurl(headers)
+
+      curlString = `curl -X ${method} ${headers}`
+
+      if data <> invalid and data <> ""
+        curlString += `-d ${data} ${url}`
+      else
+        curlString += `${url}`
+      end if
+
+      m.log.info(curlString)
+      return curlString
     end function
 
 
@@ -124,6 +157,10 @@ class Request
       m.log.info("URL:", url)
       m.log.info("Timeout= ", timeout)
       m.log.info("Headers: ", headers)
+
+      if m.isLoggingAsCurl
+        m.logAsCurl(method, url, headers, data)
+      end if
       responseEvent = invalid
       requestDetails = {
         timesTried: 0
@@ -231,6 +268,21 @@ class Request
 
       return new mc.net.NetResult(statusCode, data, invalid, headers)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function getHeadersAsCurl(headers as mc.types.assocarray)
+      result = ""
+      if headers <> invalid and mc.isAACompatible(headers)
+        for each header in headers.items()
+          result = result + "-H" + "'" + header.key + ":" + header.value + "' " ' ${header.key}: ${header.value}'"
+        end for
+      end if
+      return result
+    end function
+
   end class
 
 end namespace
