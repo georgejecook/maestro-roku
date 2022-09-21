@@ -7,6 +7,8 @@ namespace tests
 
     private request
 
+    private nodeGlobal as mc.types.node
+
     protected override function beforeEach()
       super.beforeEach()
       m.request = new mc.net.Request()
@@ -212,6 +214,33 @@ namespace tests
       m.assertEqual(result, netResult)
     end function
 
+    @it("executes request and logs as curl if isLoggingAsCurl set to true")
+    @params("GET", "u", { id: "h" }, { id: "data" }, 100)
+    function _(method, url, headers, data, repsonseCode)
+      m.request.isLoggingAsCurl = true
+      transfer = { "id": "transfer" }
+
+      m.expectCalled(m.request.createUrlTransfer(true, true, "crt"), transfer)
+
+      m.expectCalled(transfer.setUrl(url))
+      m.expectCalled(transfer.setHeaders(headers))
+      m.expectCalled(m.request.logAsCurl(method, url, headers, data))
+
+      event = { "id": "event" }
+      m.expectCalled(m.request.sendTransfer(transfer, 30, method, data), event)
+
+      m.expectCalled(event.getResponseCode(), repsonseCode)
+
+      netResult = { "id": "netResult" }
+
+      m.expectCalled(m.request.createNetResult(event), netResult)
+
+      result = m.request._execute(method, url, headers, data, 30, 3, "crt")
+
+      m.assertEqual(result, netResult)
+    end function
+
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("createNetResult")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -404,6 +433,39 @@ namespace tests
       m.assertEqual(result, executeResult)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("logAsCurl")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("logs the request in Curl format")
+    @params("post", "url4", "", "{d1:1,d2:2}", "curl -X POST -d {d1:1,d2:2} url4")
+    @params("delete", "url", invalid, invalid, "curl -X DELETE url")
+    @params("get", "url", invalid, "id=1", "curl -X GET -d id=1 url")
+    @params("put", "url4", { h1: "h1", h2: "h2" }, "{d1:1,d2:2}", "curl -X PUT -H'h1:h1' -H'h2:h2' -d {d1:1,d2:2} url4")
+
+    function _(method, url, headers, data, expected)
+      m.nodeGlobal = new rooibos.utils.MockNode("global")
+      result = m.request.logAsCurl(method, url, headers, data)
+      m.assertEqual(result, expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getHeadersAsCurl")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("return empty string if headers are not associative array")
+    @params(invalid)
+    @params("abc")
+    @params([2, 3])
+    function _(headers)
+      m.assertEmpty(m.request.getHeadersAsCurl(headers))
+    end function
+
+    @it("returns passed headers in a curl formatted manner")
+    @params({ h1: "h1", h2: "h2" })
+    function _(headers)
+      m.assertEqual(m.request.getHeadersAsCurl(headers), "-H'h1:h1' -H'h2:h2' ")
+    end function
 
   end class
 end namespace
