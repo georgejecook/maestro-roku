@@ -47,6 +47,10 @@ namespace mv.controls
     @observer("updateChildren")
     public selectOnFocus = false
 
+    @debounce
+    @observer("updateChildren")
+    public _layoutNow = false
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -72,6 +76,16 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function updateChildren()
+      if m.originalChildren <> invalid
+        for each child in m.originalChildren
+          m.unobserve(child.visible, m.onChildVisibleChange)
+        end for
+      end if
+
+      m.layoutChildren()
+    end function
+
+    function layoutChildren()
       offset = 0
       layoutMode = m.layoutMode
       if layoutMode = "vert"
@@ -82,18 +96,14 @@ namespace mv.controls
         axes = -1
       end if
 
-      if m.originalChildren <> invalid
-        for each child in m.originalChildren
-          m.unobserveNodeField(child, "visible", m.onChildVisibleChange)
-        end for
-      end if
       m.visibleChildren = []
       i = 0
       si = 0
       nextSpace = 0
       m.originalChildren = m.top.getChildren(-1, 0)
+
       for each child in m.originalChildren
-        m.observeNodeField(child, "visible", m.onChildVisibleChange, "both")
+        m.observe(child.visible, m.onChildVisibleChange, "both")
         child.addFields({
           "layoutIndex": i
         })
@@ -149,6 +159,7 @@ namespace mv.controls
       else
         m.top.insertChild(node, node.layoutIndex)
       end if
+      m.layoutChildren()
       m.redraw()
     end function
 
@@ -214,7 +225,6 @@ namespace mv.controls
       end for
       return -1
     end function
-
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Key Presses
