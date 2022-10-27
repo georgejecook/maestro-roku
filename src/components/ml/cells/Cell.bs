@@ -13,9 +13,8 @@ function create()
   ' m.top.observeField("listEvent", "onListEvent")
   m.top.observeField("initialState", "onInitialStateChange")
   'hack
-  m.onWillExit = onWillExit
-  m.onDidEnter = onDidEnter
-  m.onDidExit = onDidExit
+  m.onwillEnter = onwillEnter
+  m.onwillExit = onwillExit
   m.onWillGainFocus = onWillGainFocus
   m.onWillLoseFocus = onWillLoseFocus
   m.onDidGainFocus = onDidGainFocus
@@ -57,7 +56,7 @@ end function
 
 ' function onListEvent(evt)
 '   event = evt.getData()
-'   if event.name = "willEnter" or event.name = "didEnter"
+'   if event.name = "willEnter" or event.name = "willEnter"
 '     onContentChange()
 '   else if event.name = "scrollStart" or event.name = "scrollStop"
 '     onScrollingChange()
@@ -69,22 +68,13 @@ end function
 '++ delegate
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function onWillEnter(index as integer, direction as integer)
-  ' ? "onCellWillEnter " ; index ; " " ; direction
+function onwillEnter(index as integer, direction as integer)
+  ' ? "onCellwillEnter " ; index ; " " ; direction
   onContentChange()
 end function
 
-function onWillExit(index as integer, direction as integer)
-  ' ? "onCellWillExit " ; index ; " " ; direction
-end function
-
-function onDidEnter(index as integer, direction as integer)
-  ' ? "onCellDidEnter " ; index ; " " ; direction
-  onContentChange()
-end function
-
-function onDidExit(index as integer, direction as integer)
-  ' ? "onCellDidExit " ; index ; " " ; direction
+function onwillExit(index as integer, direction as integer)
+  ' ? "onCellwillExit " ; index ; " " ; direction
 end function
 
 function onWillGainFocus(index as integer, direction as integer)

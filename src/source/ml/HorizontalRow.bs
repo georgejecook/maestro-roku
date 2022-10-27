@@ -132,7 +132,10 @@ namespace ml
     end function
 
     protected override function onListEvent(event as object)
-      if event.name = "willEnter" or event.name = "didEnter" or event.name = "scrollStart" or event.name = "scrollStop" or event.name = "scrollUpdate"
+      'TODO improve this - make it more efficient
+      'make it so we can specify to pass on scroll updates
+      'or pass on scroll/start/stop, or willEnter
+      if event.name = "willEnter" or event.name = "scrollStart" or event.name = "scrollStop" or event.name = "scrollUpdate"
         if m.settings.passRowEventsToChildRenderers
           for each component in m.cellsGroup.getChildren(-1, 0)
             if component.doesExist("listEvent")
