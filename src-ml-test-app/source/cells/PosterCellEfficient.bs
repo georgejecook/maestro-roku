@@ -1,0 +1,48 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/ml/cells/BaseCell.bs"
+
+@node("PosterCellEfficient", "ml_BaseCell")
+class PosterCellEfficient extends ml.BaseCell
+
+  private poster
+
+  function new()
+    super()
+  end function
+
+  protected override function createViews() as void
+    m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+      translation: [0, 0]
+      loadingBitmapUri: "pkg:/images/backgrounds/button-square-bg.9.png"
+      failedBitmapUri: "pkg:/images/backgrounds/button-square-bg.9.png"
+      uri: "pkg:/images/backgrounds/button-square-bg.9.png"
+      loadWidth: 400
+      loadHeight: 250
+      size: [400, 250]
+      loadDisplayMode: "zoomToFill"
+    })
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    m.posterSet = false
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ List Delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private posterSet = false
+  private function onDidExit(direction as integer)
+    ' m.posterSet = false
+    ' m.poster.uri = m.poster.loadingBitmapUri
+  end function
+
+  private function onDidEnter(direction as integer)
+    ' ? " POSTER ODE " ; m.index ; " D " ; direction
+    if not m.posterSet
+      m.poster.uri = m.content.HDGRIDPOSTERURL
+      m.posterSet = true
+    end if
+  end function
+end class

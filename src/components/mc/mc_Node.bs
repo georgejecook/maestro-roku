@@ -23,128 +23,116 @@ function init()
   m.log = new log.Logger("mc_Map")
   m.notifyChanges = true
   m.pendingChanges = []
+  m.children = []
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Public Methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+function getChildren(count as integer, start as integer)
+  return m.children
+end function
+
+function getChild(index as integer)
+  return m.children[index]
+end function
+
 function sortByKey(keyName as string, ascending = true as boolean)
-  children = m.top.getChildren(-1, 0)
-  m.top.removeChildren(m.top.getChildren(-1, 0))
-  sortedChildren = mc.collections.getSortedArrayByKey(children, keyName, ascending)
-  m.top.removeChildren(m.top.getChildren(-1, 0))
-  m.top.appendChildren(sortedChildren)
+  m.children = mc.collections.getSortedArrayByKey(m.children, keyName, ascending)
   addChanges([{ type: "sort" }])
 end function
 
 function sortByCallFunc(functionName as string, ascending = true as boolean)
-  children = m.top.getChildren(-1, 0)
-  m.top.removeChildren(m.top.getChildren(-1, 0))
-  sortedChildren = mc.collections.getSortedArrayByCallFunc(children, functionName, ascending)
-  m.top.removeChildren(m.top.getChildren(-1, 0))
-  m.top.appendChildren(sortedChildren)
+  m.children = mc.collections.getSortedArrayByCallFunc(m.children, functionName, ascending)
   addChanges([{ type: "sort" }])
 end function
 
 function clear(args = invalid as dynamic)
-  m.top.removeChildren(m.top.getChildren(-1, 0))
+  m.children = []
   m.top.length = 0
   addChanges([{ type: "clear" }])
 end function
 
 function peek(args = invalid as dynamic) as dynamic
-  return m.top.getChild(m.top.getChildCount() - 1)
+  return m.children[m.children.count() - 1]
 end function
 
 function appendChild(child as object)
+  'TODO - parent tracking?
   notifyParentOfRemoval(child)
-  m.top.appendChild(child)
-  m.top.length = m.top.getChildCount()
-  addChanges([{ type: "add", child: child, index: m.top.getChildCount() - 1 }])
+  m.children.push(child)
+  m.top.length = m.children.count()
+  addChanges([{ type: "add", child: child, index: m.children.count() }])
 end function
 
 function replaceChild(child as object, index as integer)
-  oldValue = m.top.getChild(index)
-  m.top.replaceChild(child, index)
+  oldValue = m.children[index]
+  m.children[index] = child
   addChanges([{ type: "change", child: child, index: index, oldValue: oldValue }])
 end function
 
 function notifyParentOfRemoval(child as object)
-  if child <> invalid
-    oldParent = child.getParent()
-    if oldParent <> invalid and oldParent.isSubtype("mc_ChildObservableContentNode") and not m.top.isSameNode(oldParent)
-      oldParent@.removeChild(child)
-    end if
-  end if
+  'TODO - think about what this means.
+  ' if child <> invalid
+  '   oldParent = child.getParent()
+  '   if oldParent <> invalid and oldParent.isSubtype("mc_Node") and not m.top.isSameNode(oldParent)
+  '     oldParent@.removeChild(child)
+  '   end if
+  ' end if
 end function
 
 function insertChild(child as object, index as integer)
   notifyParentOfRemoval(child)
-  m.top.insertChild(child, index)
-  m.top.length = m.top.getChildCount()
-  addChanges([{ type: "change", child: child, index: index }])
+
+  m.insertChildren([child], index)
 end function
 
 function insertChildren(children as mc.types.array, index as integer)
   for each child in children
     notifyParentOfRemoval(child)
   end for
-  m.top.insertChildren(children, index)
-  m.top.length = m.top.getChildCount()
+  insertItems(children, index)
+  m.top.length = m.children.count()
   addChanges([{ type: "change", children: children, index: index }])
 end function
 
 function removeChildIndex(index as integer)
-  if m.top.getChildCount() > 0
-    child = m.top.getChild(index)
-    m.top.removeChildIndex(index)
-    m.top.length = m.top.getChildCount()
-    addChanges([{ type: "remove", child: child, index: index }])
-  end if
+  removeChildrenIndex(1, index)
 end function
 
 function appendChildren(children as mc.types.array)
   for each child in children
     notifyParentOfRemoval(child)
   end for
-  m.top.appendChildren(children)
-  m.top.length = m.top.getChildCount()
-  addChanges([{ type: "append", children: children, index: m.top.getChildCount() - 1 }])
+  m.children.append(children)
+  m.top.length = m.children.count()
+  addChanges([{ type: "append", children: children, index: m.children.count() - 1 }])
 end function
 
 function removeChildrenIndex(numberOfItems as integer, index as integer)
-  if index > -1 and index + numberOfItems <= m.top.getChildCount()
+  if index > -1 and index + numberOfItems <= m.children.count()
     changes = []
     for i = index + numberOfItems - 1 to index step -1
-      child = m.top.getChild(i)
-      childIndex = getIndex(child)
-      changes.push({ type: "remove", child: child, index: childIndex })
+      child = m.children[i]
+      changes.push({ type: "remove", child: child, index: i })
+      m.children.delete(index)
     end for
 
-    m.top.removeChildrenIndex(numberOfItems, index)
-    m.top.length = m.top.getChildCount()
+    m.top.length = m.children.count()
     addChanges(changes)
   end if
 end function
 
 function removeChildren(children as mc.types.array)
-  changes = []
   for each child in children
-    childIndex = getIndex(child)
-    changes.push({ type: "remove", child: child, index: childIndex })
+    removeChild(child)
   end for
-  m.top.removeChildren(children)
-  m.top.length = m.top.getChildCount()
-  addChanges(changes)
 end function
 
 function removeChild(child as mc.types.array)
-  changes = []
-  changes.push({ type: "remove", child: child, index: getIndex(child) })
-  m.top.removeChild(child)
-  m.top.length = m.top.getChildCount()
-  addChanges(changes)
+  index = getIndex(child, "id")
+  removeChildrenIndex(1, index)
 end function
 
 function hasItem(child as object, key = invalid as string)
@@ -152,7 +140,34 @@ function hasItem(child as object, key = invalid as string)
 end function
 
 function getIndex(child as object, key = invalid as string)
-  return mc.collections.getArrayIndex(m.top.getChildren(-1, 0), child, key)
+  return mc.collections.getArrayIndex(m.children, child, key)
+end function
+
+
+function insertItems(index as integer, value as dynamic) as void
+  if not mc.isArray(value)
+    value = [value]
+  end if
+  if index >= m.children.count() or index < 0
+    ? " cannot insert items ILLEGAL INDEX " ; index
+    return
+  end if
+  items = []
+
+  for i = 0 to index - 1
+    items.push(m.children[i])
+  end for
+
+  items.append(value)
+
+  for i = index to m.children.count() - 1
+    items.push(m.children[i])
+  end for
+  m.children = items
+
+  m.top.length = m.children.count()
+
+  m.top.changes = [{ type: "insert", items: value, index: index }]
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -185,4 +200,8 @@ end function
 
 function resetPendingChanges(args = invalid as dynamic)
   m.pendingChanges = []
+end function
+
+function _onShowChildren()
+  mc.setOrAddNodeField(m.top, "__items", m.children)
 end function

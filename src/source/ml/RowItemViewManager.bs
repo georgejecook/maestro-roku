@@ -52,7 +52,7 @@ namespace ml
       ' m.contentGroup.translation = [0, 0]
       focusSettings = m.settings.focusSettings
       x = 0
-      for each item in m.content.getChildren(-1, 0)
+      for each item in m.content@.getChildren(-1, 0)
         ' ? ">>>> laying out ", item.title
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
         xSpace = settings.space
@@ -111,8 +111,9 @@ namespace ml
       m.log.verbose("applyrenderStateForCell", id, renderState)
       ' ? "APPLY RENDER STATE FOR CELL"
       index = id.toInt()
+      isRendered = m.row.isInViewport
       ' isRendered = m.row.isRendered
-      item = m.content.getChild(index)
+      item = m.content@.getChild(index)
       cell = invalid
       if item <> invalid
         itemId = item.id
@@ -143,9 +144,9 @@ namespace ml
 
               ' ? ">>>>>>>> " ; isRendered
 
-              ' if isRendered
-              cell.listEvent = { "name": "willEnter" }
-              ' end if
+              if isRendered
+                cell.listEvent = { "name": "didEnter" }
+              end if
 
               if m.lastScrollEvent <> invalid
                 cell.listEvent = m.lastScrollEvent
@@ -184,7 +185,7 @@ namespace ml
 
     override function getRenderer(index as integer)
       if m.content <> invalid
-        item = m.content.getChild(index)
+        item = m.content@.getChild(index)
         if item <> invalid
           return m.renderersByContentId[item.id]
         else
@@ -216,11 +217,13 @@ namespace ml
       }
       m.lastScrollEvent = isScrolling ? event : invalid
 
+      if m.listSettings.sendScrollStartStop
 
-      for each id in m.renderersByContentId
-        comp = m.renderersByContentId[id]
-        comp.listEvent = event
-      end for
+        for each id in m.renderersByContentId
+          comp = m.renderersByContentId[id]
+          comp.listEvent = event
+        end for
+      end if
 
       m.owner.listEvent = {
         name: event.name
@@ -228,8 +231,6 @@ namespace ml
         long: isLong
         startIndex: startIndex
       }
-      ' ? "++++ row - listEvent " ; formatJson(m.row.listEvent)
-      ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)

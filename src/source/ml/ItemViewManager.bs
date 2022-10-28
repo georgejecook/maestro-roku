@@ -192,6 +192,7 @@ namespace ml
       m.isScrolling = isScrolling
       m.scrollingStartIndex = isScrolling ? startIndex: -1
       m.owner.isScrolling = isScrolling
+
       event = {
         name: isScrolling ? "scrollStart" : "scrollStop"
         startIndex: m.scrollingStartIndex
@@ -200,12 +201,18 @@ namespace ml
       }
       m.lastScrollEvent = isScrolling ? event : invalid
 
-      for each comp in m.renderedComponents
-        comp.listEvent = event
-      end for
+      if m.listSettings.sendScrollStartStop
+        'only want this to be the components in viewPort - 'TODO make more efficient
+        for each comp in m.renderedComponents
+          if comp.isInViewPort
+            comp.listEvent = event
+          end if
+        end for
+      end if
     end function
 
     function updateScrolling(currentIndex as integer) as void
+
       if currentIndex = m.scrollingStartIndex or m.scrollingStartIndex = -1
         return
       end if
@@ -214,9 +221,13 @@ namespace ml
         startIndex: m.scrollingStartIndex
         currentIndex: currentIndex
       }
-      for each comp in m.renderedComponents
-        comp.listEvent = m.lastScrollEvent
-      end for
+      if m.listSettings.sendScrollUpdate
+         ? " SEND SCROLL UPDATE"
+         'only send it to rendered components..
+        for each comp in m.renderedComponents
+          comp.listEvent = m.lastScrollEvent
+        end for
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

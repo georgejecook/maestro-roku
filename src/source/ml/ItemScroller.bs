@@ -62,7 +62,7 @@ namespace ml
     private nextScrollLocation = 0
     private postHopIndex = 0
     private isScrollCancelled = false
-    private sendViewPortEvents = false
+    private sendEnterExit = false
 
     protected previousScreenPos = 0
 
@@ -94,7 +94,7 @@ namespace ml
         m.animSpeed = 0.05
         m.longPressEndItemOffset = 0
       end if
-      m.sendViewPortEvents = mc.getPath(m.viewManager.owner, "content.listSettings.sendViewPortEvents", false)
+      m.sendEnterExit = mc.getPath(m.viewManager.owner, "content.listSettings.sendEnterExit", false)
       m.viewPortEventNotifier.onViewManagerUpdate()
       m.getComponentInfos(true)
     end function
@@ -799,7 +799,7 @@ namespace ml
       m.viewManager.updateRenderedComponents(m.direction, m.index)
 
       ' ? " >>> SFI 2222222"
-      if m.sendViewPortEvents
+      if m.sendEnterExit
         m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
       end if
 

@@ -58,6 +58,7 @@ namespace ml
     protected wasFocusable = true
     protected settings
     protected rowInfos = []
+    protected propagatedEvents = {}
 
     function new()
       super(m.top.subType())
@@ -90,6 +91,20 @@ namespace ml
           'was no content or it changed
           m._content = m.content
           m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+
+          'get propagation settings
+          propagateEnterExit = m.settings.propagateEnterExit
+          m.propagatedEvents["didEnter"] = propagateEnterExit
+          m.propagatedEvents["didExit"] = propagateEnterExit
+          m.propagatedEvents["didExit"] = propagateEnterExit
+
+          propagateScroll = m.settings.propagateScroll
+          m.propagatedEvents["scrollStart"] = propagateScroll
+          m.propagatedEvents["scrollStop"] = propagateScroll
+
+          propagateScrollUpdate = m.settings.propagateScrollUpdate
+          m.propagatedEvents["scrollUpdate"] = propagateScrollUpdate
+
           m.observeNodeField(m._content, "changes", m.onContentItemsChange)
           m.onContentChange(m._content)
 

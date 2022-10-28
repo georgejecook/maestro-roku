@@ -3,8 +3,8 @@ import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/core/DebugTimer.bs"
 
-@node("ListScreen", "mv_BaseScreen")
-class ListScreen extends mv.BaseScreen
+@node("ListEnterExitScreen", "mv_BaseScreen")
+class ListEnterExitScreen extends mv.BaseScreen
 
   @observer("onRemoveItems")
   @alwaysnotify
@@ -17,7 +17,7 @@ class ListScreen extends mv.BaseScreen
 
   'style
   private numberOfRows = 20
-  private defaultCellType = "ml_SimpleCell"
+  private defaultCellType = "PosterCellEfficient"
 
   'state
   public componentPool as mc.types.node
@@ -29,7 +29,7 @@ class ListScreen extends mv.BaseScreen
   private scrollSpeed = 2
 
   function new()
-    super("ListScreen")
+    super("ListEnterExitScreen")
   end function
 
   protected override function initialize()
@@ -63,15 +63,16 @@ class ListScreen extends mv.BaseScreen
 
   private function onResetChange()
     m.list.content = invalid
-    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 130], 30)
+    m.cellSettings = ml.listMixin.createCellSettings("PosterCellEfficient", [400, 250], 30)
 
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
-    ' listSettings = ml.listMixin.createListSettings(3000, 3000)
+    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed")
     listSettings = ml.listMixin.createListSettings(-1, -1)
-    ' listSettings.rowCreationStrategy = "all"
+    listSettings.sendEnterExit = true
+    listSettings.sendScrollStartStop = false
+    listSettings.sendScrollUpdate = false
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
@@ -81,6 +82,13 @@ class ListScreen extends mv.BaseScreen
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
+
+    content._showChildren = true
+    child = content@.getChild(2)
+    if child <> invalid
+      child._showChildren = true
+    end if
+
     m.list.content = content
     timer.log("set content")
     if m.list.state = "rendered"
@@ -103,15 +111,13 @@ class ListScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    ' rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
     showHero = true
 
     useGrids = false
 
     'TODO - add normal rows around this
     ' for i = 0 to 1
-    for i = 0 to 20
+    for i = 0 to 50
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
@@ -120,15 +126,13 @@ class ListScreen extends mv.BaseScreen
         if i <> 10
           row0FocusSettings.feedbackStyle = "none"
         end if
-        cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
+        cellSettings = ml.listMixin.createCellSettings("HeroCellEfficient", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
-        prefix = "HERO"
         row.settings.screenPos = -1
       else if i = 3 or i = 8 or i = 14
-        complexFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed)
-        row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
+        row.settings = ml.listMixin.createCustomRowSettings("ComplexRowEfficient", 700)
 
       else if useGrids and (i = 2 or i = 3 or i = 4 or i = 6 or i = 9)
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
@@ -140,7 +144,6 @@ class ListScreen extends mv.BaseScreen
 
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 100, 5, 50)
         row.settings.contentOffset = [100, 30]
-        prefix = "GRID"
         ' row.settings.peekNextPixels = 300
         if i = 3
           numItems = 8
@@ -153,16 +156,15 @@ class ListScreen extends mv.BaseScreen
         ' focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, focusSettings)
         row.settings.contentOffset = [100, 30]
-        prefix = "HORIZ"
         ' row.settings.peekNextPixels = 300
         row.settings.screenPos = -1
-        if i = 1 or i = 19
+        if i = 1 or i = 19 or i = 32 or i = 40 or i = 38 or i = 45
           row.settings.screenPos = 800
-        else if i = 5 or i = 15
+        else if i = 5 or i = 15 or i = 23 or i = 30 or i = 34
           row.settings.screenPos = 600
-        else if i = 3 or i = 7
+        else if i = 3 or i = 7 or i - 22
           row.settings.screenPos = 200
-        else if i = 13
+        else if i = 13 or i = 17
           row.settings.screenPos = 50
         end if
         numItems = 5
@@ -212,7 +214,7 @@ class ListScreen extends mv.BaseScreen
     row = createObject("roSGNode", "ml_RowContent")
     rowFocusSettings.feedbackColor = "#F4D42A"
     headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
-    cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 200], 100)
+    cellSettings = ml.listMixin.createCellSettings("PosterCellEfficient", [400, 250], 100)
     row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
     row.settings.contentOffset = [100, 0]
 
@@ -243,9 +245,7 @@ class ListScreen extends mv.BaseScreen
 
   private function changeContent()
     m.list.content = invalid
-    ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
-    ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 250], 30)
-    m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 130], 30)
+    m.cellSettings = ml.listMixin.createCellSettings("PosterCellEfficient", [400, 250], 30)
 
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
@@ -274,6 +274,11 @@ class ListScreen extends mv.BaseScreen
     content@.appendChildren(items)
     ' m.list.visible = false
     ' m.list.content = invalid
+    content._showChildren = true
+    child = content@.getChild(2)
+    if child <> invalid
+      child._showChildren = true
+    end if
     m.list.content = content
     timer.log("set content")
     if m.list.state = "rendered"
@@ -287,6 +292,10 @@ class ListScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+    return key <> "back"
+  end function
 
   private function onKeyPressRewind() as boolean
     m.removeCell()
@@ -431,7 +440,7 @@ class ListScreen extends mv.BaseScreen
     ' rowContent@.removeChild(child)
     row = m.list@.getRowRenderer(rowIndex)
     row@.forceUpdate()
-    ' newScreen = createObject("roSGNode", "ListScreen")
+    ' newScreen = createObject("roSGNode", "ListEnterExitScreen")
     ' m.push(newScreen)
     ' m.setFocus(newScreen)
   end function

@@ -201,8 +201,8 @@ namespace ml
     end function
 
     private function updateListContent()
-      if m._content <> invalid and m._content.getChildCount() > 0
-        rows = m._content.getChildren(-1, 0)
+      if m._content <> invalid and m._content.length > 0
+        rows = m._content@.getChildren(-1, 0)
         for each row in rows
           if row.changes <> invalid and row.changes.count() > 0
             row@.notifyUpdate()
@@ -333,11 +333,11 @@ namespace ml
     end function
 
     public function getRow(index as integer) as dynamic
-      return m.content.getChild(index)
+      return m.content@.getChild(index)
     end function
 
     public function getItem(rowIndex as integer, index as integer) as dynamic
-      rowItem = m.content.getChild(rowIndex)
+      rowItem = m.content@.getChild(rowIndex)
       if rowItem <> invalid
         return rowItem.getChild(index)
       end if
@@ -528,7 +528,8 @@ namespace ml
       'FIXME - add ability to change of direction, mid-animation
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
       ' if m.itemScroller.direction = 1 and isScrolling
-      if false and isScrolling
+      if isScrolling
+        ' if false and isScrolling
         ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
         m.log.info("was already scrolling - ignoring")
         return true

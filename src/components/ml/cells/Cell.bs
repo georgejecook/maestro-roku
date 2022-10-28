@@ -13,8 +13,8 @@ function create()
   ' m.top.observeField("listEvent", "onListEvent")
   m.top.observeField("initialState", "onInitialStateChange")
   'hack
-  m.onwillEnter = onwillEnter
-  m.onwillExit = onwillExit
+  m.onDidEnter = onDidEnter
+  m.onDidExit = onDidExit
   m.onWillGainFocus = onWillGainFocus
   m.onWillLoseFocus = onWillLoseFocus
   m.onDidGainFocus = onDidGainFocus
@@ -56,7 +56,7 @@ end function
 
 ' function onListEvent(evt)
 '   event = evt.getData()
-'   if event.name = "willEnter" or event.name = "willEnter"
+'   if event.name = "didEnter" or event.name = "didEnter"
 '     onContentChange()
 '   else if event.name = "scrollStart" or event.name = "scrollStop"
 '     onScrollingChange()
@@ -68,13 +68,13 @@ end function
 '++ delegate
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function onwillEnter(index as integer, direction as integer)
-  ' ? "onCellwillEnter " ; index ; " " ; direction
+function onDidEnter(index as integer, direction as integer)
+  ' ? "onCelldidEnter " ; index ; " " ; direction
   onContentChange()
 end function
 
-function onwillExit(index as integer, direction as integer)
-  ' ? "onCellwillExit " ; index ; " " ; direction
+function onDidExit(index as integer, direction as integer)
+  ' ? "onCelldidExit " ; index ; " " ; direction
 end function
 
 function onWillGainFocus(index as integer, direction as integer)

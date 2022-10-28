@@ -89,7 +89,7 @@ namespace ml
           m.batchTimer = m.waitAFrame(m.createRendererBatch, 0.15)
         else
           ' ? "USING SYNC MODE"
-          m.batchSize = m.content.getChildCount()
+          m.batchSize = m.content.length
           isReady = true
         end if
         m.createRendererBatch()
@@ -157,12 +157,12 @@ namespace ml
           ' m.log.info(">>> BEGIN CREATE ROW", i)
           m.creationIndex++
           index = m.creationIndex
-          if m.creationIndex >= m.content.getChildCount()
+          if m.creationIndex >= m.content.length
             ' ? "FINISHED RENDERING LIST ROWS"
             m.onRenderersCreated()
             return
           end if
-          rowContent = m.content.getChild(index)
+          rowContent = m.content@.getChild(index)
           settings = ml.listMixin.getRowSettings(m.content, rowContent)
           rect = m.rects[index]
 
@@ -192,7 +192,7 @@ namespace ml
           index++
           ' m.log.info(">>> END CREATE ROW", i)
         end for
-        if m.creationIndex < m.content.getChildCount()
+        if m.creationIndex < m.content.length
           m.waitAFrame(m.createRendererBatch, 0.15)
         end if
       end if
@@ -275,11 +275,11 @@ namespace ml
         return
       end if
 
-      for i = 0 to m.content.getChildCount() - 1
-        item = m.content.getChild(i)
+      for i = 0 to m.content.length - 1
+        item = m.content@.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
-        ' ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.getChildCount() ; " isHidden " ; item.isHidden
+        ' ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.length ; " isHidden " ; item.isHidden
         if visible
           if settings.subType() = "ml_GridRowSettings"
             height = m.calculateGridRowHeight(item, settings)
@@ -374,7 +374,7 @@ namespace ml
     end function
 
     private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
-      numItems = row.getChildCount()
+      numItems = row.length
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
       numRows = mc.divideNumberToNearest(numItems, numCols)

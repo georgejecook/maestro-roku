@@ -90,7 +90,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   private updateCount = 0
   private function reload()
     m.log.info("loading data again for dayIndex", m.dayIndex)
-    item = m.list.content.getChild(1).getChild(0)
+    item = m.list.content@.getChild(1).getChild(0)
     if item <> invalid
       m.updateCount++
       json = item.json
@@ -207,7 +207,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function addItems(cellType as string, number as integer)
-    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row = m.list.content@.getChild(m.list.focusedRowIndex)
     row@.appendChildren(m.makeItems(cellType, number))
   end function
 
@@ -278,7 +278,7 @@ class UpdateListDataScreen extends mv.BaseScreen
 
     'ensure that row offsets are applied correctly
     for each module in modules
-      if module.getChildCount() > 0
+      if module.length > 0
         if numModules > 0 and module.settings.subType() = "ml_GridRowSettings"
           settings = module.settings.clone(true)
           settings.firstRowScreenPos = settings.otherRowScreenPos
@@ -294,7 +294,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function removeNonHeaderRows(update = true as boolean)
-    header = m.list.content.getChild(0)
+    header = m.list.content@.getChild(0)
     m.list.content@.setNotificationsEnabled(false)
     m.list.content@.clear()
     m.list.content@.appendChild(header)
@@ -385,7 +385,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     row@.insertChild(child, 1)
 
     row = m.list@.getRow(3)
-    row@.removeChildrenIndex(row.getChildCount() - 1, 0)
+    row@.removeChildrenIndex(row.length - 1, 0)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

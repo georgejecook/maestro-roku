@@ -166,8 +166,8 @@ namespace ml
 
       x = 0
       y = 0
-      numItems = m.content.getChildCount()
-      children = m.content.getChildren(-1, 0)
+      numItems = m.content.length
+      children = m.content@.getChildren(-1, 0)
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
@@ -302,7 +302,7 @@ namespace ml
       m.log.verbose("applyrenderStateForCell", id, renderState)
       index = id.toInt()
       ' isRendered = m.row.isRendered
-      item = m.content.getChild(index)
+      item = m.content@.getChild(index)
 
       cell = invalid
       if item <> invalid
@@ -335,7 +335,7 @@ namespace ml
               ' ? ">>>>>>>> is visible "
 
               ' if isRendered
-              cell.listEvent = { "name": "willEnter" }
+              cell.listEvent = { "name": "didEnter" }
               ' end if
 
               if m.lastScrollEvent <> invalid
@@ -386,7 +386,7 @@ namespace ml
 
     override function getRenderer(index as integer)
       if m.content <> invalid
-        item = m.content.getChild(index)
+        item = m.content@.getChild(index)
         if item <> invalid
           return m.renderersByContentId[item.id]
         else
@@ -420,10 +420,12 @@ namespace ml
       m.lastScrollEvent = isScrolling ? event : invalid
 
 
-      for each id in m.renderersByContentId
-        comp = m.renderersByContentId[id]
-        comp.listEvent = event
-      end for
+      if m.listSettings.sendScrollStartStop
+        for each id in m.renderersByContentId
+          comp = m.renderersByContentId[id]
+          comp.listEvent = event
+        end for
+      end if
 
       m.owner.listEvent = {
         name: event.name

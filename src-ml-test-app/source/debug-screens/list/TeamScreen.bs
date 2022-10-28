@@ -206,8 +206,8 @@ namespace ml.sample
       m.teamsModule@.sortByKey("title")
 
       m.teamsModule@.setNotificationsEnabled(true, true)
-      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
-      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
+      m.followingModule.isHidden = m.followingModule.length = 0
+      m.teamsModule.isHidden = m.teamsModule.length = 0
       if m.followingModule.isHidden
         m.list@.moveToItem([0, 0])
       end if
@@ -236,10 +236,10 @@ namespace ml.sample
       ? "follow "; team.title
       m.teamsModule@.removeChildIndex(itemIndex)
       m.followingModule@.insertChild(team, 0)
-      m.followingModule.isHidden = m.followingModule.getChildCount() = 0
-      m.teamsModule.isHidden = m.teamsModule.getChildCount() = 0
-      ? "followingModule : "; m.followingModule.getChildCount()
-      ? "teamsModule : "; m.teamsModule.getChildCount()
+      m.followingModule.isHidden = m.followingModule.length = 0
+      m.teamsModule.isHidden = m.teamsModule.length = 0
+      ? "followingModule : "; m.followingModule.length
+      ? "teamsModule : "; m.teamsModule.length
       if m.teamsModule.isHidden
         ? " TEAMS IS HIDDEN"
         m.list@.moveToItem([1, 0])
@@ -281,11 +281,11 @@ namespace ml.sample
       ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
     end function
 
-    private function onRowwillEnter(rowIndex as integer, direction as integer)
-      ' ? "+SCREEN onRowwillEnter : R: "; rowIndex ; " D:" ; direction
+    private function onRowdidEnter(rowIndex as integer, direction as integer)
+      ' ? "+SCREEN onRowdidEnter : R: "; rowIndex ; " D:" ; direction
     end function
-    private function onRowwillExit(rowIndex as integer, direction as integer)
-      ' ? "+SCREEN onRowwillExit : R: "; rowIndex ; " D:" ; direction
+    private function onRowdidExit(rowIndex as integer, direction as integer)
+      ' ? "+SCREEN onRowdidExit : R: "; rowIndex ; " D:" ; direction
     end function
 
     private function onRowDidGainFocus(rowIndex as integer, direction as integer)
@@ -356,7 +356,7 @@ namespace ml.sample
     end function
 
     private function onItemSelected(rowIndex as integer, itemIndex as integer)
-      row = m.list.content.getChild(rowIndex)
+      row = m.list.content@.getChild(rowIndex)
       if m.favoriteModule.isSameNode(row)
         m.selectFavorite()
       else if m.followingModule.isSameNode(row)

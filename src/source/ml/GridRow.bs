@@ -147,7 +147,7 @@ namespace ml
 
     protected override function onListEvent(event as object)
       ' ? "GRID ON LIST EVENT " ; event.gridIndex ; event.name
-      if event.name = "willEnter" or event.name = "willExit" or event.name = "scrollStart" or event.name = "scrollStop"
+      if event.name = "didEnter" or event.name = "didExit" or event.name = "scrollStart" or event.name = "scrollStop"
         for each component in m.cellsGroup.getChildren(-1, 0)
           if component.doesExist("listEvent")
             component.listEvent = event
@@ -318,7 +318,7 @@ namespace ml
 
       m.isScrollingEnabled = true 'hack: until we can work out if this var is needed anymore
       ' ? " m.isScrollingEnabled "; m.isScrollingEnabled ; " index " ; index
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
+      return (m.isScrollingEnabled and m._content <> invalid and m._content.length > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
     private function isAlreadyScrolling(isUpDown as boolean) as boolean

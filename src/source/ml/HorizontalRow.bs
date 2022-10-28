@@ -134,16 +134,18 @@ namespace ml
     protected override function onListEvent(event as object)
       'TODO improve this - make it more efficient
       'make it so we can specify to pass on scroll updates
-      'or pass on scroll/start/stop, or willEnter
-      if event.name = "willEnter" or event.name = "scrollStart" or event.name = "scrollStop" or event.name = "scrollUpdate"
-        if m.settings.passRowEventsToChildRenderers
-          for each component in m.cellsGroup.getChildren(-1, 0)
-            if component.doesExist("listEvent")
-              component.listEvent = event
-            end if
+      'or pass on scroll/start/stop, or didEnter
+      isPropagatedToAll = m.propagatedEvents[event.name]
+      if isPropagatedToAll <> invalid
+        ' ? " LIST GOT " ; event.name
+        if isPropagatedToAll
+          ' ? " NOTIFYING " ; event.name
+          for each component in m.viewManager.renderedComponents
+            component.listEvent = event
           end for
         end if
       else
+        'it was a list focus event
         cell = m.viewManager.getRenderer(m.focusedCellIndex)
         if cell <> invalid
           ' ? "!!!!!!!!! GIVING event " ; event.name ; " to cell"
@@ -264,7 +266,7 @@ namespace ml
       ' ? "m.isScrollingEnabled" ; m.isScrollingEnabled
       ' ? "I " ; m.itemScroller.index
       ' ? "key" ; key
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.getChildCount() > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.getChildCount() - 1))
+      return (m.isScrollingEnabled and m._content <> invalid and m._content.length > 0) and ((key = "left" and m.itemScroller.index > 0) or (key = "right" and m.itemScroller.index < m._content.length - 1))
     end function
 
     private function onLongPressStart(key as string) as boolean

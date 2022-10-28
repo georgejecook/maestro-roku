@@ -8,8 +8,8 @@ import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/cells/BaseCell.bs"
 import "pkg:/source/view/Animation.bs"
 
-@node("HeroCell", "ml_BaseCell")
-class HeroCell extends ml.BaseCell
+@node("HeroCellEfficient", "ml_BaseCell")
+class HeroCellEfficient extends ml.BaseCell
 
   private poster
   private bgRect
@@ -64,6 +64,16 @@ class HeroCell extends ml.BaseCell
   end function
 
   protected override function onContentChange(content as mc.types.node)
+    m.posterSet = false
+  end function
+
+  private function update(content as mc.types.node)
+    m.poster.width = m.size[0]
+    m.poster.height = m.size[1]
+    m.setFocusState(0, true)
+
+    m.poster.uri = content.HDGRIDPOSTERURL
+    m.label.text = `${m.top.translation[0]} : ${m.index}`
   end function
 
   private function toggleLabelVisible(visible as boolean) as void
@@ -93,15 +103,19 @@ class HeroCell extends ml.BaseCell
     m.toggleLabelVisible(abs(startIndex - currentIndex) < 2)
   end function
 
+  private posterSet = false
   private function onDidEnter(direction as integer)
-    ? " HC ODE"
-    m.poster.width = m.size[0]
-    m.poster.height = m.size[1]
-    m.setFocusState(0, true)
+    ? " HERO ODE " ; m.index ; " D " ; direction
+    if not m.posterSet
+      m.update(m.content)
+      m.posterSet = true
+    end if
+  end function
 
-    content = m.content
-    m.poster.uri = content.HDGRIDPOSTERURL
-    m.label.text = `${m.top.translation[0]} : ${m.index}`
+  private function onDidExit(direction as integer)
+    ? " HERO ODE " ; m.index ; " D " ; direction
+    m.poster.uri = m.poster.loadingBitmapUri
+    m.posterSet = false
   end function
 
   private function onDidGainFocus(direction as integer)

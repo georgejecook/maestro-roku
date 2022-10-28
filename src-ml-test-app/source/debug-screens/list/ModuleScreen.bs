@@ -162,7 +162,7 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function addItems(cellType as string, number as integer)
-    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row = m.list.content@.getChild(m.list.focusedRowIndex)
     row@.appendChildren(m.makeItems(cellType, number))
   end function
 
@@ -192,8 +192,8 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function onRemoveItems(numItems as integer)
-    row = m.list.content.getChild(m.list.focusedRowIndex)
-    startIndex = row.getChildCount() - numItems
+    row = m.list.content@.getChild(m.list.focusedRowIndex)
+    startIndex = row.length - numItems
     row@.removeChildrenIndex(startIndex, numItems)
   end function
 
@@ -240,10 +240,10 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
     ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
-    rowContent = m.list.content.getChild(rowIndex)
+    rowContent = m.list.content@.getChild(rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)
-    rowContent.insertChild(child, itemIndex)
+    rowContent@.insertChild(child, itemIndex)
     ' rowContent.removeChild(child)
     row = m.list@.getRowRenderer(rowIndex)
     row@.forceUpdate()
@@ -272,20 +272,20 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function moveDown()
-    row = m.list.content.getChild(1)
+    row = m.list.content@.getChild(1)
     item = row.getChild(0)
 
-    row = m.list.content.getChild(3)
+    row = m.list.content@.getChild(3)
     if row <> invalid
       row@.appendChild(item)
     end if
   end function
 
   private function moveUp()
-    row = m.list.content.getChild(3)
+    row = m.list.content@.getChild(3)
     item = row.getChild(0)
 
-    row = m.list.content.getChild(1)
+    row = m.list.content@.getChild(1)
     if row <> invalid
       row@.appendChild(item)
     end if
@@ -311,7 +311,7 @@ class ModuleScreen extends mv.BaseScreen
     ' end if
     'ensure that row offsets are applied correctly
     for each module in modules
-      if module.getChildCount() > 0
+      if module.length > 0
         if numModules > 0 and module.settings.subType() = "ml_GridRowSettings"
           settings = module.settings.clone(true)
           settings.firstRowScreenPos = settings.otherRowScreenPos
@@ -327,7 +327,7 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function removeNonHeaderRows(update = true as boolean)
-    rows = m.list.content.getChildren(-1, 0)
+    rows = m.list.content@.getChildren(-1, 0)
     m.list.content@.setNotificationsEnabled(false)
     for i = rows.count() - 1 to 0 step -1
       rowContent = rows[i]
@@ -388,14 +388,14 @@ class ModuleScreen extends mv.BaseScreen
     ' ? "UPDATING DATA " ; m.dataIndex
     ' m.mergeLoadedData()
     ' if m.firstItem = invalid
-    '   m.firstItem = m.list.content.getChild(0)
+    '   m.firstItem = m.list.content@.getChild(0)
     '   m.list.content.removeChild(m.firstItem)
     ' else
     '   m.list.content.insertChild(m.firstItem, 0)
     '   m.firstItem = invalid
     ' end if
 
-    ' m.firstItem = m.list.content.getChild(0)
+    ' m.firstItem = m.list.content@.getChild(0)
     ' m.firstItem.isHidden = not m.firstItem.isHidden
     ' row.isHidden = not row.isHidden
     ' m.list.content = invalid
@@ -412,12 +412,12 @@ class ModuleScreen extends mv.BaseScreen
 
     ? "FOCUSED ROW INDEX ="; m.list.focusedRowIndex
     ? "FOCUSED LIST CELL INDEX ="; m.list.focusedCellIndex
-    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row = m.list.content@.getChild(m.list.focusedRowIndex)
 
     ? "FOCUSED row CELL INDEX ="; row.focusedCellIndex
     item = row.getChild(m.list.focusedCellIndex)
 
-    row = m.list.content.getChild(m.list.focusedRowIndex - 1)
+    row = m.list.content@.getChild(m.list.focusedRowIndex - 1)
     if row <> invalid
       row@.appendChild(item)
     end if
@@ -426,10 +426,10 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onKeyPressFastForward() as boolean
     ? " MOVE A CELL TO NEXT"
-    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row = m.list.content@.getChild(m.list.focusedRowIndex)
     item = row.getChild(m.list.focusedCellIndex)
 
-    row = m.list.content.getChild(m.list.focusedRowIndex + 1)
+    row = m.list.content@.getChild(m.list.focusedRowIndex + 1)
     if row <> invalid
       row@.appendChild(item)
     end if

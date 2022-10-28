@@ -47,31 +47,30 @@ namespace ml
 
 
     function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
-      if nextComponentInfo = invalid
+      if nextComponentInfo = invalid or m.viewManager.visibleCOmponents = invalid
         return
       end if
+      ' ? " NOTIFY VIEW PORT EVENTS!!! "
       compStates = {}
-      sStart = m.viewManager.itemScroller.index - m.numberToLookBehind
-      sEnd = m.viewManager.itemScroller.index + m.numberToLookAhead
-
-      for each item in m.viewManager.visibleItems
-        ' ? " item" ; mc.dv(item)
-        comp = m.viewManager.renderersByContentId[item.id]
-        ' ? " comp "; mc.dv(comp)
+      index = m.viewManager.itemScroller.index
+      sStart = index - m.numberToLookBehind
+      sEnd = index + m.numberToLookAhead
+      for i = sStart to sEnd
+        comp = m.viewManager.visibleComponents[i]
         if comp <> invalid and comp.index <> invalid
           index = comp.index
           isInViewPort = sStart < index and index < sEnd
 
-          wasInViewPort = comp.isInViewPort
+          ' wasInViewPort = comp.isInViewPort
 
           'Can change policy here..
           ' if isInViewPort and isInViewPort <> comp.isInViewPort
           if isInViewPort <> comp.isInViewPort
             comp.isInViewPort = isInViewPort
             if isInViewPort
-              eventName = "willEnter"
+              eventName = "didEnter"
             else
-              eventName = "willExit"
+              eventName = "didExit"
             end if
             comp.listEvent = {
               name: eventName
@@ -117,9 +116,9 @@ namespace ml
     '     if comp <> invalid
     '       id = comp.id
     '       if m.nextRCMap[id] = true and comp.isInViewport <> true
-    '         m.setCompViewPortStatus(direction, comp, "willEnter", "none", events)
+    '         m.setCompViewPortStatus(direction, comp, "didEnter", "none", events)
     '       else if m.nextRCMap[id] = false and comp.isInViewport = true
-    '         m.setCompViewPortStatus(direction, comp, "willExit", "willEnter", events)
+    '         m.setCompViewPortStatus(direction, comp, "didExit", "didEnter", events)
     '       end if
     '     end if
     '   end for
@@ -132,16 +131,16 @@ namespace ml
 
     '       ' m.log.info(" id", id, " is in vp", comp.isInViewPort, "RCMap", m.RCMap[id], "vs", comp._vs)
     '       if m.RCMap[id] = true and comp.isInViewport <> true
-    '         'ensure clients always get willEnter before willEnter
-    '         m.setCompViewPortStatus(direction, comp, "willEnter", "none", events)
-    '         m.setCompViewPortStatus(direction, comp, "willEnter", "willEnter", events)
+    '         'ensure clients always get didEnter before didEnter
+    '         m.setCompViewPortStatus(direction, comp, "didEnter", "none", events)
+    '         m.setCompViewPortStatus(direction, comp, "didEnter", "didEnter", events)
     '         comp.isInViewport = true
     '         ' comp.visible = true
     '       else if m.RCMap[id] <> true and comp.isInViewPort = true
 
-    '         'ensure clients always get willExit before willExit
-    '         m.setCompViewPortStatus(direction, comp, "willExit", "willEnter", events)
-    '         m.setCompViewPortStatus(direction, comp, "willExit", "willExit", events)
+    '         'ensure clients always get didExit before didExit
+    '         m.setCompViewPortStatus(direction, comp, "didExit", "didEnter", events)
+    '         m.setCompViewPortStatus(direction, comp, "didExit", "didExit", events)
     '         comp.isInViewport = false
     '         ' comp.visible = false
     '       end if
