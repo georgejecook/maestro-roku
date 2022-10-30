@@ -49,6 +49,17 @@ class LongCell extends ml.BaseCell
     m.label.text = `${m.index} ${content.title}`
   end function
 
+
+  protected override function onShowWithContent(content as mc.types.node)
+    m.label.fontKey = "medium,30"
+    m.label.color = "#aaaaaa"
+  end function
+
+  protected override function onHide()
+    m.label.fontKey = "medium,30"
+    m.label.color = "#aaaaaa"
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,17 +76,6 @@ class LongCell extends ml.BaseCell
   '   m.label.visible = textVisible
   ' end function
 
-  private function onDidEnter(direction as integer)
-    ' ? "SC: onCelldidEnter " ; m.index ; " " ; direction
-    m.label.fontKey = "medium,30"
-    m.label.color = "#aaaaaa"
-  end function
-
-  private function onDidExit(direction as integer)
-    ' ? "SC: onCelldidExit " ; m.index ; " " ; direction
-    m.label.fontKey = "medium,30"
-    m.label.color = "#aaaaaa"
-  end function
 
   private function onWillGainFocus(direction as integer)
     if m.index = 3

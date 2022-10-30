@@ -4,9 +4,6 @@ import "pkg:/source/ml/ItemViewManager.bs"
 namespace ml
   class ViewPortEventNotifier extends mc.BaseClass
     'rendered component maps
-    private RCMap = {}
-    private lastRCMap = {}
-    private nextRCMap = {}
     private viewManager as ml.ItemViewManager
     private container as mc.types.node
     private axes = 0
@@ -26,10 +23,11 @@ namespace ml
       m.container = viewManager.container
       m.axes = viewManager.axes
 
+      'TODO get these values set from settings
       if m.viewManager.row <> invalid
         m.numberToLookAhead = 8
       else
-        m.numberToLookAhead = 3
+        m.numberToLookAhead = 5
       end if
     end function
 
@@ -45,21 +43,18 @@ namespace ml
       end if
     end function
 
-
     function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
-      if nextComponentInfo = invalid or m.viewManager.visibleCOmponents = invalid
+      if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
-      ' ? " NOTIFY VIEW PORT EVENTS!!! "
-      compStates = {}
       index = m.viewManager.itemScroller.index
-      sStart = index - m.numberToLookBehind
-      sEnd = index + m.numberToLookAhead
-      for i = sStart to sEnd
+      rowIndexStart = index - m.numberToLookBehind
+      rowIndexEnd = index + m.numberToLookAhead
+      for i = rowIndexStart to rowIndexEnd
         comp = m.viewManager.visibleComponents[i]
         if comp <> invalid and comp.index <> invalid
           index = comp.index
-          isInViewPort = sStart < index and index < sEnd
+          isInViewPort = rowIndexStart < index and index < rowIndexEnd
 
           ' wasInViewPort = comp.isInViewPort
 
@@ -83,93 +78,81 @@ namespace ml
           ' compStates[item.id] = isInViewP
         end if
       end for
-      m.RCMap = compStates
       events = []
-      m.lastRCMap = m.RCMap
       for each delegate in m.delegates
         delegate.viewportEvents = events
       end for
     end function
 
+    private inViewportComponentsById = {}
+    private inViewportSubIndexes = {}
 
-    ' function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
-    '   if nextComponentInfo = invalid
-    '     return
-    '   end if
+    function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
+      if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
+        return
+      end if
+      newInViewportComponentsById = {}
+      newInViewportSubIndexes = {}
 
-    '   'maintain a collection of controls that are in bounds right now:
-    '   m.RCMap = m.viewManager.getComponentsInViewPort(- m.container.translation[m.axes])
 
-    '   if isMoving and nextComponentInfo.index <> componentInfo.index
-    '     nextOffset = nextComponentInfo.getScrollOffset(direction)
-    '     m.nextRCMap = m.viewManager.getComponentsInViewPort(nextOffset)
-    '   else
-    '     m.nextRCMap = {}
-    '   end if
-
-    '   'we assign events to each component AND send them to the owner, so it can choose what to do
-    '   events = []
-
-    '   '1. component was on screen and is going off
-    '   'or component was not on screen and will come on.
-    '   for each comp in m.viewManager.renderedComponents
-    '     if comp <> invalid
-    '       id = comp.id
-    '       if m.nextRCMap[id] = true and comp.isInViewport <> true
-    '         m.setCompViewPortStatus(direction, comp, "didEnter", "none", events)
-    '       else if m.nextRCMap[id] = false and comp.isInViewport = true
-    '         m.setCompViewPortStatus(direction, comp, "didExit", "didEnter", events)
-    '       end if
-    '     end if
-    '   end for
-
-    '   for each id in m.viewManager.renderersByContentId
-    '     comp = m.viewManager.renderersByContentId[id]
-    '     ' for each comp in m.viewManager.renderedComponents
-    '     if comp <> invalid
-    '       id = comp.id
-
-    '       ' m.log.info(" id", id, " is in vp", comp.isInViewPort, "RCMap", m.RCMap[id], "vs", comp._vs)
-    '       if m.RCMap[id] = true and comp.isInViewport <> true
-    '         'ensure clients always get didEnter before didEnter
-    '         m.setCompViewPortStatus(direction, comp, "didEnter", "none", events)
-    '         m.setCompViewPortStatus(direction, comp, "didEnter", "didEnter", events)
-    '         comp.isInViewport = true
-    '         ' comp.visible = true
-    '       else if m.RCMap[id] <> true and comp.isInViewPort = true
-
-    '         'ensure clients always get didExit before didExit
-    '         m.setCompViewPortStatus(direction, comp, "didExit", "didEnter", events)
-    '         m.setCompViewPortStatus(direction, comp, "didExit", "didExit", events)
-    '         comp.isInViewport = false
-    '         ' comp.visible = false
-    '       end if
-    '     end if
-    '   end for
-
-    '   ' m.log.info("events")
-    '   ' for each event in events
-    '   '   m.log.info("event", event)
-    '   ' end for
-    '   m.lastRCMap = m.RCMap
-    '   for each delegate in m.delegates
-    '     delegate.viewportEvents = events
-    '   end for
-    ' end function
-
-    function setCompViewPortStatus(direction as integer, comp as mc.types.node, eventName as string, validState as string, events as mc.types.array)
-      if not comp.doesExist("_vs")
-        comp.addFields({ _vs: "none" })
+      if direction = -1
+        index = componentInfo.index
+      else
+        index = nextComponentInfo.index
       end if
 
-      if comp._vs = validState
-        comp._vs = eventName
-        event = { name: eventName, direction: direction, index: comp.index }
-        comp.listEvent = event
-        events.push(event)
-      end if
+      rowIndexStart = index - m.numberToLookBehind
+      rowIndexEnd = index + m.numberToLookAhead
+
+      lastContentIndex = -1
+      for i = rowIndexStart to rowIndexEnd - 1
+        compInfo = m.viewManager.itemScroller.componentInfos[i]
+        if compInfo <> invalid
+          comp = compInfo.component
+          if compInfo.contentIndex <> lastContentIndex
+            newInViewportComponentsById[comp.id] = comp
+            m.inViewportComponentsById.delete(comp.id)
+            if not comp.isInViewPort
+              ' ? " LIST C"
+              comp.isInViewPort = true
+            end if
+          end if
+          comp.listEvent = {
+            name: "didEnter"
+            direction: direction
+            index: compInfo.componentIndex
+          }
+          subIndexKey = compInfo.componentIndex.toStr()
+          ' ? ">>> SUB INDEX KEY IS " ; subIndexKey
+          newInViewportSubIndexes[subIndexKey] = comp
+          m.inViewportSubIndexes.delete(subIndexKey)
+        end if
+      end for
+
+      for each key in m.inViewportSubIndexes
+        comp = m.inViewportSubIndexes[key]
+        comp.listEvent = {
+          name: "didExit"
+          direction: 1
+          index: key.toInt()
+        }
+      end for
+
+      for each key in m.inViewportComponentsById
+        comp = m.inViewportComponentsById[key]
+        if comp.isInViewPort
+          comp.isInViewPort = false
+          comp.listEvent = {
+            name: "didExit"
+            direction: 1
+            index: -1
+          }
+        end if
+      end for
+
+      m.inViewportComponentsById = newInViewportComponentsById
+      m.inViewportSubIndexes = newInViewportSubIndexes
     end function
-
   end class
 
 

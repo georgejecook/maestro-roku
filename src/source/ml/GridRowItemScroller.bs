@@ -44,9 +44,81 @@ namespace ml
       super.setComponentInfo(info)
       if info <> invalid
         m.currentRowIndex = fix(info.index / m.viewManager.numCols)
+        'notify viewport events for this row
+        ' m.notifyViewPortEventsForSubRows(m.viewManager.row.isInViewPort)
       else
         m.currentRowIndex = -1
       end if
+    end function
+
+    'FIXME - not really used: will probably always come from the list
+    function notifyViewPortEventsForSubRows(isInViewPort as boolean) as void
+      if m.currentRowIndex = -1
+        return
+      end if
+      index = m.currentRowIndex
+      'TODO
+      notifyStart = index - 1
+      notifyEnd = index + 1
+
+      if isInViewPort
+        m.notifyEnterEvent(notifyStart, notifyEnd)
+      else
+        m.notifyExitEvent(notifyStart, notifyEnd)
+      end if
+    end function
+
+    private inViewportComponentsById = {}
+
+    function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
+      for i = notifyStart to notifyEnd
+        rowRenderers = m.viewManager.getRenderersInRow(i)
+        for each comp in rowRenderers
+          if comp.isInViewPort
+            comp.isInViewPort = false
+            comp.listEvent = {
+              name: "didExit"
+              direction: 1
+              index: comp.index
+            }
+          end if
+        end for
+      end for
+      m.inViewportComponentsById = {}
+    end function
+
+    function notifyEnterEvent(notifyStart as integer, notifyEnd as integer) as void
+      ' newInViewportComponentsById = {}
+      for i = notifyStart to notifyEnd
+        rowRenderers = m.viewManager.getRenderersInRow(i)
+        for each comp in rowRenderers
+          if not comp.isInViewPort
+            comp.isInViewPort = true
+            comp.listEvent = {
+              name: "didEnter"
+              direction: 1
+              index: comp.index
+            }
+            ' newInViewportComponentsById[comp.id] = comp
+            m.inViewportComponentsById[comp.id] = comp
+          end if
+          ' newInViewportComponentsById[comp.id] = comp
+          ' m.inViewportComponentsById.delete(comp.id)
+        end for
+      end for
+      ' for each key in m.inViewportComponentsById
+      '   comp = m.inViewportComponentsById[key]
+      '   if comp.isInViewPort
+      '     ? " CLEARING " ; comp.id
+      '     comp.isInViewPort = false
+      '     comp.listEvent = {
+      '       name: "didExit"
+      '       direction: 1
+      '       index: comp.index
+      '     }
+      '   end if
+      ' end for
+      ' m.inViewportComponentsById = newInViewportComponentsById
     end function
 
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo

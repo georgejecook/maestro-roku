@@ -145,14 +145,25 @@ namespace ml
       super.updateChangedItems()
     end function
 
-    protected override function onListEvent(event as object)
-      ' ? "GRID ON LIST EVENT " ; event.gridIndex ; event.name
-      if event.name = "didEnter" or event.name = "didExit" or event.name = "scrollStart" or event.name = "scrollStop"
-        for each component in m.cellsGroup.getChildren(-1, 0)
-          if component.doesExist("listEvent")
-            component.listEvent = event
+    protected override function onListEvent(event as object) as void
+      'TODO improve this - make it more efficient
+      'make it so we can specify to pass on scroll updates
+      'or pass on scroll/start/stop, or didEnter
+      isPropagatedToAll = m.propagatedEvents[event.name]
+      if isPropagatedToAll <> invalid
+        if event.index = -1
+          'ignore general grid event
+          return
+        end if
+
+        ' ? " GRID GOT " ; formatJson(event)
+        if isPropagatedToAll
+          if event.name = "didExit"
+            m.itemScroller.notifyExitEvent(event.index, event.index)
+          else if event.name = "didEnter"
+            m.itemScroller.notifyEnterEvent(event.index, event.index)
           end if
-        end for
+        end if
       else
         if event.gridIndex <> invalid and event.gridIndex <> -1
           cell = m.viewManager.getRenderer(event.gridIndex)
@@ -161,8 +172,6 @@ namespace ml
         end if
 
         if cell <> invalid
-          ' ? " PASSING LIST EVENT "; event.name ; " to CI "; m.focusedCellIndex
-          ' TODO potentially filter events
           cell.listEvent = event
         end if
       end if

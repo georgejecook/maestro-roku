@@ -62,7 +62,7 @@ namespace ml
     private nextScrollLocation = 0
     private postHopIndex = 0
     private isScrollCancelled = false
-    private sendEnterExit = false
+    protected sendEnterExit = false
 
     protected previousScreenPos = 0
 
@@ -798,16 +798,19 @@ namespace ml
 
       m.viewManager.updateRenderedComponents(m.direction, m.index)
 
-      ' ? " >>> SFI 2222222"
-      if m.sendEnterExit
-        m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
-      end if
+      m.notifyViewportEvents(m.direction, true)
 
       if notifyFocusManager
         m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
       end if
 
       m.setFocusOnRenderer(isMoving)
+    end function
+
+    protected function notifyViewportEvents(direction as integer, isMoving as boolean)
+      if m.sendEnterExit
+        m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
+      end if
     end function
 
     function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean, notifyOwner = true as boolean) as void

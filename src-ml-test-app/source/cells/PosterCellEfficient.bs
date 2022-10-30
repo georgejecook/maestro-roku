@@ -23,26 +23,14 @@ class PosterCellEfficient extends ml.BaseCell
     })
   end function
 
-  protected override function onContentChange(content as mc.types.node)
-    m.posterSet = false
+  protected override function onShowWithContent(content as mc.types.node)
+    ? " onShowWithContent " ; m.index
+    m.poster.uri = m.content.HDGRIDPOSTERURL
   end function
 
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ List Delegate
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private posterSet = false
-  private function onDidExit(direction as integer)
-    ' m.posterSet = false
-    ' m.poster.uri = m.poster.loadingBitmapUri
+  protected override function onHide()
+    ? " onHide " ; m.index
+    m.poster.uri = m.poster.loadingBitmapUri
   end function
 
-  private function onDidEnter(direction as integer)
-    ' ? " POSTER ODE " ; m.index ; " D " ; direction
-    if not m.posterSet
-      m.poster.uri = m.content.HDGRIDPOSTERURL
-      m.posterSet = true
-    end if
-  end function
 end class

@@ -63,10 +63,6 @@ class HeroCellEfficient extends ml.BaseCell
     m.labelAnim = new mv.animations.Fade(m.labelGroup, 0.2, 1, 0)
   end function
 
-  protected override function onContentChange(content as mc.types.node)
-    m.posterSet = false
-  end function
-
   private function update(content as mc.types.node)
     m.poster.width = m.size[0]
     m.poster.height = m.size[1]
@@ -88,6 +84,13 @@ class HeroCellEfficient extends ml.BaseCell
     end if
   end function
 
+  protected override function onShowWithContent(content as mc.types.node)
+    m.update(content)
+  end function
+
+  protected override function onHide()
+    m.poster.uri = m.poster.loadingBitmapUri
+  end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ delegate
@@ -103,20 +106,6 @@ class HeroCellEfficient extends ml.BaseCell
     m.toggleLabelVisible(abs(startIndex - currentIndex) < 2)
   end function
 
-  private posterSet = false
-  private function onDidEnter(direction as integer)
-    ? " HERO ODE " ; m.index ; " D " ; direction
-    if not m.posterSet
-      m.update(m.content)
-      m.posterSet = true
-    end if
-  end function
-
-  private function onDidExit(direction as integer)
-    ? " HERO ODE " ; m.index ; " D " ; direction
-    m.poster.uri = m.poster.loadingBitmapUri
-    m.posterSet = false
-  end function
 
   private function onDidGainFocus(direction as integer)
     '    ? " ODGF " ; m.index ; " D " ; direction

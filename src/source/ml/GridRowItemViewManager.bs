@@ -301,7 +301,7 @@ namespace ml
     function applyrenderStateForCell(id as string, renderState as string)
       m.log.verbose("applyrenderStateForCell", id, renderState)
       index = id.toInt()
-      ' isRendered = m.row.isRendered
+      isRendered = m.row.isInViewport
       item = m.content@.getChild(index)
 
       cell = invalid
@@ -334,9 +334,9 @@ namespace ml
 
               ' ? ">>>>>>>> is visible "
 
-              ' if isRendered
-              cell.listEvent = { "name": "didEnter" }
-              ' end if
+              if isRendered
+                ' cell.listEvent = { "name": "didEnter" }
+              end if
 
               if m.lastScrollEvent <> invalid
                 cell.listEvent = m.lastScrollEvent

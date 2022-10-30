@@ -205,3 +205,20 @@ end function
 function _onShowChildren()
   mc.setOrAddNodeField(m.top, "__items", m.children)
 end function
+
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+'++ Serialization support
+'+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+function serialize() as mc.types.assocarray
+  if m.serialize <> invalid
+    return m.serialize()
+  end if
+  return {}
+end function
+
+function deserialize(data as mc.types.assocarray)
+  if m.deserialize <> invalid
+    m.deserialize(data)
+  end if
+end function

@@ -72,6 +72,14 @@ namespace ml
       m.label.visible = true
     end function
 
+    protected override function onShowWithContent(content as mc.types.node)
+      m.label.fontKey = "medium,30"
+      m.label.color = "#aaaaaa"
+    end function
+
+    protected override function onHide()
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Delegate Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -87,18 +95,6 @@ namespace ml
       ' ? "SC: isScrolling UPDATE " ; " " ; startIndex ; " SI " ; currentIndex
       textVisible = abs(startIndex - currentIndex) < 4
       m.label.visible = textVisible
-    end function
-
-    private function onDidEnter(direction as integer)
-      ' ? "SC: onCelldidEnter " ; m.index ; " " ; direction
-      m.label.fontKey = "medium,30"
-      m.label.color = "#aaaaaa"
-    end function
-
-    private function onDidExit(direction as integer)
-      ' ? "SC: onCelldidExit " ; m.index ; " " ; direction
-      m.label.fontKey = "medium,30"
-      m.label.color = "#aaaaaa"
     end function
 
     private function onWillGainFocus(direction as integer)

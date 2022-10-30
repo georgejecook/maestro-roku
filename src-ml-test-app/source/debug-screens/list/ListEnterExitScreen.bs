@@ -26,7 +26,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = 2
+  private scrollSpeed = 0.2
 
   function new()
     super("ListEnterExitScreen")
@@ -113,11 +113,11 @@ class ListEnterExitScreen extends mv.BaseScreen
     content = []
     showHero = true
 
-    useGrids = false
+    useGrids = true
 
     'TODO - add normal rows around this
     ' for i = 0 to 1
-    for i = 0 to 50
+    for i = 0 to 10
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
@@ -142,13 +142,13 @@ class ListEnterExitScreen extends mv.BaseScreen
           numCols = 4
         end if
 
-        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 100, 5, 50)
+        row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 250, 5, 50)
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
         if i = 3
-          numItems = 8
+          numItems = 100
         else
-          numItems = 10
+          numItems = 50
         end if
 
       else

@@ -30,6 +30,7 @@ namespace ml
     protected list as mc.types.node
     protected row as mc.types.node
     protected size as mc.types.array
+    protected isContentDisplayed = false
 
     function new()
       ml.itemDelegateMixin.setDelegate()
@@ -80,7 +81,12 @@ namespace ml
       else if m.contentVersion = -1 or content.version <> invalid
         m.contentVersion = content.version
       end if
+      m.isContentDisplayed = false
       m.onContentChange(content)
+      if m.top.isInViewPort
+        ? " IN VIEW PORT SHOWING "; m.index
+        m.onShowWithContent(content)
+      end if
       m.isRecyclePending = false
     end function
 
@@ -121,6 +127,40 @@ namespace ml
 
     protected function onContentChange(content as mc.types.node)
       'override me
+    end function
+
+
+    protected function onShowWithContent(content as mc.types.node)
+      'override me
+    end function
+
+    protected function onHide()
+
+      'override me
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Delegate function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ List Delegate
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function onDidExit(direction as integer)
+      ' ? " ON EXIT "; m.index
+      if m.isContentDisplayed
+        m.onHide()
+        m.isContentDisplayed = false
+      end if
+    end function
+
+    protected function onDidEnter(direction as integer)
+      if not m.isContentDisplayed
+        m.onShowWithContent(m.content)
+        m.isContentDisplayed = true
+      end if
     end function
 
 
