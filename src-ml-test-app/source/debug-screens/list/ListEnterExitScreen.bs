@@ -16,7 +16,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 20
+  private numberOfRows = 10
   private defaultCellType = "PosterCellEfficient"
 
   'state
@@ -26,7 +26,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = 0.2
+  private scrollSpeed = 2
 
   function new()
     super("ListEnterExitScreen")
@@ -66,9 +66,9 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.cellSettings = ml.listMixin.createCellSettings("PosterCellEfficient", [400, 250], 30)
 
     timer = new mc.utils.DebugTimer("list")
-    m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
     m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed")
+    m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, m.focusSettings, 30)
     listSettings = ml.listMixin.createListSettings(-1, -1)
     listSettings.sendEnterExit = true
     listSettings.sendScrollStartStop = false
@@ -82,12 +82,6 @@ class ListEnterExitScreen extends mv.BaseScreen
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
-
-    content._showChildren = true
-    child = content@.getChild(2)
-    if child <> invalid
-      child._showChildren = true
-    end if
 
     m.list.content = content
     timer.log("set content")
@@ -116,8 +110,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     useGrids = true
 
     'TODO - add normal rows around this
-    ' for i = 0 to 1
-    for i = 0 to 10
+    for i = 0 to m.numberOfRows
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 5
@@ -157,16 +150,16 @@ class ListEnterExitScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, focusSettings)
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
-        row.settings.screenPos = -1
-        if i = 1 or i = 19 or i = 32 or i = 40 or i = 38 or i = 45
-          row.settings.screenPos = 800
-        else if i = 5 or i = 15 or i = 23 or i = 30 or i = 34
-          row.settings.screenPos = 600
-        else if i = 3 or i = 7 or i - 22
-          row.settings.screenPos = 200
-        else if i = 13 or i = 17
-          row.settings.screenPos = 50
-        end if
+        row.settings.screenPos = 200
+        ' if i = 1 or i = 19 or i = 32 or i = 40 or i = 38 or i = 45
+        '   row.settings.screenPos = 800
+        ' else if i = 5 or i = 15 or i = 23 or i = 30 or i = 34
+        '   row.settings.screenPos = 600
+        ' else if i = 3 or i = 7 or i - 22
+        '   row.settings.screenPos = 200
+        ' else if i = 13 or i = 17
+        '   row.settings.screenPos = 50
+        ' end if
         numItems = 5
       end if
       row.title = "ROW " + str(i)

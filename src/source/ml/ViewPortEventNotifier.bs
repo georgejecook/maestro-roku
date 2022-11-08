@@ -22,12 +22,11 @@ namespace ml
       m.viewManager = viewManager
       m.container = viewManager.container
       m.axes = viewManager.axes
-
       'TODO get these values set from settings
       if m.viewManager.row <> invalid
         m.numberToLookAhead = 8
       else
-        m.numberToLookAhead = 5
+        m.numberToLookAhead = 1
       end if
     end function
 
@@ -47,6 +46,10 @@ namespace ml
       if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
+
+      'TODO - move this into a focus setting
+      isSendingExit = true
+
       index = m.viewManager.itemScroller.index
       rowIndexStart = index - m.numberToLookBehind
       rowIndexEnd = index + m.numberToLookAhead
@@ -60,7 +63,7 @@ namespace ml
 
           'Can change policy here..
           ' if isInViewPort and isInViewPort <> comp.isInViewPort
-          if isInViewPort <> comp.isInViewPort
+          if isInViewPort <> comp.isInViewPort and (isInViewPort or isSendingExit)
             comp.isInViewPort = isInViewPort
             if isInViewPort
               eventName = "didEnter"

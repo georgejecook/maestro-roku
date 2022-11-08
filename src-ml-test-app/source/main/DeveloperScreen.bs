@@ -1,9 +1,23 @@
 import "pkg:/source/view/debug/DeveloperScreen.bs"
-
+import "pkg:/source/core/DebugTimer.bs"
 namespace main
   @node("DeveloperScreen", "mv_DeveloperScreen")
   class DeveloperScreen extends mv.debug.DeveloperScreen
 
+    protected override function initialize()
+      super.initialize()
+      timer = new mc.utils.DebugTimer("make cells")
+      m.global.componentPool@.prebakeComponents(100, "HeroCellEfficient")
+      timer.log("made 100 posters")
+      m.global.componentPool@.prebakeComponents(500, "PosterCellEfficient")
+      timer.log("made 500 posters cells")
+      m.global.componentPool@.prebakeComponents(59, "ml_RowHeader")
+      timer.log("made 59 row headers")
+      m.global.componentPool@.prebakeComponents(20, "ml_GridRow")
+      timer.log("made 20 grid rows")
+      m.global.componentPool@.prebakeComponents(50, "ml_HorizontalRow")
+      timer.log("made 50 horiz rows")
+    end function
     protected override function createMenuPages() as mc.types.array
       return [
         m.getDefaultPage()
