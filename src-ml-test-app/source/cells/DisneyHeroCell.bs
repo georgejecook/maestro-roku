@@ -1,0 +1,94 @@
+import "pkg:/source/ml/cells/BaseCell.bs"
+
+@node("DisneyHeroCell", "ml_BaseCell")
+class DisneyHeroCell extends ml.BaseCell
+
+  private poster
+  private bgRect
+  private textRect
+
+  private isViewCreated = false
+  private size = [1400, 850]
+  private scale = 1
+
+  function new()
+    super()
+  end function
+
+  private mask as mc.types.node
+  protected override function createViews() as void
+
+    m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "textRect", {
+      size: m.size
+      color: "#ffffff"
+      opacity: 0
+      translation: [0, 0]
+      size: m.size
+    })
+    m.mask = mc.createSGNode("MaskGroup", m.top, "posterMask", {
+      maskSize: [1400, 850]
+      maskOffset: [0, 0]
+      maskOffset: [1, 1]
+      maskUri: "pkg:/images/mask.png"
+    })
+    m.mask.clippingRect = [0, 0, 1400, 850]
+    m.poster = mc.createSGNode("mv_Poster", m.mask, "poster", {
+      translation: [-400, 0]
+      loadWidth: m.size[0]
+      loadHeight: m.size[1]
+      size: m.size
+      loadDisplayMode: "zoomToFill"
+    })
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function onDidEnter(direction as integer)
+    m.poster.width = m.size[0]
+    m.poster.height = m.size[1]
+    m.setFocusState(0, true, direction)
+
+    m.poster.uri = `pkg:/images/movies/${(m.index + 1) mod 7}.jpg`
+  end function
+
+  private function onDidGainFocus(direction as integer)
+    m.setFocusState(1, true, direction)
+  end function
+
+  private function onDidLoseFocus(direction as integer)
+    m.setFocusState(1, false, direction)
+  end function
+
+  private function onGainingFocus(direction as integer, fraction as float)
+    m.setFocusState(fraction, true, direction)
+  end function
+
+  private function onLosingFocus(direction as integer, fraction as float)
+    m.setFocusState(fraction, false, direction)
+  end function
+
+  private function setFocusState(fraction as float, isGaining as boolean, direction as integer) as void
+
+    if fraction > 1
+      fraction = 1
+    end if
+
+    if isGaining
+      if direction = 1
+        m.poster.translation = [-400 + (fraction * 400), 0]
+      else
+        m.poster.translation = [400 - (fraction * 400), 0]
+      end if
+    else
+      if direction = 1
+        m.poster.translation = [fraction * 400, 0]
+      end if
+    end if
+  end function
+end class
