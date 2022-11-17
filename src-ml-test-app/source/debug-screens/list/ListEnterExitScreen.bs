@@ -88,6 +88,10 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
 
+    listSettings.renderStrategy = "dynamic"
+    listSettings.numberItemsToRenderAfter = 4
+    listSettings.numberItemsToRenderBefore = 2
+
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
     m.button.text = `create list with ${m.contentId} items`
@@ -127,7 +131,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     showComplex = false
     showNormal = true
 
-    showGrids = true
+    showGrids = false
 
     'TODO - add normal rows around this
     for i = 0 to m.numberOfRows
@@ -163,6 +167,7 @@ class ListEnterExitScreen extends mv.BaseScreen
         else
           numItems = 50
         end if
+        numItems = 250
 
       else if showNormal and (i = 2 or i = 3 or i = 20 or i = 30 or i = 40)
         focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])

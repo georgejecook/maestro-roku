@@ -1,0 +1,123 @@
+'IMPORTANT CHANGES HERE
+'import "pkg:/source/roku_modules/maestro/core/Utils.bs"
+'import "pkg:/source/roku_modules/maestro/view/ViewUtils.bs"
+'import "pkg:/source/roku_modules/maestro/ml/ItemDelegateMixin.bs"
+function __ml_BaseCell_builder()
+  instance = {}
+  ' any item in a list will have this set whenever it gets recycled
+  instance.new = function()
+    m.index = -1
+    m.__debugM = false
+    ' ? "FFFFFFFFFFFFFFFFFF"
+    m.initialState = invalid
+    m.isPrebaked = false
+    m.isInViewPort = false
+    m.listEvent = invalid
+    m.contentVersion = -1
+    m.isViewCreated = false
+    m.isRecyclePending = true
+    m.content = invalid
+    m.list = invalid
+    m.row = invalid
+    m.size = invalid
+    m.__classname = "ml.BaseCell"
+    ml_itemDelegateMixin_setDelegate()
+  end function
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Public Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  instance.recycle = function()
+    if not m.isViewCreated
+      m._createViews()
+      m.isRecyclePending = true
+    end if
+    if m.isRecyclePending
+      ' ? " RECYCLING WITH CONTENT " ; mc.dv(m.top.content)
+      m._onContentChange(m.top.content)
+    end if
+  end function
+  instance.forceUpdate = function()
+    m.isRecyclePending = true
+    ' ? " RECYCLE FROM FORCE UPDATE"
+    m.recycle()
+  end function
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  instance.onDebugMChange = function()
+    mc_setOrAddNodeField(m.top, "__m", mc_private_getDebugMObject(m))
+  end function
+  instance.onIsPrebaked = function(value)
+    'can do things like:
+    ' m.createViews()
+    ' m.isViewCreated = true
+  end function
+  instance._createViews = function()
+    if m.top.content <> invalid
+      m.createViews()
+      m.isViewCreated = true
+    end if
+  end function
+  instance._onContentChange = function(content)
+    isChanged = false
+    m.isRecyclePending = false
+    ' ? " ON CONTENT CHANGE"
+    if content = invalid or content.version = invalid
+      m.top.contentVersion = -1
+      ' ? " INVALID CONTENT"
+      isChanged = true
+    else if m.top.contentVersion = -1 or content.version <> invalid
+      isChanged = m.top.contentVersion <> content.version
+      m.top.contentVersion = content.version
+      ' ? " VERSIONED CONTENT"
+    else
+      "UNVERSIONED CONTENT"
+    end if
+
+    if isChanged
+      ' ? " IS CHANGED"
+      m.onContentChange(content)
+    end if
+  end function
+  instance.onInitialStateChange = function(state)
+    m.list = state.list
+    m.row = state.row
+    m.size = state.size
+    content = m.top.content
+    m.isRecyclePending = (content <> invalid and state.content = invalid) or (content = invalid and state.content <> invalid) or (content.id <> state.content.id)
+    m.top.content = state.content
+    ' ? " RECYCLE FROM INITIAL STATE " ; m.isRecyclePending ; " " ; mc.dv(content) ; " " ; mc.dv(state.content)
+    m.recycle()
+  end function
+  instance.createViewsFromStyleJson = function(childrenJson, targetNode = invalid, assignViewsToM = true, mTarget = invalid)
+    if mTarget = invalid
+      mTarget = m
+    end if
+    'FIXME - maestro-bsc needs to understand overloaded namespaces
+    'bs:disable-next-line
+    mv_createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+  end function
+  instance.updateViewsWithStyleJson = function(json, mTarget = invalid)
+    if mTarget = invalid
+      mTarget = m
+    end if
+    'FIXME - maestro-bsc needs to understand overloaded namespaces
+    'bs:disable-next-line
+    mv_updateViewsWithStyleJson(json, mTarget)
+  end function
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ abstract methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  instance.createViews = function()
+    'override me!
+  end function
+  instance.onContentChange = function(content)
+    'override me
+  end function
+  return instance
+end function
+function ml_BaseCell()
+  instance = __ml_BaseCell_builder()
+  instance.new()
+  return instance
+end function

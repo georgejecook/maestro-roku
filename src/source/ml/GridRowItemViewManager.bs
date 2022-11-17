@@ -283,7 +283,7 @@ namespace ml
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
       m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
-      ' ? "______________________________ ARSM" ; m.__classname
+      ? "______________________________ ARSM" ; m.__classname
       m.renderedComponents = []
       if m.row.isRendered
         for each id in renderStateMap
@@ -292,6 +292,7 @@ namespace ml
       else
         ? "ROW IS NOT !! RENDERED" ; m.row.index
         for each id in renderStateMap
+          ? " id" ; id
           m.applyrenderStateForCell(id, "none")
         end for
       end if
@@ -359,7 +360,8 @@ namespace ml
       if item <> invalid
         itemId = item.id
         ' ? " GRID===========================" ; itemid
-        if renderState = "rendered"
+        if isRendered
+          ' if renderState = "rendered"
           cell = m.renderersByContentId[itemId]
           if cell = invalid
             cell = m.previousRendereredByContentId[itemId]
@@ -413,8 +415,9 @@ namespace ml
     private function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
       ' ? " GETTING CELL "; index; " isRendered "; isRendered
       ' if not isRendered and not force'index > 10 and not force
-      if index > 3 and not force
-        ' ? "getting placeholder"
+      ' if false and not isRendered and not force'index > 10 and not force
+      if isRendered and index > 3 and not force
+        ? "getting placeholder"
         return m.placeHolderCell
       else
         cell = m.componentPool@.getComponent(compName)

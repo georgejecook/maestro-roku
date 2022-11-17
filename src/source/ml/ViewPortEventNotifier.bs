@@ -9,7 +9,7 @@ namespace ml
     private axes = 0
     public delegates = []
 
-    public renderStrategy = 4
+    public renderStrategy = "all"
     public numberToLookAhead = 4
     public numberToLookBehind = 4
 
@@ -37,24 +37,31 @@ namespace ml
         m.delegates.push(m.viewManager.delegate)
       end if
 
-      settings = m.viewManager.getItemSettings()
+      if m.viewManager.row = invalid
+        settings = m.viewManager.listSettings
+      else
+        settings = m.viewManager.getItemSettings()
+      end if
       if settings <> invalid
         m.renderStrategy = settings.renderStrategy
         if m.renderStrategy = "all"
           m.numberToLookAhead = 99999
           m.numberToLookBehind = 99999
+        else
+          m.numberToLookBehind = settings.numberItemsToRenderBefore
+          m.numberToLookAhead = settings.numberItemsToRenderAfter
         end if
-        m.numberToLookAhead = settings.numberItemsToRenderForward
-        m.numberToLookBehind = settings.numberItemsToRenderBack
       else
         m.numberToLookAhead = 4
         m.numberToLookBehind = 4
         m.renderStrategy = "all"
       end if
+
     end function
 
     function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
       if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
+        ? "VPN NO VISIBLE COMPONENTS"
         return
       end if
 
@@ -64,8 +71,10 @@ namespace ml
       index = m.viewManager.itemScroller.index
       rowIndexStart = index - m.numberToLookBehind
       rowIndexEnd = index + m.numberToLookAhead
+      ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
       for i = rowIndexStart to rowIndexEnd
         comp = m.viewManager.visibleComponents[i]
+        ? "VPN " ; i
         if comp <> invalid and comp.index <> invalid
           index = comp.index
           isInViewPort = rowIndexStart < index and index < rowIndexEnd
@@ -87,8 +96,8 @@ namespace ml
               index: index
             }
 
+            ? "VPN " ; i ; " isInViewPort "; isInViewPort
           end if
-          ' ? " isInViewPort "; isInViewPort
           ' compStates[item.id] = isInViewP
         end if
       end for
@@ -117,18 +126,20 @@ namespace ml
 
       numberOfComponents = m.viewManager.itemScroller.numberOfComponents
       rowIndexStart = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
-      rowIndexEnd = mc.clamp(0, index + m.numberToLookAhead, numberOfComponents)
+      rowIndexEnd = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
 
+      ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
       lastContentIndex = -1
       for i = rowIndexStart to rowIndexEnd - 1
+        ? " VPN " ; i
         compInfo = m.viewManager.itemScroller.componentInfos[i]
         if compInfo <> invalid
+          ? " DID EXIT "; i
           comp = compInfo.component
           if compInfo.contentIndex <> lastContentIndex
             newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById.delete(comp.id)
             if not comp.isInViewPort
-              ' ? " LIST C"
               comp.isInViewPort = true
             end if
           end if
@@ -145,6 +156,7 @@ namespace ml
       end for
 
       for each key in m.inViewportSubIndexes
+        ? " DID ENTER "; key
         comp = m.inViewportSubIndexes[key]
         comp.listEvent = {
           name: "didExit"

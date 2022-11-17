@@ -82,6 +82,7 @@ namespace ml
                 direction: 1
                 index: comp.index
               }
+              ? " releasing comp.index"
               m.viewManager.releaseCell(comp.index)
             end if
           else
@@ -99,7 +100,7 @@ namespace ml
         for each comp in rowRenderers
           index++
           if comp.id = "#_#phc"
-            ' ? " comp needs to be made!! "; index
+            ? " comp needs to be made!! "; index
             comp = m.viewManager.getCell(index)
           end if
           if comp <> invalid and not comp.isInViewPort
@@ -109,26 +110,10 @@ namespace ml
               direction: 1
               index: comp.index
             }
-            ' newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById[comp.id] = comp
           end if
-          ' newInViewportComponentsById[comp.id] = comp
-          ' m.inViewportComponentsById.delete(comp.id)
         end for
       end for
-      ' for each key in m.inViewportComponentsById
-      '   comp = m.inViewportComponentsById[key]
-      '   if comp.isInViewPort
-      '     ? " CLEARING " ; comp.id
-      '     comp.isInViewPort = false
-      '     comp.listEvent = {
-      '       name: "didExit"
-      '       direction: 1
-      '       index: comp.index
-      '     }
-      '   end if
-      ' end for
-      ' m.inViewportComponentsById = newInViewportComponentsById
     end function
 
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo

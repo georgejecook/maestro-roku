@@ -481,6 +481,7 @@ namespace ml
     end function
 
     private function onKeyPressUp() as boolean
+      ? " KEYPUP"
       if not m.top.visible
         return false
       end if
@@ -490,8 +491,13 @@ namespace ml
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
       if isScrolling
         m.log.info("was already scrolling - ignoring")
-        ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
         'TODO - improve this
+        ' if m.focusIndicatorManager.isDoingFlowFocus
+        '   return true
+        ' end if
+        m.itemScroller.move(1, false, true, true)
+
         return true
       end if
 
@@ -528,6 +534,7 @@ namespace ml
     end function
 
     private function onKeyPressDown() as boolean
+      ? " onkeypdow"
       if not m.top.visible
         return false
       end if
@@ -538,9 +545,11 @@ namespace ml
       ' if m.itemScroller.direction = 1 and isScrolling
       if isScrolling
         ' if false and isScrolling
-        ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
         m.log.info("was already scrolling - ignoring")
-        return true
+        if m.focusIndicatorManager.isDoingFlowFocus
+          return true
+        end if
       end if
 
       if m.itemScroller.canMoveInDirection(1)
@@ -550,6 +559,7 @@ namespace ml
 
         return not m.itemScroller.moveFromPress(1, false)
       else
+        ? " SKIPPING DOWN"
         return false
       end if
     end function
