@@ -290,12 +290,63 @@ namespace ml
           m.applyrenderStateForCell(id, renderStateMap[id])
         end for
       else
-        ' ? "ROW IS NOT !! RENDERED" ; m.row.index
+        ? "ROW IS NOT !! RENDERED" ; m.row.index
         for each id in renderStateMap
           m.applyrenderStateForCell(id, "none")
         end for
       end if
       m.lastRowIsRendered = m.row.isRendered
+    end function
+
+    private function releaseCell(index as integer)
+      item = m.content@.getChild(index)
+      cell = m.renderersByContentId[item.id]
+      if cell <> invalid
+        ' ? "RELEASING THE CELL " ; index
+        m.componentPool@.releaseComponent(cell)
+        m.renderersByContentId[item.id] = m.placeHolderCell
+        m.previousRendereredByContentId.delete(item.id)
+        m.renderedComponents[index] = m.placeHolderCell
+      else
+        'this is almost certainly due to trying to release a cell during setting content
+        ' ? " COULD NOT FIND CELL TO RELEASE" ; id
+      end if
+    end function
+
+
+    function getCell(index as integer)
+      cell = invalid
+      item = m.content@.getChild(index)
+      if item <> invalid
+        cell = m.renderersByContentId[item.id]
+        if cell.id = "#_#phc"
+          ' ? "REPLACING PLACEHOLDER CELL AT INDEX "; index
+          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+          cell = m.getCellForCreation(item, index, settings.compName, true, true)
+          if cell <> invalid
+            ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
+            ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
+            m.renderedComponents[index] = cell
+            m.previousRendereredByContentId.delete(item.id)
+            m.renderersByContentId[item.id] = cell
+            cell.translation = m.rects[index].translation
+            ' might have changed
+            cell.index = index
+            cell.initialState = {
+              row: m.row
+              list: m.owner
+              size: m.rects[index].size
+              content: item
+            }
+
+            cell.visible = true
+            componentConfig = m.cellInfos[index]
+            componentConfig.component = cell
+          end if
+          return cell
+        end if
+      end if
+      return cell
     end function
 
     function applyrenderStateForCell(id as string, renderState as string)
@@ -312,37 +363,10 @@ namespace ml
           cell = m.renderersByContentId[itemId]
           if cell = invalid
             cell = m.previousRendereredByContentId[itemId]
-          end if
-          if cell = invalid
-            settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ' ? "GETTING CELL " ; itemId ; " " ; settings.compName ; " " ; m.__classname
-            cell = m.componentPool@.getComponent(settings.compName)
-
-            if cell <> invalid
-              cell.index = index
-              cell.translation = m.rects[index].translation
-
-              cell.initialState = {
-                row: m.row
-                list: m.owner
-                size: m.rects[index].size
-                content: item
-              }
-
-              cell.visible = true
-              ' cell.visible = isRendered
-
-              ' ? ">>>>>>>> is visible "
-
-              if isRendered
-                ' cell.listEvent = { "name": "didEnter" }
-              end if
-
-              if m.lastScrollEvent <> invalid
-                cell.listEvent = m.lastScrollEvent
-              end if
-
-              m.container.appendChild(cell)
+            if cell = invalid
+              settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+              ' ? "GETTING CELL " ; itemId ; " " ; settings.compName ; " " ; m.__classname
+              cell = m.getCellForCreation(item, index, settings.compName, isRendered, false)
             else
               m.log.error("could not make cell of type ", settings.compName)
             end if
@@ -360,28 +384,68 @@ namespace ml
 
             cell.visible = true
           end if
-          if cell <> invalid
-            ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
-            ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
-            m.renderedComponents.push(cell)
-            m.previousRendereredByContentId.delete(itemId)
-            m.renderersByContentId[itemId] = cell
-          end if
+        end if
+        if cell <> invalid
+          ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
+          ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
+          m.renderedComponents.push(cell)
+          m.previousRendereredByContentId.delete(itemId)
+          m.renderersByContentId[itemId] = cell
+        end if
+      else
+        cell = m.renderersByContentId[itemId]
+        if cell <> invalid
+          ' ? "RELEASING " ; id
+          m.componentPool@.releaseComponent(cell)
+          m.renderersByContentId.delete(itemId)
+          m.previousRendereredByContentId.delete(itemId)
         else
-          cell = m.renderersByContentId[itemId]
-          if cell <> invalid
-            ' ? "RELEASING " ; id
-            m.componentPool@.releaseComponent(cell)
-            m.renderersByContentId.delete(itemId)
-            m.previousRendereredByContentId.delete(itemId)
-          else
-            'this is almost certainly due to trying to release a cell during setting content
-            ' ? " COULD NOT FIND CELL TO RELEASE" ; id
-          end if
+          'this is almost certainly due to trying to release a cell during setting content
+          ' ? " COULD NOT FIND CELL TO RELEASE" ; id
         end if
       end if
       componentConfig = m.cellInfos[index]
       componentConfig.component = cell
+    end function
+
+    private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
+
+    private function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
+      ' ? " GETTING CELL "; index; " isRendered "; isRendered
+      ' if not isRendered and not force'index > 10 and not force
+      if index > 3 and not force
+        ' ? "getting placeholder"
+        return m.placeHolderCell
+      else
+        cell = m.componentPool@.getComponent(compName)
+        if cell <> invalid
+          cell.index = index
+          cell.translation = m.rects[index].translation
+
+          cell.initialState = {
+            row: m.row
+            list: m.owner
+            size: m.rects[index].size
+            content: item
+          }
+
+          cell.visible = true
+          ' cell.visible = isRendered
+
+          ' ? ">>>>>>>> is visible "
+
+          if isRendered
+            ' cell.listEvent = { "name": "didEnter" }
+          end if
+
+          if m.lastScrollEvent <> invalid
+            cell.listEvent = m.lastScrollEvent
+          end if
+
+          m.container.appendChild(cell)
+        end if
+        return cell
+      end if
     end function
 
     override function getRenderer(index as integer)

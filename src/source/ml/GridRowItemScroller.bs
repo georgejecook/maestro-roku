@@ -76,11 +76,15 @@ namespace ml
         for each comp in rowRenderers
           if comp.isInViewPort
             comp.isInViewPort = false
-            comp.listEvent = {
-              name: "didExit"
-              direction: 1
-              index: comp.index
-            }
+            if comp.id <> "#_#phc"
+              comp.listEvent = {
+                name: "didExit"
+                direction: 1
+                index: comp.index
+              }
+              m.viewManager.releaseCell(comp.index)
+            end if
+          else
           end if
         end for
       end for
@@ -91,8 +95,14 @@ namespace ml
       ' newInViewportComponentsById = {}
       for i = notifyStart to notifyEnd
         rowRenderers = m.viewManager.getRenderersInRow(i)
+        index = (i * m.viewManager.numCols) - 1
         for each comp in rowRenderers
-          if not comp.isInViewPort
+          index++
+          if comp.id = "#_#phc"
+            ' ? " comp needs to be made!! "; index
+            comp = m.viewManager.getCell(index)
+          end if
+          if comp <> invalid and not comp.isInViewPort
             comp.isInViewPort = true
             comp.listEvent = {
               name: "didEnter"
