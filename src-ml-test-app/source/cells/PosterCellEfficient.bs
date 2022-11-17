@@ -15,7 +15,7 @@ class PosterCellEfficient extends ml.BaseCell
       translation: [0, 0]
       loadingBitmapUri: "pkg:/images/backgrounds/button-square-bg.9.png"
       failedBitmapUri: "pkg:/images/backgrounds/button-square-bg.9.png"
-      uri: "pkg:/images/backgrounds/button-square-bg.9.png"
+      uri: ""
       loadWidth: 400
       loadHeight: 250
       size: [400, 250]
@@ -23,12 +23,16 @@ class PosterCellEfficient extends ml.BaseCell
     })
   end function
 
+  protected override function cleanup()
+    ? "CLEANUP"
+  end function
+
   protected override function onShowWithContent(content as mc.types.node)
     m.poster.uri = m.content.HDGRIDPOSTERURL
   end function
 
   protected override function onHide()
-    m.poster.uri = m.poster.loadingBitmapUri
+    m.poster.uri = ""'m.poster.loadingBitmapUri
   end function
 
 end class

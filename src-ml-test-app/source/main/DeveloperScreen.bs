@@ -4,21 +4,37 @@ namespace main
   @node("DeveloperScreen", "mv_DeveloperScreen")
   class DeveloperScreen extends mv.debug.DeveloperScreen
 
+    private views = []
+
     protected override function initialize()
       super.initialize()
-      timer = new mc.utils.DebugTimer("make cells")
-      m.global.componentPool@.prebakeComponents(100, "HeroCellEfficient")
-      timer.log("made 100 posters")
-      m.global.componentPool@.prebakeComponents(500, "PosterCellEfficient")
-      timer.log("made 500 posters cells")
-      m.global.componentPool@.prebakeComponents(59, "ml_RowHeader")
-      timer.log("made 59 row headers")
-      m.global.componentPool@.prebakeComponents(20, "ml_GridRow")
-      timer.log("made 20 grid rows")
-      m.global.componentPool@.prebakeComponents(50, "ml_HorizontalRow")
-      timer.log("made 50 horiz rows")
+
     end function
 
+    private function makeViews()
+      timer = new mc.utils.DebugTimer("make cells")
+      for i = 0 to 100
+        ' m.views.push(m.top.createChild("Group"))
+        '   ' m.views.push(m.createSGNode("mv_Poster"))
+        '   ' m.views.push(m.createSGNode("mv_Label"))
+        '   ' m.views.push(m.createSGNode("mv_Rectangle"))
+        '   ' m.views.push(m.createSGNode("mv_Rectangle"))
+        ' m.views.push(m.createSGNode("HeroCellEfficient"))
+        ' m.views.push(m.createSGNode("HeroCellEfficient"))
+        m.views.push(m.top.createChild("HeroCellEfficient"))
+      end for
+      ' m.global.componentPool@.prebakeComponents(1000, "HeroCellEfficient")
+      ' timer.log("made 100 posters")
+      ' m.global.componentPool@.prebakeComponents(500, "PosterCellEfficient")
+      ' timer.log("made 500 posters cells")
+      ' m.global.componentPool@.prebakeComponents(59, "ml_RowHeader")
+      ' timer.log("made 59 row headers")
+      ' m.global.componentPool@.prebakeComponents(20, "ml_GridRow")
+      ' timer.log("made 20 grid rows")
+      ' m.global.componentPool@.prebakeComponents(50, "ml_HorizontalRow")
+      timer.log("finished")
+
+    end function
     protected override function createMenuPages() as mc.types.array
       return [
         m.getDefaultPage()
@@ -34,6 +50,15 @@ namespace main
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     protected function getPage2()
       return [
+        ["Add ", m.makeViews],
+        ["Remove ", function()
+            ? "WILL REMOVE"
+            for each view in m.views
+              view.getParent().removeChild(view)
+            end for
+            m.views = []
+            ? "REMOVED"
+        end function]
         ["List ", function(): m.showScreen(m.createSGNode("ListScreen")): end function]
         ["List Editing (team screen)", function(): m.showScreen(m.createSGNode("TeamScreen")): end function]
         ["Grid Item JumpToItem", function(): m.showScreen(m.createSGNode("FocusOnGridItemScreen")): end function]

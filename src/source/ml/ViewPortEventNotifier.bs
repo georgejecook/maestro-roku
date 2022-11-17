@@ -9,8 +9,9 @@ namespace ml
     private axes = 0
     public delegates = []
 
-    public numberToLookAhead = 8
-    public numberToLookBehind = 3
+    public renderStrategy = 4
+    public numberToLookAhead = 4
+    public numberToLookBehind = 4
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -22,12 +23,7 @@ namespace ml
       m.viewManager = viewManager
       m.container = viewManager.container
       m.axes = viewManager.axes
-      'TODO get these values set from settings
-      if m.viewManager.row <> invalid
-        m.numberToLookAhead = 8
-      else
-        m.numberToLookAhead = 1
-      end if
+      m.onViewManagerUpdate()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -39,6 +35,21 @@ namespace ml
 
       if m.viewManager.delegate <> invalid
         m.delegates.push(m.viewManager.delegate)
+      end if
+
+      settings = m.viewManager.getItemSettings()
+      if settings <> invalid
+        m.renderStrategy = settings.renderStrategy
+        if m.renderStrategy = "all"
+          m.numberToLookAhead = 99999
+          m.numberToLookBehind = 99999
+        end if
+        m.numberToLookAhead = settings.numberItemsToRenderForward
+        m.numberToLookBehind = settings.numberItemsToRenderBack
+      else
+        m.numberToLookAhead = 4
+        m.numberToLookBehind = 4
+        m.renderStrategy = "all"
       end if
     end function
 
@@ -104,8 +115,9 @@ namespace ml
         index = nextComponentInfo.index
       end if
 
-      rowIndexStart = index - m.numberToLookBehind
-      rowIndexEnd = index + m.numberToLookAhead
+      numberOfComponents = m.viewManager.itemScroller.numberOfComponents
+      rowIndexStart = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
+      rowIndexEnd = mc.clamp(0, index + m.numberToLookAhead, numberOfComponents)
 
       lastContentIndex = -1
       for i = rowIndexStart to rowIndexEnd - 1

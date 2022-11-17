@@ -219,8 +219,10 @@ namespace ml
       m.log.info("onContentChange")
 
       if m.content = invalid
+        ? " SETTING INVALID - RESETTING"
         m.content = ml.listMixin.createListContent()
         m.content.id = "invalidContent"
+        m.cleanup()
         return
       end if
 
@@ -239,6 +241,12 @@ namespace ml
           'TODO check case where the content items mc_Array changes entirely
         end if
       end if
+    end function
+
+    private function cleanup()
+      ? " CLEANING UP LIST"
+      m.viewManager.reset()
+      m.focusIndicatorManager@.setNextFocusIndicatorConfig(invalid)
     end function
 
     private function onContentItemsChange(changes as mc.types.array)

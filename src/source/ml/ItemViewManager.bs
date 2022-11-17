@@ -81,7 +81,7 @@ namespace ml
 
     public function reset()
       m.log.info ("resetting base.itemViewManager", m.__classname)
-      ' ? "RESETTING VIEW MANAGER "; m.__classname
+      ? "RESETTING VIEW MANAGER "; m.__classname
 
       m.content = invalid
       m.rects = []
@@ -113,12 +113,16 @@ namespace ml
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
       m.listSettings = m.owner.content.listSettings
-      ' m.container.removeChildren(m.container.getChildren(-1, 1))
-      if m._createRenderers(content) = false
-        m.isRendering = true
-        m.log.info("This viewManager is doing async rendering")
+
+      if content = invalid
+        ? " RESETTING CONTENT"
       else
-        m.onRenderersCreated()
+        if m._createRenderers(content) = false
+          m.isRendering = true
+          m.log.info("This viewManager is doing async rendering")
+        else
+          m.onRenderersCreated()
+        end if
       end if
     end function
 

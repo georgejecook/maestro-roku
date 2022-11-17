@@ -1,11 +1,5 @@
-import "pkg:/source/core/Utils.bs"
-import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
-import "pkg:/source/ml/RowItemScroller.bs"
-import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
-import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/cells/BaseCell.bs"
+import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/Animation.bs"
 
 @node("HeroCellEfficient", "ml_BaseCell")
@@ -25,6 +19,7 @@ class HeroCellEfficient extends ml.BaseCell
 
   function new()
     super()
+    m.createViews()
   end function
 
   protected override function createViews() as void
@@ -34,9 +29,9 @@ class HeroCellEfficient extends ml.BaseCell
     })
     m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
       translation: [0, 0]
-      loadingBitmapUri: "http://via.placeholder.com/1700x700"
-      failedBitmapUri: "http://via.placeholder.com/1700x700"
-      uri: "http://via.placeholder.com/1700x700"
+      ' loadingBitmapUri: "http://via.placeholder.com/1700x700"
+      ' failedBitmapUri: "http://via.placeholder.com/1700x700"
+      ' uri: "http://via.placeholder.com/1700x700"
       loadWidth: m.size[0]
       loadHeight: m.size[1]
       size: m.size
@@ -45,14 +40,14 @@ class HeroCellEfficient extends ml.BaseCell
     m.labelGroup = mc.createSGNode("Group", m.top, "labelGroup", {
 
     })
-    m.textRect = mc.createSGNode("mv_Rectangle", m.labelGroup, "bgRect", {
+    m.textRect = mc.createSGNode("Rectangle", m.labelGroup, "bgRect", {
       size: m.size
       color: "#000000"
       opacity: 0.5
       translation: [0, 250]
       size: [m.size[0], 300]
     })
-    m.label = mc.createSGNode("mv_Label", m.labelGroup, "label", {
+    m.label = mc.createSGNode("Label", m.labelGroup, "label", {
       fontKey: "mediumBold,60"
       horizAlign: "center"
       vertAlign: "center"
@@ -60,6 +55,10 @@ class HeroCellEfficient extends ml.BaseCell
       translation: [0, 300]
       size: [m.size[0], 100]
     })
+    if m.global.fontManager <> invalid and m.global.styleManager <> invalid
+      fontKey = m.global.styleManager@.getStyleValue("~" + "mediumBold,60")
+      m.label.font = m.global.fontManager@.getFontWithKey(fontKey)
+    end if
     m.labelAnim = new mv.animations.Fade(m.labelGroup, 0.2, 1, 0)
   end function
 

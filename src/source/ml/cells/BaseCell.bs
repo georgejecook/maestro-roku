@@ -15,9 +15,6 @@ namespace ml
     @observer("onInitialStateChange")
     public initialState as mc.types.AssocArray
 
-    @observer("onIsPrebaked")
-    public isPrebaked = false
-
     public isInViewPort = false
 
     public listEvent as mc.types.AssocArray
@@ -31,6 +28,8 @@ namespace ml
     protected row as mc.types.node
     protected size as mc.types.array
     protected isContentDisplayed = false
+
+    private isCreatingViewsOnInitialize = true
 
     function new()
       ml.itemDelegateMixin.setDelegate()
@@ -62,14 +61,9 @@ namespace ml
       mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
     end function
 
-    protected function onIsPrebaked(value as boolean)
-      'can do things like:
-      ' m.createViews()
-      ' m.isViewCreated = true
-    end function
-
     private function _createViews()
-      if m.content <> invalid
+      if m.content <> invalid and (not m.isCreatingViewsOnInitialize or m.isInViewPort)
+        ? " CREATE VIEWS"
         m.createViews()
         m.isViewCreated = true
       end if
@@ -90,13 +84,17 @@ namespace ml
       m.isRecyclePending = false
     end function
 
-    protected function onInitialStateChange(state as string)
+    protected function onInitialStateChange(state as mc.types.assocarray)
       m.list = state.list
       m.row = state.row
       m.size = state.size
       m.content = state.content
-      m.isRecyclePending = true
-      m.recycle()
+      if state.content = invalid
+        m.cleanup()
+      else
+        m.isRecyclePending = true
+        m.recycle()
+      end if
     end function
 
     protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
@@ -125,6 +123,11 @@ namespace ml
       'override me!
     end function
 
+    protected function cleanup()
+      'override me!
+      ? "CLEANING UP " ; m.index
+    end function
+
     protected function onContentChange(content as mc.types.node)
       'override me
     end function
@@ -135,7 +138,6 @@ namespace ml
     end function
 
     protected function onHide()
-
       'override me
     end function
 
@@ -149,7 +151,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function onDidExit(direction as integer)
-      ' ? " ON EXIT "; m.index
+      ? " ON EXIT CELL "; m.index
       if m.isContentDisplayed
         m.onHide()
         m.isContentDisplayed = false
@@ -157,7 +159,13 @@ namespace ml
     end function
 
     protected function onDidEnter(direction as integer)
+      ? " ON ENTER CELL "; m.index
       if not m.isContentDisplayed
+        if not m.isViewCreated
+          ? " CREATING VIEW"
+          m.createViews()
+          m.isViewCreated = true
+        end if
         m.onShowWithContent(m.content)
         m.isContentDisplayed = true
       end if
