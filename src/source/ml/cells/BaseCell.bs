@@ -63,7 +63,7 @@ namespace ml
 
     private function _createViews()
       if m.content <> invalid 'and (not m.isCreatingViewsOnInitialize or m.isInViewPort)
-        ? " CREATE VIEWS"
+        ' ? " CREATE VIEWS"
         m.createViews()
         m.isViewCreated = true
       end if
@@ -78,7 +78,7 @@ namespace ml
       m.isContentDisplayed = false
       m.onContentChange(content)
       if m.top.isInViewPort
-        ? " IN VIEW PORT SHOWING "; m.index
+        ' ? " IN VIEW PORT SHOWING "; m.index
         m.onShowWithContent(content)
       end if
       m.isRecyclePending = false
@@ -125,7 +125,7 @@ namespace ml
 
     protected function cleanup()
       'override me!
-      ? "CLEANING UP " ; m.index
+      ' ? "CLEANING UP " ; m.index
     end function
 
     protected function onContentChange(content as mc.types.node)
@@ -151,7 +151,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function onDidExit(direction as integer)
-      ? " ON EXIT CELL "; m.index
+      ' ? " ON EXIT CELL "; m.index
       if m.isContentDisplayed
         m.onHide()
         m.isContentDisplayed = false
@@ -159,7 +159,7 @@ namespace ml
     end function
 
     protected function onDidEnter(direction as integer)
-      ? " ON ENTER CELL "; m.index
+      ' ? " ON ENTER CELL "; m.index
       if not m.isContentDisplayed
         ' if not m.isViewCreated
         '   ? " CREATING VIEW"

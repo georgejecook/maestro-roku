@@ -5,6 +5,8 @@ namespace ml
     public row = invalid
     public lastRowIsRendered = "none"
     public isFlowSupported = false
+    private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
+
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
@@ -107,55 +109,119 @@ namespace ml
       m.lastRowIsRendered = m.row.isRendered
     end function
 
+    private function releaseCell(index as integer)
+      item = m.content@.getChild(index)
+      cell = m.renderersByContentId[item.id]
+      if cell <> invalid and cell.id <> "#_#phc"
+        cell.isInViewPort = false
+        ' ? "RELEASING THE CELL " ; index
+        m.componentPool@.releaseComponent(cell)
+        m.renderersByContentId[item.id] = m.placeHolderCell
+        m.previousRendereredByContentId.delete(item.id)
+
+        'FIXME
+        'TODO don't know which one of these it is
+        m.renderedComponents[index] = m.placeHolderCell
+      end if
+    end function
+
+
+    function getCell(index as integer)
+      cell = invalid
+      item = m.content@.getChild(index)
+      if item <> invalid
+        cell = m.renderersByContentId[item.id]
+        if cell = invalid or cell.id = "#_#phc"
+          ' ? "REPLACING PLACEHOLDER CELL AT INDEX "; index
+          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+          cell = m.getCellForCreation(item, index, settings.compName, true, true)
+          if cell <> invalid
+            ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
+            ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
+
+            'FIXME - which is this?
+            m.renderedComponents[index] = cell
+
+            m.previousRendereredByContentId.delete(item.id)
+            m.renderersByContentId[item.id] = cell
+            cell.translation = m.rects[index].translation
+            ' might have changed
+            cell.index = index
+            cell.initialState = {
+              row: m.row
+              list: m.owner
+              size: m.rects[index].size
+              content: item
+            }
+
+            cell.visible = true
+            componentConfig = m.cellInfos[index]
+            componentConfig.component = cell
+          end if
+          return cell
+        end if
+      end if
+      return cell
+    end function
+
+
+    private function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
+      ' ? " GETTING CELL "; index; " isRendered "; isRendered
+      ' if not isRendered and not force'index > 10 and not force
+      ' if false and not isRendered and not force'index > 10 and not force
+      if not isRendered and not force
+        ' ? "getting placeholder"
+        return m.placeHolderCell
+      else
+        ' ? "getting real cell"
+        cell = m.componentPool@.getComponent(compName)
+        if cell <> invalid
+          cell.index = index
+          cell.translation = m.rects[index].translation
+
+          cell.initialState = {
+            row: m.row
+            list: m.owner
+            size: m.rects[index].size
+            content: item
+          }
+
+          cell.visible = true
+
+          ' ? ">>>>>>>> is visible "
+
+          if isRendered
+            ' cell.listEvent = { "name": "didEnter" }
+          end if
+
+          if m.lastScrollEvent <> invalid
+            cell.listEvent = m.lastScrollEvent
+          end if
+
+          m.container.appendChild(cell)
+        end if
+        return cell
+      end if
+    end function
+
     function applyrenderStateForCell(id as string, renderState as string)
       m.log.verbose("applyrenderStateForCell", id, renderState)
-      ' ? "APPLY RENDER STATE FOR CELL"
+      ' ? "APPLY RENDER STATE FOR CELL " ; id; "renderState" ; renderState
       index = id.toInt()
-      isRendered = m.row.isInViewport
+      isRendered = m.row.isInViewport and renderState = "rendered"
       ' isRendered = m.row.isRendered
       item = m.content@.getChild(index)
       cell = invalid
       if item <> invalid
         itemId = item.id
-        if renderState = "rendered"
+        if isRendered
+          ' if isRendered
           cell = m.renderersByContentId[itemId]
           if cell = invalid
             settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
             ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
-            cell = m.componentPool@.getComponent(settings.compName, 1)
-
-            if cell = invalid
-              cell = m.previousRendereredByContentId[itemId]
-            end if
-            if cell <> invalid
-              cell.index = index
-              cell.translation = m.rects[index].translation
-
-              cell.initialState = {
-                row: m.row
-                rowIndex: m.row.index
-                list: m.owner
-                size: m.rects[index].size
-                content: item
-              }
-
-              cell.visible = true
-              ' cell.visible = isRendered
-
-              ' ? ">>>>>>>> " ; isRendered
-
-              if isRendered
-                cell.listEvent = { "name": "didEnter" }
-              end if
-
-              if m.lastScrollEvent <> invalid
-                cell.listEvent = m.lastScrollEvent
-              end if
-
-              m.container.appendChild(cell)
-            else
-              ' ? ">>ERR no cell for " ; settings.compName
-            end if
+            ' cell = m.getCellForCreation(item, index, settings.compName, isRendered, false)
+            cell = m.getCellForCreation(item, index, settings.compName, true, false)
           else
             cell.translation = m.rects[index].translation
           end if

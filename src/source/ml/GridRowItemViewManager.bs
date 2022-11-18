@@ -18,6 +18,8 @@ namespace ml
     public upScreenPosition = 0
     public downScreenPosition = 0
     private lastFlowDirection = 1
+    private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
+
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
@@ -283,16 +285,16 @@ namespace ml
 
     override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
       m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
-      ? "______________________________ ARSM" ; m.__classname
+      ' ? "______________________________ ARSM" ; m.__classname
       m.renderedComponents = []
       if m.row.isRendered
         for each id in renderStateMap
           m.applyrenderStateForCell(id, renderStateMap[id])
         end for
       else
-        ? "ROW IS NOT !! RENDERED" ; m.row.index
+        ' ? "ROW IS NOT !! RENDERED" ; m.row.index
         for each id in renderStateMap
-          ? " id" ; id
+          ' ? " id" ; id
           m.applyrenderStateForCell(id, "none")
         end for
       end if
@@ -302,15 +304,13 @@ namespace ml
     private function releaseCell(index as integer)
       item = m.content@.getChild(index)
       cell = m.renderersByContentId[item.id]
-      if cell <> invalid
+      if cell <> invalid and cell.id <> "#_#phc"
         ' ? "RELEASING THE CELL " ; index
+        cell.isInViewPort = false
         m.componentPool@.releaseComponent(cell)
         m.renderersByContentId[item.id] = m.placeHolderCell
         m.previousRendereredByContentId.delete(item.id)
         m.renderedComponents[index] = m.placeHolderCell
-      else
-        'this is almost certainly due to trying to release a cell during setting content
-        ' ? " COULD NOT FIND CELL TO RELEASE" ; id
       end if
     end function
 
@@ -369,8 +369,6 @@ namespace ml
               settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
               ' ? "GETTING CELL " ; itemId ; " " ; settings.compName ; " " ; m.__classname
               cell = m.getCellForCreation(item, index, settings.compName, isRendered, false)
-            else
-              m.log.error("could not make cell of type ", settings.compName)
             end if
             m.previousRendereredByContentId.delete(itemId)
           else
@@ -410,14 +408,13 @@ namespace ml
       componentConfig.component = cell
     end function
 
-    private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
-
     private function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
       ' ? " GETTING CELL "; index; " isRendered "; isRendered
       ' if not isRendered and not force'index > 10 and not force
       ' if false and not isRendered and not force'index > 10 and not force
-      if isRendered and index > 3 and not force
-        ? "getting placeholder"
+      if (not isRendered or index > 3) and not force
+        ' if not isRendered or index > 3 and not force
+        ' ? "getting placeholder"
         return m.placeHolderCell
       else
         cell = m.componentPool@.getComponent(compName)
@@ -433,9 +430,6 @@ namespace ml
           }
 
           cell.visible = true
-          ' cell.visible = isRendered
-
-          ' ? ">>>>>>>> is visible "
 
           if isRendered
             ' cell.listEvent = { "name": "didEnter" }

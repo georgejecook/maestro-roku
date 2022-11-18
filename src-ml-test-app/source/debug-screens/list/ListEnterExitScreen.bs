@@ -16,7 +16,8 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 50
+  private numberOfRows = 100
+  ' private numberOfRows = 5
   private defaultCellType = "PosterCellEfficient"
 
   'state
@@ -91,6 +92,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.renderStrategy = "dynamic"
     listSettings.numberItemsToRenderAfter = 4
     listSettings.numberItemsToRenderBefore = 2
+    ' listSettings.numberItemsToRenderAfter = 1
+    ' listSettings.numberItemsToRenderBefore = 1
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
@@ -127,11 +130,11 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    showHero = true
+    showHero = false
     showComplex = false
     showNormal = true
 
-    showGrids = false
+    showGrids = true
 
     'TODO - add normal rows around this
     for i = 0 to m.numberOfRows
@@ -151,7 +154,7 @@ class ListEnterExitScreen extends mv.BaseScreen
       else if showComplex and (i = 3 or i = 8 or i = 14)
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRowEfficient", 700)
 
-      else if showGrids 'and (i = 2 or i = 3 or i = 4 or i = 6 or i = 9)
+      else if showGrids and (i = 4 or i = 20 or i = 30 or i = 40 or i = 50)
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
         if i = -2
           numCols = 1
@@ -162,14 +165,14 @@ class ListEnterExitScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 250, 5, 50)
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
-        if i = 3
-          numItems = 100
-        else
-          numItems = 50
-        end if
-        numItems = 250
+        ' if i = 3
+        '   numItems = 100
+        ' else
+        '   numItems = 50
+        ' end if
+        numItems = 50
 
-      else if showNormal and (i = 2 or i = 3 or i = 20 or i = 30 or i = 40)
+      else if showNormal 'and (i = 2 or i = 3 or i = 20 or i = 30 or i = 40)
         focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
         ' focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, focusSettings)
@@ -185,7 +188,7 @@ class ListEnterExitScreen extends mv.BaseScreen
         ' else if i = 13 or i = 17
         '   row.settings.screenPos = 50
         ' end if
-        numItems = 20
+        numItems = 50
       end if
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400

@@ -60,21 +60,24 @@ namespace ml
     end function
 
     function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
-      if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
-        ? "VPN NO VISIBLE COMPONENTS"
+      'only for list!!!
+
+      if nextComponentInfo = invalid or m.viewManager.visibleItems = invalid
+        ' ? "VPN NO VISIBLE COMPONENTS"
         return
       end if
 
-      'TODO - move this into a focus setting
+      ' 'TODO - move this into a focus setting
       isSendingExit = true
 
       index = m.viewManager.itemScroller.index
       rowIndexStart = index - m.numberToLookBehind
       rowIndexEnd = index + m.numberToLookAhead
-      ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
+      ' ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
       for i = rowIndexStart to rowIndexEnd
-        comp = m.viewManager.visibleComponents[i]
-        ? "VPN " ; i
+        ' content = m.viewManager.visibleItems[i]
+        comp = m.viewManager.getRenderer(i)
+        ' ? "VPN " ; i
         if comp <> invalid and comp.index <> invalid
           index = comp.index
           isInViewPort = rowIndexStart < index and index < rowIndexEnd
@@ -96,7 +99,7 @@ namespace ml
               index: index
             }
 
-            ? "VPN " ; i ; " isInViewPort "; isInViewPort
+            ' ? "VPN " ; i ; " isInViewPort "; isInViewPort
           end if
           ' compStates[item.id] = isInViewP
         end if
@@ -128,21 +131,22 @@ namespace ml
       rowIndexStart = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
       rowIndexEnd = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
 
-      ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
+      ' ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
       lastContentIndex = -1
       for i = rowIndexStart to rowIndexEnd - 1
-        ? " VPN " ; i
+        ' ? " VPN " ; i
         compInfo = m.viewManager.itemScroller.componentInfos[i]
         if compInfo <> invalid
-          ? " DID EXIT "; i
           comp = compInfo.component
           if compInfo.contentIndex <> lastContentIndex
+            ' ? " ITS A NEW COMPONENT"
             newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById.delete(comp.id)
             if not comp.isInViewPort
               comp.isInViewPort = true
             end if
           end if
+          ' ? " DID ENTER "; i
           comp.listEvent = {
             name: "didEnter"
             direction: direction
@@ -156,7 +160,7 @@ namespace ml
       end for
 
       for each key in m.inViewportSubIndexes
-        ? " DID ENTER "; key
+        ' ? " DID EXIT "; key
         comp = m.inViewportSubIndexes[key]
         comp.listEvent = {
           name: "didExit"
@@ -165,9 +169,12 @@ namespace ml
         }
       end for
 
+      ' ? " VPN "; m.inViewportComponentsById
+      ' ? " VPN NEW "; newInViewportComponentsById
       for each key in m.inViewportComponentsById
         comp = m.inViewportComponentsById[key]
         if comp.isInViewPort
+          ' ? " DID EXIT "; key
           comp.isInViewPort = false
           comp.listEvent = {
             name: "didExit"
