@@ -1,5 +1,6 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ItemViewManager.bs"
+import "pkg:/source/ml/ItemScroller.bs"
 
 namespace ml
   class ViewPortEventNotifier extends mc.BaseClass
@@ -19,7 +20,7 @@ namespace ml
 
 
     function new(viewManager as ml.ItemViewManager)
-      super("ItemScroller")
+      super("ViewPortEventNotifier")
       m.viewManager = viewManager
       m.container = viewManager.container
       m.axes = viewManager.axes
@@ -59,61 +60,80 @@ namespace ml
 
     end function
 
-    function notifyViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
-      'only for list!!!
+    protected renderedIndexes = []
 
-      if nextComponentInfo = invalid or m.viewManager.visibleItems = invalid
+    function notifyViewportEvents(direction as integer, isRowInViewport as boolean, isGrid = false as boolean, gridIndex = -1 as integer) as void
+      'for non-lists
+      if m.viewManager.visibleItems = invalid
         ' ? "VPN NO VISIBLE COMPONENTS"
         return
       end if
 
-      ' 'TODO - move this into a focus setting
-      isSendingExit = true
+      if isGrid
+        return
+      end if
+      oldRendereredCellInfosByIndex = {}
+      oldRendereredCellInfosByIndex.append(m.viewManager.rendereredCellInfosByIndex)
 
-      index = m.viewManager.itemScroller.index
-      rowIndexStart = index - m.numberToLookBehind
-      rowIndexEnd = index + m.numberToLookAhead
-      ' ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
-      for i = rowIndexStart to rowIndexEnd
-        ' content = m.viewManager.visibleItems[i]
-        comp = m.viewManager.getRenderer(i)
-        ' ? "VPN " ; i
-        if comp <> invalid and comp.index <> invalid
-          index = comp.index
-          isInViewPort = rowIndexStart < index and index < rowIndexEnd
+      if not isRowInViewport
+        ' ? " NOTIFYING ALL ARE REMOVED"
+        indexes = m.viewManager.getRenderedIndexes()
 
-          ' wasInViewPort = comp.isInViewPort
-
-          'Can change policy here..
-          ' if isInViewPort and isInViewPort <> comp.isInViewPort
-          if isInViewPort <> comp.isInViewPort and (isInViewPort or isSendingExit)
-            comp.isInViewPort = isInViewPort
-            if isInViewPort
-              eventName = "didEnter"
-            else
-              eventName = "didExit"
-            end if
-            comp.listEvent = {
-              name: eventName
-              direction: direction
-              index: index
-            }
-
-            ' ? "VPN " ; i ; " isInViewPort "; isInViewPort
-          end if
-          ' compStates[item.id] = isInViewP
+        m.viewManager.notifyExitEvent(indexes)
+      else
+        'FIXME THIS IS HOSED.
+        'PERHAPS DONT DO GRID HERE AT ALL.. LET IT JUST BE HANDLED BY LIST
+        ' ? "+>>++>+>+>+>+>+>+>+>+>+>+>+>+>++>"
+        ' ? "cell info ids BEFORE "; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+        ' ? "indexes BEFORE "; formatJson(m.viewManager.renderersByContentId.keys())
+        ' ? "calculating what is shown"
+        'TODO GET DELTA HERE
+        ? " NVE isGrid " ; isGrid
+        enterIndexes = []
+        if isGrid = invalid
+          startIndex = ((gridIndex * m.viewManager.numCols) - 1) - (m.numberToLookBehind * m.viewManager.numCols)
+          endIndex = (gridIndex * m.viewManager.numCols) - 1 + (m.numberToLookAhead * m.viewManager.numCols)
+        else
+          index = m.viewManager.itemScroller.index
+          startIndex = index - m.numberToLookBehind
+          endIndex = index + m.numberToLookAhead
         end if
-      end for
-      events = []
-      for each delegate in m.delegates
-        delegate.viewportEvents = events
-      end for
+        startIndex = mc.clamp(startIndex, 0, m.viewManager.numberOfItems)
+        endIndex = mc.clamp(endIndex, 0, m.viewManager.numberOfItems)
+        ' ? " VPN "; startIndex ; " TO " ; endIndex
+        for index = startIndex to endIndex
+          ' content = m.viewManager.visibleItems[i]
+          isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
+          ' ? " Is in viewport "; isInViewPort
+          comp = m.viewManager.getRenderer(index, isInViewPort)
+          if isInViewPort
+            if comp <> invalid
+              enterIndexes.push(index)
+            end if
+            oldRendereredCellInfosByIndex.delete(index.toStr())
+          end if
+        end for
+
+        exitEventIndexes = []
+        for each key in oldRendereredCellInfosByIndex
+          cellInfo = oldRendereredCellInfosByIndex[key]
+          exitEventIndexes.push(cellInfo.index)
+        end for
+        'rendereredCellInfosByIndex IS BROKEN
+        ' ? " >>>>>>>>>>>>>>>>>>>>> "
+        ' ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+        ' ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
+        ' ? " >>>>>>>>>>>>>>>>>>>>>"
+        m.viewManager.notifyExitEvent(exitEventIndexes)
+        m.viewManager.notifyEnterEvent(enterIndexes)
+      end if
     end function
 
     private inViewportComponentsById = {}
     private inViewportSubIndexes = {}
 
-    function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, isMoving as boolean) as void
+    function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer) as void
+      'FIXME - THIS IS CALLED TOO MUCH...SHOULD ONLY CALL NO STOPPING THE FOCUS.. WE WILL NEVER MAKE IT JIT
       if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
@@ -127,31 +147,33 @@ namespace ml
         index = nextComponentInfo.index
       end if
 
+      'TODO - optimize this.. should not need to call it if all rendered and nothing has changed
       numberOfComponents = m.viewManager.itemScroller.numberOfComponents
-      rowIndexStart = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
-      rowIndexEnd = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
+      startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
+      endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
 
-      ' ? " VPN "; rowIndexStart ; " TO " ; rowIndexEnd
+      ? " VPN "; startIndex ; " TO " ; endIndex
       lastContentIndex = -1
-      for i = rowIndexStart to rowIndexEnd - 1
+      for i = startIndex to endIndex - 1
         ' ? " VPN " ; i
         compInfo = m.viewManager.itemScroller.componentInfos[i]
-        if compInfo <> invalid
-          comp = compInfo.component
-          if compInfo.contentIndex <> lastContentIndex
-            ' ? " ITS A NEW COMPONENT"
-            newInViewportComponentsById[comp.id] = comp
-            m.inViewportComponentsById.delete(comp.id)
-            if not comp.isInViewPort
-              comp.isInViewPort = true
-            end if
+        comp = compInfo.component
+        if compInfo.contentIndex <> lastContentIndex
+          ' ? " ITS A NEW COMPONENT"
+          newInViewportComponentsById[comp.id] = comp
+          m.inViewportComponentsById.delete(comp.id)
+
+          'THIS NEEDS FIXING HERE - DO NOT WANT TO CALL THIS TOO MUCH!
+          if not comp.isInViewPort
+            comp.isInViewPort = true
           end if
-          ' ? " DID ENTER "; i
+          ? " DID ENTER "; i
           comp.listEvent = {
             name: "didEnter"
             direction: direction
             index: compInfo.componentIndex
           }
+          ' end if
           subIndexKey = compInfo.componentIndex.toStr()
           ' ? ">>> SUB INDEX KEY IS " ; subIndexKey
           newInViewportSubIndexes[subIndexKey] = comp
@@ -160,7 +182,7 @@ namespace ml
       end for
 
       for each key in m.inViewportSubIndexes
-        ' ? " DID EXIT "; key
+        ? " SUB INDEX DID EXIT "; key
         comp = m.inViewportSubIndexes[key]
         comp.listEvent = {
           name: "didExit"
@@ -174,7 +196,7 @@ namespace ml
       for each key in m.inViewportComponentsById
         comp = m.inViewportComponentsById[key]
         if comp.isInViewPort
-          ' ? " DID EXIT "; key
+          ? " DID EXIT "; key
           comp.isInViewPort = false
           comp.listEvent = {
             name: "didExit"

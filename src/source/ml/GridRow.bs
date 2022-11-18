@@ -136,9 +136,15 @@ namespace ml
     end function
 
     protected override function onIsRenderedChange()
-      if m.viewManager <> invalid
-        m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index)
-      end if
+      ' if m.viewManager <> invalid
+      '   if m.isRendered
+      '     'TODO get correct indexes
+      '     m.itemScroller.notifyEnterEvent(m.itemScroller.focusIndex, m.itemScroller.focusIndex + 4)
+      '   else
+      '     'TODO get correct indexes
+      '     m.itemScroller.notifyExitEvent(m.itemScroller.focusIndex, m.itemScroller.focusIndex + 4)
+      '   end if
+      ' end if
     end function
 
     public override function updateChangedItems()
@@ -157,12 +163,12 @@ namespace ml
           return
         end if
 
-        ' ? " GRID GOT " ; formatJson(event)
         if isPropagatedToAll
           if event.name = "didExit"
-            m.itemScroller.notifyExitEvent(event.index, event.index)
+            ? " GRID EXIT " ; event.index
+            m.viewManager.notifyExitEvent(event.index, event.index)
           else if event.name = "didEnter"
-            m.itemScroller.notifyEnterEvent(event.index, event.index)
+            m.viewManager.notifyEnterEvent(event.index, event.index)
           end if
         end if
       else

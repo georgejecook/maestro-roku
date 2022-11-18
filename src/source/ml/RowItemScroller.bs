@@ -17,49 +17,6 @@ namespace ml
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    function notifyExitEvent() as void
-      ' ? " NOTIFY ROW EXIT"
-      for i = m.focusedIndex to m.focusedIndex + 4 'TOTAL hack
-        comp = m.viewManager.getRenderer(i)
-        if comp <> invalid
-          ' ? " notifying exit   on "; comp.id
-          if comp.id <> "#_#phc"
-            if comp.isInViewPort
-              comp.isInViewPort = false
-              comp.listEvent = {
-                name: "didExit"
-                direction: 1
-                index: comp.index
-              }
-              m.viewManager.releaseCell(comp.index)
-            end if
-          end if
-        end if
-      end for
-    end function
-
-    function notifyEnterEvent() as void
-      ' newInViewportComponentsById = {}
-      for i = m.focusedIndex to m.focusedIndex + 4 'TOTAL hack
-        comp = m.viewManager.getRenderer(i)
-        ' ? " CHECKING INDEX "; i ; " get comp" ; comp
-        if comp = invalid or comp.id = "#_#phc"
-          comp = m.viewManager.getCell(i)
-        end if
-        if comp <> invalid
-          ' ? " notifying enter on "; comp.id
-          if not comp.isInViewPort
-            comp.isInViewPort = true
-            comp.listEvent = {
-              name: "didEnter"
-              direction: 1
-              index: comp.index
-            }
-          end if
-        end if
-      end for
-    end function
-
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
       if isFromListScroll
         return m.viewManager.cellInfos[m.index]

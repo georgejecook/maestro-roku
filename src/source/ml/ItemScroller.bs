@@ -62,7 +62,6 @@ namespace ml
     private nextScrollLocation = 0
     private postHopIndex = 0
     private isScrollCancelled = false
-    protected sendEnterExit = false
 
     protected previousScreenPos = 0
 
@@ -94,7 +93,6 @@ namespace ml
         m.animSpeed = 0.05
         m.longPressEndItemOffset = 0
       end if
-      m.sendEnterExit = mc.getPath(m.viewManager.owner, "content.listSettings.sendEnterExit", false)
       m.viewPortEventNotifier.onViewManagerUpdate()
       m.getComponentInfos(true)
     end function
@@ -124,7 +122,6 @@ namespace ml
 
       m.setFocusIndex(index, false, false)
       ' m.moveToIndex(index, false, true, 0)
-      ' m.viewManager.updateRenderedComponents(m.direction, index)
     end function
 
     public function cancelScrolling()
@@ -348,7 +345,6 @@ namespace ml
         ' ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
         m.toggleScrolling(true)
         m.setFocusIndex(m.index, true)
-        m.viewManager.updateRenderedComponents(m.direction, m.index)
 
         m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
         m.moveAnimation.start()
@@ -365,7 +361,6 @@ namespace ml
         ' ? "nextScreenpos " ; m.nextScreenPos ; " index " ; index
 
         m.updateSrollOffsetFraction(1)
-        m.viewManager.updateRenderedComponents(m.direction, index)
         ' ? " MTI GG"
         if not m.disableNonAnimatedFocusUpdates
           ' ? " MTI HH"
@@ -422,7 +417,6 @@ namespace ml
         ' ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
         ' m.toggleScrolling(true)
         ' m.setFocusIndex(m.index, true)
-        m.viewManager.updateRenderedComponents(m.direction, m.index)
         m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
         m.moveAnimation.start()
       else
@@ -435,7 +429,6 @@ namespace ml
         index = m.nextComponentInfo.index
         ' ? " NI " ; index
         m.updateSrollOffsetFraction(1)
-        m.viewManager.updateRenderedComponents(m.direction, index)
 
         m.setFocusIndex(index, false, true)
         m.forceFocusOnIndex(index, true)
@@ -796,9 +789,7 @@ namespace ml
 
       m.focusedItem = m.viewManager.visibleItems[m.componentInfo.contentIndex]
 
-      m.viewManager.updateRenderedComponents(m.direction, m.index)
-
-      m.notifyViewportEvents(m.direction, true)
+      m.notifyViewportEvents(m.direction)
 
       if notifyFocusManager
         m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)
@@ -807,11 +798,11 @@ namespace ml
       m.setFocusOnRenderer(isMoving)
     end function
 
-    protected function notifyViewportEvents(direction as integer, isMoving as boolean)
-      if m.sendEnterExit
-        ' ? " SENDING ENTER EXIT"
-        m.viewPortEventNotifier.notifyViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, true)
-      end if
+    protected function notifyViewportEvents(direction as integer)
+      'bs:disable-next-line
+      isInViewPort = m.viewManager.row = invalid or m.viewManager.row.isInViewPort
+
+      m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort)
     end function
 
     function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean, notifyOwner = true as boolean) as void
@@ -831,7 +822,6 @@ namespace ml
       m.setNextComponentInfo(m.componentInfos[index])
       ' ? " ::::::::::::::: index "; m.nextIndex
       ' ? " ::::::::::::::: NEXT componentINfo "; m.nextComponentInfo.contentIndex
-      ' m.viewManager.updateRenderedComponents(m.direction, m.index)
       ' m.notifyViewportEvents(true)
 
       if notifyFocusManager

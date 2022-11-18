@@ -333,25 +333,6 @@ namespace ml
       m.numberOfVisibleItems = m.visibleComponents.count()
     end function
 
-    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-      ' ? " APPLYING STATE MAP " ; formatJson(renderStateMap)
-      for each id in renderStateMap
-        comp = m.visibleComponents[id.toInt()]
-
-        if comp <> invalid and comp.renderState <> renderStateMap[id]
-          comp.renderState = renderStateMap[id]
-          if comp.renderState = "rendered"
-            m.renderedComponents.push(comp)
-          end if
-          comp.isRendered = comp.renderState = "rendered"
-          ' ? " set comp.isRendered "; comp.isRendered
-        else
-          ' ? "ERROR could not find visible comp for "; id
-        end if
-      end for
-
-    end function
-
     override function getFocusSettings()
       return m.content.focusSettings
     end function
@@ -426,80 +407,7 @@ namespace ml
     end function
 
     public function getItemInfoForIndex(rowIndex as integer, cellIndex as integer)
-
     end function
-
-
-    override function getRenderedIndexes(direction as integer, index as integer) as mc.types.assocarray
-      'TODO - upgrade to use componentInfos
-
-      info = invalid
-
-      if m.itemScroller.componentInfos <> invalid
-        if index >= m.itemScroller.componentInfos.count()
-          index = m.itemScroller.componentInfos.count() - 1
-        end if
-        if m.listSettings.lookAheadDistance = -1
-          ' ? " list is rendering everything" ; m.itemScroller.componentInfos.count()
-          return {
-            startIndex: 0
-            endIndex: m.itemScroller.componentInfos.count()
-          }
-        end if
-        info = m.itemScroller.componentInfos[index]
-      end if
-
-      if info = invalid
-        ' ? " LIST HAS NO componentInfos CANNOT RENDER ANYTHING" ; index
-        return {
-          startIndex: -1
-          endIndex: -1
-        }
-      end if
-      indexPos = abs(info.getScrollOffset(direction))
-
-      if direction < 0
-        beforePos = indexPos - m.lookAheadDistance
-        afterPos = indexPos + m.lookBehindDistance
-      else
-        afterPos = indexPos + m.lookAheadDistance
-        beforePos = indexPos - m.lookBehindDistance
-      end if
-
-      if beforePos < 0
-        beforePos = 0
-      end if
-
-      if afterPos < 0
-        afterPos = 0
-      end if
-
-      'NOTE THERE IS AN ISSUE WHERE TWO VIEWS ARE AT THE SAME POS WITH DIFFERENT SCREEN OFFSETS
-      ' 'bs:disable-next-line
-      indexes = {
-        startIndex: m.getIndexAtPosition(beforePos, direction) - 1
-        endIndex: m.getIndexAtPosition(afterPos, direction) + 1
-      }
-      ' ? " before Pos" ; beforePos
-      ' ? " after Pos" ; afterPos
-      ' ? "COMP COUNT" ; m.itemScroller.componentInfos.count()
-      ' indexes = {
-      '   startIndex: m.itemScroller.index - 3
-      '   endIndex: m.itemScroller.index + 5
-      ' }
-
-      'couple of hacky fixes - need to work out how it get's in this state
-      if indexes.startIndex = indexes.endIndex and indexes.startIndex = 0
-        indexes.endIndex = 1
-      end if
-      if indexes.startIndex = indexes.endIndex and indexes.startIndex = 1
-        indexes.startIndex = 0
-      end if
-      ' ? "LIST LIST LIST"
-      ' ? formatJson(indexes)
-      return indexes
-    end function
-
 
     override function getIndexAtPosition(position as integer, direction as integer)
       p = abs(position)

@@ -16,8 +16,8 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 100
-  ' private numberOfRows = 5
+  ' private numberOfRows = 30
+  private numberOfRows = 2
   private defaultCellType = "PosterCellEfficient"
 
   'state
@@ -28,7 +28,9 @@ class ListEnterExitScreen extends mv.BaseScreen
   private cellSettings
   private loadingIndicator
   private scrollSpeed = 2
+  ' private scrollSpeed = 4 'roku 2
   private button as mc.types.node
+  private label as mc.types.node
 
   function new()
     super("ListEnterExitScreen")
@@ -52,14 +54,22 @@ class ListEnterExitScreen extends mv.BaseScreen
       width: size[0]
       height: size[1]
     })
-    m.button = m.createSGNode("mv_Button", m.top, "list", {
+    m.button = m.createSGNode("mv_Button", m.top, "button", {
       text: "create list"
       autosize: true
     })
+
+    m.label = m.createSGNode("mv_Label", m.top, "label", {
+      translation: [500, 0]
+      size: [1000, 50]
+      fontKey: "mediumbold,30"
+      color: "#ffffff"
+    })
+
     m.observe(m.button.selected, m.onButtonClick, "none")
     mioc.setInstance("list", m.list)
     m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
-      isActive: true
+      isActive: false
       width: 1920
       height: 1080
       backgroundVisible: false
@@ -69,6 +79,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onButtonClick()
+    m.loadingIndicator.isActive = true
     m.onShowList()
     m.setFocus(m.list)
   end function
@@ -82,7 +93,6 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, m.focusSettings, 30)
     listSettings = ml.listMixin.createListSettings(-1, -1)
-    listSettings.sendEnterExit = true
     listSettings.sendScrollStartStop = false
     listSettings.sendScrollUpdate = false
     listSettings.rowCreationStrategy = "async"
@@ -132,12 +142,12 @@ class ListEnterExitScreen extends mv.BaseScreen
     content = []
     showHero = false
     showComplex = false
-    showNormal = true
+    showNormal = false
 
     showGrids = true
 
     'TODO - add normal rows around this
-    for i = 0 to m.numberOfRows
+    for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
       numItems = 20
@@ -154,7 +164,7 @@ class ListEnterExitScreen extends mv.BaseScreen
       else if showComplex and (i = 3 or i = 8 or i = 14)
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRowEfficient", 700)
 
-      else if showGrids and (i = 4 or i = 20 or i = 30 or i = 40 or i = 50)
+      else if showGrids 'and (i = 4 or i = 20 or i = 30 or i = 40 or i = 50)
         gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
         if i = -2
           numCols = 1
@@ -188,8 +198,8 @@ class ListEnterExitScreen extends mv.BaseScreen
         ' else if i = 13 or i = 17
         '   row.settings.screenPos = 50
         ' end if
-        numItems = 50
       end if
+      numItems = 50
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
       content.push(row)
@@ -328,14 +338,21 @@ class ListEnterExitScreen extends mv.BaseScreen
   '++ lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  private updateInfoTimeout as mc.types.node
+
   protected override function onShow()
     super.onShow()
     m.list.isHidden = false
+    m.updateInfoTimeout = m.setInterval(function()
+      pool = m.global.componentPool@.getComponentPool("PosterCellEfficient")
+      m.label.text = `cells created: ${pool.numberOfComponentsInPool} in use: ${pool.usedComponentsById.count()}`
+    end function, 1)
     m.setFocus(m.button)
   end function
 
   protected override function onHide()
     super.onHide()
+    m.cancelInterval(m.updateInfoTimeout)
     m.list.isHidden = true
   end function
 

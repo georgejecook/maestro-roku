@@ -279,187 +279,6 @@ namespace ml
       return new ml.ComponentInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
-    override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
-      return true
-    end function
-
-    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-      m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
-      ' ? "______________________________ ARSM" ; m.__classname
-      m.renderedComponents = []
-      if m.row.isRendered
-        for each id in renderStateMap
-          m.applyrenderStateForCell(id, renderStateMap[id])
-        end for
-      else
-        ' ? "ROW IS NOT !! RENDERED" ; m.row.index
-        for each id in renderStateMap
-          ' ? " id" ; id
-          m.applyrenderStateForCell(id, "none")
-        end for
-      end if
-      m.lastRowIsRendered = m.row.isRendered
-    end function
-
-    private function releaseCell(index as integer)
-      item = m.content@.getChild(index)
-      cell = m.renderersByContentId[item.id]
-      if cell <> invalid and cell.id <> "#_#phc"
-        ' ? "RELEASING THE CELL " ; index
-        cell.isInViewPort = false
-        m.componentPool@.releaseComponent(cell)
-        m.renderersByContentId[item.id] = m.placeHolderCell
-        m.previousRendereredByContentId.delete(item.id)
-        m.renderedComponents[index] = m.placeHolderCell
-      end if
-    end function
-
-
-    function getCell(index as integer)
-      cell = invalid
-      item = m.content@.getChild(index)
-      if item <> invalid
-        cell = m.renderersByContentId[item.id]
-        if cell.id = "#_#phc"
-          ' ? "REPLACING PLACEHOLDER CELL AT INDEX "; index
-          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-          cell = m.getCellForCreation(item, index, settings.compName, true, true)
-          if cell <> invalid
-            ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
-            ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
-            m.renderedComponents[index] = cell
-            m.previousRendereredByContentId.delete(item.id)
-            m.renderersByContentId[item.id] = cell
-            cell.translation = m.rects[index].translation
-            ' might have changed
-            cell.index = index
-            cell.initialState = {
-              row: m.row
-              list: m.owner
-              size: m.rects[index].size
-              content: item
-            }
-
-            cell.visible = true
-            componentConfig = m.cellInfos[index]
-            componentConfig.component = cell
-          end if
-          return cell
-        end if
-      end if
-      return cell
-    end function
-
-    function applyrenderStateForCell(id as string, renderState as string)
-      m.log.verbose("applyrenderStateForCell", id, renderState)
-      index = id.toInt()
-      isRendered = m.row.isInViewport
-      item = m.content@.getChild(index)
-
-      cell = invalid
-      if item <> invalid
-        itemId = item.id
-        ' ? " GRID===========================" ; itemid
-        if isRendered
-          ' if renderState = "rendered"
-          cell = m.renderersByContentId[itemId]
-          if cell = invalid
-            cell = m.previousRendereredByContentId[itemId]
-            if cell = invalid
-              settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-              ' ? "GETTING CELL " ; itemId ; " " ; settings.compName ; " " ; m.__classname
-              cell = m.getCellForCreation(item, index, settings.compName, isRendered, false)
-            end if
-            m.previousRendereredByContentId.delete(itemId)
-          else
-            cell.translation = m.rects[index].translation
-            ' might have changed
-            cell.index = index
-            cell.initialState = {
-              row: m.row
-              list: m.owner
-              size: m.rects[index].size
-              content: item
-            }
-
-            cell.visible = true
-          end if
-        end if
-        if cell <> invalid
-          ' ? " SET cell at index "; index ;" to " ; itemId; " " ; item.title
-          ' ? " RENDERED COMPS IS NOW len" ; m.renderedComponents.count()
-          m.renderedComponents.push(cell)
-          m.previousRendereredByContentId.delete(itemId)
-          m.renderersByContentId[itemId] = cell
-        end if
-      else
-        cell = m.renderersByContentId[itemId]
-        if cell <> invalid
-          ' ? "RELEASING " ; id
-          m.componentPool@.releaseComponent(cell)
-          m.renderersByContentId.delete(itemId)
-          m.previousRendereredByContentId.delete(itemId)
-        else
-          'this is almost certainly due to trying to release a cell during setting content
-          ' ? " COULD NOT FIND CELL TO RELEASE" ; id
-        end if
-      end if
-      componentConfig = m.cellInfos[index]
-      componentConfig.component = cell
-    end function
-
-    private function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
-      ' ? " GETTING CELL "; index; " isRendered "; isRendered
-      ' if not isRendered and not force'index > 10 and not force
-      ' if false and not isRendered and not force'index > 10 and not force
-      if (not isRendered or index > 3) and not force
-        ' if not isRendered or index > 3 and not force
-        ' ? "getting placeholder"
-        return m.placeHolderCell
-      else
-        cell = m.componentPool@.getComponent(compName)
-        if cell <> invalid
-          cell.index = index
-          cell.translation = m.rects[index].translation
-
-          cell.initialState = {
-            row: m.row
-            list: m.owner
-            size: m.rects[index].size
-            content: item
-          }
-
-          cell.visible = true
-
-          if isRendered
-            ' cell.listEvent = { "name": "didEnter" }
-          end if
-
-          if m.lastScrollEvent <> invalid
-            cell.listEvent = m.lastScrollEvent
-          end if
-
-          m.container.appendChild(cell)
-        end if
-        return cell
-      end if
-    end function
-
-    override function getRenderer(index as integer)
-      if m.content <> invalid
-        item = m.content@.getChild(index)
-        if item <> invalid
-          return m.renderersByContentId[item.id]
-        else
-          ' m.log.error("ERROR could not find renderer for ", index)
-          ' ? " GRID COULD NOT GET RENDERER FOR index" ; index
-          return invalid
-        end if
-      else
-        return invalid
-      end if
-    end function
-
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
       if m.isScrolling = isScrolling
         return
@@ -519,43 +338,6 @@ namespace ml
       end if
     end function
 
-    override function getComponentsInViewPort(startOffset as integer)
-      compStates = {}
-      'NOTE - for now, all grid items are on screen - we can tighten it up later
-
-      ' sStart = m.screenRect.translation[m.axes] + startOffset
-      ' sEnd = sStart + m.screenRect.size[m.axes]
-
-      for each comp in m.renderedComponents
-        if comp.index <> invalid
-          cRect = m.rects[comp.index]
-          if cRect <> invalid
-            compStates[comp.id] = true
-            'TODO - minimize what is in view port
-            '   cStart = cRect.translation[m.axes]
-            '   cEnd = cStart + cRect.size[m.axes]
-            '   if (cStart >= sStart and cStart <= sEnd) or (cEnd >= sStart and cEnd <= sEnd)
-            '     compStates[comp.id] = true
-            '   else
-            '     compStates[comp.id] = false
-            '   end if
-          end if
-        else
-          ' ? "comp index not set!"
-        end if
-        ' m.log.info(compStates[comp.id], "sStart", sStart, "sEnd", sENd, "cStart", cStart, "cEnd", cENd)
-      end for
-
-      return compStates
-    end function
-
-    override function getRenderedIndexes(direction as integer, index as integer)
-      return {
-        startIndex: 0
-        endIndex: m.content = invalid ? 0 : m.visibleItems.count() - 1
-      }
-    end function
-
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
@@ -564,7 +346,6 @@ namespace ml
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
 
-      m.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
       m.previousRendereredByContentId = m.renderersByContentId
 
       m.itemScroller.getComponentInfos(true)
@@ -650,6 +431,66 @@ namespace ml
         m.log.error("could not find cell to release", id)
       end if
 
+    end function
+
+    override function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
+      for i = notifyStart to notifyEnd
+        rowRenderers = m.getRenderersInRow(i)
+        for each comp in rowRenderers
+          if comp.isInViewPort
+            comp.isInViewPort = false
+            if comp.id <> "#_#phc"
+              comp.listEvent = {
+                name: "didExit"
+                direction: 1
+                index: comp.index
+              }
+              ? " releasing comp.index"
+              m.releaseCell(comp.index)
+            end if
+          else
+          end if
+        end for
+      end for
+    end function
+
+    override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer) as void
+      ' newInViewportComponentsById = {}
+      for i = notifyStart to notifyEnd
+        ' rowRenderers = m.getRenderersInRow(i)
+        index = (i * m.numCols) - 1
+        for j = 0 to m.numCols
+          comp = m.getRenderer(index + j, true)
+          if comp <> invalid
+            ' ? " ENTER FROM BBB" ; comp.index
+            ' ? " notifying enter on "; comp.id
+            if not comp.isInViewPort
+              comp.isInViewPort = true
+              comp.listEvent = {
+                name: "didEnter"
+                direction: 1
+                index: comp.index
+              }
+            end if
+          end if
+        end for
+        ' for each comp in rowRenderers
+        '   index++
+        '   if comp.id = "#_#phc"
+        '     ? " comp needs to be made!! "; index
+        '     comp = m.viewManager.getCell(index)
+        '   end if
+        '   if comp <> invalid and not comp.isInViewPort
+        '     comp.isInViewPort = true
+        '     comp.listEvent = {
+        '       name: "didEnter"
+        '       direction: 1
+        '       index: comp.index
+        '     }
+        '     m.inViewportComponentsById[comp.id] = comp
+        '   end if
+        ' end for
+      end for
     end function
   end class
 end namespace

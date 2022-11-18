@@ -44,76 +44,23 @@ namespace ml
       super.setComponentInfo(info)
       if info <> invalid
         m.currentRowIndex = fix(info.index / m.viewManager.numCols)
-        'notify viewport events for this row
-        ' m.notifyViewPortEventsForSubRows(m.viewManager.row.isInViewPort)
       else
         m.currentRowIndex = -1
       end if
     end function
 
-    'FIXME - not really used: will probably always come from the list
-    function notifyViewPortEventsForSubRows(isInViewPort as boolean) as void
-      if m.currentRowIndex = -1
-        return
-      end if
-      index = m.currentRowIndex
-      'TODO
-      notifyStart = index - 1
-      notifyEnd = index + 1
 
-      if isInViewPort
-        m.notifyEnterEvent(notifyStart, notifyEnd)
-      else
-        m.notifyExitEvent(notifyStart, notifyEnd)
-      end if
-    end function
 
-    private inViewportComponentsById = {}
 
-    function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
-      for i = notifyStart to notifyEnd
-        rowRenderers = m.viewManager.getRenderersInRow(i)
-        for each comp in rowRenderers
-          if comp.isInViewPort
-            comp.isInViewPort = false
-            if comp.id <> "#_#phc"
-              comp.listEvent = {
-                name: "didExit"
-                direction: 1
-                index: comp.index
-              }
-              ? " releasing comp.index"
-              m.viewManager.releaseCell(comp.index)
-            end if
-          else
-          end if
-        end for
-      end for
-      m.inViewportComponentsById = {}
-    end function
 
-    function notifyEnterEvent(notifyStart as integer, notifyEnd as integer) as void
-      ' newInViewportComponentsById = {}
-      for i = notifyStart to notifyEnd
-        rowRenderers = m.viewManager.getRenderersInRow(i)
-        index = (i * m.viewManager.numCols) - 1
-        for each comp in rowRenderers
-          index++
-          if comp.id = "#_#phc"
-            ? " comp needs to be made!! "; index
-            comp = m.viewManager.getCell(index)
-          end if
-          if comp <> invalid and not comp.isInViewPort
-            comp.isInViewPort = true
-            comp.listEvent = {
-              name: "didEnter"
-              direction: 1
-              index: comp.index
-            }
-            m.inViewportComponentsById[comp.id] = comp
-          end if
-        end for
-      end for
+
+
+
+
+    protected override function notifyViewportEvents(direction as integer)
+      'handled entirely by the list
+      ' isInViewPort = m.viewManager.row <> invalid and m.viewManager.row.isInViewPort
+      ' m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort, true, m.viewManager.getRowIndexForItemIndex(m.focusedIndex))
     end function
 
     protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
@@ -218,6 +165,8 @@ namespace ml
       if isFloatingFocus
         ' ? " is float"
         'replace with actual screen location
+
+        'FIXME - probs wants to be true here
         cell = m.viewManager.getRenderer(info.contentIndex)
         if cell <> invalid
           'bs:disable-next-line

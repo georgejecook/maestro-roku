@@ -126,34 +126,7 @@ namespace ml
     end function
 
     protected override function onIsRenderedChange()
-      if m.viewManager <> invalid
-        m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index)
-      end if
     end function
-
-    ' protected override function onListEvent(event as object)
-    '   'TODO improve this - make it more efficient
-    '   'make it so we can specify to pass on scroll updates
-    '   'or pass on scroll/start/stop, or didEnter
-    '   isPropagatedToAll = m.propagatedEvents[event.name]
-    '   if isPropagatedToAll <> invalid
-    '     ' ? " LIST GOT " ; event.name
-    '     if isPropagatedToAll
-    '       ' ? " NOTIFYING " ; event.name
-    '       for each component in m.viewManager.renderedComponents
-    '         component.listEvent = event
-    '       end for
-    '     end if
-    '   else
-    '     'it was a list focus event
-    '     cell = m.viewManager.getRenderer(m.focusedCellIndex)
-    '     if cell <> invalid
-    '       ' ? "!!!!!!!!! GIVING event " ; event.name ; " to cell"
-    '       ' TODO potentially filter events
-    '       cell.listEvent = event
-    '     end if
-    '   end if
-    ' end function
 
     protected override function onListEvent(event as object) as void
       'TODO improve this - make it more efficient
@@ -168,12 +141,15 @@ namespace ml
         if isPropagatedToAll
           if event.name = "didExit"
             ' ? " GOT HORIZONTAL EXIT "; event.name ; m.content.id
-            m.itemScroller.notifyExitEvent()
+            m.viewManager.notifyExitEvent(m.viewManager.getRenderedIndexes())
           else if event.name = "didEnter"
-            m.itemScroller.notifyEnterEvent()
+            ' ? " NOTIFYING ENTER"
+            m.itemScroller.notifyViewportEvents(event.direction)
+            ' m.itemScroller.viewPortEventNotifier.notifyViewportEvents(event.direction)
           end if
         end if
       else
+        'TODO propagate to all visible children!
         ' it was a list focus event
         cell = m.viewManager.getRenderer(m.focusedCellIndex)
         if cell <> invalid
