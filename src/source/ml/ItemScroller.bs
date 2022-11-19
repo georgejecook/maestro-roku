@@ -54,7 +54,6 @@ namespace ml
     public moveAnimation
 
     private animSpeed = 0.05
-    private currentAnimSpeed = 0.05
     private longPressEndItemOffset = 0
 
     private activeScrollLocation = 0
@@ -87,10 +86,8 @@ namespace ml
     public function onViewManagerUpdate()
       if m.viewManager.settings <> invalid
         m.settings = m.viewManager.settings.focusSettings
-        m.animSpeed = m.settings.animSpeed
         m.longPressEndItemOffset = m.settings.longPressEndItemOffset
       else
-        m.animSpeed = 0.05
         m.longPressEndItemOffset = 0
       end if
       m.viewPortEventNotifier.onViewManagerUpdate()
@@ -120,6 +117,7 @@ namespace ml
         end if
       end if
 
+      ? ">HGHGHGH> " m.__classname
       m.setFocusIndex(index, false, false)
     end function
 
@@ -168,6 +166,28 @@ namespace ml
       end for
       ' ? "no match"
       return invalid
+    end function
+
+    private function getAnimSpeed(fast as boolean)
+      speed = 1
+      'bs:disable-next-line
+      if m.row <> invalid
+        settings = m.viewManager.getFocusSettings()
+        if settings <> invalid
+          speed = settings.animSpeed
+        end if
+      else
+        settings = m.viewManager.listSettings
+        if settings <> invalid
+          speed = settings.animSpeed
+        end if
+      end if
+
+      if fast
+        return speed / 2
+      else
+        return speed
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -305,10 +325,7 @@ namespace ml
       ' ? " NI " ; nextComponentInfo.index
       ' ? " TI " ; targetComponentInfo.index
 
-      m.currentAnimSpeed = m.animSpeed
-      if fast
-        m.currentAnimSpeed = m.animSpeed / 2
-      end if
+      m.animSpeed = m.getAnimSpeed(fast)
 
       ' ? " MTI CC"
       '////////////////////////////////////////////////////////////////////////
@@ -343,9 +360,10 @@ namespace ml
 
         ' ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
         m.toggleScrolling(true)
-        m.setFocusIndex(m.index, true)
+        ? "A>A>A>A>A>" m.__classname
+        m.setFocusIndex(m.index, true, true, false)
 
-        m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
+        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
         m.moveAnimation.start()
       else
         '////////////////////////////////////////////////////////////////////////
@@ -364,6 +382,7 @@ namespace ml
         if not m.disableNonAnimatedFocusUpdates
           ' ? " MTI HH"
           'Grid rows will handle getting their own focus, as they may have called this as part of going to a specific subrow
+          ? " >B>B>B>B>B>" m.__classname
           m.setFocusIndex(index, false, true)
           m.forceFocusOnIndex(index, true)
         end if
@@ -416,7 +435,8 @@ namespace ml
         ' ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
         ' m.toggleScrolling(true)
         ' m.setFocusIndex(m.index, true)
-        m.moveAnimation.animateToWithSpeed(translation, m.currentAnimSpeed)
+        ? ">C>C>C>CC>C" m.__classname
+        m.moveAnimation.animateToWithSpeed(translation, m.animSpeed)
         m.moveAnimation.start()
       else
         '////////////////////////////////////////////////////////////////////////
@@ -429,6 +449,7 @@ namespace ml
         ' ? " NI " ; index
         m.updateSrollOffsetFraction(1)
 
+        ? ">D>D>D>D>D>" m.__classname
         m.setFocusIndex(index, false, true)
         m.forceFocusOnIndex(index, true)
         m.setComponentInfo(m.nextComponentInfo)
@@ -497,6 +518,7 @@ namespace ml
             else
               m.focusManager.onFocusAnimationUpdate(1)
               m.screenPos = m.nextComponentInfo.getScreenPosition(m.direction)
+              ? "E>E>E>E>E>" m.__classname
               m.setFocusIndex(m.nextIndex, true, true)
             end if
           else
@@ -534,6 +556,7 @@ namespace ml
             m.updateSrollOffsetFraction(1)
             ' m.setFocusIndex(m.index, false, false)
           else
+            ? ">F>F>F>F>F" m.__classname
             m.setFocusIndex(m.nextIndex, false, false)
           end if
 
@@ -573,6 +596,7 @@ namespace ml
         m.focusManager.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
+        ? " G>G>G>G>" m.__classname
         m.setFocusIndex(m.nextIndex, false, false)
         ' m.setFocusOnRenderer(false)
         return false
@@ -585,6 +609,7 @@ namespace ml
         ' ? "VVVVV NO Component Info"
         m.focusManager.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
+        ? ">E>E>E>EE" m.__classname
         m.setFocusIndex(m.nextIndex, true, true)
         m.toggleScrolling(false)
         m.isMultiMoveFinished = true
@@ -596,12 +621,14 @@ namespace ml
         m.focusManager.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
+        ? ">F>F>F>F>F" m.__classname
         m.setFocusIndex(m.nextIndex, false, false)
         m.isMultiMoveFinished = true
         return false
       end if
 
       if isFromFlow
+        ? "J?J?J?J" m.__classname
         m.setFocusIndex(m.nextIndex, true, false)
         m.focusManager.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
@@ -756,10 +783,10 @@ namespace ml
     '  * @param {integer} index - the index you KNOW you are on when your move is finished (finished could mean from one index to nextindex, while animating; doesn't have to be targetIndex)
     '  * @param {boolean} isMoving - if true, then deltas are calculated for next position, and observers fired if their screen status will change
     '  */
-    function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
+    function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean, sendViewportEvent = true as boolean) as void
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
-      ' ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
+      ? "~~~SFI "; index ; " moving "; isMoving ; " d "; m.direction
 
       ' ? " SFI AA"
       if m.numberOfComponents = 0
@@ -788,7 +815,9 @@ namespace ml
 
       m.focusedItem = m.viewManager.visibleItems[m.componentInfo.contentIndex]
 
-      m.notifyViewportEvents(m.direction)
+      if sendViewportEvent
+        m.notifyViewportEvents(m.direction)
+      end if
 
       if notifyFocusManager
         m.setFocusManagerInfo(m.componentInfo, m.nextComponentInfo, m.direction, false)

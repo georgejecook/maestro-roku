@@ -81,10 +81,10 @@ namespace ml
         m.renderersByContentId = {}
         m.reusedRenderers = []
         m.visibleComponents = []
-        settings = content.listSettings
-        if not forceSync and settings.rowCreationStrategy = "async" and not m.isUpdating
-          m.batchSize = settings.rowCreationBatchSize
-          m.batchDelay = settings.rowCreationBatchDelay
+        m.listSettings = content.listSettings
+        if not forceSync and m.listSettings.rowCreationStrategy = "async" and not m.isUpdating
+          m.batchSize = m.listSettings.rowCreationBatchSize
+          m.batchDelay = m.listSettings.rowCreationBatchDelay
           m.owner.state = "rendering"
           isReady = false
           m.batchTimer = m.waitAFrame(m.createRendererBatch, 0.15)

@@ -31,6 +31,8 @@ class ListEnterExitScreen extends mv.BaseScreen
   ' private scrollSpeed = 4 'roku 2
   private button as mc.types.node
   private label as mc.types.node
+  private updateInfoTimeout as mc.types.node
+
 
   function new()
     super("ListEnterExitScreen")
@@ -100,10 +102,10 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.rowCreationBatchDelay = 0.3
 
     listSettings.renderStrategy = "dynamic"
-    listSettings.numberItemsToRenderAfter = 4
-    listSettings.numberItemsToRenderBefore = 2
-    ' listSettings.numberItemsToRenderAfter = 1
-    ' listSettings.numberItemsToRenderBefore = 1
+    ' listSettings.numberItemsToRenderAfter = 4
+    ' listSettings.numberItemsToRenderBefore = 2
+    listSettings.numberItemsToRenderAfter = 1
+    listSettings.numberItemsToRenderBefore = 1
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
@@ -337,8 +339,6 @@ class ListEnterExitScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  private updateInfoTimeout as mc.types.node
 
   protected override function onShow()
     super.onShow()
