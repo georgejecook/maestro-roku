@@ -58,7 +58,11 @@ function peek(args = invalid as dynamic) as dynamic
   return m.children[m.children.count() - 1]
 end function
 
-function appendChild(child as object)
+function appendChild(child as object) as void
+  if type(child) <> "roSGNode"
+    m.log.error("tried to insert non-node child")
+    return
+  end if
   'TODO - parent tracking?
   notifyParentOfRemoval(child)
   m.children.push(child)
@@ -66,7 +70,11 @@ function appendChild(child as object)
   addChanges([{ type: "add", child: child, index: m.children.count() }])
 end function
 
-function replaceChild(child as object, index as integer)
+function replaceChild(child as object, index as integer) as void
+  if type(child) <> "roSGNode"
+    m.log.error("tried to replace non-node child")
+    return
+  end if
   oldValue = m.children[index]
   m.children[index] = child
   addChanges([{ type: "change", child: child, index: index, oldValue: oldValue }])
@@ -82,15 +90,23 @@ function notifyParentOfRemoval(child as object)
   ' end if
 end function
 
-function insertChild(child as object, index as integer)
+function insertChild(child as object, index as integer) as void
+  if type(child) <> "roSGNode"
+    m.log.error("tried to insert non-node child")
+    return
+  end if
   notifyParentOfRemoval(child)
 
   insertChildren([child], index)
 end function
 
-function insertChildren(children as mc.types.array, index as integer)
+function insertChildren(children as mc.types.array, index as integer) as void
   for each child in children
     notifyParentOfRemoval(child)
+    if type(child) <> "roSGNode"
+      m.log.error("tried to insert at least one non-node child")
+      return
+    end if
   end for
   insertItems(index, children)
   m.top.length = m.children.count()
@@ -101,9 +117,13 @@ function removeChildIndex(index as integer)
   removeChildrenIndex(1, index)
 end function
 
-function appendChildren(children as mc.types.array)
+function appendChildren(children as mc.types.array) as void
   for each child in children
     notifyParentOfRemoval(child)
+    if type(child) <> "roSGNode"
+      m.log.error("tried to append at least one non-node child")
+      return
+    end if
   end for
   m.children.append(children)
   m.top.length = m.children.count()
@@ -143,11 +163,16 @@ function getIndex(child as object, key = invalid as string)
   return mc.collections.getArrayIndex(m.children, child, key)
 end function
 
-
 function insertItems(index as integer, value as dynamic) as void
   if not mc.isArray(value)
     value = [value]
   end if
+  for each child in value
+    if type(child) <> "roSGNode"
+      m.log.error("tried to insert at least one non-node child")
+      return
+    end if
+  end for
   if index >= m.children.count() or index < 0
     ? " cannot insert items ILLEGAL INDEX " ; index
     return

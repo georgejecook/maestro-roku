@@ -47,6 +47,8 @@ namespace ml
     '++ Debug Flags
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @observer("onUpdateNow")
+    public _updateNow = false
     public _forceReloadListWhenPressingOption = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -251,6 +253,7 @@ namespace ml
 
     private function onContentItemsChange(changes as mc.types.array)
       if m._updatesEnabled
+        ? " WHY CHANGE "; formatJson(changes)
         m.log.info("The content items have changed")
         m.focusIndicatorManager@.cancelFlowFocus()
         m.viewManager.onContentItemsChange(changes)
@@ -302,6 +305,11 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    public function onUpdateNow()
+      m.log.info("force updating list")
+      m.forceUpdate(true)
+    end function
 
     public function forceUpdate(fullUpdate = false as boolean) as void
       ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)

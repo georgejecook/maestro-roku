@@ -219,21 +219,26 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function configureHeader(forceUpdate = false as boolean)
+      ?" HEADERf"
       if m._content = invalid
         m.cleanHeader()
       else
         headerSettings = m.settings.headerSettings
+        ?" HEADER SETTINGS comp " headerSettings.compName
         if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
-          m.currentHeaderType = headerSettings.compName
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
 
           if m.header <> invalid
+            m.currentHeaderType = headerSettings.compName
             if headerSettings.position = "onTop"
               m.foregroundGroup.appendChild(m.header)
             else if headerSettings.position = "underneath"
               m.backgroundGroup.appendChild(m.header)
             end if
+          else
+            m.log.error("could not create header")
+
           end if
         end if
 

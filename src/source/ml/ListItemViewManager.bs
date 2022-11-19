@@ -277,6 +277,7 @@ namespace ml
       m.visibleComponents = []
 
       if m.content = invalid
+        ? " INVALID CONTENT"
         return
       end if
 
@@ -284,7 +285,7 @@ namespace ml
         item = m.content@.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
-        ' ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.length ; " isHidden " ; item.isHidden
+        ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.length ; " isHidden " ; item.isHidden
         if visible
           if settings.subType() = "ml_GridRowSettings"
             height = m.calculateGridRowHeight(item, settings)
@@ -313,6 +314,7 @@ namespace ml
           height = 0
           screenPos = 0
           translation = [0, 0]
+          ? " NOT VISIBLE"
         end if
 
         m.visibleItems.push(item)

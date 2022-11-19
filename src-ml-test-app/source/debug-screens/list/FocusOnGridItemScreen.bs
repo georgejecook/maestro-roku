@@ -80,8 +80,10 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     listSettings.rowCreationBatchDelay = 0.3
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+    content@.appendChild(m.createHeaderOnlyData())
+    content@.appendChild(m.createRow("live", 20))
+    content@.appendChild(m.createRow("upcoming", 20))
     timer.log("makeData")
-
     m.setFocus(m.loadingIndicator)
 
     m.list.content = content
@@ -103,6 +105,14 @@ class FocusOnGridItemScreen extends mv.BaseScreen
       m.loadingIndicator.isActive = false
     end if
   end function
+
+  private function createHeaderOnlyData()
+    row = createObject("roSGNode", "ml_RowContent")
+    row.id = rnd(2147483647).toStr()
+    row.settings = ml.listMixin.createCustomRowSettings("ComplexRowEfficient", 300)
+    return row
+  end function
+
 
   private function createRow(title as string, numItems as integer)
     numCols = 4
@@ -151,26 +161,33 @@ class FocusOnGridItemScreen extends mv.BaseScreen
   '++ Private Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function reload()
-    m.removeNonHeaderRows(false)
-    m.rows = [
-      m.createRow("live", 20)
-      m.createRow("upcoming", 20)
-      m.createRow("complete", 20)
-    ]
+  private function reload() as void
+    ' m.removeNonHeaderRows(false)
+    ' m.rows = [
+    '   m.createRow("live", 20)
+    '   m.createRow("upcoming", 20)
+    '   m.createRow("complete", 20)
+    ' ]
 
 
-    m.list.content@.insertChildren(m.rows, 1)
+    ' m.list.content@.insertChildren(m.rows, 1)
     m.list.content@.notifyUpdate()
   end function
 
+
   private function removeNonHeaderRows(update = true as boolean)
+    ? " AAA"
     header = m.list.content@.getChild(0)
+    ? " BBB"
     m.list.content@.setNotificationsEnabled(false)
+    ? " CCC"
     m.list.content@.clear()
+    ? " DDD"
     m.list.content@.appendChild(header)
+    ? " EE"
 
     if update
+      ? " FFF"
       m.list.content@.notifyUpdate()
     end if
   end function
