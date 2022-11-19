@@ -81,8 +81,10 @@ class FocusOnGridItemScreen extends mv.BaseScreen
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     content@.appendChild(m.createHeaderOnlyData())
-    content@.appendChild(m.createRow("live", 20))
-    content@.appendChild(m.createRow("upcoming", 20))
+    m.liveRow = m.createRow("live", 20)
+    m.upcomingRow = m.createRow("upcoming", 20)
+    content@.appendChild(m.liveRow)
+    content@.appendChild(m.upcomingRow)
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
 
@@ -96,6 +98,9 @@ class FocusOnGridItemScreen extends mv.BaseScreen
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
   end function
+
+  private liveRow as mc.types.node
+  private upcomingRow as mc.types.node
 
   private function onListRenderState(state as string)
     m.log.info("onListRenderState", state)
@@ -228,6 +233,17 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     end if
   end function
 
+  private function onRowData(rowIndex as integer, data as dynamic)
+    if data.action = "add"
+      ? " add row"
+      m.liveRow@.appendChildren(m.makeItems(m.defaultCellType, 1, ""))
+    else
+      ? " remove row"
+      m.liveRow@.removeChildIndex(0)
+    end if
+
+  end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -236,8 +252,20 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     return key <> "back"
   end function
 
+  private isRemoved = false
   private function onKeyPressPlay() as boolean
-    m.list.jumpToIndex = m.list.focusedRowIndex
+    ' m.list.jumpToIndex = m.list.focusedRowIndex
+    if m.isRemoved
+      ? " IS ADDING AGAIN"
+      m.isRemoved = false
+      m.list.content@.insertChild(m.liveRow, 1)
+      ' m.list.content@.appendChild(m.liveRow)
+    else
+      ? " IS REMOVING"
+      m.list.content@.removeChild(m.liveRow)
+      m.isRemoved = true
+    end if
+    m.list@.moveToRowItem(1, 4)
     return true
   end function
 

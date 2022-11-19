@@ -44,18 +44,18 @@ class ComplextRowEfficient extends ml.BaseRow
       translation: [0, 0]
       size: [1920, 700]
     })
-    m.button1 = m.createSGNode("Button", m.top, "button1", {
+    m.button1 = m.createSGNode("mv_Button", m.top, "button1", {
       text: "WHAT IS YOUR STYLE?"
       translation: [1000, 300]
-      width: 800
-      height: 80
+      size: [800, 80]
     })
-    m.button2 = m.createSGNode("Button", m.top, "button2", {
+    m.button2 = m.createSGNode("mv_Button", m.top, "button2", {
       text: "THE ART OF FIGHTING WITHOUT FIGHTING"
       translation: [1000, 400]
-      width: 800
-      height: 80
+      size: [800, 80]
     })
+    m.observe(m.button1.selected, function(): ? " ADD" : m.sendRowData({ action: "add" }): end function, "none")
+    m.observe(m.button2.selected, function(): ? " REMOVE " : m.sendRowData({ action: "remove" }): end function, "none")
   end function
 
   protected override function onContentChange(content as mc.types.node)
@@ -118,27 +118,27 @@ class ComplextRowEfficient extends ml.BaseRow
 
   private function onWillGainFocus(direction as integer)
     if direction = 1
-      m.top.opacity = 1
+      ' m.top.opacity = 1
     end if
   end function
 
   private function onGainingFocus(direction as integer, fraction as float)
     ' ? "SC: onGainingFocus " ; " " ; direction ; " " ; fraction
     if direction = -1
-      m.top.opacity = fraction
+      ' m.top.opacity = fraction
     end if
   end function
   private function onLosingFocus(direction as integer, fraction as float)
     ' ? "SC: onLosingFocus " ; " " ; direction ; " " ; fraction
     if direction = 1
-      m.top.opacity = 1 - fraction
+      ' m.top.opacity = 1 - fraction
     end if
   end function
 
   private function onDidLoseFocus(direction as integer)
     ' ? "SC: onDidLoseFocus " ; " " ; direction
     if direction = 1
-      m.top.opacity = 0
+      ' m.top.opacity = 0
     end if
   end function
 

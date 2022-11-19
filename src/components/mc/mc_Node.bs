@@ -152,7 +152,11 @@ end function
 
 function removeChild(child as mc.types.array)
   index = getIndex(child, "id")
-  removeChildrenIndex(1, index)
+  if index <> -1
+    removeChildrenIndex(1, index)
+  else
+    m.log.error("cannot remove: child not found")
+  end if
 end function
 
 function hasItem(child as object, key = invalid as string)
