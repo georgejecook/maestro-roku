@@ -306,18 +306,19 @@ namespace ml
     public function forceUpdate(fullUpdate = false as boolean) as void
       ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
-        ' ? "cannot forceUpdate list while rendering is taking place"
+        ? "cannot forceUpdate list while rendering is taking place"
         return
       end if
 
-      ' ? m.focusedRowIndex ; " " m.focusedCellIndex
-      ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
+      ? m.focusedRowIndex ; " " m.focusedCellIndex
+      ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout(fullUpdate = true)
       m.itemScroller.getComponentInfos(true)
 
       ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       if m.itemScroller.numberOfComponents > 0
-        ' ? "LIST HAS COMPONENTS"
+        ? "LIST HAS COMPONENTS " m.focusedRowIndex " " m.focusedCellIndex
+        m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
         ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
         '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         '   if index >= 0
@@ -326,15 +327,15 @@ namespace ml
         '   end if
         ' else
         '   ? "MOVING TO ROW "; m.itemScroller.index
-        '   m.moveToRow(m.itemScroller.index, false)
+        ' m.moveToRow(m.itemScroller.index, false)
         '   ' m.focusIndicatorManager@.setFocusComplete()
         ' end if
       else
-        ' ? "LIST HAS NO COMPONENTS "
+        ? "LIST HAS NO COMPONENTS "
         'TODO - hide focus
       end if
 
-      ' ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
+      ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
       ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
     end function
 

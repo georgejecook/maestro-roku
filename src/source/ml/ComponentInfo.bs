@@ -13,6 +13,7 @@ namespace ml
   end class
 
   class ComponentInfo
+    public id = ""
     public size = [0, 0]
     public index = 0
     public contentIndex = 0
@@ -54,7 +55,7 @@ namespace ml
         direction = 0
       end if
       position = m.positions[direction]
-      return - position.position + position.screenPosition
+      return -position.position + position.screenPosition
     end function
 
     public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer, axes as integer) as boolean
@@ -62,7 +63,7 @@ namespace ml
         return false
       end if
 
-      scrollPos = - scrollOffset
+      scrollPos = -scrollOffset
       maxPos = scrollPos + maxOffset
       'TODO - put the size in here, too!
       ' if direction = -1 or direction = 0
@@ -84,6 +85,7 @@ namespace ml.ComponentInfoUtils
   function componentInfoFromAA(otherInfo as mc.types.assocarray)
     info = new ml.ComponentInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
     info.index = otherInfo.index
+    info.id = otherInfo.id
     return info
   end function
 end namespace

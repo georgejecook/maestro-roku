@@ -234,9 +234,12 @@ namespace ml
     end function
 
     override function updateLayout(fullUpdate = false as boolean)
+      ? " LIST UPDATE LAYOUT "; fullUpdate
       if fullUpdate
+        ? " LUL A"
         'first check if any comps have changed type
         for i = 0 to m.rects.count() - 1
+          ? " LUL B"
           rect = m.rects[i]
           comp = m.visibleComponents[i]
           if comp <> invalid and comp.content <> invalid and comp.subType() <> comp.content.settings.componentName
@@ -259,7 +262,7 @@ namespace ml
           comp.translation = rect.translation
           comp.visible = rect.visible
           if fullUpdate
-            ' ? " >>>> DO FULL UPDATE"
+            ? " >>>> DO FULL UPDATE on " ; mc.dv(comp)
             comp@.forceUpdate(true, fullUpdate)
           end if
         end if

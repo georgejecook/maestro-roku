@@ -88,7 +88,7 @@ namespace ml
         ' ? "indexes BEFORE "; formatJson(m.viewManager.renderersByContentId.keys())
         ' ? "calculating what is shown"
         'TODO GET DELTA HERE
-        ? " NVE isGrid " ; isGrid
+        ' ? " NVE isGrid " ; isGrid
         enterIndexes = []
         if isGrid = invalid
           startIndex = ((gridIndex * m.viewManager.numCols) - 1) - (m.numberToLookBehind * m.viewManager.numCols)
@@ -152,7 +152,7 @@ namespace ml
       startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
       endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
 
-      ? " VPN "; startIndex ; " TO " ; endIndex
+      ' ? " VPN "; startIndex ; " TO " ; endIndex
       lastContentIndex = -1
       for i = startIndex to endIndex - 1
         ' ? " VPN " ; i
@@ -167,7 +167,7 @@ namespace ml
           if not comp.isInViewPort
             comp.isInViewPort = true
           end if
-          ? " DID ENTER "; i
+          ' ? " DID ENTER "; i
           comp.listEvent = {
             name: "didEnter"
             direction: direction
@@ -182,7 +182,7 @@ namespace ml
       end for
 
       for each key in m.inViewportSubIndexes
-        ? " SUB INDEX DID EXIT "; key
+        ' ? " SUB INDEX DID EXIT "; key
         comp = m.inViewportSubIndexes[key]
         comp.listEvent = {
           name: "didExit"
@@ -196,7 +196,7 @@ namespace ml
       for each key in m.inViewportComponentsById
         comp = m.inViewportComponentsById[key]
         if comp.isInViewPort
-          ? " DID EXIT "; key
+          ' ? " DID EXIT "; key
           comp.isInViewPort = false
           comp.listEvent = {
             name: "didExit"

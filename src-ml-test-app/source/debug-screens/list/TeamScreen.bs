@@ -192,7 +192,7 @@ namespace ml.sample
 
     private function unFollowTeam(index as integer) as void
 
-      team = m.followingModule.getChild(index)
+      team = m.followingModule@.getChild(index)
       if team = invalid
         return
       end if
@@ -214,7 +214,7 @@ namespace ml.sample
     end function
 
     private function selectFavorite()
-      team = m.followingModule.getChild(0)
+      team = m.followingModule@.getChild(0)
       ? "selected fave>>>>>:"; mc.dv(team)
       m.teamsModule@.setNotificationsEnabled(false)
       m.favoriteModule@.clear()
@@ -228,7 +228,7 @@ namespace ml.sample
     end function
 
     private function followTeam(itemIndex as integer) as void
-      team = m.teamsModule.getChild(itemIndex)
+      team = m.teamsModule@.getChild(itemIndex)
       if team = invalid
         return
       end if
@@ -347,7 +347,7 @@ namespace ml.sample
     end function
 
     private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-      ' ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
+      ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
       ' if direction = 1
       '   row = m.list@.getRowRenderer(rowIndex)
       '   row.opacity = 1 - fraction
@@ -357,11 +357,15 @@ namespace ml.sample
 
     private function onItemSelected(rowIndex as integer, itemIndex as integer)
       row = m.list.content@.getChild(rowIndex)
+      ? " ITEM IS SELECTED r " ; rowIndex, "i "; itemIndex ; " "; mc.dv(row)
       if m.favoriteModule.isSameNode(row)
+        ? "SELECT FAVE"
         m.selectFavorite()
       else if m.followingModule.isSameNode(row)
+        ? "UNFOLLOW"
         m.unFollowTeam(itemIndex)
       else if m.teamsModule.isSameNode(row)
+        ? " FOLLOW"
         m.followTeam(itemIndex)
       end if
     end function

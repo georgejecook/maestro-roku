@@ -104,6 +104,7 @@ namespace ml
     end function
 
     function forceUpdateLayout(fullUpdate = false as boolean)
+      ? "AAAforceUpdateLayout " ; mc.dv(m.top)
       m._updateLayout(fullUpdate)
     end function
 
@@ -132,7 +133,7 @@ namespace ml
     end function
 
     protected function onRenderersCreated()
-      ' ? " RENDERERS CREATED "; m.__classname
+      ? " RENDERERS CREATED "; m.__classname
       m.isRendering = false
       m._updateLayout()
     end function
@@ -319,18 +320,22 @@ namespace ml
       end if
     end function
 
-
-    protected override function releaseCell(index as integer)
+    protected override function releaseCellAtIndex(index as integer)
       ' ? "WANT TO RELEASE " ; index
       item = m.content@.getChild(index)
-      cell = m.renderersByContentId[item.id]
+      m.releasecell(m.renderersByContentId[item.id])
+    end function
+
+    protected override function releaseCell(cell as mc.types.node)
+      ' ? "WANT TO RELEASE " ; index
       if cell <> invalid and cell.id <> "#_#phc"
+        cellInfo = m.cellInfos[cell.index]
+        m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
         cell.isInViewPort = false
         ' ? "RELEASING THE CELL " ; index
         m.componentPool@.releaseComponent(cell)
-        m.renderersByContentId[item.id] = m.placeHolderCell
-        m.rendereredCellInfosByIndex.delete(index.toStr())
-        m.previousRendereredByContentId.delete(item.id)
+        m.renderersByContentId[cellInfo.id] = m.placeHolderCell
+        m.previousRendereredByContentId.delete(cellInfo.id)
       else
         ' ? "NOT RELEASING " ; index
       end if
@@ -350,7 +355,7 @@ namespace ml
                 direction: 1
                 index: comp.index
               }
-              m.releaseCell(comp.index)
+              m.releaseCellAtIndex(comp.index)
             end if
           end if
         end if

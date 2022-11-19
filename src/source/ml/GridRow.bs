@@ -113,14 +113,19 @@ namespace ml
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)
+      ? " CONTENT CHANGE 1 "; mc.dv(m.top) ; " m.owner._updatesEnabled "; m.owner._updatesEnabled
       if m.owner._updatesEnabled
+        ? " CONTENT CHANGE 2"
         if changes <> invalid and changes.count() > 0
+          ? " CONTENT CHANGE 3"
           m.log.info("This content has changed in some way")
           m.viewManager.onContentItemsChange(changes)
         else
+          ? " CONTENT CHANGE 4"
           m.viewManager.updateChangedItems()
         end if
       else
+        ? " CONTENT CHANGE 5"
         m.log.info("Updates are disabled. onContentItemsChange returning without updating")
       end if
     end function

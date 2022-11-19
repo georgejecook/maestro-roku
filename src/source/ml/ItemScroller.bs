@@ -121,7 +121,6 @@ namespace ml
       end if
 
       m.setFocusIndex(index, false, false)
-      ' m.moveToIndex(index, false, true, 0)
     end function
 
     public function cancelScrolling()
@@ -850,13 +849,13 @@ namespace ml
 
     protected function processChanges(changes as mc.types.array) as void
       isIndexUpdateRequired = false
-      ' ? " +:+:+:+:+: processChanges"
+      ? " +:+:+:+:+: processChanges"
       if m.numberOfComponents = 0
-        ' ? "THERE ARE NO MORE ITEMS!"
+        ? "THERE ARE NO MORE ITEMS!"
         return
       end if
 
-      ' ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
+      ? m.__classname ; " processing changes NUM ITEMS " ; m.numberOfComponents ; " I " ; m.index
       if m.index < 0
         index = m.numberOfComponents - 1
         m.index = index
@@ -865,20 +864,20 @@ namespace ml
 
       if m.index >= m.numberOfComponents
         index = m.numberOfComponents - 1
-        ' ? "index is changing " ; m.index ; " > " ; index
+        ? "index is changing " ; m.index ; " > " ; index
         m.index = index
         isIndexUpdateRequired = true
       end if
 
       if not isIndexUpdateRequired
-        ' ? " INDEX UPDATE REQUIRED"
+        ? " INDEX UPDATE REQUIRED"
         ' isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
         ' return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
         ' end function)
       end if
 
       'FIXME - this needs revisiting
-      ' ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
+      ? ":::::::::::::::::::::EEEEEEEEEEEEEEEE"
 
       'all changes result in downward movements
       ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
@@ -891,7 +890,7 @@ namespace ml
       '   m.focusManager.isNotifying = wasNotifying
       ' else
       '   ? " not notifying focus"
-      ' ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
+      ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
       m.reset(true)
       ' end if
     end function

@@ -85,14 +85,14 @@ end function
 function insertChild(child as object, index as integer)
   notifyParentOfRemoval(child)
 
-  m.insertChildren([child], index)
+  insertChildren([child], index)
 end function
 
 function insertChildren(children as mc.types.array, index as integer)
   for each child in children
     notifyParentOfRemoval(child)
   end for
-  insertItems(children, index)
+  insertItems(index, children)
   m.top.length = m.children.count()
   addChanges([{ type: "change", children: children, index: index }])
 end function

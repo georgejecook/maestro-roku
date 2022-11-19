@@ -148,9 +148,9 @@ namespace ml
 
     override function updateLayout(fullUpdate = false as boolean) as void
       m.log.info("GRID updateLayout")
-      ' ? ""
-      ' ? "+>+>>+>+>+>+>++>>++>>+>+>+>+>+>+>>+>+>+>+>"
-      ' ? "GRID UPDATE LAYOUT"
+      ? ""
+      ? "+>+>>+>+>+>+>++>>++>>+>+>+>+>+>+>>+>+>+>+>"
+      ? "GRID UPDATE LAYOUT"
       m.rects = []
       m.visibleItems = []
       m.rowOffsets = []
@@ -173,12 +173,13 @@ namespace ml
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
-      ' ? "children" ; formatJson(mc.collections.map(children, function(c as object)
-      ' return c.title
-      ' end function))
+      ? "children" ; formatJson(mc.collections.map(children, function(c as object)
+        return c.title
+      end function))
 
-      ' ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
+      ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
 
+      previousCount = m.visibleItems.count()
       renderedIds = {}
       while i < numItems
         m.rowOffsets.push(y)
@@ -189,7 +190,7 @@ namespace ml
             exit for
           end if
           renderedIds[item.id] = true
-          ' ? "ITEM " ; item.title
+          ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y]
@@ -206,6 +207,7 @@ namespace ml
 
           cellInfo = new ml.ComponentInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
           cellInfo.index = i
+          cellInfo.id = item.id
           m.cellInfos.push(cellInfo)
           'TODO - for now, no vis options for rows children..
           m.visibleItems.push(item)
@@ -219,12 +221,12 @@ namespace ml
         rowIndex++
       end while
 
-      ' ? "::>: ODL COUNT" ; m.renderersByContentId.count(), "NEW COUNT" ; renderedIds.count()
-      if m.renderersByContentId.count() > renderedIds.count()
+      ? "::>: OLD COUNT" ; previousCount, "NEW COUNT" ; m.visibleItems.count()
+      if previousCount > m.visibleItems.count()
         m.log.warn("had dangling renderers - needs fixing")
         for each id in m.renderersByContentId
           if renderedIds[id] = invalid
-            ' ? "::: it was removed"
+            ? "::: it was removed"
             m.processRemovedItem(id)
           end if
         end for
@@ -341,7 +343,8 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
-      ' ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index
+      ? "[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+      ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index ; " " ; mc.dv(m.row)
       numRows = m.rowOffsets.count()
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
@@ -351,20 +354,24 @@ namespace ml
       m.itemScroller.getComponentInfos(true)
       if m.itemScroller.index >= m.itemScroller.numberOfComponents
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
-        ' ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
+        ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
       end if
       if m.itemScroller.componentInfos.count() <> numRows
         m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
-        ' ? "NEED TO TELL LIST!!!  num rows now " ; m.itemScroller.componentInfos.count()
-        m.owner@.forceUpdate()
+        ? "NEED TO TELL LIST!!!" mc.dv(m.row) "  numRows " numRows "compinfos" m.itemScroller.componentInfos.count()
+        m.owner@.forceUpdate(m.owner._updatesEnabled)
       end if
 
+      ? "BEFORE FI " m.row.focusedIndex " ISI " m.itemScroller.index
       m.itemScroller.processChanges(changes)
-      if m.row.isFocused
+      ? "AFTER PROCESS CHANGES FI " m.row.focusedIndex " ISI " m.itemScroller.index
+      m.itemScroller.setFocusIndex(m.itemScroller.index, false, false)
+      ' if m.row.isFocused
         ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-        ' m.owner.focusedCellIndex = m.itemScroller.index
-        m.owner@.moveToRowItem(m.row.index, m.itemScroller.index, false)
-      end if
+      '   ' m.owner.focusedCellIndex = m.itemScroller.index
+      '   m.owner@.moveToRowItem(m.row.index, m.itemScroller.index, false)
+      ' end if
+      ? "]]]]]]]]]]]]]]]]]]]]]]]]"
     end function
 
     override function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
@@ -419,18 +426,8 @@ namespace ml
     end function
 
     private function processRemovedItem(id as string)
-      ' ? " REMOVING CELL FOR ITEM ID "; id
-      cell = m.renderersByContentId[id]
-      if cell <> invalid
-        ' ? " FOUND CELL AND REMOVED IT"
-        m.componentPool@.releaseComponent(cell)
-        m.renderersByContentId.delete(id)
-      else
-        'this is almost certainly due to trying to release a cell during setting content
-        ' ? "NO CELL id", id
-        m.log.error("could not find cell to release", id)
-      end if
-
+      ? " REMOVING CELL FOR ITEM ID "; id
+      m.releaseCell(m.renderersByContentId[id])
     end function
 
     override function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
@@ -445,8 +442,8 @@ namespace ml
                 direction: 1
                 index: comp.index
               }
-              ? " releasing comp.index"
-              m.releaseCell(comp.index)
+              ' ? " releasing comp.index"
+              m.releaseCellAtIndex(comp.index)
             end if
           else
           end if
