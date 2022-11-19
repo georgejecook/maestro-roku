@@ -96,7 +96,8 @@ class UpdateGridItemsScreen extends mv.BaseScreen
           m.log.warn("moving entire row")
           children = []
           for i = m.selectedItemIndex to m.selectedItemIndex + 3
-            children.push(m.selectedRow.getChild(i))
+            children.push(m.selectedRow@.getChild(i))
+            m.selectedRow@.removeChildIndex(i)
           end for
           nextRow@.appendChildren(children)
         else
@@ -263,7 +264,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
     m.selectedRowIndex = rowIndex
     m.selectedRow = m.rows[rowIndex]
-    m.selectedItem = m.selectedRow.getChild(itemIndex)
+    m.selectedItem = m.selectedRow@.getChild(itemIndex)
     m.selectedItemIndex = itemIndex
     m.log.info("selected item ", mc.dv(m.selectedItem), "from row", mc.dv(m.selectedRow))
 

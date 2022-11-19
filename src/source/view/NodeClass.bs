@@ -43,17 +43,24 @@ namespace mv
       end for
     end function
 
-    private function ___onDebugCallFunction(name as string)
-      if name <> ""
-        m.log.debug("calling function now:", name)
-        if not m.doesExist(name)
-          m.log.error("function does not exist on:", m.__classname)
-        end if
-        'bs:disable-next-line
-        result = m[name]()
-        m.log.info("got result", result)
-        'bs:disable-next-line
-        mc.setOrAddNodeField(m.top, "__callFunctionRESULT", result)
+    private function ___onDebugCallFunction(text as string)
+      if text <> ""
+        try
+          m.log.debug("calling function now:", text)
+          regex = /([a-z0-9_-]*)\((.*)\)/gim
+          matches = regex.match(text)
+          name = matches[1]
+          args = parseJson("[" + matches[2] + "]")
+          if not m.doesExist(text)
+            m.log.error("function does not exist on:", m.__classname)
+          end if
+          'bs:disable-next-line
+          result = mc.apply(m[name], args)
+          m.log.info("got result", result)
+          'bs:disable-next-line
+          mc.setOrAddNodeField(m.top, "__callFunctionRESULT", result)
+        catch error
+        end try
       end if
     end function
 
