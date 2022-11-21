@@ -225,6 +225,36 @@ namespace ml
     '++ visibility state management
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+    protected function processRemovedCells(changes as mc.types.array)
+      ? " PRC 1"
+      m.log.info("processing removed cells")
+      for each change in changes
+        if change.type = "remove"
+          ? " PRC 2"
+          m.log.info("removing cell at index", change.index)
+          item = change.child
+
+          ? " REMOVING " change.index
+          if item <> invalid
+            ? " REMOVING " mc.dv(item)
+            m.releasecell(m.renderersByContentId[item.id])
+          else
+            m.log.error("could not find cell to release")
+          end if
+        else if change.type = "clear" or change.type = "sort" or change.type = "updated"
+          ? " PRC 3"
+          'we've reset the list - all renderers are going now
+          ' m.renderersByContentId = {}
+          for each key in m.rendereredCellInfosByIndex
+            cellInfo = m.rendereredCellInfosByIndex[key]
+            m.releaseCellAtIndex(cellInfo.index)
+          end for
+          m.tidyUpUnusedRenderers()
+        end if
+      end for
+    end function
+
     protected function tidyUpUnusedRenderers() as void
       ? "Tidying up renderers " ; m.__classname
       removedRenderers = []
@@ -326,9 +356,12 @@ namespace ml
     end function
 
     protected override function releaseCellAtIndex(index as integer)
-      ' ? "WANT TO RELEASE " ; index
       item = m.content@.getChild(index)
-      m.releasecell(m.renderersByContentId[item.id])
+      if item <> invalid
+        m.releasecell(m.renderersByContentId[item.id])
+      else
+        ? " could not find item at index" index
+      end if
     end function
 
     protected override function releaseCell(cell as mc.types.node)

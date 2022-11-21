@@ -826,11 +826,11 @@ namespace ml
       m.setFocusOnRenderer(isMoving)
     end function
 
-    protected function notifyViewportEvents(direction as integer)
+    protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       'bs:disable-next-line
       isInViewPort = m.viewManager.row = invalid or m.viewManager.row.isInViewPort
 
-      m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort)
+      m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort, forceAll)
     end function
 
     function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean, notifyOwner = true as boolean) as void
@@ -920,7 +920,7 @@ namespace ml
       ' else
       '   ? " not notifying focus"
       ? ":::::::::::::::::::::FFFFFFFFFFFFFFFFFFF"
-      m.reset(true)
+      ' m.reset(true)
       ' end if
     end function
 

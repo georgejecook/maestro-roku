@@ -90,10 +90,6 @@ namespace ml
       ? " U C NUM ITEMS NOW "; m.numberOfItems
     end function
 
-    override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
-      return true
-    end function
-
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
       ' ? "++++ setIsScrolling" ; isScrolling ; " MIS " ; m.isScrolling
       if m.isScrolling = isScrolling
@@ -132,27 +128,24 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-      ? "ROW CHANGES " ; m.row.index mc.dv(m.row)
       oldNumComponents = m.itemScroller.numberOfComponents
       m.processRemovedCells(changes)
-      ? "FORCING LAYOUT"
       m.forceUpdateLayout()
-      ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
       if m.itemScroller.index >= m.content.length
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
       end if
       m.itemScroller.getComponentInfos(true)
+      ? " BBB 1"
       m.itemScroller.processChanges(changes)
-      ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents ; " FI "; m.itemScroller.index
       m.rowInfos = invalid
+
       if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
-        ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
+        ' ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
         'tell list in any case - it's best suited to knowing what should happen now.
         m.owner@.forceUpdate()
       end if
 
-      ? " NOTIFY EVENTS"
-      m.itemScroller.notifyViewportEvents(m.itemScroller.direction)
+      m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
 
       ' if m.row.isFocused
       '   ? " IS FOCUSED ON" ; m.itemScroller.index
@@ -161,35 +154,6 @@ namespace ml
       ' end if
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Private Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function processRemovedCells(changes as mc.types.array)
-      m.log.info("processing removed cells")
-      for each change in changes
-        ? ">>> got change " ; change.type
-        if change.type = "remove"
-          m.log.info("removing cell at index", change.index)
-          item = change.child
-
-          if item <> invalid
-            m.releasecell(m.renderersByContentId[item.id])
-          else
-            m.log.error("could not find cell to release")
-          end if
-        else if change.type = "clear" or change.type = "sort" or change.type = "updated"
-          'we've reset the list - all renderers are going now
-          ' m.renderersByContentId = {}
-          for each key in m.rendereredCellInfosByIndex
-            cellInfo = m.rendereredCellInfosByIndex[key]
-            m.releaseCellAtIndex(cellInfo.index)
-          end for
-          ? ">>>>>>>>TIDY"
-          m.tidyUpUnusedRenderers()
-        end if
-      end for
-    end function
 
   end class
 end namespace

@@ -69,56 +69,46 @@ namespace ml
 
     protected renderedIndexes = []
 
-    function notifyViewportEvents(direction as integer, isRowInViewport as boolean, isGrid = false as boolean, gridIndex = -1 as integer) as void
-      ? " NVE A"
+    function notifyViewportEvents(direction as integer, isRowInViewport as boolean, forceAll = false as boolean) as void
+      ' ? " NVE A"
       'for non-lists
       if m.viewManager.visibleItems = invalid
         ' ? "VPN NO VISIBLE COMPONENTS"
         return
       end if
 
-      ? " NVE B"
-      if isGrid
-        return
-      end if
       oldRendereredCellInfosByIndex = {}
       oldRendereredCellInfosByIndex.append(m.viewManager.rendereredCellInfosByIndex)
-      forceCellUpdate = true
 
       if not isRowInViewport
-        ? " NVE C"
+        ' ? " NVE C"
         ' ? " NOTIFYING ALL ARE REMOVED"
         indexes = m.viewManager.getRenderedIndexes()
 
         m.viewManager.notifyExitEvent(indexes)
       else
-        ? " NVE D"
+        ' ? " NVE D"
         enterIndexes = []
-        if isGrid = invalid
-          startIndex = ((gridIndex * m.viewManager.numCols) - 1) - (m.numberToLookBehind * m.viewManager.numCols)
-          endIndex = (gridIndex * m.viewManager.numCols) - 1 + (m.numberToLookAhead * m.viewManager.numCols)
-        else
-          index = m.viewManager.itemScroller.index
-          startIndex = index - m.numberToLookBehind
-          endIndex = index + m.numberToLookAhead
-          ? " NVE E"
-        end if
+        index = m.viewManager.itemScroller.index
+        startIndex = index - m.numberToLookBehind
+        endIndex = index + m.numberToLookAhead
+        ' ? " NVE E"
         startIndex = mc.clamp(startIndex, 0, m.viewManager.numberOfItems)
         endIndex = mc.clamp(endIndex, 0, m.viewManager.numberOfItems)
-        if forceCellUpdate
+        if forceAll
           fromIndex = 0
           toIndex = m.viewManager.numberOfItems
         else
           fromIndex = startIndex
           toIndex = endIndex
         end if
-        ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
-        for index = fromIndex to toIndex
+        ' ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
+        for index = fromIndex to toIndex - 1
           ' content = m.viewManager.visibleItems[i]
           isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
-          ? " Is in viewport "; isInViewPort
-          comp = m.viewManager.getRenderer(index, isInViewPort, forceCellUpdate)
-          ? " comp " mc.dv(comp)
+          ' ? " Is in viewport "; isInViewPort
+          comp = m.viewManager.getRenderer(index, isInViewPort, forceAll)
+          ' ? " comp " mc.dv(comp)
           if isInViewPort
             if comp <> invalid
               enterIndexes.push(index)
@@ -132,11 +122,11 @@ namespace ml
           cellInfo = oldRendereredCellInfosByIndex[key]
           exitEventIndexes.push(cellInfo.index)
         end for
-        ? " NVE G"
-        ? " >>>>>>>>>>>>>>>>>>>>> "
-        ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
-        ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
-        ? " >>>>>>>>>>>>>>>>>>>>>"
+        ' ? " NVE G"
+        ' ? " >>>>>>>>>>>>>>>>>>>>> "
+        ' ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+        ' ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
+        ' ? " >>>>>>>>>>>>>>>>>>>>>"
         m.viewManager.notifyExitEvent(exitEventIndexes)
         m.viewManager.notifyEnterEvent(enterIndexes)
       end if
@@ -149,8 +139,7 @@ namespace ml
       m.notifyListViewportEvents(m.viewManager.itemScroller.componentInfo, m.viewManager.itemScroller.nextComponentInfo, m.viewManager.itemScroller.direction)
     end function
 
-    function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer) as void
-      'FIXME - THIS IS CALLED TOO MUCH...SHOULD ONLY CALL NO STOPPING THE FOCUS.. WE WILL NEVER MAKE IT JIT
+    function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, forceAll = false as boolean) as void
       if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
@@ -164,14 +153,21 @@ namespace ml
           index = nextComponentInfo.index
         end if
 
-        'TODO - optimize this.. should not need to call it if all rendered and nothing has changed
         numberOfComponents = m.viewManager.itemScroller.numberOfComponents
         startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
         endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
 
-        ' ? " VPN "; startIndex ; " TO " ; endIndex
+        if forceAll
+          fromIndex = 0
+          toIndex = numberOfComponents
+        else
+          fromIndex = startIndex
+          toIndex = endIndex
+        end if
+
+        ' ? " NVL F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
         lastContentIndex = -1
-        for i = startIndex to endIndex - 1
+        for i = fromIndex to toIndex - 1
           ' ? " VPN " ; i
           compInfo = m.viewManager.itemScroller.componentInfos[i]
           comp = compInfo.component
@@ -180,7 +176,6 @@ namespace ml
             newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById.delete(comp.id)
 
-            'THIS NEEDS FIXING HERE - DO NOT WANT TO CALL THIS TOO MUCH!
             if not comp.isInViewPort
               comp.isInViewPort = true
             end if
@@ -189,6 +184,7 @@ namespace ml
               name: "didEnter"
               direction: direction
               index: compInfo.componentIndex
+              forceCellUpdate: forceAll
             }
             ' end if
             ' subIndexKey = compInfo.componentIndex.toStr()

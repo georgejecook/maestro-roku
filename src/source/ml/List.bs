@@ -35,6 +35,10 @@ namespace ml
     public jumpToRowIndex = -1
 
     @alwaysnotify
+    @observer("onJumpToSubRowIndexChange")
+    public jumpToSubRowIndex = -1
+
+    @alwaysnotify
     @observer("onJumpToRowItemIndexChange")
     public jumpToRowItemIndex = -1
 
@@ -292,6 +296,14 @@ namespace ml
       end if
     end function
 
+    private function onJumpToSubRowIndexChange(index as integer)
+      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
+        'hack here
+        m.focusedRowIndex = index
+        m.moveToSubRowIndex(index, false, index, true)
+      end if
+    end function
+
     private function onAnimateToSubRowIndexChange(index as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.moveToIndex(index, true, false)
@@ -331,11 +343,15 @@ namespace ml
       ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout(fullUpdate = true)
       m.itemScroller.getComponentInfos(true)
+      'Note - this will result in a double call; but that's what it's gonna take to be sure things are okay
+      m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
 
       ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
       if m.itemScroller.numberOfComponents > 0
         ? "LIST HAS COMPONENTS " m.focusedRowIndex " " m.focusedCellIndex
-        m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+        ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+        m.moveToRowItem(0, 0, true)
+        m.moveToItem([m.focusedRowIndex, m.focusedCellIndex], false)
         ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
         '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
         '   if index >= 0
@@ -354,6 +370,7 @@ namespace ml
 
       ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
       ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItem(0, 0, true)
     end function
 
     public function getRow(index as integer) as dynamic
@@ -376,18 +393,22 @@ namespace ml
     end function
 
     public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
+      ? " MTRI 0"
       if m._content <> invalid and rowIndex <> -1 and index <> -1
+        ? " MTRI 1"
         row = m.getRowRenderer(rowIndex)
-        if row <> invalid
-          if row.subType() = "ml_GridRow"
-            rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
-            if rowInfo <> invalid
-              ' ? " ROW INFO FOR INDEX " ; rowInfo
-              rect = row@.getRect(index)
-              ' ? " RECT INFO FOR INDEX " ; rect
-              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
-            end if
+        if row <> invalid and row.subType() = "ml_GridRow"
+          rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
+          ? " MTRI 3"
+          if rowInfo <> invalid
+            ? " MTRI 4"
+            ' ? " ROW INFO FOR INDEX " ; rowInfo
+            rect = row@.getRect(index)
+            ' ? " RECT INFO FOR INDEX " ; rect
+            ? " MTRI 5"
+            m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
           end if
+          ? " MTRI 6"
           row@.jumpToItem(index, animated = true)
         end if
       end if
@@ -459,7 +480,9 @@ namespace ml
       m.itemScroller.getComponentInfos(true)
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
+      ? "DDD 1"
       m.itemScroller.processChanges(changes)
+      ? "DDD 2"
       '// cspell:disable-next-line
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)

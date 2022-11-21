@@ -223,6 +223,7 @@ namespace ml
 
       ? "::>: OLD COUNT" ; previousCount, "NEW COUNT" ; m.visibleItems.count()
       if previousCount > m.visibleItems.count()
+        ? " dangling renderers detected"
         m.log.warn("had dangling renderers - needs fixing")
         for each id in m.renderersByContentId
           if renderedIds[id] = invalid
@@ -352,20 +353,21 @@ namespace ml
       m.previousRendereredByContentId = m.renderersByContentId
 
       m.itemScroller.getComponentInfos(true)
-      if m.itemScroller.index >= m.itemScroller.numberOfComponents
-        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
-        ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
-      end if
-      if m.itemScroller.componentInfos.count() <> numRows
-        m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
-        ? "NEED TO TELL LIST!!!" mc.dv(m.row) "  numRows " numRows "compinfos" m.itemScroller.componentInfos.count()
-        m.owner@.forceUpdate(m.owner._updatesEnabled)
-      end if
-
-      ? "BEFORE FI " m.row.focusedIndex " ISI " m.itemScroller.index
       m.itemScroller.processChanges(changes)
-      ? "AFTER PROCESS CHANGES FI " m.row.focusedIndex " ISI " m.itemScroller.index
-      m.itemScroller.setFocusIndex(m.itemScroller.index, false, false)
+
+      ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
+      '   m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+      '   ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
+      ' end if
+      ' if m.itemScroller.componentInfos.count() <> numRows
+      '   m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
+      '   ? "NEED TO TELL LIST!!!" mc.dv(m.row) "  numRows " numRows "compinfos" m.itemScroller.componentInfos.count()
+      '   m.owner@.forceUpdate(m.owner._updatesEnabled)
+      ' end if
+      m.owner@.forceUpdate(m.owner._updatesEnabled)
+
+      ' m.itemScroller.processChanges(changes)
+      ' m.itemScroller.setFocusIndex(m.itemScroller.index, false, false)
       ' if m.row.isFocused
       ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
       '   ' m.owner.focusedCellIndex = m.itemScroller.index
@@ -405,25 +407,6 @@ namespace ml
       end if
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Private Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function processRemovedCells(changes as mc.types.array)
-      m.log.info("processing removed cells")
-      for each change in changes
-        ' ? "PRC GOT CHANGE TYPE "; change.type
-        if change.type = "remove"
-          ' m.log.info("removing cell at index", change.index)
-          if change.child <> invalid
-            m.processRemovedItem(change.child.id)
-          else
-            ' ? "NO CELL item.id", change.index
-            m.log.error("could not find cell to release")
-          end if
-        end if
-      end for
-    end function
 
     private function processRemovedItem(id as string)
       ? " REMOVING CELL FOR ITEM ID "; id
@@ -457,13 +440,13 @@ namespace ml
       end for
     end function
 
-    override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer) as void
+    override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer, forceCellUpdate = false as boolean) as void
       ' newInViewportComponentsById = {}
       for i = notifyStart to notifyEnd
         ' rowRenderers = m.getRenderersInRow(i)
         index = (i * m.numCols) - 1
         for j = 0 to m.numCols
-          comp = m.getRenderer(index + j, true)
+          comp = m.getRenderer(index + j, true, forceCellUpdate)
           if comp <> invalid
             ' ? " ENTER FROM BBB" ; comp.index
             ' ? " notifying enter on "; comp.id
