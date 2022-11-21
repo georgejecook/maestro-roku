@@ -25,6 +25,9 @@ namespace ml
 
     public width = 1920
     public height = 1080
+
+    @alwaysnotify
+    @observer("onIsHiddenChange")
     public isHidden = false
 
     @alwaysnotify
@@ -273,6 +276,12 @@ namespace ml
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.moveToContentIndex(index)
       end if
+    end function
+
+    private preHiddenContent as mc.types.node
+
+    private function onIsHiddenChange()
+      m.itemScroller.notifyViewportEvents(m.itemScroller.direction)
     end function
 
     private function onJumpToRowIndexChange(index as integer)

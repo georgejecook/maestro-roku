@@ -170,9 +170,10 @@ namespace ml
 
         if isPropagatedToAll
           if event.name = "didExit"
-            ? " GRID EXIT " ; event.index
+            ? " GRID EXIT " ; event.index mc.dv(m.top)
             m.viewManager.notifyExitEvent(event.index, event.index)
           else if event.name = "didEnter"
+            ? " GRID ENTER " event.index mc.dv(m.top)
             m.viewManager.notifyEnterEvent(event.index, event.index)
           end if
         end if
@@ -219,12 +220,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function configureHeader(forceUpdate = false as boolean)
-      ?" HEADERf"
+      ? " HEADER"
       if m._content = invalid
         m.cleanHeader()
       else
         headerSettings = m.settings.headerSettings
-        ?" HEADER SETTINGS comp " headerSettings.compName
+        ? " HEADER SETTINGS comp " headerSettings.compName
         if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)

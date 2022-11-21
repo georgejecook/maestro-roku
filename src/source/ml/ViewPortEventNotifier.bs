@@ -132,6 +132,10 @@ namespace ml
     private inViewportComponentsById = {}
     private inViewportSubIndexes = {}
 
+    function notifyListHiddenChange(isHidden as boolean) as void
+      m.notifyListViewportEvents(m.viewManager.itemScroller.componentInfo, m.viewManager.itemScroller.nextComponentInfo, m.viewManager.itemScroller.direction)
+    end function
+
     function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer) as void
       'FIXME - THIS IS CALLED TOO MUCH...SHOULD ONLY CALL NO STOPPING THE FOCUS.. WE WILL NEVER MAKE IT JIT
       if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
@@ -140,56 +144,71 @@ namespace ml
       newInViewportComponentsById = {}
       newInViewportSubIndexes = {}
 
+      if not m.viewManager.owner.isHidden
+        if direction = -1
+          index = componentInfo.index
+        else
+          index = nextComponentInfo.index
+        end if
 
-      if direction = -1
-        index = componentInfo.index
-      else
-        index = nextComponentInfo.index
-      end if
+        'TODO - optimize this.. should not need to call it if all rendered and nothing has changed
+        numberOfComponents = m.viewManager.itemScroller.numberOfComponents
+        startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
+        endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
 
-      'TODO - optimize this.. should not need to call it if all rendered and nothing has changed
-      numberOfComponents = m.viewManager.itemScroller.numberOfComponents
-      startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
-      endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
+        ' ? " VPN "; startIndex ; " TO " ; endIndex
+        lastContentIndex = -1
+        for i = startIndex to endIndex - 1
+          ' ? " VPN " ; i
+          compInfo = m.viewManager.itemScroller.componentInfos[i]
+          comp = compInfo.component
+          if compInfo.contentIndex <> lastContentIndex
+            ' ? " ITS A NEW COMPONENT"
+            newInViewportComponentsById[comp.id] = comp
+            m.inViewportComponentsById.delete(comp.id)
 
-      ' ? " VPN "; startIndex ; " TO " ; endIndex
-      lastContentIndex = -1
-      for i = startIndex to endIndex - 1
-        ' ? " VPN " ; i
-        compInfo = m.viewManager.itemScroller.componentInfos[i]
-        comp = compInfo.component
-        if compInfo.contentIndex <> lastContentIndex
-          ' ? " ITS A NEW COMPONENT"
-          newInViewportComponentsById[comp.id] = comp
-          m.inViewportComponentsById.delete(comp.id)
-
-          'THIS NEEDS FIXING HERE - DO NOT WANT TO CALL THIS TOO MUCH!
-          if not comp.isInViewPort
-            comp.isInViewPort = true
+            'THIS NEEDS FIXING HERE - DO NOT WANT TO CALL THIS TOO MUCH!
+            if not comp.isInViewPort
+              comp.isInViewPort = true
+            end if
+            ' ? " DID ENTER "; i
+            comp.listEvent = {
+              name: "didEnter"
+              direction: direction
+              index: compInfo.componentIndex
+            }
+            ' end if
+            ' subIndexKey = compInfo.componentIndex.toStr()
+            subIndexKey = compInfo.index.toStr()
+            ' ? ">>> SUB INDEX KEY IS " ; subIndexKey " COMP INFO IDX " compInfo.index "CONT " compInfo.contentIndex "COMP " compInfo.componentIndex
+            ' newInViewportSubIndexes[subIndexKey] = comp
+            newInViewportSubIndexes[subIndexKey] = compInfo
+            m.inViewportSubIndexes.delete(subIndexKey)
           end if
-          ' ? " DID ENTER "; i
-          comp.listEvent = {
-            name: "didEnter"
-            direction: direction
+        end for
+
+        for each key in m.inViewportSubIndexes
+          compInfo = m.inViewportSubIndexes[key]
+          ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
+          compInfo.component.listEvent = {
+            name: "didExit"
+            direction: 1
             index: compInfo.componentIndex
           }
-          ' end if
-          subIndexKey = compInfo.componentIndex.toStr()
-          ' ? ">>> SUB INDEX KEY IS " ; subIndexKey
-          newInViewportSubIndexes[subIndexKey] = comp
-          m.inViewportSubIndexes.delete(subIndexKey)
-        end if
-      end for
-
-      for each key in m.inViewportSubIndexes
-        ' ? " SUB INDEX DID EXIT "; key
-        comp = m.inViewportSubIndexes[key]
-        comp.listEvent = {
-          name: "didExit"
-          direction: 1
-          index: key.toInt()
-        }
-      end for
+        end for
+      else
+        ' ? "list is hidden; not rendering anything!"
+        for each key in m.inViewportSubIndexes
+          compInfo = m.inViewportSubIndexes[key]
+          ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
+          compInfo.component.listEvent = {
+            name: "didExit"
+            direction: 1
+            index: compInfo.componentIndex
+          }
+        end for
+        m.inViewportSubIndexes = {}
+      end if
 
       ' ? " VPN "; m.inViewportComponentsById
       ' ? " VPN NEW "; newInViewportComponentsById

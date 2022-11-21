@@ -27,7 +27,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = 2
+  private scrollSpeed = 0.2
   ' private scrollSpeed = 4 'roku 2
   private button as mc.types.node
   private label as mc.types.node
@@ -100,12 +100,14 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
+    listSettings.animSpeed = 0.05
 
     listSettings.renderStrategy = "dynamic"
-    ' listSettings.numberItemsToRenderAfter = 4
-    ' listSettings.numberItemsToRenderBefore = 2
-    listSettings.numberItemsToRenderAfter = 1
-    listSettings.numberItemsToRenderBefore = 1
+    ' listSettings.renderStrategy = "all"
+    listSettings.numberItemsToRenderAfter = 4
+    listSettings.numberItemsToRenderBefore = 2
+    ' listSettings.numberItemsToRenderAfter = 1
+    ' listSettings.numberItemsToRenderBefore = 1
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
@@ -137,6 +139,10 @@ class ListEnterExitScreen extends mv.BaseScreen
       ' m.list@.moveToItem([0, 0], false)
       ' m.list.visible = true
       m.loadingIndicator.isActive = false
+      ' m.list.clippingRect = [0, 0, 2000, 20000]
+      ' m.list.translation = [0, 100]
+      ' m.list.scale = [0.3, 0.3]
+
     end if
   end function
 

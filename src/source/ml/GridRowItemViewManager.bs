@@ -367,7 +367,7 @@ namespace ml
       ? "AFTER PROCESS CHANGES FI " m.row.focusedIndex " ISI " m.itemScroller.index
       m.itemScroller.setFocusIndex(m.itemScroller.index, false, false)
       ' if m.row.isFocused
-        ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
+      ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
       '   ' m.owner.focusedCellIndex = m.itemScroller.index
       '   m.owner@.moveToRowItem(m.row.index, m.itemScroller.index, false)
       ' end if
@@ -431,6 +431,12 @@ namespace ml
     end function
 
     override function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
+      if notifyStart = -1
+        ? " clearing all"
+        notifyStart = 0
+        notifyEnd = m.numRows
+      end if
+
       for i = notifyStart to notifyEnd
         rowRenderers = m.getRenderersInRow(i)
         for each comp in rowRenderers
