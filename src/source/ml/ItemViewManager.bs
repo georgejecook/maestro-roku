@@ -104,7 +104,7 @@ namespace ml
     end function
 
     function forceUpdateLayout(fullUpdate = false as boolean)
-      ? "AAAforceUpdateLayout " ; mc.dv(m.top)
+      ? "AAAforceUpdateLayout " ; m.__classname
       m._updateLayout(fullUpdate)
     end function
 
@@ -226,9 +226,9 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function tidyUpUnusedRenderers() as void
-      ' ? "Tidying up renderers " ; m.__classname
+      ? "Tidying up renderers " ; m.__classname
       removedRenderers = []
-      ' ? " CONTAINER HAS " ; m.container.getChildCount() - 1 ; " RENS "
+      ? " CONTAINER HAS " ; m.container.getChildCount() - 1 ; " RENS "
       for i = 1 to m.container.getChildCount() - 1
         renderer = m.container.getChild(i)
         if renderer.content = invalid
@@ -253,32 +253,37 @@ namespace ml
           ' ? "REPLACING PLACEHOLDER CELL AT INDEX "; index
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           cell = m.getCellForCreation(item, index, settings.compName, true, true)
-          if cell <> invalid
-
-            m.previousRendereredByContentId.delete(item.id)
-            m.renderersByContentId[item.id] = cell
-            m.rendereredCellInfosByIndex[index.toStr()] = m.cellInfos[index]
-            cell.translation = m.rects[index].translation
-            ' might have changed
-            cell.index = index
-            cell.initialState = {
-              'bs:disable-next-line
-              row: m.row
-              list: m.owner
-              size: m.rects[index].size
-              content: item
-            }
-
-            cell.visible = true
-            componentConfig = m.cellInfos[index]
-            componentConfig.component = cell
-          end if
+          m.updateCell(cell, index, item)
           return cell
         end if
       end if
       return cell
     end function
 
+    private function updateCell(cell as mc.types.node, index as integer, item as mc.types.node)
+      if cell <> invalid
+
+        ? " FORCE UPDATING CELL ON SCREEN"
+        m.previousRendereredByContentId.delete(item.id)
+        m.renderersByContentId[item.id] = cell
+        m.rendereredCellInfosByIndex[index.toStr()] = m.cellInfos[index]
+        cell.translation = m.rects[index].translation
+
+        'TODO - need something different than initial state here..
+        cell.index = index
+        cell.initialState = {
+          'bs:disable-next-line
+          row: m.row
+          list: m.owner
+          size: m.rects[index].size
+          content: item
+        }
+
+        cell.visible = true
+        componentConfig = m.cellInfos[index]
+        componentConfig.component = cell
+      end if
+    end function
 
     protected override function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
       ' ? " GETTING CELL "; index; " isRendered "; isRendered
@@ -327,17 +332,21 @@ namespace ml
     end function
 
     protected override function releaseCell(cell as mc.types.node)
-      ' ? "WANT TO RELEASE " ; index
+      ? "WANT TO RELEASE " ; mc.dv(cell)
       if cell <> invalid and cell.id <> "#_#phc"
         cellInfo = m.cellInfos[cell.index]
-        m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
-        cell.isInViewPort = false
-        ' ? "RELEASING THE CELL " ; index
-        m.componentPool@.releaseComponent(cell)
-        m.renderersByContentId[cellInfo.id] = m.placeHolderCell
-        m.previousRendereredByContentId.delete(cellInfo.id)
+        if cellInfo <> invalid
+          m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
+          cell.isInViewPort = false
+          ? "RELEASING THE CELL " ; cell.index
+          m.componentPool@.releaseComponent(cell)
+          m.renderersByContentId[cellInfo.id] = m.placeHolderCell
+          m.previousRendereredByContentId.delete(cellInfo.id)
+        else
+          ? " WARNING - COULD NOT FIND CELL INFO - PROBABLY HAVE A LEAKED CELL HERE"
+        end if
       else
-        ' ? "NOT RELEASING " ; index
+        ? "NOT RELEASING CELL "
       end if
     end function
 
@@ -538,26 +547,30 @@ namespace ml
       m.log.error("You must override this method")
     end function
 
-    override function getRenderer(index as integer, createIfNotReady = false as boolean)
-      ' ? " GETTING RENDERER FOR "; index
+    override function getRenderer(index as integer, createIfNotReady = false as boolean, forceCellUpdate = false as boolean)
+      ? " GETTING RENDERER FOR "; index
       if m.content <> invalid and m.cellInfos <> invalid
         item = m.content@.getChild(index)
         if item <> invalid
           cell = m.renderersByContentId[item.id]
-          ' ? " CELL "; mc.dv(cell)
+          ? " CELL "; mc.dv(cell)
           if cell <> invalid and cell.id <> "#_#phc"
+            if forceCellUpdate
+              m.updateCell(cell, index, item)
+            end if
             return cell
           else if createIfNotReady
-            ' ? " NO CELL calling getCell"
+            ? " NO CELL calling getCell"
             return m.getCell(index)
           else
             return invalid
           end if
         else
-          ' ? "ERROR could not find renderer for ", index
+          ? "ERROR could not find renderer for ", index
           return invalid
         end if
       else
+        ? " NO RENDERER"
         return invalid
       end if
     end function

@@ -58,37 +58,41 @@ namespace ml
         m.renderStrategy = "all"
       end if
 
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      m.numberToLookAhead = 3
+      m.numberToLookBehind = 2
     end function
 
     protected renderedIndexes = []
 
     function notifyViewportEvents(direction as integer, isRowInViewport as boolean, isGrid = false as boolean, gridIndex = -1 as integer) as void
+      ? " NVE A"
       'for non-lists
       if m.viewManager.visibleItems = invalid
         ' ? "VPN NO VISIBLE COMPONENTS"
         return
       end if
 
+      ? " NVE B"
       if isGrid
         return
       end if
       oldRendereredCellInfosByIndex = {}
       oldRendereredCellInfosByIndex.append(m.viewManager.rendereredCellInfosByIndex)
+      forceCellUpdate = true
 
       if not isRowInViewport
+        ? " NVE C"
         ' ? " NOTIFYING ALL ARE REMOVED"
         indexes = m.viewManager.getRenderedIndexes()
 
         m.viewManager.notifyExitEvent(indexes)
       else
-        'FIXME THIS IS HOSED.
-        'PERHAPS DONT DO GRID HERE AT ALL.. LET IT JUST BE HANDLED BY LIST
-        ' ? "+>>++>+>+>+>+>+>+>+>+>+>+>+>+>++>"
-        ' ? "cell info ids BEFORE "; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
-        ' ? "indexes BEFORE "; formatJson(m.viewManager.renderersByContentId.keys())
-        ' ? "calculating what is shown"
-        'TODO GET DELTA HERE
-        ' ? " NVE isGrid " ; isGrid
+        ? " NVE D"
         enterIndexes = []
         if isGrid = invalid
           startIndex = ((gridIndex * m.viewManager.numCols) - 1) - (m.numberToLookBehind * m.viewManager.numCols)
@@ -97,15 +101,24 @@ namespace ml
           index = m.viewManager.itemScroller.index
           startIndex = index - m.numberToLookBehind
           endIndex = index + m.numberToLookAhead
+          ? " NVE E"
         end if
         startIndex = mc.clamp(startIndex, 0, m.viewManager.numberOfItems)
         endIndex = mc.clamp(endIndex, 0, m.viewManager.numberOfItems)
-        ' ? " VPN "; startIndex ; " TO " ; endIndex
-        for index = startIndex to endIndex
+        if forceCellUpdate
+          fromIndex = 0
+          toIndex = m.viewManager.numberOfItems
+        else
+          fromIndex = startIndex
+          toIndex = endIndex
+        end if
+        ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
+        for index = fromIndex to toIndex
           ' content = m.viewManager.visibleItems[i]
           isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
-          ' ? " Is in viewport "; isInViewPort
-          comp = m.viewManager.getRenderer(index, isInViewPort)
+          ? " Is in viewport "; isInViewPort
+          comp = m.viewManager.getRenderer(index, isInViewPort, forceCellUpdate)
+          ? " comp " mc.dv(comp)
           if isInViewPort
             if comp <> invalid
               enterIndexes.push(index)
@@ -119,11 +132,11 @@ namespace ml
           cellInfo = oldRendereredCellInfosByIndex[key]
           exitEventIndexes.push(cellInfo.index)
         end for
-        'rendereredCellInfosByIndex IS BROKEN
-        ' ? " >>>>>>>>>>>>>>>>>>>>> "
-        ' ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
-        ' ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
-        ' ? " >>>>>>>>>>>>>>>>>>>>>"
+        ? " NVE G"
+        ? " >>>>>>>>>>>>>>>>>>>>> "
+        ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+        ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
+        ? " >>>>>>>>>>>>>>>>>>>>>"
         m.viewManager.notifyExitEvent(exitEventIndexes)
         m.viewManager.notifyEnterEvent(enterIndexes)
       end if

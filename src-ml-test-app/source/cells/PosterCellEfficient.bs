@@ -4,7 +4,8 @@ import "pkg:/source/ml/cells/BaseCell.bs"
 @node("PosterCellEfficient", "ml_BaseCell")
 class PosterCellEfficient extends ml.BaseCell
 
-  private poster
+  private poster as mc.types.node
+  private label as mc.types.node
 
   function new()
     super()
@@ -21,6 +22,21 @@ class PosterCellEfficient extends ml.BaseCell
       size: [400, 250]
       loadDisplayMode: "zoomToFill"
     })
+    mc.createSGNode("mv_Rectangle", m.top, "rectangle", {
+      opacity: 0.4
+      color: "#000000"
+      size: [400, 50]
+      translation: [0, 100]
+    })
+    m.label = mc.createSGNode("mv_Label", m.top, "label", {
+      size: [400, 50]
+      fontKey: "medium,30"
+      color: "#ffffff"
+      horizAlign: "center"
+      vertAlign: "center"
+      translation: [10, 100]
+    })
+
   end function
 
   protected override function cleanup()
@@ -29,6 +45,7 @@ class PosterCellEfficient extends ml.BaseCell
 
   protected override function onShowWithContent(content as mc.types.node)
     m.poster.uri = m.content.HDGRIDPOSTERURL
+    m.label.text = `${m.index} ${content.title}`
   end function
 
   protected override function onHide()
