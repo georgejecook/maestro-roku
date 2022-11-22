@@ -136,11 +136,11 @@ namespace ml
     private inViewportSubIndexes = {}
 
     function notifyListHiddenChange(isHidden as boolean) as void
-      m.notifyListViewportEvents(m.viewManager.itemScroller.componentInfo, m.viewManager.itemScroller.nextComponentInfo, m.viewManager.itemScroller.direction)
+      m.notifyListViewportEvents(m.viewManager.itemScroller.cellInfo, m.viewManager.itemScroller.nextCellInfo, m.viewManager.itemScroller.direction)
     end function
 
-    function notifyListViewportEvents(componentInfo as ml.ComponentInfo, nextComponentInfo as ml.ComponentInfo, direction as integer, forceAll = false as boolean) as void
-      if nextComponentInfo = invalid or m.viewManager.visibleComponents = invalid
+    function notifyListViewportEvents(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, forceAll = false as boolean) as void
+      if nextCellInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
       newInViewportComponentsById = {}
@@ -148,18 +148,18 @@ namespace ml
 
       if not m.viewManager.owner.isHidden
         if direction = -1
-          index = componentInfo.index
+          index = CellInfo.index
         else
-          index = nextComponentInfo.index
+          index = nextCellInfo.index
         end if
 
-        numberOfComponents = m.viewManager.itemScroller.numberOfComponents
-        startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfComponents)
-        endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfComponents)
+        numberOfItems = m.viewManager.numberOfItems
+        startIndex = mc.clamp(index - m.numberToLookBehind, 0, numberOfItems)
+        endIndex = mc.clamp(index + m.numberToLookAhead, 0, numberOfItems)
 
         if forceAll
           fromIndex = 0
-          toIndex = numberOfComponents
+          toIndex = numberOfItems
         else
           fromIndex = startIndex
           toIndex = endIndex
@@ -169,7 +169,7 @@ namespace ml
         lastContentIndex = -1
         for i = fromIndex to toIndex - 1
           ' ? " VPN " ; i
-          compInfo = m.viewManager.itemScroller.componentInfos[i]
+          compInfo = m.viewManager.cellInfos[i]
           comp = compInfo.component
           if compInfo.contentIndex <> lastContentIndex
             ' ? " ITS A NEW COMPONENT"

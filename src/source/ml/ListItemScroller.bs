@@ -4,7 +4,7 @@ import "pkg:/source/ml/ListItemViewManager.bs"
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
@@ -25,47 +25,16 @@ namespace ml
     '++ Component Info
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public override function getComponentInfos(forceRecalculate as boolean)
-      m.componentInfos = []
-      virtualIndex = 0
-      for i = 0 to m.viewManager.visibleItems.count() - 1
-        item = m.viewManager.visibleItems[i]
-        settings = ml.listMixin.getRowSettings(m.viewManager.content, item)
-        if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.length > 0)
-          ' component = m.viewManager.visibleComponents[i]
-          component = m.viewManager.renderersByContentId[item.id]
-          if component <> invalid
-            infos = component@.getRowInfos(forceRecalculate)
-
-            contentIndex = component.index
-            for subIndex = 0 to infos.count() - 1
-              info = infos[subIndex]
-              componentInfo = ml.ComponentInfoUtils.componentInfoFromAA(info)
-              componentInfo.component = component
-              componentInfo.contentIndex = contentIndex
-              componentInfo.index = virtualIndex
-              componentInfo.contentVersion = item.version
-              m.componentInfos.push(componentInfo)
-              virtualIndex++
-            end for
-          end if
-        else
-          'FIXME - some race condition seems to occur here - probs multiple grids doing force recalculations
-        end if
-      end for
-      m.numberOfComponents = m.componentInfos.count()
-    end function
-
-    protected override function setFocusManagerInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, direction as integer, isFloatingFocus as boolean) as void
-      previousFocusIndicatorConfig = m.getFocusIndicatorConfig(componentInfo, m.direction, isFloatingFocus)
+    protected override function setFocusManagerInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
+      previousFocusIndicatorConfig = m.getFocusIndicatorConfig(CellInfo, m.direction, isFloatingFocus)
 
       if m.viewManager.isScrolling
-        nextComponentInfo.component@.chooseComponentInfoForScrollingIntoRow(nextComponentInfo)
+        nextCellInfo.component@.chooseCellInfoForScrollingIntoRow(nextCellInfo)
       end if
 
-      m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextComponentInfo, m.direction, isFloatingFocus)
+      m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, isFloatingFocus)
       nextFocusIndicatorConfig = m.nextFocusIndicatorConfig
-      m.focusManager.setComponentInfo(componentInfo, nextComponentInfo, nextFocusIndicatorConfig, direction, isFloatingFocus, previousFocusIndicatorConfig)
+      m.focusManager.setCellInfo(CellInfo, nextCellInfo, nextFocusIndicatorConfig, direction, isFloatingFocus, previousFocusIndicatorConfig)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -77,28 +46,28 @@ namespace ml
       if isMoving
         return
       end if
-      if m.componentInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
-        ' ? " SETTING FOCUS ON " ; mc.dv(m.componentInfo.component)
+      if m.cellInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
+        ' ? " SETTING FOCUS ON " ; mc.dv(m.cellInfo.component)
         'bs:disable-next-line
-        mv.setFocus(m.componentInfo.component)
+        mv.setFocus(m.cellInfo.component)
       else
-        m.log.warn("not setting focus on", m.componentInfo.index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
+        m.log.warn("not setting focus on", m.cellInfo.index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
       end if
     end function
 
-    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; componentInfo.componentIndex ; " D " ; direction
-      if componentInfo <> invalid and componentInfo <> invalid
-        config = componentInfo.component@.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, true)
+    public override function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; CellInfo.componentIndex ; " D " ; direction
+      if CellInfo <> invalid and CellInfo <> invalid
+        config = CellInfo.component@.getFocusIndicatorConfig(CellInfo, direction, isFloatingFocus, true)
       else
         return invalid
       end if
       return config
     end function
 
-    protected override function setComponentInfo(info as ml.ComponentInfo)
-      isSubRowChanged = m.componentInfo = invalid or info.componentIndex <> m.componentInfo.componentIndex
-      super.setComponentInfo(info)
+    protected override function setCellInfo(info as ml.CellInfo)
+      isSubRowChanged = m.cellInfo = invalid or info.componentIndex <> m.cellInfo.componentIndex
+      super.setCellInfo(info)
       if isSubRowChanged
         m.viewManager.owner.focusedSubRowIndex = info.componentIndex
       end if
@@ -106,9 +75,9 @@ namespace ml
       m.focusIndicatorManager.activeScreenPos = m.screenPos
     end function
 
-    protected override function setNextComponentInfo(info as ml.ComponentInfo) as void
+    protected override function setNextCellInfo(info as ml.CellInfo) as void
       ' ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
-      super.setNextComponentInfo(info)
+      super.setNextCellInfo(info)
       if not m.isLastMoveFlowFocus
         m.focusIndicatorManager.nextScreenPos = m.nextScreenPos
       end if
@@ -145,14 +114,14 @@ namespace ml
 
     protected override function processChanges(changes as mc.types.array) as void
       isIndexUpdateRequired = false
-      ' ? " NC "; m.numberOfComponents ; " I " ; m.index
-      if m.numberOfComponents = 0
+      ' ? " NC "; m.viewManager.numberOfItems ; " I " ; m.index
+      if m.viewManager.numberOfItems = 0
         ' ? "THERE ARE NO MORE ITEMS!"
         return
       end if
 
-      if m.index >= m.numberOfComponents
-        index = m.numberOfComponents - 1
+      if m.index >= m.viewManager.numberOfItems
+        index = m.viewManager.numberOfItems - 1
         ' ? "index is changing " ; m.index ; " > " ; index
         m.index = index
         isIndexUpdateRequired = true
@@ -167,7 +136,7 @@ namespace ml
       'FIXME - this needs revisiting
 
       'all changes result in downward movements
-      ' ? "LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.numberOfComponents
+      ' ? "LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
       if isIndexUpdateRequired
         ' ? " NOTIFYING FOCUS"
         ' ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
@@ -183,7 +152,7 @@ namespace ml
 
     protected override function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       ? " NOTIFY LIST EVENTS"
-      m.viewPortEventNotifier.notifyListViewportEvents(m.componentInfo, m.nextComponentInfo, m.direction, forceAll)
+      m.viewPortEventNotifier.notifyListViewportEvents(m.cellInfo, m.nextCellInfo, m.direction, forceAll)
     end function
 
   end class

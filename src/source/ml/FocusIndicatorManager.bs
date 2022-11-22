@@ -6,7 +6,7 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   @node("ml_FocusIndicatorManager", "mv_BaseView")
@@ -135,14 +135,24 @@ namespace ml
       return m.list@.getCellRenderer(rowIndex, cellIndex)
     end function
 
+    ' public function updateFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig)
+    '   ? "updating existing focus indicator config"
+    '   if m.previousCo
+    ' end function
+
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer) as void
-      ' ? "[[ Next FIC is: " ; focusIndicatorConfig.rowIndex ; " " ; focusIndicatorConfig.colIndex
+      ? "setNextFocusIndicatorConfig"
+      if focusIndicatorConfig <> invalid
+        ? "[[ Next FIC is: " focusIndicatorConfig.rowIndex " " focusIndicatorConfig.colIndex
+      else
+        ? " next config INVALID "
+      end if
       m.direction = direction
       m.preprareNextFocusConfig(focusIndicatorConfig)
     end function
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
+      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
       m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m.list.focusedCellIndex = focusIndicatorConfig.colIndex
       row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
@@ -265,10 +275,11 @@ namespace ml
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(isFinal as boolean) as void
       m.shouldShowIndicator = false
+      ? ">>applyFocusSettings"
       if m.nextFocusSettings = invalid or m.nextConfig = invalid
         return
       end if
-      ' ? "-------------isFinal " ; isFinal; " " ; mc.getPath(m.previousFocusSettings, "feedbackStyle") ; " NEXT " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
+      ? "-------------isFinal " ; isFinal; " " ; mc.getPath(m.previousFocusSettings, "feedbackStyle") ; " NEXT " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
       'note - we don't show the focus indicator till we're in place, if the last row was hidden
       if m.nextFocusSettings.feedbackStyle = "none" or (not isFinal and (m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"))
         m.rowHasIndicator = false

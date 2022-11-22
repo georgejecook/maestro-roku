@@ -333,27 +333,29 @@ namespace ml
     end function
 
     public function forceUpdate(fullUpdate = false as boolean) as void
-      ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
+      ' CellInfo = m.itemScroller.getCellInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
         ? "cannot forceUpdate list while rendering is taking place"
         return
       end if
 
       ? m.focusedRowIndex ; " " m.focusedCellIndex
-      ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
+      ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout(fullUpdate = true)
-      m.itemScroller.getComponentInfos(true)
+      m.viewManager.recalculateCellInfos(true)
       'Note - this will result in a double call; but that's what it's gonna take to be sure things are okay
       m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
 
-      ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
-      if m.itemScroller.numberOfComponents > 0
+      ' ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
+      if m.viewManager.numberOfItems > 0
         ? "LIST HAS COMPONENTS " m.focusedRowIndex " " m.focusedCellIndex
         ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
         m.moveToRowItem(0, 0, true)
         m.moveToItem([m.focusedRowIndex, m.focusedCellIndex], false)
-        ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
-        '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+        'correct the focus if the item has changed.
+
+        ' if m.itemScroller.index >= m.viewManager.numberOfItems
+        '   index = mc.clamp(m.itemScroller.index, 0, m.viewManager.numberOfItems - 1)
         '   if index >= 0
         '    ' ? "CORRECTING INDEX"; index
         '     m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
@@ -393,22 +395,16 @@ namespace ml
     end function
 
     public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
-      ? " MTRI 0"
       if m._content <> invalid and rowIndex <> -1 and index <> -1
-        ? " MTRI 1"
         row = m.getRowRenderer(rowIndex)
         if row <> invalid and row.subType() = "ml_GridRow"
-          rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
-          ? " MTRI 3"
+          rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
           if rowInfo <> invalid
-            ? " MTRI 4"
             ' ? " ROW INFO FOR INDEX " ; rowInfo
             rect = row@.getRect(index)
             ' ? " RECT INFO FOR INDEX " ; rect
-            ? " MTRI 5"
             m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
           end if
-          ? " MTRI 6"
           row@.jumpToItem(index, animated = true)
         end if
       end if
@@ -432,7 +428,7 @@ namespace ml
         m.itemScroller.moveToIndex(index, animated = true)
         m.itemScroller.disableNonAnimatedFocusUpdates = false
         ' ? " MOVING TO SUB ROW INDEX " ; index
-        compInfo = m.itemScroller.componentInfos[index]
+        compInfo = m.viewManager.cellInfos[index]
         if setFocusIndex and compInfo <> invalid
           compInfo.component.focusedCellIndex = index
           m.focusedCellIndex = compInfo.component.focusedCellIndex
@@ -477,12 +473,10 @@ namespace ml
       '   return c.type
       ' end function))
       m.viewManager.forceUpdateLayout()
-      m.itemScroller.getComponentInfos(true)
+      m.viewManager.recalculateCellInfos(true)
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
-      ? "DDD 1"
       m.itemScroller.processChanges(changes)
-      ? "DDD 2"
       '// cspell:disable-next-line
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)
@@ -518,7 +512,6 @@ namespace ml
     end function
 
     private function onKeyPressUp() as boolean
-      ? " KEYPUP"
       if not m.top.visible
         return false
       end if

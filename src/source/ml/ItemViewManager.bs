@@ -1,7 +1,7 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ItemScroller.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   class ItemViewManager extends mc.BaseClass
@@ -104,7 +104,6 @@ namespace ml
     end function
 
     function forceUpdateLayout(fullUpdate = false as boolean)
-      ? "AAAforceUpdateLayout " ; m.__classname
       m._updateLayout(fullUpdate)
     end function
 
@@ -133,7 +132,6 @@ namespace ml
     end function
 
     protected function onRenderersCreated()
-      ? " RENDERERS CREATED "; m.__classname
       m.isRendering = false
       m._updateLayout()
     end function
@@ -188,6 +186,35 @@ namespace ml
       end if
     end function
 
+    private function getCellInfoForContentIndex(contentIndex as integer) as ml.CellInfo
+      info = invalid
+      ' ? "getCellInfoForContentIndex" ; contentIndex
+      for each info in m.cellInfos
+        ' ? ">>>" ; info.contentIndex
+        if info.contentIndex = contentIndex
+          return info
+        end if
+      end for
+      ' ? "no match"
+      return invalid
+    end function
+
+    function getCellInfoForContent(content as mc.types.node) as ml.CellInfo
+      info = invalid
+      if content <> invalid and m.cellInfos <> invalid
+        ' ? "getCellInfoForContentIndex" ; contentIndex
+        id = content.id
+        for each info in m.cellInfos
+          ' ? ">>>" ; info.contentIndex
+          if info.id = id
+            return info
+          end if
+        end for
+      end if
+      ' ? "no match"
+      return invalid
+    end function
+
     protected function getRenderedIds()
       return m.renderersByContentId.keys()
     end function
@@ -227,23 +254,18 @@ namespace ml
 
 
     protected function processRemovedCells(changes as mc.types.array)
-      ? " PRC 1"
       m.log.info("processing removed cells")
       for each change in changes
         if change.type = "remove"
-          ? " PRC 2"
           m.log.info("removing cell at index", change.index)
           item = change.child
 
-          ? " REMOVING " change.index
           if item <> invalid
-            ? " REMOVING " mc.dv(item)
             m.releasecell(m.renderersByContentId[item.id])
           else
             m.log.error("could not find cell to release")
           end if
         else if change.type = "clear" or change.type = "sort" or change.type = "updated"
-          ? " PRC 3"
           'we've reset the list - all renderers are going now
           ' m.renderersByContentId = {}
           for each key in m.rendereredCellInfosByIndex
@@ -256,9 +278,7 @@ namespace ml
     end function
 
     protected function tidyUpUnusedRenderers() as void
-      ? "Tidying up renderers " ; m.__classname
       removedRenderers = []
-      ? " CONTAINER HAS " ; m.container.getChildCount() - 1 ; " RENS "
       for i = 1 to m.container.getChildCount() - 1
         renderer = m.container.getChild(i)
         if renderer.content = invalid
@@ -292,15 +312,24 @@ namespace ml
 
     private function updateCell(cell as mc.types.node, index as integer, item as mc.types.node)
       if cell <> invalid
-
-        ? " FORCE UPDATING CELL ON SCREEN"
+        ? " updating rendered cell " asString(cell.title) " index " index
         m.previousRendereredByContentId.delete(item.id)
         m.renderersByContentId[item.id] = cell
         m.rendereredCellInfosByIndex[index.toStr()] = m.cellInfos[index]
         cell.translation = m.rects[index].translation
 
-        'TODO - need something different than initial state here..
-        cell.index = index
+        if m.itemScroller.focusManager.CellInfo <> invalid and m.itemScroller.focusManager.CellInfo.index = cell.index
+          ? "fixing focus index " m.itemScroller.focusManager.CellInfo.index " >  " index
+          m.itemScroller.focusManager.CellInfo.index = index
+        end if
+
+        if m.itemScroller.focusManager.nextCellInfo <> invalid and m.itemScroller.focusManager.nextCellInfo.index = cell.index
+          ? "fixing next focus index " m.itemScroller.focusManager.nextCellInfo.index " >  " index
+          m.itemScroller.focusManager.nextCellInfo.index = index
+        end if
+
+        'TODO - _might_ need something different than initial state here..
+        cell.id = item.id
         cell.initialState = {
           'bs:disable-next-line
           row: m.row
@@ -312,6 +341,8 @@ namespace ml
         cell.visible = true
         componentConfig = m.cellInfos[index]
         componentConfig.component = cell
+        componentConfig.index = index
+        componentConfig.id = item.id
       end if
     end function
 
@@ -360,26 +391,21 @@ namespace ml
       if item <> invalid
         m.releasecell(m.renderersByContentId[item.id])
       else
-        ? " could not find item at index" index
       end if
     end function
 
     protected override function releaseCell(cell as mc.types.node)
-      ? "WANT TO RELEASE " ; mc.dv(cell)
       if cell <> invalid and cell.id <> "#_#phc"
         cellInfo = m.cellInfos[cell.index]
         if cellInfo <> invalid
           m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
           cell.isInViewPort = false
-          ? "RELEASING THE CELL " ; cell.index
           m.componentPool@.releaseComponent(cell)
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
         else
-          ? " WARNING - COULD NOT FIND CELL INFO - PROBABLY HAVE A LEAKED CELL HERE"
         end if
       else
-        ? "NOT RELEASING CELL "
       end if
     end function
 
@@ -527,7 +553,7 @@ namespace ml
       end if
     end function
 
-    function getIsOnScreen(info as ml.componentInfo, screenPos = 0 as integer) as boolean
+    function getIsOnScreen(info as ml.CellInfo, screenPos = 0 as integer) as boolean
       rect = m.rects[info.contentIndex]
       if rect = invalid
         return false
@@ -552,7 +578,7 @@ namespace ml
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function isFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+    function isFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)
       isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
 
       if not isFlowPossible and info.isFlowFocusAllowed
@@ -563,7 +589,7 @@ namespace ml
       return isFlowPossible
     end function
 
-    function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer)
+    function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)
       return true
     end function
 
@@ -581,29 +607,24 @@ namespace ml
     end function
 
     override function getRenderer(index as integer, createIfNotReady = false as boolean, forceCellUpdate = false as boolean)
-      ? " GETTING RENDERER FOR "; index
       if m.content <> invalid and m.cellInfos <> invalid
         item = m.content@.getChild(index)
         if item <> invalid
           cell = m.renderersByContentId[item.id]
-          ? " CELL "; mc.dv(cell)
           if cell <> invalid and cell.id <> "#_#phc"
             if forceCellUpdate
               m.updateCell(cell, index, item)
             end if
             return cell
           else if createIfNotReady
-            ? " NO CELL calling getCell"
             return m.getCell(index)
           else
             return invalid
           end if
         else
-          ? "ERROR could not find renderer for ", index
           return invalid
         end if
       else
-        ? " NO RENDERER"
         return invalid
       end if
     end function
@@ -626,10 +647,10 @@ namespace ml
 
         screenPos = m.settings.screenPos
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+          new ml.CellPosition(yOffset, screenPos) 'normal
+          new ml.CellPosition(yOffset, screenPos) 'float-scroll
         ]
-        m.rowInfos = [new ml.ComponentInfo([0, 0], focusSettings, positions, false, 0, 0)]
+        m.rowInfos = [new ml.CellInfo([0, 0], focusSettings, positions, false, 0, 0)]
       end if
       return m.rowInfos
     end function
@@ -645,6 +666,9 @@ namespace ml
           end if
         end if
       end for
+    end function
+
+    function recalculateCellInfos(forceRecalculate as boolean)
     end function
 
   end class

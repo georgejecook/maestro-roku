@@ -1,5 +1,5 @@
 import "pkg:/source/ml/ItemViewManager.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   class GridRowItemViewManager extends ml.ItemViewManager
@@ -148,9 +148,6 @@ namespace ml
 
     override function updateLayout(fullUpdate = false as boolean) as void
       m.log.info("GRID updateLayout")
-      ? ""
-      ? "+>+>>+>+>+>+>++>>++>>+>+>+>+>+>+>>+>+>+>+>"
-      ? "GRID UPDATE LAYOUT"
       m.rects = []
       m.visibleItems = []
       m.rowOffsets = []
@@ -201,11 +198,11 @@ namespace ml
           })
 
           positions = [
-            new ml.ComponentPosition(0, x) 'up
-            new ml.ComponentPosition(0, x) 'down
+            new ml.CellPosition(0, x) 'up
+            new ml.CellPosition(0, x) 'down
           ]
 
-          cellInfo = new ml.ComponentInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
+          cellInfo = new ml.CellInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
           cellInfo.index = i
           cellInfo.id = item.id
           m.cellInfos.push(cellInfo)
@@ -220,6 +217,8 @@ namespace ml
         y += m.perRowHeight
         rowIndex++
       end while
+
+      'TODO - write a function to handle removing dangling renderers
 
       ? "::>: OLD COUNT" ; previousCount, "NEW COUNT" ; m.visibleItems.count()
       if previousCount > m.visibleItems.count()
@@ -236,7 +235,7 @@ namespace ml
       m.numberOfItems = m.visibleItems.count()
     end function
 
-    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.ComponentInfo
+    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
 
       yOffset += y
 
@@ -249,8 +248,8 @@ namespace ml
         isFlowFocusAllowed = false
 
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new ml.CellPosition(yOffset, screenPos) 'up
+          new ml.CellPosition(yOffset, screenPos) 'down
         ]
       else if rowIndex = 1 and m.settings.otherRowScreenPos <> m.settings.firstRowScreenPos
         screenPos = m.settings.otherRowScreenPos
@@ -260,8 +259,8 @@ namespace ml
         ' end if
         isFlowFocusAllowed = false
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          new ml.ComponentPosition(yOffset, screenPos) 'down
+          new ml.CellPosition(yOffset, screenPos) 'up
+          new ml.CellPosition(yOffset, screenPos) 'down
         ]
       else
         screenPos = m.settings.otherRowScreenPos
@@ -273,13 +272,13 @@ namespace ml
         end if
         ' ? "ROW SCREEN POS" ; rowIndex ; " " ; yOffset ; " Y " ; yOffset ; " F "; m.firstFlowIndex ; " SP "; screenPos
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'up
-          ' new ml.ComponentPosition(yOffset, screenPos) 'down
-          new ml.ComponentPosition(yOffset - downScreenPos, screenPos) 'down
+          new ml.CellPosition(yOffset, screenPos) 'up
+          ' new ml.CellPosition(yOffset, screenPos) 'down
+          new ml.CellPosition(yOffset - downScreenPos, screenPos) 'down
         ]
       end if
       'note - col width is irrelevant
-      return new ml.ComponentInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
+      return new ml.CellInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
@@ -352,16 +351,16 @@ namespace ml
 
       m.previousRendereredByContentId = m.renderersByContentId
 
-      m.itemScroller.getComponentInfos(true)
+      m.recalculateCellInfos(true)
       m.itemScroller.processChanges(changes)
 
-      ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
-      '   m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+      ' if m.itemScroller.index >= m.viewManager.numberOfItems
+      '   m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.viewManager.numberOfItems - 1)
       '   ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
       ' end if
-      ' if m.itemScroller.componentInfos.count() <> numRows
-      '   m.itemScroller.chooseComponentInfoForScrollingIntoRow(m.itemScroller.componentInfos[m.itemScroller.index])
-      '   ? "NEED TO TELL LIST!!!" mc.dv(m.row) "  numRows " numRows "compinfos" m.itemScroller.componentInfos.count()
+      ' if m.cellInfos.count() <> numRows
+      '   m.itemScroller.chooseCellInfoForScrollingIntoRow(m.cellInfos[m.itemScroller.index])
+      '   ? "NEED TO TELL LIST!!!" mc.dv(m.row) "  numRows " numRows "compinfos" m.cellInfos.count()
       '   m.owner@.forceUpdate(m.owner._updatesEnabled)
       ' end if
       m.owner@.forceUpdate(m.owner._updatesEnabled)
@@ -376,7 +375,7 @@ namespace ml
       ? "]]]]]]]]]]]]]]]]]]]]]]]]"
     end function
 
-    override function isVerticalFlowFocusPossible(info as ml.componentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
+    override function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
       if not m.isVerticalFlowFocusAllowed
         return false
       end if
@@ -464,7 +463,7 @@ namespace ml
         '   index++
         '   if comp.id = "#_#phc"
         '     ? " comp needs to be made!! "; index
-        '     comp = m.viewManager.getCell(index)
+        '     comp = m.getCell(index)
         '   end if
         '   if comp <> invalid and not comp.isInViewPort
         '     comp.isInViewPort = true

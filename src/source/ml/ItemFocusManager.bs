@@ -1,6 +1,6 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/view/Animation.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
@@ -15,8 +15,8 @@ namespace ml
 
     private viewManager = invalid
     private itemScroller = invalid
-    private componentInfo as ml.ComponentInfo
-    private nextComponentInfo as ml.ComponentInfo
+    private CellInfo as ml.CellInfo
+    private nextCellInfo as ml.CellInfo
     private previousFocusIndicatorConfig as ml.FocusIndicatorConfig
     private nextFocusIndicatorConfig as ml.FocusIndicatorConfig
     private direction = 0
@@ -70,17 +70,21 @@ namespace ml
       m.moveAnimation = itemScroller.moveAnimation
     end function
 
+    ' function updateCellInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo)
+    '   'ensure that the focus manager
+    ' end function
+
     'TODO - add subrow index events
-    function setComponentInfo(componentInfo as ml.componentInfo, nextComponentInfo as ml.componentInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
-      if m.componentInfo <> invalid and m.componentInfo.index = componentInfo.index and m.nextComponentInfo <> invalid and m.nextComponentInfo.index = nextComponentInfo.index and m.direction = direction
+    function setCellInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
+      if m.cellInfo <> invalid and m.cellInfo.index = CellInfo.index and m.nextCellInfo <> invalid and m.nextCellInfo.index = nextCellInfo.index and m.direction = direction
         ' ? ">>>> NOTHING HAS CHANGED DS " ; m.didStart ; " DF "; m.didFinish
         m.didFinish = false
         return
       end if
       ' ? ">>S> "; m.viewManager.__classname
       ' ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.colIndex ; " " ; nextFocusIndicatorConfig.gridIndex
-      m.componentInfo = componentInfo
-      m.nextComponentInfo = nextComponentInfo
+      m.cellInfo = CellInfo
+      m.nextCellInfo = nextCellInfo
       if previousFocusIndicatorConfig <> invalid and previousFocusIndicatorConfig.gridIndex <> invalid and previousFocusIndicatorConfig.gridIndex <> -1
         m.previousFocusIndicatorConfig = previousFocusIndicatorConfig
       else
@@ -100,7 +104,7 @@ namespace ml
 
     function onFocusAnimationUpdate(fraction as float) as void
       ' ? "ANIM UPDATE "; m.name ; " F " ; fraction ; " DS" ; m.didStart ; " DF " ; m.didFinish
-      ' ? " CI "; m.componentInfo.index ; " NCI "; m.nextComponentInfo.index
+      ' ? " CI "; m.cellInfo.index ; " NCI "; m.nextCellInfo.index
       if m.didStart and not m.didFinish
         m.onFocusUpdate(fraction)
       end if
@@ -128,19 +132,18 @@ namespace ml
         name = "willLoseFocus"
         nextName = "willGainFocus"
         m.didStart = true
+        ? " itemFocusManager " m.__classname " calling setNextFocusIndicatorConfig" m.nextFocusIndicatorConfig.rowIndex " " m.nextFocusIndicatorConfig.colIndex
         m.focusIndicatorManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
-        ' ? " + sending WILL lose " ; m.index ; " / WILL gain" ; m.nextIndex
       else if fraction = 0
         return
       else if fraction >= 1
         if m.didFinish or not m.didStart
           return
         end if
-        ' ? " DID FINISH "; m.nextComponentInfo.index
+        ? " DID FINISH "; m.nextFocusIndicatorConfig.rowIndex " " m.nextFocusIndicatorConfig.colIndex
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
-        ' ? " + sending DID lose " ; m.index ; " / DID gain" ; m.nextIndex
         m.focusIndicatorManager@.setFocusComplete(m.nextFocusIndicatorConfig)
       else
         name = "losingFocus"
@@ -161,13 +164,13 @@ namespace ml
         direction: m.direction
         fraction: fraction
         name: name
-        index: m.componentInfo.contentIndex
+        index: m.cellInfo.contentIndex
       }
       nextEvent = {
         direction: m.direction
         fraction: fraction
         name: nextName
-        index: m.nextComponentInfo.contentIndex
+        index: m.nextCellInfo.contentIndex
       }
 
       if m.previousFocusIndicatorConfig <> invalid and m.previousFocusIndicatorConfig.gridIndex <> invalid
@@ -185,20 +188,20 @@ namespace ml
 
       ' ? ">>>>>>>>>>>>>>>"
       ' ? ">>>>>>>>>>>>>>>"
-      ' ? " sending "; name ; " to " ; m.componentInfo.index ; " GI "; event.gridIndex
-      ' ? " sending "; nextName ; " to " ; m.nextComponentInfo.index ; " GI " ; nextEvent.gridIndex
+      ' ? " sending "; name ; " to " ; m.cellInfo.index ; " GI "; event.gridIndex
+      ' ? " sending "; nextName ; " to " ; m.nextCellInfo.index ; " GI " ; nextEvent.gridIndex
       ' ? ">>>>>>>>>>>>>>>"
-      isSendingFromEvent = fromGridIndex <> invalid or (m.nextComponentInfo.contentIndex <> m.componentInfo.contentIndex)
+      isSendingFromEvent = fromGridIndex <> invalid or (m.nextCellInfo.contentIndex <> m.cellInfo.contentIndex)
       event.rowIndex = m.rowIndex
       nextEvent.rowIndex = m.rowIndex
 
       'let components know, so they can react
-      if isSendingFromEvent and m.componentInfo.component <> invalid
-        m.componentInfo.component.listEvent = event
+      if isSendingFromEvent and m.cellInfo.component <> invalid
+        m.cellInfo.component.listEvent = event
       end if
 
-      if m.nextComponentInfo <> invalid and m.nextComponentInfo.component <> invalid
-        m.nextComponentInfo.component.listEvent = nextEvent
+      if m.nextCellInfo <> invalid and m.nextCellInfo.component <> invalid
+        m.nextCellInfo.component.listEvent = nextEvent
       else
 
         ' ? "ERROR: missing next component info!"

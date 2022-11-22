@@ -40,8 +40,8 @@ namespace ml
       return true
     end function
 
-    protected override function setComponentInfo(info as ml.ComponentInfo)
-      super.setComponentInfo(info)
+    protected override function setCellInfo(info as ml.CellInfo)
+      super.setCellInfo(info)
       if info <> invalid
         m.currentRowIndex = fix(info.index / m.viewManager.numCols)
       else
@@ -55,30 +55,30 @@ namespace ml
       ' m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort, true, m.viewManager.getRowIndexForItemIndex(m.focusedIndex))
     end function
 
-    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+    protected override function getCellCellInfo(CellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo
 
       'TODO - add the ability for a given row to _remember_ or choose the
       'default index it should give us
-      if componentInfo = invalid
+      if CellInfo = invalid
         return invalid
       end if
 
       if isFromListScroll
-        ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;componentInfo.componentIndex ; " is List scroll? "; isFromListScroll
+        ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;CellInfo.componentIndex ; " is List scroll? "; isFromListScroll
         focusX = m.focusIndicatorManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
 
-        cellInfosInRow = m.viewManager.getCellInfosInRow(componentInfo.componentIndex)
+        cellInfosInRow = m.viewManager.getCellInfosInRow(CellInfo.componentIndex)
         nextInfo = invalid
 
         for each info in cellInfosInRow
-          ' ? " RI " ; componentInfo.componentIndex ; " CI " ; info.index ; " P " ; info.getScreenPosition(1) ; " FP " ; focusX
+          ' ? " RI " ; CellInfo.componentIndex ; " CI " ; info.index ; " P " ; info.getScreenPosition(1) ; " FP " ; focusX
           if info <> invalid and info.getScreenPosition(1) <= focusX
             nextInfo = info
           end if
         end for
         ' colIndex = m.index mod m.viewManager.numCols
-        ' cellIndex = mc.clamp((componentInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.numberOfComponents - 1)
-        ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.numberOfComponents - 1
+        ' cellIndex = mc.clamp((CellInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.viewManager.numberOfItems - 1)
+        ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.viewManager.numberOfItems - 1
         if nextInfo = invalid
           ' ? "no item found for indicator position - using first item in row"
           nextInfo = cellInfosInRow[0]
@@ -86,15 +86,15 @@ namespace ml
 
         return nextInfo
       else
-        return m.viewManager.cellInfos[componentInfo.index]
+        return m.viewManager.cellInfos[CellInfo.index]
       end if
     end function
 
-    public override function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
-      ' ? " GRID CHOOSE SCROLLING INTO ROW" ; componentInfo.index; " CI "; componentInfo.componentIndex
-      componentInfo = m.getCellComponentInfo(componentInfo, true)
-      if componentInfo <> invalid
-        m.setComponentInfo(componentInfo)
+    public override function chooseCellInfoForScrollingIntoRow(CellInfo as ml.CellInfo)
+      ' ? " GRID CHOOSE SCROLLING INTO ROW" ; CellInfo.index; " CI "; CellInfo.componentIndex
+      CellInfo = m.getCellCellInfo(CellInfo, true)
+      if CellInfo <> invalid
+        m.setCellInfo(CellInfo)
         'bs:disable-next-line
         m.viewManager.row.focusedCellIndex = m.index
         ' ? " GRID CHOICE IS MADE index is now "; m.index
@@ -105,18 +105,18 @@ namespace ml
     '++ Focus Indicator
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      if componentInfo = invalid
-        ? "ERROR grid got invalid componentInfo"
+    public override function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      if CellInfo = invalid
+        ? "ERROR grid got invalid CellInfo"
         return invalid
       end if
-      info = m.getCellComponentInfo(componentInfo, isFromListScroll)
-      config = super.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromListScroll)
+      info = m.getCellCellInfo(CellInfo, isFromListScroll)
+      config = super.getFocusIndicatorConfig(CellInfo, direction, isFloatingFocus, isFromListScroll)
       config.gridIndex = info.contentIndex
       return config
     end function
 
-    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, parentComponentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+    protected override function getFocusIndicatorTranslation(info as ml.CellInfo, parentCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as object
       ' ? " START GRID GET FOCUS INDICATOR TRANS INFO : " ; info
       if info = invalid or m.viewManager.settings = invalid
         return [0, 0]

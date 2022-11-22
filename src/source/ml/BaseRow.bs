@@ -4,7 +4,7 @@ import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
 namespace ml
@@ -208,47 +208,48 @@ namespace ml
         yOffset = m.top.translation[1]
 
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+          new ml.CellPosition(yOffset, screenPos) 'normal
+          new ml.CellPosition(yOffset, screenPos) 'float-scroll
         ]
-        rowInfo = new ml.ComponentInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
+        rowInfo = new ml.CellInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
         return [rowInfo]
       end if
     end function
 
-    public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      componentInfo = m.getRowInfos(false)[componentInfo.componentIndex]
+    public function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      CellInfo = m.getRowInfos(false)[CellInfo.componentIndex]
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        return m.itemScroller.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromLIstScroll)
+        return m.itemScroller.getFocusIndicatorConfig(CellInfo, direction, isFloatingFocus, isFromLIstScroll)
       else
         return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings, true)
       end if
     end function
 
-    public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+    public function chooseCellInfoForScrollingIntoRow(CellInfo as ml.CellInfo)
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        m.itemScroller.chooseComponentInfoForScrollingIntoRow(componentInfo)
+        m.itemScroller.chooseCellInfoForScrollingIntoRow(CellInfo)
       end if
     end function
 
-    public function isVerticalFlowFocusPossible(componentInfo as ml.ComponentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
+    public function isVerticalFlowFocusPossible(CellInfo as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
-        return m.viewManager.isVerticalFlowFocusPossible(componentInfo, direction, activeScreenPos, scrollPos)
+        return m.viewManager.isVerticalFlowFocusPossible(CellInfo, direction, activeScreenPos, scrollPos)
       end if
       return true
     end function
 
     public function focusOnContentsNow()
+      ? " FOCUS  ON CONTENTS NOW " mc.dv(m.top)
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        config = m.itemScroller.getFocusIndicatorConfig(m.itemScroller.componentInfo, m.itemScroller.direction, false, false)
+        config = m.itemScroller.getFocusIndicatorConfig(m.itemScroller.cellInfo, m.itemScroller.direction, false, false)
         'bs:disable-next-line
         m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
         m.owner.focusIndicatorManager@.setFocusComplete(config)

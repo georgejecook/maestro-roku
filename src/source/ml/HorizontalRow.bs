@@ -3,7 +3,7 @@ import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   @node("ml_HorizontalRow", "ml_BaseRow")
@@ -103,7 +103,7 @@ namespace ml
           m.focusManager.isNotifying = true
         end if
         ' end if
-        if m.itemScroller.numberOfComponents = 0 and content <> invalid and content.isHidden <> true
+        if m.viewManager.numberOfItems = 0 and content <> invalid and content.isHidden <> true
           ' ? "force update - no comps left!"
           m.owner@.forceUpdate()
         end if

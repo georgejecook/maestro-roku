@@ -3,7 +3,7 @@ import "pkg:/source/ml/GridRowItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
 import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   ' displays items in a grid, with:
@@ -113,19 +113,14 @@ namespace ml
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)
-      ? " CONTENT CHANGE 1 "; mc.dv(m.top) ; " m.owner._updatesEnabled "; m.owner._updatesEnabled
       if m.owner._updatesEnabled
-        ? " CONTENT CHANGE 2"
         if changes <> invalid and changes.count() > 0
-          ? " CONTENT CHANGE 3"
           m.log.info("This content has changed in some way")
           m.viewManager.onContentItemsChange(changes)
         else
-          ? " CONTENT CHANGE 4"
           m.viewManager.updateChangedItems()
         end if
       else
-        ? " CONTENT CHANGE 5"
         m.log.info("Updates are disabled. onContentItemsChange returning without updating")
       end if
     end function
@@ -161,7 +156,6 @@ namespace ml
       'make it so we can specify to pass on scroll updates
       'or pass on scroll/start/stop, or didEnter
       isPropagatedToAll = m.propagatedEvents[event.name]
-      ' ? " GOT GRID EVENT "; event.name ; m.content.id
       if isPropagatedToAll <> invalid
         if event.index = -1
           'ignore general grid event
@@ -170,10 +164,8 @@ namespace ml
 
         if isPropagatedToAll
           if event.name = "didExit"
-            ? " GRID EXIT " ; event.index mc.dv(m.top)
             m.viewManager.notifyExitEvent(event.index, event.index)
           else if event.name = "didEnter"
-            ? " GRID ENTER " event.index mc.dv(m.top)
             m.viewManager.notifyEnterEvent(event.index, event.index, event.forceCellUpdate = true)
           end if
         end if
@@ -220,12 +212,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function configureHeader(forceUpdate = false as boolean)
-      ? " HEADER"
       if m._content = invalid
         m.cleanHeader()
       else
         headerSettings = m.settings.headerSettings
-        ? " HEADER SETTINGS comp " headerSettings.compName
         if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
@@ -269,23 +259,23 @@ namespace ml
       m.log.info("updating focus on cellIndex", index)
 
       if m.itemScroller <> invalid
-        componentInfo = m.itemScroller.getComponentInfoForContentindex(index)
-        if componentInfo = invalid
+        cellInfo = m.viewManager.getCellInfoForContentindex(index)
+        if cellInfo = invalid
           m.log.error("No component info")
         end if
 
         m.itemScroller.forceFocusOnIndex(index, true, false)
-        m.itemScroller.setComponentInfo(componentInfo)
+        m.itemScroller.setCellInfo(cellInfo)
 
         ' m.setFocusIndex(index, false)
 
-        config = m.itemScroller.getFocusIndicatorConfig(componentInfo, m.itemScroller.direction, false, false)
+        config = m.itemScroller.getFocusIndicatorConfig(cellInfo, m.itemScroller.direction, false, false)
         if config <> invalid
           config.colIndex = m.focusedCellIndex
+          ? "GRID ROW focusOnIndexNow"
           m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
           m.owner.focusIndicatorManager@.setFocusComplete(config)
         else
-          ? " CONFIG INVALID"
         end if
       end if
     end function
@@ -298,7 +288,6 @@ namespace ml
       m.log.verbose("onKeyPressLeft")
       m.itemScroller.isDoingLongPress = false
       if m.isAlreadyScrolling(false)
-        ? " IS ALREADY SCROLLING"
         return true
       end if
       if m.canScroll("left")
@@ -335,7 +324,6 @@ namespace ml
 
     private function canScroll(key as string)
       if m.isAlreadyScrolling(key = "up" or key = "down")
-        ? " cannot scroll - already scrolling"
         return false
       end if
       index = m.itemScroller.index
@@ -344,7 +332,6 @@ namespace ml
       ' ? "CAN SCROLL KEY"; key
 
       m.isScrollingEnabled = true 'hack: until we can work out if this var is needed anymore
-      ' ? " m.isScrollingEnabled "; m.isScrollingEnabled ; " index " ; index
       return (m.isScrollingEnabled and m._content <> invalid and m._content.length > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
@@ -355,7 +342,6 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       m.log.verbose(">>>>onLongPressStart", key)
-      ' ? " ON LONG PRESS START GRID ROW "; key
       if m.canScroll(key)
         ' ? "onLongPressStart - CAN SCROL KEY "; key
         m.log.verbose("long press started on key", key, "going to animate to final scroll position")
@@ -373,7 +359,6 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-      ' ? " ON LONG PRESS FINISH "; key
       m.itemScroller.isDoingLongPress = false
       if key = "left" or key = "right"
         m.log.verbose("long press finished on key", key)
@@ -390,7 +375,6 @@ namespace ml
 
     protected function onWillLoseFocus(direction as integer)
       ' m.log.verbose("This row will lose focus - disabling scrolling")
-      ' ? " WILL LOSE FOCUS " ; m.top.id
       m.itemScroller.cancelScrolling()
       m.toggleLongPressTimer(0)
       m.isScrollingEnabled = false
@@ -398,7 +382,6 @@ namespace ml
 
     protected function onWillGainFocus(direction as integer)
       ' m.log.verbose("This row will gain focus - enabling scrolling")
-      ' ? " WILL GAIN FOCUS " ; m.top.id
       m.isScrollingEnabled = true
     end function
 

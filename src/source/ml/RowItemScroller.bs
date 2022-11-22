@@ -17,18 +17,18 @@ namespace ml
       return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
-    protected override function getCellComponentInfo(componentInfo as ml.ComponentInfo, isFromListScroll = false as boolean) as ml.ComponentInfo
+    protected override function getCellCellInfo(CellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo
       if isFromListScroll
         return m.viewManager.cellInfos[m.index]
       else
-        if componentInfo = invalid
+        if CellInfo = invalid
           return invalid
         end if
-        return m.viewManager.cellInfos[componentInfo.index]
+        return m.viewManager.cellInfos[CellInfo.index]
       end if
     end function
 
-    protected override function getFocusIndicatorTranslation(info as ml.ComponentInfo, componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean) as object
+    protected override function getFocusIndicatorTranslation(info as ml.CellInfo, CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as object
       if info = invalid
         return [0, 0]
       end if
