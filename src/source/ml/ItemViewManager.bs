@@ -297,6 +297,7 @@ namespace ml
       cell = invalid
       item = m.content@.getChild(index)
 
+      ' ? "getCell" index
       if item <> invalid
         cell = m.renderersByContentId[item.id]
         if cell = invalid or cell.id = "#_#phc"
@@ -312,24 +313,31 @@ namespace ml
 
     private function updateCell(cell as mc.types.node, index as integer, item as mc.types.node)
       if cell <> invalid
-        ? " updating rendered cell " asString(cell.title) " index " index
+        ' ? " updating rendered cell IDX" cell.index " CT " asString(item.title) " index " index " ID " asString(item.id)
         m.previousRendereredByContentId.delete(item.id)
         m.renderersByContentId[item.id] = cell
         m.rendereredCellInfosByIndex[index.toStr()] = m.cellInfos[index]
         cell.translation = m.rects[index].translation
 
-        if m.itemScroller.focusManager.CellInfo <> invalid and m.itemScroller.focusManager.CellInfo.index = cell.index
-          ? "fixing focus index " m.itemScroller.focusManager.CellInfo.index " >  " index
-          m.itemScroller.focusManager.CellInfo.index = index
-        end if
+        'MOVE THIS AWAY
+        ' if m.itemScroller.focusManager.CellInfo <> invalid and m.itemScroller.focusManager.CellInfo.index = cell.index
+        ' ? "fixing focus index " m.itemScroller.focusManager.CellInfo.index " >  " index
+        '   m.itemScroller.focusManager.CellInfo.index = index
+        ' end if
 
-        if m.itemScroller.focusManager.nextCellInfo <> invalid and m.itemScroller.focusManager.nextCellInfo.index = cell.index
-          ? "fixing next focus index " m.itemScroller.focusManager.nextCellInfo.index " >  " index
-          m.itemScroller.focusManager.nextCellInfo.index = index
-        end if
+        ' if m.itemScroller.focusManager.nextCellInfo <> invalid and m.itemScroller.focusManager.nextCellInfo.index = cell.index
+        ' ? "fixing next focus index " m.itemScroller.focusManager.nextCellInfo.index " >  " index
+        '   m.itemScroller.focusManager.nextCellInfo.index = index
+        ' end if
 
         'TODO - _might_ need something different than initial state here..
-        cell.id = item.id
+
+        cell.visible = true
+        cell.index = index
+        componentConfig = m.cellInfos[index]
+        componentConfig.component = cell
+        componentConfig.index = index
+        componentConfig.id = item.id
         cell.initialState = {
           'bs:disable-next-line
           row: m.row
@@ -337,17 +345,11 @@ namespace ml
           size: m.rects[index].size
           content: item
         }
-
-        cell.visible = true
-        componentConfig = m.cellInfos[index]
-        componentConfig.component = cell
-        componentConfig.index = index
-        componentConfig.id = item.id
       end if
     end function
 
     protected override function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
-      ' ? " GETTING CELL "; index; " isRendered "; isRendered
+      ' ? " GETTING CELL FOR CREATION "; index; " isRendered "; isRendered
       ' if not isRendered and not force'index > 10 and not force
       ' if false and not isRendered and not force'index > 10 and not force
       if not isRendered and not force
@@ -370,8 +372,6 @@ namespace ml
 
           cell.visible = true
 
-          ' ? ">>>>>>>> is visible "
-
           if isRendered
             ' cell.listEvent = { "name": "didEnter" }
           end if
@@ -390,7 +390,6 @@ namespace ml
       item = m.content@.getChild(index)
       if item <> invalid
         m.releasecell(m.renderersByContentId[item.id])
-      else
       end if
     end function
 
@@ -403,6 +402,13 @@ namespace ml
           m.componentPool@.releaseComponent(cell)
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
+          cell.isInViewPort = false
+          cell.listEvent = {
+            name: "didExit"
+            direction: 1
+            index: cell.index
+          }
+          cell.initialState = {}
         else
         end if
       else
@@ -417,12 +423,12 @@ namespace ml
           ' ? " notifying exit   on "; comp.id
           if comp.id <> "#_#phc"
             if comp.isInViewPort
-              comp.isInViewPort = false
-              comp.listEvent = {
-                name: "didExit"
-                direction: 1
-                index: comp.index
-              }
+              ' comp.isInViewPort = false
+              ' comp.listEvent = {
+              '   name: "didExit"
+              '   direction: 1
+              '   index: comp.index
+              ' }
               m.releaseCellAtIndex(comp.index)
             end if
           end if
@@ -607,24 +613,33 @@ namespace ml
     end function
 
     override function getRenderer(index as integer, createIfNotReady = false as boolean, forceCellUpdate = false as boolean)
+      ' ? " GR ";
       if m.content <> invalid and m.cellInfos <> invalid
         item = m.content@.getChild(index)
+        ' ? " A";
         if item <> invalid
           cell = m.renderersByContentId[item.id]
+          ' ? " B";
           if cell <> invalid and cell.id <> "#_#phc"
+            ' ? " C";
             if forceCellUpdate
               m.updateCell(cell, index, item)
             end if
+            ' ? " D"
             return cell
           else if createIfNotReady
+            ' ? " E"
             return m.getCell(index)
           else
+            ' ? " F"
             return invalid
           end if
         else
+          ' ? " G"
           return invalid
         end if
       else
+        ' ? " H"
         return invalid
       end if
     end function
@@ -669,6 +684,7 @@ namespace ml
     end function
 
     function recalculateCellInfos(forceRecalculate as boolean)
+      ' ? "recalculateCellInfos " m.__classname
     end function
 
   end class

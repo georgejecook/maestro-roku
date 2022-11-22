@@ -58,19 +58,21 @@ namespace ml
         m.renderStrategy = "all"
       end if
 
-      'HACK
-      'HACK
-      'HACK
-      'HACK
-      'HACK
-      m.numberToLookAhead = 3
-      m.numberToLookBehind = 2
+      ' hack
+      ' hack
+      ' hack
+      ' hack
+      ' hack
+      ' hack
+      ' m.numberToLookAhead = 2
+      ' m.numberToLookBehind = 1
+
     end function
 
     protected renderedIndexes = []
 
     function notifyViewportEvents(direction as integer, isRowInViewport as boolean, forceAll = false as boolean) as void
-      ' ? " NVE A"
+      ' ? " NVE A  forceAll" forceAll
       'for non-lists
       if m.viewManager.visibleItems = invalid
         ' ? "VPN NO VISIBLE COMPONENTS"
@@ -78,6 +80,8 @@ namespace ml
       end if
 
       oldRendereredCellInfosByIndex = {}
+      ' ? "BEFORE "; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+
       oldRendereredCellInfosByIndex.append(m.viewManager.rendereredCellInfosByIndex)
 
       if not isRowInViewport
@@ -87,7 +91,7 @@ namespace ml
 
         m.viewManager.notifyExitEvent(indexes)
       else
-        ' ? " NVE D"
+        ' ? " NVE D ISI " m.viewManager.itemScroller.index
         enterIndexes = []
         index = m.viewManager.itemScroller.index
         startIndex = index - m.numberToLookBehind
@@ -104,11 +108,14 @@ namespace ml
         end if
         ' ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
         for index = fromIndex to toIndex - 1
-          ' content = m.viewManager.visibleItems[i]
           isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
           ' ? " Is in viewport "; isInViewPort
           comp = m.viewManager.getRenderer(index, isInViewPort, forceAll)
-          ' ? " comp " mc.dv(comp)
+          if comp <> invalid
+            ' ? ">>> NVE " index " comp " mc.dv(comp) " " comp.index asString(comp.content.title)
+          else
+            ' ? " INVALID COMP " index
+          end if
           if isInViewPort
             if comp <> invalid
               enterIndexes.push(index)
@@ -126,6 +133,7 @@ namespace ml
         ' ? " >>>>>>>>>>>>>>>>>>>>> "
         ' ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
         ' ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
+        ' ? " NOTIFYING EXIT" formatJson(exitEventIndexes)
         ' ? " >>>>>>>>>>>>>>>>>>>>>"
         m.viewManager.notifyExitEvent(exitEventIndexes)
         m.viewManager.notifyEnterEvent(enterIndexes)

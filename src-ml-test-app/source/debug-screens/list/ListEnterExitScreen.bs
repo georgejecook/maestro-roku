@@ -16,8 +16,9 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  ' private numberOfRows = 30
-  private numberOfRows = 5
+  private numberOfRows = 30
+  ' private numberOfRows = 2
+  private numberOfItems = 50
   private defaultCellType = "PosterCellEfficient"
 
   'state
@@ -28,6 +29,9 @@ class ListEnterExitScreen extends mv.BaseScreen
   private cellSettings
   private loadingIndicator
   private scrollSpeed = 0.2
+  private numberItemsToRenderAfter = 4
+  private numberItemsToRenderBefore = 2
+
   ' private scrollSpeed = 4 'roku 2
   private button as mc.types.node
   private label as mc.types.node
@@ -105,10 +109,8 @@ class ListEnterExitScreen extends mv.BaseScreen
 
     listSettings.renderStrategy = "dynamic"
     ' listSettings.renderStrategy = "all"
-    listSettings.numberItemsToRenderAfter = 4
-    listSettings.numberItemsToRenderBefore = 2
-    ' listSettings.numberItemsToRenderAfter = 1
-    ' listSettings.numberItemsToRenderBefore = 1
+    listSettings.numberItemsToRenderAfter = m.numberItemsToRenderAfter
+    listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
@@ -159,7 +161,6 @@ class ListEnterExitScreen extends mv.BaseScreen
     for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
-      numItems = 20
       if showHero and (i = 0 or i = 10 or i = 18 or i = 25 or i = 35 or i = 45)
         row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
         if i <> 10
@@ -184,11 +185,8 @@ class ListEnterExitScreen extends mv.BaseScreen
         row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
         ' if i = 3
-        '   numItems = 100
         ' else
-        '   numItems = 50
         ' end if
-        numItems = 2 + rnd(20)
 
       else if showNormal 'and (i = 2 or i = 3 or i = 20 or i = 30 or i = 40)
         focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
@@ -208,11 +206,10 @@ class ListEnterExitScreen extends mv.BaseScreen
         ' end if
       end if
       ' numItems = 50
-      numItems = 2
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
       content.push(row)
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems, "HORIZ"))
+      row@.appendChildren(m.makeItems(m.defaultCellType, m.numberOfItems, "HORIZ"))
     end for
 
     return content
@@ -227,7 +224,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function makeItem(cellType as string, title as string) as mc.types.node
-    id = rnd(2147483647).toStr()
+    id = "I:" + m.contentId.toStr()
     child = m.createSGNode("Item", invalid, id, {
       json: {
         title: title

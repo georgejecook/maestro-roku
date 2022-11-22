@@ -70,25 +70,33 @@ namespace ml
     end function
 
     private function _onContentChange(content as mc.types.node)
+      ' ? " ON CONTENT CHANGE " m.top.index
+      isChanged = false
       if content = invalid
         m.contentVersion = -1
+        isChanged = true
       else if m.contentVersion = -1 or content.version <> invalid
         m.contentVersion = content.version
+        isChanged = true
       end if
-      m.isContentDisplayed = false
-      m.onContentChange(content)
-      if m.top.isInViewPort
-        ' ? " IN VIEW PORT SHOWING "; m.index
-        m.onShowWithContent(content)
+
+      if isChanged
+        m.onContentChange(content)
+        if m.top.isInViewPort
+          ' ? " IN VIEW PORT SHOWING "; m.index
+          m.onShowWithContent(content)
+        end if
       end if
       m.isRecyclePending = false
     end function
 
     protected function onInitialStateChange(state as mc.types.assocarray)
+      ' ? " ON INITIAL STATE CHANGE " m.top.index
       m.list = state.list
       m.row = state.row
       m.size = state.size
       m.content = state.content
+      m.isContentDisplayed = false
       if state.content = invalid
         m.cleanup()
       else
@@ -172,7 +180,6 @@ namespace ml
         end if
       end if
     end function
-
 
   end class
 end namespace
