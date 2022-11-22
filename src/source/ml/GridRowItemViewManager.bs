@@ -170,11 +170,11 @@ namespace ml
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
-      ? "children" ; formatJson(mc.collections.map(children, function(c as object)
-        return c.title
-      end function))
+      ' ? "children" ; formatJson(mc.collections.map(children, function(c as object)
+      ' return c.title
+      ' end function))
 
-      ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
+      ' ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
 
       previousCount = m.visibleItems.count()
       renderedIds = {}
@@ -187,7 +187,7 @@ namespace ml
             exit for
           end if
           renderedIds[item.id] = true
-          ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
+          ' ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y]
@@ -220,13 +220,13 @@ namespace ml
 
       'TODO - write a function to handle removing dangling renderers
 
-      ? "::>: OLD COUNT" ; previousCount, "NEW COUNT" ; m.visibleItems.count()
+      ' ? "::>: OLD COUNT" ; previousCount, "NEW COUNT" ; m.visibleItems.count()
       if previousCount > m.visibleItems.count()
-        ? " dangling renderers detected"
+        ' ? " dangling renderers detected"
         m.log.warn("had dangling renderers - needs fixing")
         for each id in m.renderersByContentId
           if renderedIds[id] = invalid
-            ? "::: it was removed"
+            ' ? "::: it was removed"
             m.processRemovedItem(id)
           end if
         end for
@@ -343,8 +343,8 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
 
-      ? "[[[[[[[[[[[[[[[[[[[[[[[[[[[["
-      ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index ; " " ; mc.dv(m.row)
+      ' ? "[[[[[[[[[[[[[[[[[[[[[[[[[[[["
+      ' ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index ; " " ; mc.dv(m.row)
       numRows = m.rowOffsets.count()
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
@@ -372,7 +372,7 @@ namespace ml
       '   ' m.owner.focusedCellIndex = m.itemScroller.index
       '   m.owner@.moveToRowItem(m.row.index, m.itemScroller.index, false)
       ' end if
-      ? "]]]]]]]]]]]]]]]]]]]]]]]]"
+      ' ? "]]]]]]]]]]]]]]]]]]]]]]]]"
     end function
 
     override function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
@@ -408,13 +408,13 @@ namespace ml
 
 
     private function processRemovedItem(id as string)
-      ? " REMOVING CELL FOR ITEM ID "; id
+      ' ? " REMOVING CELL FOR ITEM ID "; id
       m.releaseCell(m.renderersByContentId[id])
     end function
 
     override function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
       if notifyStart = -1
-        ? " clearing all"
+        ' ? " clearing all"
         notifyStart = 0
         notifyEnd = m.numRows
       end if

@@ -14,6 +14,8 @@ namespace ml
     public numberToLookAhead = 4
     public numberToLookBehind = 4
 
+    private isAllRendered = false 'todo - define exactly what this means, later
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -43,6 +45,7 @@ namespace ml
       else
         settings = m.viewManager.getItemSettings()
       end if
+
       if settings <> invalid
         m.renderStrategy = settings.renderStrategy
         if m.renderStrategy = "all"
@@ -57,16 +60,6 @@ namespace ml
         m.numberToLookBehind = 4
         m.renderStrategy = "all"
       end if
-
-      ' hack
-      ' hack
-      ' hack
-      ' hack
-      ' hack
-      ' hack
-      ' m.numberToLookAhead = 2
-      ' m.numberToLookBehind = 1
-
     end function
 
     protected renderedIndexes = []
@@ -76,6 +69,15 @@ namespace ml
       'for non-lists
       if m.viewManager.visibleItems = invalid
         ' ? "VPN NO VISIBLE COMPONENTS"
+        return
+      end if
+
+      if forceAll
+        m.isAllRendered = false
+      end if
+
+      if m.isAllRendered
+        ? " everything is already rendered; nothing else to do"
         return
       end if
 
@@ -137,6 +139,9 @@ namespace ml
         ' ? " >>>>>>>>>>>>>>>>>>>>>"
         m.viewManager.notifyExitEvent(exitEventIndexes)
         m.viewManager.notifyEnterEvent(enterIndexes)
+        if m.renderStrategy = "all"
+          m.isAllRendered = true
+        end if
       end if
     end function
 
@@ -151,6 +156,18 @@ namespace ml
       if nextCellInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
+
+      ? "LVE " m.isAllRendered
+      if forceAll
+        ? " clearing all is rendered coz forcAll"
+        m.isAllRendered = false
+      end if
+
+      if m.isAllRendered
+        ? " everything is already rendered; nothing else to do"
+        return
+      end if
+
       newInViewportComponentsById = {}
       newInViewportSubIndexes = {}
 
@@ -244,6 +261,10 @@ namespace ml
 
       m.inViewportComponentsById = newInViewportComponentsById
       m.inViewportSubIndexes = newInViewportSubIndexes
+
+      if m.renderStrategy = "all"
+        m.isAllRendered = true
+      end if
     end function
   end class
 
