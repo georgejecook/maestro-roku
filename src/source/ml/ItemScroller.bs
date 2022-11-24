@@ -7,17 +7,15 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class ItemScroller extends mc.BaseClass
 
-    public focusIndicatorManager as mc.types.node
     public container as mc.types.node
     public offsetContainer as mc.types.node
 
     public viewManager
-    public focusManager ' this MUST be set before doing anything
+    public focusManager
     public viewPortEventNotifier
     private settings
 
@@ -25,10 +23,10 @@ namespace ml
 
     public isLastMoveFlowFocus = false
 
-    public cellInfo as ml.CellInfo
-    public nextCellInfo as ml.CellInfo
+    public cellInfo as ml.cellInfo
+    public nextCellInfo as ml.cellInfo
     public nextFocusIndicatorConfig as ml.FocusIndicatorConfig
-    public targetCellInfo as ml.CellInfo
+    public targetCellInfo as ml.cellInfo
 
     public focusedItem as mc.types.node
 
@@ -63,19 +61,16 @@ namespace ml
     private isMultiMoveFinished = false
     private disableNonAnimatedFocusUpdates = false
 
-    function new(name as string, viewManager as ml.ItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(name as string, viewManager as ml.ItemViewManager, focusManager as mc.types.node)
       super(name)
       m.viewManager = viewManager
       viewManager.itemScroller = m
 
-      m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
       m.container = m.viewManager.container
       m.axes = m.viewManager.axes
       m.viewPortEventNotifier = new ml.ViewPortEventNotifier(viewManager)
       m.moveAnimation = new mv.animations.Move(m.container, 1, m.container.translation, m.container.translation)
       m.moveAnimation.observeFraction(m.onAnimationFractionChange, m)
-
-      focusManager.setItemScroller(m)
       m.focusManager = focusManager
     end function
 
@@ -93,7 +88,6 @@ namespace ml
     public function reset(keepOldFocusIfPossible = false as boolean) as void
 
       ' ? " RESET keepOldFocusIfPossible "; keepOldFocusIfPossible
-      m.focusIndicatorManager = m.viewManager.owner.focusIndicatorManager
 
       if keepOldFocusIfPossible
         index = m.index
@@ -249,7 +243,7 @@ namespace ml
       'FIXME - cancel/tidy up a move in progress
 
       m.viewManager.recalculateCellInfos(false)
-      m.focusIndicatorManager@.cancelFlowFocus()
+      m.focusManager@.cancelFlowFocus()
       m.viewManager.numberOfItems = m.viewManager.cellInfos.count()
 
       if m.viewManager.numberOfItems = 0
@@ -269,7 +263,7 @@ namespace ml
       ' ? "////// MTI RESOLVED " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
 
       '////////////////////////////////////////////////////////////////////////
-      ' ? "//// 1. get CellInfo"
+      ' ? "//// 1. get cellInfo"
       '////////////////////////////////////////////////////////////////////////
 
       m.isMovingMultiple = abs(index - m.index) > 1
@@ -360,7 +354,7 @@ namespace ml
     function finishMovingToNextComponent(animated = true as boolean) as boolean
       ' ? "moving to next component"
       'FIXME - cancel/tidy up a move in progress
-      ' m.focusIndicatorManager@.cancelFlowFocus()
+      ' m.focusManager@.cancelFlowFocus()
 
       m.isScrollCancelled = false
 
@@ -478,18 +472,18 @@ namespace ml
             if m.isScrollCancelled
               m.finishMovingToIndex()
             else
-              m.focusManager.onFocusAnimationUpdate(1)
+              m.focusManager@.onFocusAnimationUpdate(1)
               m.screenPos = m.nextCellInfo.getScreenPosition(m.direction)
               m.setFocusIndex(m.nextIndex, true, true)
             end if
           else
-            m.focusManager.onFocusAnimationUpdate(f)
+            m.focusManager@.onFocusAnimationUpdate(f)
           end if
         end if
       else
         'simple one keypress case
         m.updateSrollOffsetFraction(fraction)
-        m.focusManager.onFocusAnimationUpdate(fraction)
+        m.focusManager@.onFocusAnimationUpdate(fraction)
       end if
 
     end function
@@ -513,7 +507,7 @@ namespace ml
           ' ? " is in position"
           m.toggleScrolling(false)
           if isFromFlow
-            m.focusManager.onFocusAnimationUpdate(1)
+            m.focusManager@.onFocusAnimationUpdate(1)
             m.updateSrollOffsetFraction(1)
             ' m.setFocusIndex(m.index, false, false)
           else
@@ -542,10 +536,10 @@ namespace ml
 
       if not m.viewManager.isScrolling
         ' ? "VVVVV Scrolling is finished - cannot finish move"
-        m.focusManager.onFocusAnimationUpdate(1)
+        m.focusManager@.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
         ' m.toggleScrolling(false)
-        ' m.setFocusOnRenderer(false)
+        ' m.setSystemFocusOnRenderer(false)
         return false
       end if
 
@@ -553,20 +547,20 @@ namespace ml
         ' ? "VVVVV was a simple move IFF " ; isFromFlow
         ' ? "MI "; m.index ; " NI "; m.nextIndex
 
-        m.focusManager.onFocusAnimationUpdate(1)
+        m.focusManager@.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
-        ' m.setFocusOnRenderer(false)
+        ' m.setSystemFocusOnRenderer(false)
         return false
       end if
 
-      ' CellInfo = m.cellInfo
+      ' cellInfo = m.cellInfo
       cellInfo = m.nextCellInfo
-      ' ? "VVVV NCI " ; mc.getPath(m.targetCellInfo, "index"); mc.getPath(CellInfo, "index")
+      ' ? "VVVV NCI " ; mc.getPath(m.targetCellInfo, "index"); mc.getPath(cellInfo, "index")
       if cellInfo = invalid
         ' ? "VVVVV NO Component Info"
-        m.focusManager.onFocusAnimationUpdate(1)
+        m.focusManager@.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
         m.setFocusIndex(m.nextIndex, true, true)
         m.toggleScrolling(false)
@@ -576,7 +570,7 @@ namespace ml
 
       if m.targetCellInfo = invalid or cellInfo.index = m.targetCellInfo.index
         ' ? "VVVVV HAVE ARRIVED"
-        m.focusManager.onFocusAnimationUpdate(1)
+        m.focusManager@.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
@@ -586,10 +580,10 @@ namespace ml
 
       if isFromFlow
         m.setFocusIndex(m.nextIndex, true, false)
-        m.focusManager.onFocusAnimationUpdate(1)
+        m.focusManager@.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
       end if
-      ' ? "VVVVV Need to move to index " ; m.targetCellInfo.index ; " at " ; CellInfo.index
+      ' ? "VVVVV Need to move to index " ; m.targetCellInfo.index ; " at " ; cellInfo.index
       isMoving = m.moveToIndex(m.targetCellInfo.index, true, true, m.direction, true, true)
       ' ? " isMoving "; isMoving
       if not isMoving
@@ -616,28 +610,27 @@ namespace ml
       end if
     end function
 
-    protected function setFocusManagerInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
+    protected function setFocusManagerInfo(cellInfo as ml.cellInfo, nextCellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean) as void
       if isFloatingFocus
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, true)
       else
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, false)
       end if
-      nextFocusIndicatorConfig = m.nextFocusIndicatorConfig
-      m.focusManager.setCellInfo(CellInfo, nextCellInfo, nextFocusIndicatorConfig, direction, isFloatingFocus)
+      m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Flow Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function moveUsingFlowAnim(fromInfo as ml.CellInfo, toInfo as ml.CellInfo, direction as integer)
+    protected function moveUsingFlowAnim(fromInfo as ml.cellInfo, toInfo as ml.cellInfo, direction as integer)
       ' ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
 
       m.isLastMoveFlowFocus = true
       m.toggleScrolling(true)
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
       ' ? "FLOW "; m.animSpeed
-      m.focusIndicatorManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
+      m.focusManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
@@ -653,7 +646,6 @@ namespace ml
       else
         ' ? ">>>> FLOW FOCUS "; fraction
         ' m.updateSrollOffsetFraction(fraction)
-        m.focusManager.onFocusAnimationUpdate(fraction)
       end if
     end function
 
@@ -664,7 +656,7 @@ namespace ml
     '++ State Tracking
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function setCellInfo(info as ml.CellInfo)
+    protected function setCellInfo(info as ml.cellInfo)
       m.cellInfo = info
       if info <> invalid
         ' ? "SCI>>> (" ; m.__classname ; ") " ; info.index ; " CI " ; info.contentIndex
@@ -681,7 +673,7 @@ namespace ml
       end if
     end function
 
-    protected function setNextCellInfo(info as ml.CellInfo) as void
+    protected function setNextCellInfo(info as ml.cellInfo) as void
       m.lastScrollOffsetFraction = 0
 
       if info = invalid
@@ -717,7 +709,7 @@ namespace ml
       m.nextCellInfo = info
     end function
 
-    function setTargetCellInfo(info as ml.CellInfo) as void
+    function setTargetCellInfo(info as ml.cellInfo) as void
       m.targetCellInfo = info
       if info <> invalid
         ' ? " >>>>>>>>>>>>>>>> Target is " ; info.index
@@ -778,7 +770,7 @@ namespace ml
         m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
       end if
 
-      m.setFocusOnRenderer(isMoving)
+      m.setSystemFocusOnRenderer(isMoving)
     end function
 
     protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
@@ -797,22 +789,22 @@ namespace ml
       end if
       index = mc.clamp(index, 0, m.viewManager.numberOfItems - 1)
       if m.cellInfo = invalid
-        ' ? " ERROR - there was no CellInfo"
+        ' ? " ERROR - there was no cellInfo"
         m.setCellInfo(m.viewManager.cellInfos[index])
       end if
       ' ? " ::::::::::::::: CURRENT index "; m.index
-      ' ? " ::::::::::::::: CURRENT CellInfo "; m.cellInfo.contentIndex
+      ' ? " ::::::::::::::: CURRENT cellInfo "; m.cellInfo.contentIndex
       m.setNextCellInfo(m.viewManager.cellInfos[index])
       ' ? " ::::::::::::::: index "; m.nextIndex
-      ' ? " ::::::::::::::: NEXT CellInfo "; m.nextCellInfo.contentIndex
+      ' ? " ::::::::::::::: NEXT cellInfo "; m.nextCellInfo.contentIndex
       ' m.notifyViewportEvents(true)
 
       if notifyFocusManager
         m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
-        m.focusManager.onFocusAnimationUpdate(1)
+        m.focusManager@.onFocusAnimationUpdate(1)
       end if
 
-      m.setFocusOnRenderer(false)
+      m.setSystemFocusOnRenderer(false)
       if notifyOwner and m.viewManager.row <> invalid
         ' ? " >>>>>>>>> SETTING focusedCellIndex " ; m.cellInfo.contentIndex
         m.viewManager.owner.focusedCellIndex = m.cellInfo.contentIndex
@@ -824,7 +816,7 @@ namespace ml
     '++ System Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function setFocusOnRenderer(isMoving as boolean) as void
+    function setSystemFocusOnRenderer(isMoving as boolean) as void
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -870,10 +862,10 @@ namespace ml
       ' end if
     end function
 
-    public function chooseCellInfoForScrollingIntoRow(CellInfo as ml.CellInfo)
-      CellInfo = m.getCellCellInfo(CellInfo, true)
-      if CellInfo <> invalid
-        m.setCellInfo(CellInfo)
+    public function chooseCellInfoForScrollingIntoRow(cellInfo as ml.cellInfo)
+      cellInfo = m.getCellCellInfo(cellInfo, true)
+      if cellInfo <> invalid
+        m.setCellInfo(cellInfo)
         ' ? " GRID CHOICE IS MADE index is now "; m.index
       end if
     end function
@@ -882,18 +874,18 @@ namespace ml
     '++ Focus Indicator
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    public function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
-      info = m.getCellCellInfo(CellInfo, isFromListScroll)
+      info = m.getCellCellInfo(cellInfo, isFromListScroll)
 
-      rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
+      ' rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
       if info = invalid or info.component = invalid or m.settings = invalid
-        ' ? "cannot get focus indicator CellInfo or CellInfo.component is invalid "; m.__classname
-        return new ml.FocusIndicatorConfig(rowIndex, m.index, [0, 0], [0, 0], m.settings, true)
+        ' ? "cannot get focus indicator cellInfo or cellInfo.component is invalid "; m.__classname
+        return ml.createFocusIndicatorConfig(m.viewManager.row, invalid, m.index)
       end if
 
       size = m.viewManager.getItemSize(info.contentIndex)
-      translation = m.getFocusIndicatorTranslation(info, CellInfo, direction, isFloatingFocus)
+      translation = m.getFocusIndicatorTranslation(info, cellInfo, direction, isFloatingFocus)
 
       indicatorTranslation = [translation[0] + m.settings.feedbackOffsets[0], translation[1] + m.settings.feedbackOffsets[1]]
 
@@ -901,15 +893,15 @@ namespace ml
 
       isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
 
-      return new ml.FocusIndicatorConfig(rowIndex, info.contentIndex, indicatorTranslation, indicatorSize, m.settings, isHidden)
+      return ml.createFocusIndicatorConfig(m.viewManager.row, info.component, info.contentIndex, isHidden, m.settings, indicatorTranslation, indicatorSize)
     end function
 
 
-    protected function getCellCellInfo(CellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo
+    protected function getCellCellInfo(cellInfo as ml.cellInfo, isFromListScroll = false as boolean) as ml.cellInfo
       return invalid
     end function
 
-    protected function getFocusIndicatorTranslation(info as ml.CellInfo, CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as object
+    protected function getFocusIndicatorTranslation(info as ml.cellInfo, cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean) as object
       return [0, 0]
     end function
 

@@ -2,7 +2,6 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
@@ -212,35 +211,35 @@ namespace ml
           new ml.CellPosition(yOffset, screenPos) 'normal
           new ml.CellPosition(yOffset, screenPos) 'float-scroll
         ]
-        rowInfo = new ml.CellInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
+        rowInfo = new ml.cellInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
         return [rowInfo]
       end if
     end function
 
-    public function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      CellInfo = m.getRowInfos(false)[CellInfo.componentIndex]
+    public function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      cellInfo = m.getRowInfos(false)[cellInfo.componentIndex]
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        return m.itemScroller.getFocusIndicatorConfig(CellInfo, direction, isFloatingFocus, isFromLIstScroll)
+        return m.itemScroller.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, isFromListScroll)
       else
-        return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings, true)
+        return ml.createFocusIndicatorConfig(m.top, invalid)
       end if
     end function
 
-    public function chooseCellInfoForScrollingIntoRow(CellInfo as ml.CellInfo)
+    public function chooseCellInfoForScrollingIntoRow(cellInfo as ml.cellInfo)
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        m.itemScroller.chooseCellInfoForScrollingIntoRow(CellInfo)
+        m.itemScroller.chooseCellInfoForScrollingIntoRow(cellInfo)
       end if
     end function
 
-    public function isVerticalFlowFocusPossible(CellInfo as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
+    public function isVerticalFlowFocusPossible(cellInfo as ml.cellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
-        return m.viewManager.isVerticalFlowFocusPossible(CellInfo, direction, activeScreenPos, scrollPos)
+        return m.viewManager.isVerticalFlowFocusPossible(cellInfo, direction, activeScreenPos, scrollPos)
       end if
       return true
     end function

@@ -1,151 +1,535 @@
-' import "pkg:/source/tests/BaseTestSuite.spec.bs"
-' import "pkg:/source/ml/ItemViewManager.bs"
-' import "pkg:/source/ml/ItemScroller.bs"
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
 
-' namespace tests
-'   @ignore("fix me")
-'   @tags("ml", "fixme")
-'   @suite("ItemFocusManager tests")
-'   class ItemFocusManagerTests extends tests.BaseTestSuite
+namespace tests
+  @noCatch
+  @suite("ItemFocusManager tests")
+  class ItemFocusManagerTests extends tests.BaseTestSuite
 
-'     public owner
-'     public container
-'     public viewManager
-'     public focusManager
-'     public scrollerAnimation
-'     public scrollerInterpolator
-'     public scroller
-'     public animation
-'     public delegate
-'     public ownerDelegate
+    private manager as ml.ItemfocusManager
+    private indicatorManager as mc.types.assocarray
 
-'     protected override function beforeEach()
-'       super.beforeEach()
-'       m.owner = new rooibos.utils.MockNode("owner")
-'       m.owner.translation = [0, 0]
-'       m.owner.width = 1920
-'       m.owner.height = 1080
+    protected override function beforeEach()
+      super.beforeEach()
+      m.indicatorManager = { "id": "indicatorManager" }
 
-'       m.container = new rooibos.utils.MockNode("container")
-'       m.container.translation = [0, 0]
-'       m.container.width = 1920
-'       m.container.height = 1080
+      m.manager = new ml.ItemFocusManager("test", m.indicatorManager)
+    end function
 
-'       m.viewManager = new ml.ItemViewManager(m.owner, m.container, 1)
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'       m.scroller = new ml.ItemScroller(m.viewManager, 1)
-'       m.configureScroller(1, 20)
+    @it("sets name and initial values")
+    function _()
+      m.assertEqual(m.manager.focusIndicatorManager, m.indicatorManager)
+      m.assertFalse(m.manager.didStart)
+      m.assertEqual(m.manager.fromEvent, {})
+      m.assertEqual(m.manager.toEvent, {})
+      m.assertFalse(m.manager.didFinish)
+      m.assertFalse(m.manager.isSendingFromEvent)
+      m.assertTrue(m.manager.isNotifying)
+      m.assertEqual(m.manager.direction, 0)
+      m.assertEqual(m.manager.lastSentFraction, -1)
+      m.assertInvalid(m.manager.delegates)
+    end function
 
-'       m.delegate = { "id": "delegate" }
-'       m.ownerDelegate = { "id": "ownerDelegate" }
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("configurEEventTemplate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, m.ownerDelegate)
-'     end function
+    @it("resets event if the config is invalid")
+    @params(-1)
+    @params(0)
+    @params(1)
+    function _(direction)
+      event = {}
 
+      m.manager.direction = direction
+      m.manager.configureEventTemplate(event, invalid)
 
-'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'     @describe("tests constructor")
-'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      m.assertEqual(event.index, -1)
+      m.assertEqual(event.rowIndex, -1)
+      m.assertEqual(event.direction, direction)
+    end function
 
-'     @it("sets values")
-'     function _()
-'       m.assertArrayCount(m.focusManager.delegates, 2)
-'       m.assertEqual(m.focusManager.delegates[0].id, "owner")
-'       m.assertEqual(m.focusManager.delegates[1].id, "ownerDelegate")
-'     end function
+    @it("sets rowIndex and index, if present")
+    @params(-1, invalid, invalid, -1, -1)
+    @params(0, invalid, invalid, -1, -1)
+    @params(1, invalid, invalid, -1, -1)
+    @params(-1, 0, invalid, 0, -1)
+    @params(0, 1, invalid, 1, -1)
+    @params(1, invalid, 0, -1, 0)
+    @params(1, invalid, 0, -1, 0)
+    @params(1, invalid, 2, -1, 2)
+    @params(1, 0, 0, 0, 0)
+    @params(1, 1, 1, 1, 1)
+    function _(direction, rowIndex, index, expectedRowIndex, expectedIndex)
+      event = {}
+      config = {
+        index: index
+        rowIndex: rowIndex
+      }
 
-'     @it("does not need owner delegate")
-'     function _()
-'       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, invalid)
-'       m.assertEqual(m.focusManager.delegates[0].id, "owner")
-'       m.assertArrayCount(m.focusManager.delegates, 1)
+      m.manager.direction = direction
 
-'     end function
+      m.manager.configureEventTemplate(event, config)
 
-'     @it("sets rowIndex")
-'     @params(0)
-'     @params(1)
-'     @params(2)
-'     @params(3)
-'     function _(index)
-'       m.focusManager = new ml.ItemFocusManager(m.viewManager, m.scroller, invalid, index)
-'       m.assertEqual(m.focusManager.delegates[0].id, "owner")
-'       m.assertArrayCount(m.focusManager.delegates, 1)
-'       m.assertEqual(m.focusManager.rowIndex, index)
+      m.assertEqual(event.index, expectedIndex)
+      m.assertEqual(event.rowIndex, expectedRowIndex)
+      m.assertEqual(event.direction, direction)
+    end function
 
-'     end function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onFocusAnimationUpdate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'     @describe("tests onFocusUpdate")
-'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @it("does nothing if not started, or finished")
+    @params(false, false, 0.1)
+    @params(true, true, 0.2)
+    @params(false, true, 0.3)
+    function _(didStart, didFinish, fraction)
+      m.manager.didStart = didStart
+      m.manager.didFinish = didFinish
 
-'     @it("initializes when not started")
-'     function _()
-'       m.expectOnce(m.focusManager, "setOwnerNextFocusIndex", [])
-'       m.expectOnce(m.focusManager, "sendEvents", ["willLoseFocus", "willGainFocus", 0])
+      m.expectNotCalled(m.manager.onFocusUpdate)
 
-'       m.focusManager.onFocusUpdate(0)
+      m.manager.onFocusAnimationUpdate(fraction)
+    end function
 
-'       m.assertTrue(m.focusManager.didStart)
+    @it("calls onFocusUpdate if started, and not ended")
+    @params(true, false, 0.1)
+    @params(true, false, 0.2)
+    function _(didStart, didFinish, fraction)
+      m.manager.didStart = didStart
+      m.manager.didFinish = didFinish
 
-'     end function
+      m.expectCalled(m.manager.onFocusUpdate(fraction))
 
-'     @it("does nothing on 0 fraction when started")
-'     function _()
-'       m.focusManager.didStart = true
-'       m.expectNone(m.focusManager, "setOwnerNextFocusIndex")
-'       m.expectNone(m.focusManager, "sendEvents")
+      m.manager.onFocusAnimationUpdate(fraction)
+    end function
 
-'       m.focusManager.onFocusUpdate(0)
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("_setNextFocusIndicatorConfig")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-'     end function
+    @it("resets tracking variables and updates template")
+    @params(false, true, -1)
+    @params(true, false, 0)
+    @params(true, false, 1)
+    function _(isSendingFromEvent, isSendingToEvent, direction)
+      previousConfig = { "id": "previousConfig" }
+      nextConfig = {
+        "id": "nextConfig"
+        direction: direction
+      }
 
-'     @it("does nothing on 1 fraction when finished")
-'     function _()
-'       m.focusManager.didStart = true
-'       m.focusManager.didFinish = true
-'       m.expectNone(m.focusManager, "setOwnerNextFocusIndex")
-'       m.expectNone(m.focusManager, "sendEvents")
+      m.expectCalled(m.manager.configureEventTemplate(m.manager.fromEvent, previousConfig))
+      m.expectCalled(m.manager.configureEventTemplate(m.manager.toEvent, nextConfig))
 
-'       m.focusManager.onFocusUpdate(0)
-
-'     end function
-
-'     @it("fraction 1 - not finished")
-'     function _()
-'       m.expectOnce(m.focusManager, "sendEvents", ["didLoseFocus", "didGainFocus", 1])
-'       m.expectOnce(m.focusManager, "setOwnerIndexes", [])
-'       m.focusManager.didStart = true
-'       m.focusManager.onFocusUpdate(1)
-
-'       m.assertTrue(m.focusManager.didStart)
-
-'     end function
-
-'     @it("various fractions")
-'     @params(0.2)
-'     @params(0.5)
-'     @params(0.8)
-'     function _(fraction)
-'       m.expectOnce(m.focusManager, "sendEvents", ["losingFocus", "gainingFocus", fraction])
-'       m.focusManager.didStart = true
-
-'       m.focusManager.onFocusUpdate(fraction)
-'       m.assertFalse(m.focusManager.didFinish)
-
-'     end function
-'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-'     '++ utils
-'     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-'     private function configureScroller(axes, numItems = 20, itemSize = [300, 300], screenSize = [1920, 1080])
-'       m.scroller.axes = axes
-
-'       tests.utils.configureViewManager(m.viewManager, axes, numItems, itemSize, screenSize)
-
-'       m.scroller.onViewManagerUpdate()
-'     end function
+      m.expectCalled(m.manager.getIsSendingFromEvent(), isSendingFromEvent)
+      m.expectCalled(m.manager.getIsSendingToEvent(), isSendingToEvent)
 
 
-'   end class
-' end namespace
+      m.manager.lastSentFraction = 0.01
+      m.manager.didStart = true
+      m.manager.direction = 2
+      m.manager.didFinish = true
+
+      m.manager.focusIndicatorConfig = previousConfig
+
+      m.manager._setNextFocusIndicatorConfig(nextConfig)
+
+      m.assertFalse(m.manager.didStart)
+      m.assertFalse(m.manager.didFinish)
+      m.assertEqual(m.manager.isSendingFromEvent, isSendingFromEvent)
+      m.assertEqual(m.manager.direction, direction)
+      m.assertEqual(m.manager.previousFocusIndicatorConfig, previousConfig)
+      m.assertEqual(m.manager.focusIndicatorConfig, nextConfig)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setNextFocusIndicatorConfig")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if the config is invalid")
+    function _()
+      m.expectNotCalled(m.manager.onFocusUpdate)
+
+      m.manager.setNextFocusIndicatorConfig(invalid)
+    end function
+
+    @it("does nothing if the config is the same")
+    function _()
+      config = { "id": "config" }
+
+      m.expectCalled(m.manager.isSameConfig(config), true)
+
+      m.expectNotCalled(m.manager.onFocusUpdate)
+
+      m.manager.setNextFocusIndicatorConfig(config)
+    end function
+
+    @it("sets the config and updates valid, if it is changed")
+    function _()
+      config = { "id": "config" }
+
+      m.expectCalled(m.manager.isSameConfig(config), false)
+
+      m.expectCalled(m.manager._setNextFocusIndicatorConfig(config))
+      m.expectCalled(m.manager.onFocusUpdate(0))
+
+      m.manager.setNextFocusIndicatorConfig(config)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("isSameConfig")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if new config is invalid")
+    function _()
+      m.manager.focusIndicatorConfig = {}
+      m.assertFalse(m.manager.isSameConfig(invalid))
+    end function
+
+    @it("returns false if old config is invalid")
+    function _()
+      m.manager.focusIndicatorConfig = invalid
+      config = {}
+      m.assertFalse(m.manager.isSameConfig(config))
+    end function
+
+    @it("returns true if indexes and direction are the same")
+    @params(-1, -1, -1, -1, -1, -1, true)
+    @params(1, -1, -1, -1, -1, -1, false)
+    @params(0, -1, -1, -1, -1, -1, false)
+    @params(0, 0, -1, -1, -1, -1, false)
+    @params(0, -1, 0, -1, -1, -1, false)
+    @params(0, -1, -1, 2, -1, -1, false)
+    @params(0, 3, -1, -1, 3, -1, false)
+    @params(0, 0, 0, 0, 0, 4, false)
+    @params(0, 0, 0, 3, 0, 0, false)
+    @params(0, 0, 3, 0, 0, 0, false)
+    @params(0, 1, 3, 0, 0, 0, false)
+    @params(0, 1, 3, 0, 1, 3, true)
+    function _(direction, rowIndex, colIndex, newDirection, newRowIndex, newColIndex, isEqual)
+      m.manager.focusIndicatorConfig = {
+        direction: direction
+        rowIndex: rowIndex
+        colIndex: colIndex
+      }
+      config = {
+        direction: newDirection
+        rowIndex: newRowIndex
+        colIndex: newColIndex
+      }
+      m.assertEqual(m.manager.isSameConfig(config), isEqual)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getIsSendingFromEvent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if the cell is invalid")
+    @params(0, 0)
+    @params(0, 1)
+    @params(1, 1)
+    @params(1, 0)
+    function _(fromIndex, toIndex)
+      m.manager.fromEvent = {
+        index: fromIndex
+      }
+      m.manager.toEvent = {
+        index: toIndex
+      }
+      m.manager.previousFocusIndicatorConfig = {
+        cell: invalid
+      }
+      m.assertFalse(m.manager.getIsSendingFromEvent())
+    end function
+
+    @it("returns true if the new index is changed, and the previous cell is not invalid")
+    @params(0, 1, true)
+    @params(1, 0, true)
+    @params(0, 0, false)
+    @params(1, 1, false)
+    function _(fromIndex, toIndex, isEqual)
+      m.manager.fromEvent = {
+        index: fromIndex
+      }
+      m.manager.toEvent = {
+        index: toIndex
+      }
+      m.manager.previousFocusIndicatorConfig = {
+        cell: { id: "valid" }
+      }
+      m.assertEqual(m.manager.getIsSendingFromEvent(), isEqual)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getIsSendingToEvent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if the cell is invalid")
+    @params(0, 0)
+    @params(0, 1)
+    @params(1, 1)
+    @params(1, 0)
+    function _(fromIndex, toIndex)
+      m.manager.toEvent = {
+        index: fromIndex
+      }
+      m.manager.previousFocusIndicatorConfig = {
+        cell: invalid
+      }
+      m.assertFalse(m.manager.getIsSendingToEvent())
+    end function
+
+    @it("returns false if the index is -1")
+    function _()
+      m.manager.toEvent = {
+        index: -1
+      }
+      m.manager.previousFocusIndicatorConfig = {
+        cell: { id: "valid" }
+      }
+      m.assertFalse(m.manager.getIsSendingToEvent())
+    end function
+
+    @it("returns true if the index is not -1 and cell is present")
+    @params(0)
+    @params(1)
+    @params(2)
+    function _(index)
+      m.manager.toEvent = {
+        index: index
+      }
+      m.manager.previousFocusIndicatorConfig = {
+        cell: { id: "valid" }
+      }
+      m.assertTrue(m.manager.getIsSendingToEvent())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("sendEvents")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if the fraction has somehow gone down")
+    @params(0.3, 1.0)
+    @params(0.5, 0.6)
+    @params(0.09, 0.1)
+    function _(fraction, lastSentFraction)
+      m.manager.lastSentFraction = lastSentFraction
+
+      m.manager.sendEvents("willEnter", "didEnter", fraction)
+    end function
+
+    @it("does nothing if the is sendingFromEvent and sendingToEvent is false")
+    @params(0.3)
+    @params(0.5)
+    @params(0.09)
+    function _(fraction)
+      m.manager.lastSentFraction = 0.01
+
+      m.manager.isSendingFromEvent = false
+      m.manager.isSendingToEvent = false
+
+      m.manager.previousFocusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.focusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.sendEvents("willEnter", "didEnter", fraction)
+
+      m.assertInvalid(m.manager.previousFocusIndicatorConfig.cell.listEvent)
+      m.assertInvalid(m.manager.focusIndicatorConfig.cell.listEvent)
+    end function
+
+    @it("sends only fromEvent if sendingFromEvent is true")
+    @params(0.3)
+    @params(0.5)
+    @params(0.09)
+    function _(fraction)
+      m.manager.lastSentFraction = 0.01
+
+      m.manager.fromEvent = {}
+      m.manager.toEvent = {}
+
+      m.manager.isSendingFromEvent = true
+      m.manager.isSendingToEvent = false
+
+      m.manager.previousFocusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.focusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.sendEvents("willEnter", "didEnter", fraction)
+
+      m.assertEqual(m.manager.previousFocusIndicatorConfig.cell.listEvent, {
+        name: "willEnter"
+        fraction: fraction
+      })
+      m.assertInvalid(m.manager.focusIndicatorConfig.cell.listEvent)
+    end function
+
+    @it("sends only toEvent if sendingToEvent is true")
+    @params(0.3)
+    @params(0.5)
+    @params(0.09)
+    function _(fraction)
+      m.manager.lastSentFraction = 0.01
+
+      m.manager.isSendingFromEvent = false
+      m.manager.isSendingToEvent = true
+
+      m.manager.fromEvent = {}
+      m.manager.toEvent = {}
+
+      m.manager.previousFocusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.focusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.sendEvents("willEnter", "didEnter", fraction)
+
+      m.assertInvalid(m.manager.previousFocusIndicatorConfig.cell.listEvent)
+      m.assertEqual(m.manager.focusIndicatorConfig.cell.listEvent, {
+        name: "didEnter"
+        fraction: fraction
+      })
+    end function
+
+    @it("sends both, if both events are true")
+    @params(0.3)
+    @params(0.5)
+    @params(0.09)
+    function _(fraction)
+      m.manager.lastSentFraction = 0.01
+
+      m.manager.isSendingFromEvent = true
+      m.manager.isSendingToEvent = true
+
+      m.manager.fromEvent = {}
+      m.manager.toEvent = {}
+
+      m.manager.previousFocusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.focusIndicatorConfig = {
+        cell: {}
+      }
+
+      m.manager.sendEvents("willEnter", "didEnter", fraction)
+
+      m.assertEqual(m.manager.previousFocusIndicatorConfig.cell.listEvent, {
+        name: "willEnter"
+        fraction: fraction
+      })
+      m.assertEqual(m.manager.focusIndicatorConfig.cell.listEvent, {
+        name: "didEnter"
+        fraction: fraction
+      })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @only
+    @describe("onFocusUpdate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if not notifying")
+    @params(0.1)
+    @params(0.5)
+    function _(fraction)
+      m.manager.isNotifying = false
+      m.manager.focusIndicatorConfig = { "id": "focusIndicatorConfig" }
+
+      m.expectNotCalled(m.manager.sendEvents)
+
+      m.manager.onFocusUpdate(fraction)
+    end function
+
+    @it("does nothing if the focusIndicatorConfig is invalid")
+    @params(0.1)
+    @params(0.5)
+    function _(fraction)
+      m.manager.isNotifying = true
+      m.manager.focusIndicatorConfig = invalid
+
+      m.expectNotCalled(m.manager.sendEvents)
+
+      m.manager.onFocusUpdate(fraction)
+    end function
+
+    @it("does nothing if started and the fraction is 0")
+    function _()
+      m.manager.isNotifying = true
+      m.manager.didStart = true
+      m.manager.focusIndicatorConfig = { id: "focusIndicatorConfig" }
+
+      m.expectNotCalled(m.manager.sendEvents)
+
+      m.manager.onFocusUpdate(0)
+    end function
+
+    @it("sends start events if not started")
+    @params(0.1)
+    @params(0.5)
+    function _(fraction)
+      m.manager.isNotifying = true
+      m.manager.didStart = false
+
+      m.expectCalled(m.manager.sendEvents("willLoseFocus", "willGainFocus", fraction))
+      m.expectCalled(m.manager.focusIndicatorManager.setFocusedFraction(fraction))
+
+      m.manager.onFocusUpdate(fraction)
+
+      m.assertTrue(m.manager.didStart)
+      m.assertFalse(m.manager.didFinish)
+    end function
+
+    @it("sends finish event and sets didFinish if fraction is greater than 1, and started")
+    @params(1)
+    @params(1.1)
+    function _(fraction)
+      m.manager.isNotifying = true
+      m.manager.didStart = true
+      m.manager.focusIndicatorConfig = { id: "focusIndicatorConfig" }
+
+      m.expectCalled(m.manager.focusIndicatorManager.setFocusedFraction(fraction))
+
+      m.expectCalled(m.manager.sendEvents("didLoseFocus", "didGainFocus", fraction))
+      m.expectCalled(m.manager.focusIndicatorManager.setFocusComplete(m.manager.focusIndicatorConfig))
+
+      m.manager.onFocusUpdate(fraction)
+
+      m.assertTrue(m.manager.didFinish)
+
+    end function
+
+    @it("does nothing if already finished")
+    @params(1, false)
+    @params(1.1, true)
+    function _(fraction, didStart)
+      m.manager.isNotifying = true
+      m.manager.didStart = didStart
+      m.manager.didFinish = true
+      m.manager.focusIndicatorConfig = { id: "focusIndicatorConfig" }
+      m.manager.focusIndicatorManager = { "id": "focusIndicatorManager" }
+
+      m.expectNotCalled(m.manager.sendEvents)
+
+      m.manager.onFocusUpdate(fraction)
+    end function
+
+  end class
+end namespace

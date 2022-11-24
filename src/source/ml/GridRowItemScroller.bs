@@ -1,13 +1,12 @@
 import "pkg:/source/ml/ItemScroller.bs"
 import "pkg:/source/ml/GridRowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class GridRowItemScroller extends ml.ItemScroller
 
     public currentRowIndex = 0
 
-    function new(viewManager as ml.GridRowItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(viewManager as ml.GridRowItemViewManager, focusManager as mc.types.node)
       super("GridRowItemScroller", viewManager, focusManager)
       m.isOnlyFloatingFocus = true
     end function
@@ -40,7 +39,7 @@ namespace ml
       return true
     end function
 
-    protected override function setCellInfo(info as ml.CellInfo)
+    protected override function setCellInfo(info as ml.cellInfo)
       super.setCellInfo(info)
       if info <> invalid
         m.currentRowIndex = fix(info.index / m.viewManager.numCols)
@@ -55,46 +54,50 @@ namespace ml
       ' m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort, true, m.viewManager.getRowIndexForItemIndex(m.focusedIndex))
     end function
 
-    protected override function getCellCellInfo(CellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo
+    protected override function getCellCellInfo(cellInfo as ml.cellInfo, isFromListScroll = false as boolean) as ml.cellInfo
 
       'TODO - add the ability for a given row to _remember_ or choose the
       'default index it should give us
-      if CellInfo = invalid
+      if cellInfo = invalid
         return invalid
       end if
 
       if isFromListScroll
-        ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;CellInfo.componentIndex ; " is List scroll? "; isFromListScroll
-        focusX = m.focusIndicatorManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
-
-        cellInfosInRow = m.viewManager.getCellInfosInRow(CellInfo.componentIndex)
-        nextInfo = invalid
-
-        for each info in cellInfosInRow
-          ' ? " RI " ; CellInfo.componentIndex ; " CI " ; info.index ; " P " ; info.getScreenPosition(1) ; " FP " ; focusX
-          if info <> invalid and info.getScreenPosition(1) <= focusX
-            nextInfo = info
-          end if
-        end for
-        ' colIndex = m.index mod m.viewManager.numCols
-        ' cellIndex = mc.clamp((CellInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.viewManager.numberOfItems - 1)
-        ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.viewManager.numberOfItems - 1
-        if nextInfo = invalid
-          ' ? "no item found for indicator position - using first item in row"
-          nextInfo = cellInfosInRow[0]
-        end if
-
-        return nextInfo
+        return m.chooseAppropriateCellToScrollTo(cellInfo)
       else
-        return m.viewManager.cellInfos[CellInfo.index]
+        return m.viewManager.cellInfos[cellInfo.index]
       end if
     end function
 
-    public override function chooseCellInfoForScrollingIntoRow(CellInfo as ml.CellInfo)
-      ' ? " GRID CHOOSE SCROLLING INTO ROW" ; CellInfo.index; " CI "; CellInfo.componentIndex
-      CellInfo = m.getCellCellInfo(CellInfo, true)
-      if CellInfo <> invalid
-        m.setCellInfo(CellInfo)
+    private function chooseAppropriateCellToScrollTo(cellInfo as ml.cellInfo) as ml.CellInfo
+      ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;cellInfo.componentIndex ; " is List scroll? "; isFromListScroll
+      focusX = m.focusManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
+
+      cellInfosInRow = m.viewManager.getCellInfosInRow(cellInfo.componentIndex)
+      nextInfo = invalid
+
+      for each info in cellInfosInRow
+        ' ? " RI " ; cellInfo.componentIndex ; " CI " ; info.index ; " P " ; info.getScreenPosition(1) ; " FP " ; focusX
+        if info <> invalid and info.getScreenPosition(1) <= focusX
+          nextInfo = info
+        end if
+      end for
+      ' colIndex = m.index mod m.viewManager.numCols
+      ' cellIndex = mc.clamp((cellInfo.componentIndex * m.viewManager.numCols) + colIndex, 0, m.viewManager.numberOfItems - 1)
+      ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.viewManager.numberOfItems - 1
+      if nextInfo = invalid
+        ' ? "no item found for indicator position - using first item in row"
+        nextInfo = cellInfosInRow[0]
+      end if
+
+      return nextInfo
+    end function
+
+    public override function chooseCellInfoForScrollingIntoRow(cellInfo as ml.cellInfo)
+      ' ? " GRID CHOOSE SCROLLING INTO ROW" ; cellInfo.index; " CI "; cellInfo.componentIndex
+      cellInfo = m.getCellCellInfo(cellInfo, true)
+      if cellInfo <> invalid
+        m.setCellInfo(cellInfo)
         'bs:disable-next-line
         m.viewManager.row.focusedCellIndex = m.index
         ' ? " GRID CHOICE IS MADE index is now "; m.index
@@ -105,18 +108,18 @@ namespace ml
     '++ Focus Indicator
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public override function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      if CellInfo = invalid
-        ? "ERROR grid got invalid CellInfo"
+    public override function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      if cellInfo = invalid
+        ? "ERROR grid got invalid cellInfo"
         return invalid
       end if
-      info = m.getCellCellInfo(CellInfo, isFromListScroll)
-      config = super.getFocusIndicatorConfig(CellInfo, direction, isFloatingFocus, isFromListScroll)
+      info = m.getCellCellInfo(cellInfo, isFromListScroll)
+      config = super.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, isFromListScroll)
       config.gridIndex = info.contentIndex
       return config
     end function
 
-    protected override function getFocusIndicatorTranslation(info as ml.CellInfo, parentCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as object
+    protected override function getFocusIndicatorTranslation(info as ml.cellInfo, parentCellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean) as object
       ' ? " START GRID GET FOCUS INDICATOR TRANS INFO : " ; info
       if info = invalid or m.viewManager.settings = invalid
         return [0, 0]

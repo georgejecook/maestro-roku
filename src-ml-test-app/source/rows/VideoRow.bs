@@ -2,7 +2,6 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
 
 @node("VideoRow", "ml_BaseRow")
@@ -32,8 +31,8 @@ class VideoRow extends ml.BaseRow
     m.video.control = "play"
   end function
 
-  public override function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-    return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings.focusSettings, true)
+  public override function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    return ml.createFocusIndicatorConfig(m.top, invalid)
   end function
 
 end class

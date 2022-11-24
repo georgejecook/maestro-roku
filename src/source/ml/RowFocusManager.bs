@@ -1,0 +1,220 @@
+import "pkg:/source/core/BaseClass.bs"
+import "pkg:/source/view/Animation.bs"
+import "pkg:/source/ml/CellInfo.bs"
+import "pkg:/source/ml/ListItemScroller.bs"
+import "pkg:/source/ml/FocusIndicatorConfig.bs"
+
+namespace ml
+  class RowFocusManager extends mc.BaseClass
+
+    public focusIndicatorManager as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ State
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private viewManager = invalid
+    private itemScroller = invalid
+    private CellInfo as ml.CellInfo
+    private nextCellInfo as ml.CellInfo
+    private previousFocusIndicatorConfig as ml.FocusIndicatorConfig
+    private nextFocusIndicatorConfig as ml.FocusIndicatorConfig
+    private direction = 0
+    private didStart = false
+    private didFinish = false
+    private isNotifying = true
+    private rowIndex = -1
+    private lastSentFraction = -1
+
+    private moveAnimation
+    private delegates
+    private targetField
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new(viewManager as ml.ItemViewManager, ownerDelegate = invalid as object, rowIndex = -1 as integer)
+      super("ItemFocusManager")
+      m.reset(viewManager, ownerDelegate, rowIndex)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function reset(viewManager as ml.ItemViewManager, ownerDelegate = invalid as object, rowIndex = -1 as integer)
+      m.focusIndicatorManager = viewManager.owner.focusIndicatorManager
+
+      m.viewManager = viewManager
+      if rowIndex = invalid
+        rowIndex = -1
+      end if
+      m.rowIndex = rowIndex
+      m.delegates = [viewManager.owner]
+
+      if ownerDelegate <> invalid
+        m.delegates.push(ownerDelegate)
+      else
+        m.log.error("There was no delegate passed to this focus manager - events wont be handled")
+        ' ? " NO OWNER DELEGATE!!!!!"
+      end if
+      owner = viewManager.owner
+      if owner.delegate <> invalid
+        m.delegates.push(owner.delegate)
+      end if
+    end function
+
+    function setItemScroller(itemScroller as ml.ListItemScroller)
+      m.itemScroller = itemScroller
+      m.moveAnimation = itemScroller.moveAnimation
+    end function
+
+    ' function updateCellInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo)
+    '   'ensure that the focus manager
+    ' end function
+
+    'TODO - add subrow index events
+    function setCellInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, nextFocusIndicatorConfig as ml.FocusIndicatorConfig, direction as integer, isFloatingFocus as boolean, previousFocusIndicatorConfig = invalid as ml.FocusIndicatorConfig) as void
+      if m.cellInfo <> invalid and m.cellInfo.index = CellInfo.index and m.nextCellInfo <> invalid and m.nextCellInfo.index = nextCellInfo.index and m.direction = direction
+        ' ? ">>>> NOTHING HAS CHANGED DS " ; m.didStart ; " DF "; m.didFinish
+        m.didFinish = false
+        return
+      end if
+      ' ? ">>S> "; m.viewManager.__classname
+      ' ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.colIndex ; " " ; nextFocusIndicatorConfig.gridIndex
+      m.cellInfo = CellInfo
+      m.nextCellInfo = nextCellInfo
+      if previousFocusIndicatorConfig <> invalid and previousFocusIndicatorConfig.gridIndex <> invalid and previousFocusIndicatorConfig.gridIndex <> -1
+        m.previousFocusIndicatorConfig = previousFocusIndicatorConfig
+      else
+        m.previousFocusIndicatorConfig = m.nextFocusIndicatorConfig
+      end if
+
+      if m.previousFocusIndicatorConfig <> invalid
+        ' ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
+      end if
+      m.lastSentFraction = -1
+      m.nextFocusIndicatorConfig = nextFocusIndicatorConfig
+      m.direction = direction
+      m.didStart = false
+      m.didFinish = false
+      m.onFocusUpdate(0)
+    end function
+
+    function onFocusAnimationUpdate(fraction as float) as void
+      ' ? "ANIM UPDATE "; m.name ; " F " ; fraction ; " DS" ; m.didStart ; " DF " ; m.didFinish
+      ' ? " CI "; m.cellInfo.index ; " NCI "; m.nextCellInfo.index
+      if m.didStart and not m.didFinish
+        m.onFocusUpdate(fraction)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onFocusUpdate(fraction as float) as void
+      if fraction = 1 or fraction = 0
+        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+        ' ? " OFU I "; m.index ; " NI "; m.nextIndex
+      end if
+      if not m.isNotifying
+        ' ? "NOT NOTIFYING"
+        return
+      end if
+      if m.nextFocusIndicatorConfig = invalid
+        ' ? " no focus config"
+        return
+      end if
+
+      if not m.didStart
+        name = "willLoseFocus"
+        nextName = "willGainFocus"
+        m.didStart = true
+        ' ? " itemFocusManager " m.__classname " calling setNextFocusIndicatorConfig" m.nextFocusIndicatorConfig.rowIndex " " m.nextFocusIndicatorConfig.colIndex
+        m.focusIndicatorManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
+      else if fraction = 0
+        return
+      else if fraction >= 1
+        if m.didFinish or not m.didStart
+          return
+        end if
+        ' ? " DID FINISH "; m.nextFocusIndicatorConfig.rowIndex " " m.nextFocusIndicatorConfig.colIndex
+        m.didFinish = true
+        name = "didLoseFocus"
+        nextName = "didGainFocus"
+        m.focusIndicatorManager@.setFocusComplete(m.nextFocusIndicatorConfig)
+      else
+        name = "losingFocus"
+        nextName = "gainingFocus"
+      end if
+
+      m.focusIndicatorManager.focusedFraction = fraction
+
+      m.sendEvents(name, nextName, fraction)
+    end function
+
+    private function sendEvents(name as string, nextName as string, fraction as float) as void
+      if fraction < m.lastSentFraction
+        return
+      end if
+      m.lastSentFraction = fraction
+      event = {
+        direction: m.direction
+        fraction: fraction
+        name: name
+        index: m.cellInfo.contentIndex
+      }
+      nextEvent = {
+        direction: m.direction
+        fraction: fraction
+        name: nextName
+        index: m.nextCellInfo.contentIndex
+      }
+
+      if m.previousFocusIndicatorConfig <> invalid and m.previousFocusIndicatorConfig.gridIndex <> invalid
+        fromGridIndex = m.previousFocusIndicatorConfig.gridIndex
+        event.gridIndex = fromGridIndex
+        ' ? "PREV EVENT "; m.previousFocusIndicatorConfig.gridIndex
+      else
+        fromGridIndex = invalid
+      end if
+
+
+      if m.nextFocusIndicatorConfig <> invalid and m.nextFocusIndicatorConfig.gridIndex <> invalid
+        nextEvent.gridIndex = m.nextFocusIndicatorConfig.gridIndex
+      end if
+
+      ' ? ">>>>>>>>>>>>>>>"
+      ' ? ">>>>>>>>>>>>>>>"
+      ' ? " sending "; name ; " to " ; m.cellInfo.index ; " GI "; event.gridIndex
+      ' ? " sending "; nextName ; " to " ; m.nextCellInfo.index ; " GI " ; nextEvent.gridIndex
+      ' ? ">>>>>>>>>>>>>>>"
+      isSendingFromEvent = fromGridIndex <> invalid or (m.nextCellInfo.contentIndex <> m.cellInfo.contentIndex)
+      event.rowIndex = m.rowIndex
+      nextEvent.rowIndex = m.rowIndex
+
+      'let components know, so they can react
+      if isSendingFromEvent and m.cellInfo.component <> invalid
+        m.cellInfo.component.listEvent = event
+      end if
+
+      if m.nextCellInfo <> invalid and m.nextCellInfo.component <> invalid
+        m.nextCellInfo.component.listEvent = nextEvent
+      else
+
+        ' ? "ERROR: missing next component info!"
+        'TODO - lookup the comp info in this case!
+      end if
+
+      for each delegate in m.delegates
+        if isSendingFromEvent
+          delegate.listEvent = event
+        end if
+        delegate.listEvent = nextEvent
+      end for
+    end function
+
+  end class
+end namespace

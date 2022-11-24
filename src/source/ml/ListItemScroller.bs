@@ -7,42 +7,35 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/ItemScroller.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 
 namespace ml
   class ListItemScroller extends ml.ItemScroller
 
-    function new(viewManager as ml.ItemViewManager, focusManager as ml.ItemFocusManager)
+    function new(viewManager as ml.ItemViewManager, focusManager as mc.types.node)
       super("ListItemScroller", viewManager, focusManager)
-    end function
-
-    'hack
-    public override function onViewManagerUpdate()
-      super.onViewManagerUpdate()
+      'the list has it's own focus manager, to send n
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Component Info
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function setFocusManagerInfo(CellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
-      previousFocusIndicatorConfig = m.getFocusIndicatorConfig(CellInfo, m.direction, isFloatingFocus)
-
+    protected override function setFocusManagerInfo(cellInfo as ml.cellInfo, nextCellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean) as void
       if m.viewManager.isScrolling
         nextCellInfo.component@.chooseCellInfoForScrollingIntoRow(nextCellInfo)
       end if
 
       m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, isFloatingFocus)
-      nextFocusIndicatorConfig = m.nextFocusIndicatorConfig
-      m.focusManager.setCellInfo(CellInfo, nextCellInfo, nextFocusIndicatorConfig, direction, isFloatingFocus, previousFocusIndicatorConfig)
+      m.focusManager@.setFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function setFocusOnRenderer(isMoving as boolean) as void
-      m.log.info("setFocusOnRenderer", isMoving)
+    'set the actual ROKU focus on an item
+    override function setSystemFocusOnRenderer(isMoving as boolean) as void
+      m.log.info("setSystemFocusOnRenderer", isMoving)
       if isMoving
         return
       end if
@@ -55,31 +48,31 @@ namespace ml
       end if
     end function
 
-    public override function getFocusIndicatorConfig(CellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; CellInfo.componentIndex ; " D " ; direction
-      if CellInfo <> invalid and CellInfo <> invalid
-        config = CellInfo.component@.getFocusIndicatorConfig(CellInfo, direction, isFloatingFocus, true)
+    public override function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; cellInfo.componentIndex ; " D " ; direction
+      if cellInfo <> invalid and cellInfo <> invalid
+        config = cellInfo.component@.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, true)
       else
         return invalid
       end if
       return config
     end function
 
-    protected override function setCellInfo(info as ml.CellInfo)
+    protected override function setCellInfo(info as ml.cellInfo)
       isSubRowChanged = m.cellInfo = invalid or info.componentIndex <> m.cellInfo.componentIndex
       super.setCellInfo(info)
       if isSubRowChanged
         m.viewManager.owner.focusedSubRowIndex = info.componentIndex
       end if
       m.viewManager.owner.screenPos = m.screenPos
-      m.focusIndicatorManager.activeScreenPos = m.screenPos
+      m.focusManager.activeScreenPos = m.screenPos
     end function
 
-    protected override function setNextCellInfo(info as ml.CellInfo) as void
+    protected override function setNextCellInfo(info as ml.cellInfo) as void
       ' ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
       super.setNextCellInfo(info)
       if not m.isLastMoveFlowFocus
-        m.focusIndicatorManager.nextScreenPos = m.nextScreenPos
+        m.focusManager.nextScreenPos = m.nextScreenPos
       end if
     end function
 
@@ -140,10 +133,10 @@ namespace ml
       if isIndexUpdateRequired
         ' ? " NOTIFYING FOCUS"
         ' ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
-        wasNotifying = m.focusManager.isNotifying
-        m.focusManager.isNotifying = true
+        ' wasNotifying = m.focusManager.isNotifying
+        ' m.focusManager.isNotifying = true
         m.reset(true)
-        m.focusManager.isNotifying = wasNotifying
+        ' m.focusManager.isNotifying = wasNotifying
       else
         ' ? " not notifying focus"
         m.reset(true)

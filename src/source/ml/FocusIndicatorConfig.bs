@@ -1,20 +1,49 @@
 namespace ml
-  class FocusIndicatorConfig
-    rowIndex = -1
-    colIndex = -1
-    gridIndex = -1
-    indicatorTranslation = [0, 0]
-    indicatorSize = [0, 0]
+  interface FocusIndicatorConfig
+    rowIndex as integer
+    colIndex as integer
+    gridIndex as integer
+    indicatorTranslation as integer
+    indicatorSize as integer
     settings as mc.types.node
-    isHidden = false
+    isHidden as integer
+    isFloating as integer
+    direction as integer
+    cell as mc.types.node
+    row as mc.types.node
+  end interface
 
-    function new(rowIndex as integer, colIndex as integer, indicatorTranslation as mc.types.array, indicatorSize as mc.types.array, settings as mc.types.node, isHidden as boolean)
-      m.rowIndex = rowIndex
-      m.colIndex = colIndex
-      m.indicatorTranslation = indicatorTranslation
-      m.indicatorSize = indicatorSize
-      m.settings = settings
-      m.isHidden = isHidden
-    end function
-  end class
+  interface ListEvent
+    name as string
+    index as integer
+    rowIndex as integer
+    direction as integer
+    fraction as float
+  end interface
+
+  function createFocusIndicatorConfig(row as mc.types.node, cell as mc.types.node, contentIndex = -1 as integer, isHidden = true as boolean, settings = invalid as mc.types.node, indicatorTranslation = [0, 0] as mc.types.array, indicatorSize = [0, 0] as mc.types.array)
+    if cell <> invalid
+      cellIndex = cell.index
+    else
+      cellIndex = -1
+    end if
+
+    if row <> invalid
+      rowIndex = row.index
+    else
+      rowIndex = -1
+    end if
+
+    return {
+      row: row
+      cell: cell
+      rowIndex: rowIndex
+      colIndex: cellIndex
+      contentIndex: contentIndex
+      indicatorTranslation: indicatorTranslation
+      indicatorSize: indicatorSize
+      settings: settings
+      isHidden: isHidden
+    }
+  end function
 end namespace

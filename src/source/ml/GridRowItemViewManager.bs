@@ -202,7 +202,7 @@ namespace ml
             new ml.CellPosition(0, x) 'down
           ]
 
-          cellInfo = new ml.CellInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
+          cellInfo = new ml.cellInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
           cellInfo.index = i
           cellInfo.id = item.id
           m.cellInfos.push(cellInfo)
@@ -235,7 +235,7 @@ namespace ml
       m.numberOfItems = m.visibleItems.count()
     end function
 
-    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
+    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.cellInfo
 
       yOffset += y
 
@@ -278,7 +278,7 @@ namespace ml
         ]
       end if
       'note - col width is irrelevant
-      return new ml.CellInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
+      return new ml.cellInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
     override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
@@ -375,7 +375,7 @@ namespace ml
       ' ? "]]]]]]]]]]]]]]]]]]]]]]]]"
     end function
 
-    override function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
+    override function isVerticalFlowFocusPossible(info as ml.cellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
       if not m.isVerticalFlowFocusAllowed
         return false
       end if

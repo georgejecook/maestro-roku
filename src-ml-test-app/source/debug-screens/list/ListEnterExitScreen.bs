@@ -28,7 +28,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private focusSettings
   private cellSettings
   private loadingIndicator
-  private scrollSpeed = 0.2
+  private scrollSpeed = 0.1
   private numberItemsToRenderAfter = 4
   private numberItemsToRenderBefore = 2
 
@@ -105,10 +105,10 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
-    listSettings.animSpeed = 0.05
+    listSettings.animSpeed = 0.15
 
-    ' listSettings.renderStrategy = "dynamic"
-    listSettings.renderStrategy = "all"
+    listSettings.renderStrategy = "dynamic"
+    ' listSettings.renderStrategy = "all"
     listSettings.numberItemsToRenderAfter = m.numberItemsToRenderAfter
     listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
 
@@ -155,7 +155,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     showComplex = false
     showNormal = true
 
-    showGrids = true
+    showGrids = false
 
     'TODO - add normal rows around this
     for i = 0 to m.numberOfRows - 1
@@ -301,8 +301,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.list.isHidden = false
     m.updateInfoTimeout = m.setInterval(function()
       pool = m.global.componentPool@.getComponentPool("PosterCellEfficient")
-      m.label.text = `cells created: ${pool.numberOfComponentsInPool} in use: ${pool.usedComponentsById.count()}`
-    end function, 1)
+      m.label.text = `cells created: ${pool.numberOfComponentsInPool} in use: ${pool.usedComponentsById.count()} RI: ${m.list.focusedRowIndex} CI ${m.list.focusedCellIndex} SRI ${m.list.focusedSubRowIndex}`
+    end function, 0.1)
   end function
 
   protected override function onHide()

@@ -1,6 +1,5 @@
 import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/ListItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
@@ -152,8 +151,7 @@ namespace ml
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
 
-      focusManager = new ml.ItemFocusManager(m.viewManager, m.rowEvents)
-      m.itemScroller = new ml.ListItemScroller(m.viewManager, focusManager)
+      m.itemScroller = new ml.ListItemScroller(m.viewManager, m.focusIndicatorManager)
       m.itemScroller.offsetContainer = m.contentGroup
       m.content = invalid
     end function
@@ -333,7 +331,7 @@ namespace ml
     end function
 
     public function forceUpdate(fullUpdate = false as boolean) as void
-      ' CellInfo = m.itemScroller.getCellInfoForContentIndex(m.focusedRowIndex)
+      ' cellInfo = m.itemScroller.getCellInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
         ? "cannot forceUpdate list while rendering is taking place"
         return

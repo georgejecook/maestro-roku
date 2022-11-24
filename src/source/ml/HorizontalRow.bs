@@ -1,7 +1,6 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
 import "pkg:/source/ml/CellInfo.bs"
 
@@ -22,7 +21,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private viewManager
-    private focusManager
     private itemScroller
     private currentHeaderType = invalid
     private settings
@@ -68,10 +66,7 @@ namespace ml
     private function createManagers()
       m.log.info("createManagers")
       m.viewManager = new ml.RowItemViewManager(m.owner, m.top, m.cellsGroup, m.componentPool, 0, m.width)
-      m.focusManager = new ml.ItemFocusManager(m.viewManager, m.owner.cellEvents, m.index)
-      m.itemScroller = new ml.RowItemScroller(m.viewManager, m.focusManager)
-      m.focusManager.name = "ROW FM "
-      m.focusManager.isRow = true
+      m.itemScroller = new ml.RowItemScroller(m.viewManager, m.owner.focusIndicatorManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -82,7 +77,6 @@ namespace ml
       m.cleanHeader()
       m.viewManager.owner = m.owner
       m.viewManager.setContent(invalid)
-      m.focusManager.reset(m.viewManager, m.owner.cellEvents, m.index)
       m.itemScroller.reset()
     end function
 
@@ -98,9 +92,9 @@ namespace ml
           m.viewManager.reset()
           m.viewManager.setContent(content)
 
-          m.focusManager.isNotifying = keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true
+          ' m.focusManager.isNotifying = keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true
           m.itemScroller.reset(keepOldFocusIfPossible)
-          m.focusManager.isNotifying = true
+          ' m.focusManager.isNotifying = true
         end if
         ' end if
         if m.viewManager.numberOfItems = 0 and content <> invalid and content.isHidden <> true
