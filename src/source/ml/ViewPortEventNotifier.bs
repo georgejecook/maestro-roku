@@ -65,10 +65,10 @@ namespace ml
     protected renderedIndexes = []
 
     function notifyViewportEvents(direction as integer, isRowInViewport as boolean, forceAll = false as boolean) as void
-      ' ? " NVE A  forceAll" forceAll
+      ? " NVE A  forceAll" forceAll
       'for non-lists
       if m.viewManager.visibleItems = invalid
-        ' ? "VPN NO VISIBLE COMPONENTS"
+        ? "VPN NO VISIBLE COMPONENTS"
         return
       end if
 
@@ -77,28 +77,28 @@ namespace ml
       end if
 
       if m.isAllRendered
-        ? " everything is already rendered; nothing else to do"
+        ' ? " everything is already rendered; nothing else to do"
         return
       end if
 
       oldRendereredCellInfosByIndex = {}
-      ' ? "BEFORE "; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+      ? "BEFORE "; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
 
       oldRendereredCellInfosByIndex.append(m.viewManager.rendereredCellInfosByIndex)
 
       if not isRowInViewport
-        ' ? " NVE C"
-        ' ? " NOTIFYING ALL ARE REMOVED"
+        ? " NVE C"
+        ? " NOTIFYING ALL ARE REMOVED"
         indexes = m.viewManager.getRenderedIndexes()
 
         m.viewManager.notifyExitEvent(indexes)
       else
-        ' ? " NVE D ISI " m.viewManager.itemScroller.index
+        ? " NVE D ISI " m.viewManager.itemScroller.index
         enterIndexes = []
         index = m.viewManager.itemScroller.index
         startIndex = index - m.numberToLookBehind
         endIndex = index + m.numberToLookAhead
-        ' ? " NVE E"
+        ? " NVE E"
         startIndex = mc.clamp(startIndex, 0, m.viewManager.numberOfItems)
         endIndex = mc.clamp(endIndex, 0, m.viewManager.numberOfItems)
         if forceAll
@@ -108,15 +108,15 @@ namespace ml
           fromIndex = startIndex
           toIndex = endIndex
         end if
-        ' ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
+        ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
         for index = fromIndex to toIndex - 1
           isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
-          ' ? " Is in viewport "; isInViewPort
+          ? " Is in viewport "; isInViewPort
           comp = m.viewManager.getRenderer(index, isInViewPort, forceAll)
           if comp <> invalid
-            ' ? ">>> NVE " index " comp " mc.dv(comp) " " comp.index asString(comp.content.title)
+            ? ">>> NVE " index " comp " mc.dv(comp) " " comp.index asString(comp.content.title)
           else
-            ' ? " INVALID COMP " index
+            ? " INVALID COMP " index
           end if
           if isInViewPort
             if comp <> invalid
@@ -131,12 +131,12 @@ namespace ml
           cellInfo = oldRendereredCellInfosByIndex[key]
           exitEventIndexes.push(cellInfo.index)
         end for
-        ' ? " NVE G"
-        ' ? " >>>>>>>>>>>>>>>>>>>>> "
-        ' ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
-        ' ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
-        ' ? " NOTIFYING EXIT" formatJson(exitEventIndexes)
-        ' ? " >>>>>>>>>>>>>>>>>>>>>"
+        ? " NVE G"
+        ? " >>>>>>>>>>>>>>>>>>>>> "
+        ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
+        ? "OLD"; formatJson(oldRendereredCellInfosByIndex.keys())
+        ? " NOTIFYING EXIT" formatJson(exitEventIndexes)
+        ? " >>>>>>>>>>>>>>>>>>>>>"
         m.viewManager.notifyExitEvent(exitEventIndexes)
         m.viewManager.notifyEnterEvent(enterIndexes)
         if m.renderStrategy = "all"
@@ -157,14 +157,14 @@ namespace ml
         return
       end if
 
-      ? "LVE " m.isAllRendered
+      ' ? "LVE " m.isAllRendered " forceAll " forceAll
       if forceAll
-        ? " clearing all is rendered coz forcAll"
+        ' ? " clearing all is rendered coz forcAll"
         m.isAllRendered = false
       end if
 
       if m.isAllRendered
-        ? " everything is already rendered; nothing else to do"
+        ' ? " everything is already rendered; nothing else to do"
         return
       end if
 
@@ -192,33 +192,39 @@ namespace ml
 
         ' ? " NVL F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
         lastContentIndex = -1
+        didEnter = false
         for i = fromIndex to toIndex - 1
-          ' ? " VPN " ; i
           compInfo = m.viewManager.cellInfos[i]
           comp = compInfo.component
+          ' ? " VPN " ; i " LCI " lastContentIndex " " compInfo.contentIndex
           if compInfo.contentIndex <> lastContentIndex
-            ' ? " ITS A NEW COMPONENT"
+            lastContentIndex = compInfo.contentIndex
+            ' ? " ITS A NEW COMPONENT " compInfo.contentIndex
             newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById.delete(comp.id)
-
-            if not comp.isInViewPort
+            didEnter = false
+            if startIndex <= index and index <= endIndex
               comp.isInViewPort = true
-              ' ? " DID ENTER "; mc.dv(comp)
-              comp.listEvent = {
-                name: "didEnter"
-                direction: direction
-                index: compInfo.componentIndex
-                forceCellUpdate: forceAll
-              }
+              ' ? " IT DID ENTER"
+              didEnter = true
             end if
-            ' end if
-            ' subIndexKey = compInfo.componentIndex.toStr()
-            subIndexKey = compInfo.index.toStr()
-            ' ? ">>> SUB INDEX KEY IS " ; subIndexKey " COMP INFO IDX " compInfo.index "CONT " compInfo.contentIndex "COMP " compInfo.componentIndex
-            ' newInViewportSubIndexes[subIndexKey] = comp
-            newInViewportSubIndexes[subIndexKey] = compInfo
-            m.inViewportSubIndexes.delete(subIndexKey)
           end if
+
+          if didEnter
+            ' ? " DID ENTER "; mc.dv(comp)
+            comp.listEvent = {
+              name: "didEnter"
+              direction: direction
+              index: compInfo.componentIndex
+              forceCellUpdate: forceAll
+            }
+          end if
+
+          subIndexKey = compInfo.index.toStr()
+          ' ? ">>> SUB INDEX KEY IS " ; subIndexKey " COMP INFO IDX " compInfo.index "CONT " compInfo.contentIndex "COMP " compInfo.componentIndex
+          ' newInViewportSubIndexes[subIndexKey] = comp
+          newInViewportSubIndexes[subIndexKey] = compInfo
+          m.inViewportSubIndexes.delete(subIndexKey)
         end for
 
         for each key in m.inViewportSubIndexes
@@ -231,7 +237,7 @@ namespace ml
           }
         end for
       else
-        ' ? "list is hidden; not rendering anything!"
+        ? "list is hidden; not rendering anything!"
         for each key in m.inViewportSubIndexes
           compInfo = m.inViewportSubIndexes[key]
           ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
@@ -249,7 +255,7 @@ namespace ml
       for each key in m.inViewportComponentsById
         comp = m.inViewportComponentsById[key]
         if comp.isInViewPort
-          ' ? " DID EXIT "; key
+          ? " DID EXIT "; key
           comp.isInViewPort = false
           comp.listEvent = {
             name: "didExit"
