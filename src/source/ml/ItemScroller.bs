@@ -179,7 +179,14 @@ namespace ml
 
     function moveFromPress(offset as integer, forceSequential = true as boolean) as boolean
       m.isScrollCancelled = false
-      return m.move(offset, true, true, forceSequential)
+      if m.viewManager.isScrolling and m.direction = offset
+        ? " was scrolling, moving to next!"
+        m.cancelScrolling()
+        return m.move(offset, true, true, false)
+        ' return m.move(offset * 2, false, true, false)
+      else
+        return m.move(offset, true, true, forceSequential)
+      end if
     end function
 
     function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
