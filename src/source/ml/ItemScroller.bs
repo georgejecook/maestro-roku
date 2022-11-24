@@ -538,8 +538,6 @@ namespace ml
         ' ? "VVVVV Scrolling is finished - cannot finish move"
         m.focusManager@.onFocusAnimationUpdate(1)
         m.updateSrollOffsetFraction(1)
-        ' m.toggleScrolling(false)
-        ' m.setSystemFocusOnRenderer(false)
         return false
       end if
 
@@ -551,7 +549,6 @@ namespace ml
         m.updateSrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
-        ' m.setSystemFocusOnRenderer(false)
         return false
       end if
 
@@ -611,11 +608,15 @@ namespace ml
     end function
 
     protected function setFocusManagerInfo(cellInfo as ml.cellInfo, nextCellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean) as void
+      ? " NOTIFYING FOCUS MANAGER 1"
       if isFloatingFocus
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, true)
+        ? " NOTIFYING FOCUS MANAGER 2"
       else
+        ? " NOTIFYING FOCUS MANAGER 3"
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, false)
       end if
+      ? " NOTIFYING FOCUS MANAGER 4"
       m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
 
@@ -769,8 +770,6 @@ namespace ml
       if notifyFocusManager
         m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
       end if
-
-      m.setSystemFocusOnRenderer(isMoving)
     end function
 
     protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
@@ -800,23 +799,15 @@ namespace ml
       ' m.notifyViewportEvents(true)
 
       if notifyFocusManager
+        ? "list notifying focus manager"
         m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
         m.focusManager@.onFocusAnimationUpdate(1)
       end if
 
-      m.setSystemFocusOnRenderer(false)
       if notifyOwner and m.viewManager.row <> invalid
         ' ? " >>>>>>>>> SETTING focusedCellIndex " ; m.cellInfo.contentIndex
         m.viewManager.owner.focusedCellIndex = m.cellInfo.contentIndex
       end if
-    end function
-
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ System Focus
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function setSystemFocusOnRenderer(isMoving as boolean) as void
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

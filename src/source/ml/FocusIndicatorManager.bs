@@ -125,14 +125,15 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? "setNextFocusIndicatorConfig"
+      ? "setNextFocusIndicatorConfig"
       if focusIndicatorConfig <> invalid
-        ' ? "[[ Next FIC is: " focusIndicatorConfig.rowIndex " " focusIndicatorConfig.colIndex
+        ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.colIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
       else
         ' ? " next config INVALID "
       end if
       m.preprareNextFocusConfig(focusIndicatorConfig)
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
+      m.setSystemFocusOnRenderer()
     end function
 
     function onFocusAnimationUpdate(fraction as float)
@@ -144,7 +145,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
+      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
       m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m.list.focusedCellIndex = focusIndicatorConfig.colIndex
       row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
@@ -154,6 +155,7 @@ namespace ml
       'We must be already prepared
       m.applyFocusSettings(true)
       m.moveFocusIndicatorToTargetPosition(1)
+      m.setSystemFocusOnRenderer()
     end function
 
     public function setManualFocusIndicatorMode(active as boolean)
@@ -387,6 +389,24 @@ namespace ml
     private function getCellRenderer(rowIndex as integer, cellIndex as integer)
       return m.list@.getCellRenderer(rowIndex, cellIndex)
     end function
+
+    'set the actual ROKU focus on an item
+    private function setSystemFocusOnRenderer() as void
+      focusTarget = m.list
+
+      if m.nextConfig <> invalid and m.nextConfig.willDoSystemFocus = true
+        ? " SETTING FOCUS ON " ; mc.dv(m.nextConfig.row)
+        'bs:disable-next-line
+        focusTarget = m.nextConfig.row
+
+        if true or m.list.isChildFocused or m.list.isFocused
+          mv.setFocus(focusTarget)
+        else
+          m.log.warn("not setting focus on", mc.dv(focusTarget), "owner child focused?", m.list.isChildFocused, "owner focused?", m.list.isFocused)
+        end if
+      end if
+    end function
+
 
   end class
 end namespace

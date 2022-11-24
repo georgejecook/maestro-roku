@@ -21,37 +21,26 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function setFocusManagerInfo(cellInfo as ml.cellInfo, nextCellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean) as void
+      ? " LIST setFocusManagerInfo " m.viewManager.isScrolling
       if m.viewManager.isScrolling
         nextCellInfo.component@.chooseCellInfoForScrollingIntoRow(nextCellInfo)
       end if
 
       m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, isFloatingFocus)
-      m.focusManager@.setFocusIndicatorConfig(m.nextFocusIndicatorConfig)
+      m.nextFocusIndicatorConfig.row = nextCellInfo.component
+      m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Focus
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    'set the actual ROKU focus on an item
-    override function setSystemFocusOnRenderer(isMoving as boolean) as void
-      m.log.info("setSystemFocusOnRenderer", isMoving)
-      if isMoving
-        return
-      end if
-      if m.cellInfo <> invalid and (m.viewManager.owner.isChildFocused or m.viewManager.owner.isFocused)
-        ' ? " SETTING FOCUS ON " ; mc.dv(m.cellInfo.component)
-        'bs:disable-next-line
-        mv.setFocus(m.cellInfo.component)
-      else
-        m.log.warn("not setting focus on", m.cellInfo.index, "owner child focused?", m.viewManager.owner.isChildFocused, "owner focused?", m.viewManager.owner.isFocused)
-      end if
-    end function
-
     public override function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; cellInfo.componentIndex ; " D " ; direction
+      ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; cellInfo.componentIndex ; " D " ; direction
       if cellInfo <> invalid and cellInfo <> invalid
         config = cellInfo.component@.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, true)
+        'todo think about this.. only when moving?
+        config.willDoSystemFocus = true
       else
         return invalid
       end if
@@ -69,7 +58,7 @@ namespace ml
     end function
 
     protected override function setNextCellInfo(info as ml.cellInfo) as void
-      ' ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
+      ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
       super.setNextCellInfo(info)
       if not m.isLastMoveFlowFocus
         m.focusManager.nextScreenPos = m.nextScreenPos
@@ -78,7 +67,7 @@ namespace ml
 
     protected override function updateSrollOffsetFraction(fraction as float) as void
       if m.isLastMoveFlowFocus
-        ' ? "Ignoring scrolloffset fraction while doing floating focus"
+        ? "Ignoring scrolloffset fraction while doing floating focus"
         return
       end if
       fraction = mc.clamp(fraction, 0, 1)
@@ -90,13 +79,13 @@ namespace ml
 
       m.lastScrollOffsetFraction = fraction
       newTranslation = mc.interpolateArray([0, m.previousScreenPos], [0, m.nextScreenPos], fraction)
-      ' ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
+      ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
 
       m.offsetContainer.translation = newTranslation
       m.viewManager.owner.screenOffset = newTranslation[1]
       if fraction >= 1
-        ' ? "CHANGE CHANGE CHANGE"
-        ' ? " FINISHED UPDATE PSP >> " ; m.offsetContainer.translation[1]
+        ? "CHANGE CHANGE CHANGE"
+        ? " FINISHED UPDATE PSP >> " ; m.offsetContainer.translation[1]
         m.previousScreenPos = m.offsetContainer.translation[1]
       end if
     end function

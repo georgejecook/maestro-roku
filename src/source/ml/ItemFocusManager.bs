@@ -142,18 +142,17 @@ namespace ml
 
     private function onFocusUpdate(fraction as float) as void
       if fraction = 1 or fraction = 0
-        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
-        ' ? " OFU I "; m.index ; " NI "; m.nextIndex
+        ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
       end if
       if m.didFinish
         return
       end if
       if not m.isNotifying
-        ' ? "NOT NOTIFYING"
+        ? "NOT NOTIFYING"
         return
       end if
       if m.focusIndicatorConfig = invalid
-        ' ? " no focus config"
+        ? " no focus config"
         return
       end if
 
@@ -164,7 +163,7 @@ namespace ml
       else if fraction = 0
         return
       else if fraction >= 1
-        ' ? " DID FINISH "; m.focusIndicatorConfig.rowIndex " " m.focusIndicatorConfig.colIndex
+        ? " DID FINISH "; m.focusIndicatorConfig.rowIndex " " m.focusIndicatorConfig.colIndex
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
