@@ -58,7 +58,7 @@ namespace ml
     end function
 
     protected override function setNextCellInfo(info as ml.cellInfo) as void
-      ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
+      ' ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
       super.setNextCellInfo(info)
       if not m.isLastMoveFlowFocus
         m.focusManager.nextScreenPos = m.nextScreenPos
@@ -67,7 +67,7 @@ namespace ml
 
     protected override function updateSrollOffsetFraction(fraction as float) as void
       if m.isLastMoveFlowFocus
-        ? "Ignoring scrolloffset fraction while doing floating focus"
+        ' ? "Ignoring scrolloffset fraction while doing floating focus"
         return
       end if
       fraction = mc.clamp(fraction, 0, 1)
@@ -79,13 +79,13 @@ namespace ml
 
       m.lastScrollOffsetFraction = fraction
       newTranslation = mc.interpolateArray([0, m.previousScreenPos], [0, m.nextScreenPos], fraction)
-      ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
+      ' ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
 
       m.offsetContainer.translation = newTranslation
       m.viewManager.owner.screenOffset = newTranslation[1]
       if fraction >= 1
-        ? "CHANGE CHANGE CHANGE"
-        ? " FINISHED UPDATE PSP >> " ; m.offsetContainer.translation[1]
+        ' ? "CHANGE CHANGE CHANGE"
+        ' ? " FINISHED UPDATE PSP >> " ; m.offsetContainer.translation[1]
         m.previousScreenPos = m.offsetContainer.translation[1]
       end if
     end function
