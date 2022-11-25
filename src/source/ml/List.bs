@@ -25,6 +25,9 @@ namespace ml
     public width = 1920
     public height = 1080
 
+    'view that will respond to events
+    public delegate as mc.types.node
+
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = false
@@ -89,13 +92,8 @@ namespace ml
 
     public nextFocusIndex as mc.types.array
 
-    public cellEvents as mc.types.node
-    public rowEvents as mc.types.node
     public screenPos = 0
     public nextScreenPos = 0
-
-    @alwaysnotify
-    public listEvent as mc.types.Assocarray
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and internal state
@@ -152,8 +150,6 @@ namespace ml
     end function
 
     private function initManagers()
-      m.cellEvents = m.createEventsBroker("cells")
-      m.rowEvents = m.createEventsBroker("rows")
       m.rowsGroup = m.top.findNode("rowsGroup")
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
@@ -626,11 +622,9 @@ namespace ml
 
       m.log.verbose("onKeyPressOk")
       m.itemSelected = [m.focusedRowIndex, m.focusedCellIndex]
-      m.listEvent = {
-        name: "itemSelected"
-        index: m.focusedRowIndex
-        cellIndex: m.focusedCellIndex
-      }
+      if m.delegate <> invalid
+        m.delegate@._apply("onItemSelected", [m.focusedRowIndex, m.focusedCellIndex])
+      end if
 
       return true
     end function

@@ -92,7 +92,7 @@ namespace ml
       m.createViews()
       m.createAnims()
       m._list = m.list
-      m.itemFocusManager.list = m._list
+      m.itemFocusManager.setList(m._list)
     end function
 
     private function createViews()
@@ -129,15 +129,26 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? "setNextFocusIndicatorConfig"
+      ' ? "setNextFocusIndicatorConfig "
       if focusIndicatorConfig <> invalid
-        ' ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
+        ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
       else
         ' ? " next config INVALID "
+      end if
+      if m.isSameConfig(focusIndicatorConfig)
+        ? " is same"
+        return
       end if
       m.preprareNextFocusConfig(focusIndicatorConfig)
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
       m.setSystemFocusOnRenderer()
+    end function
+
+    private function isSameConfig(config as ml.FocusIndicatorConfig) as boolean
+      if m.nextConfig <> invalid and config <> invalid
+        return m.nextConfig.cellIndex = config.cellIndex and m.nextConfig.rowIndex = config.rowIndex and m.nextConfig.direction = config.direction
+      end if
+      return false
     end function
 
     function onFocusAnimationUpdate(fraction as float)

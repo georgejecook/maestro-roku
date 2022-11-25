@@ -1,0 +1,82 @@
+namespace ml
+
+  class ListDelegateManager
+    private cellFunctionMap = {
+      "didEnter": "onCellDidEnter"
+      "didExit": "onCellDidExit"
+      "willGainFocus": "onCellWillGainFocus"
+      "willLoseFocus": "onCellWillLoseFocus"
+      "didGainFocus": "onCellDidGainFocus"
+      "didLoseFocus": "onCellDidLoseFocus"
+      "gainingFocus": "onCellGainingFocus"
+      "losingFocus": "onCellLosingFocus"
+    }
+
+    private rowFunctionMap = {
+      "didEnter": "onRowDidEnter"
+      "didExit": "onRowDidExit"
+      "willGainFocus": "onRowWillGainFocus"
+      "willLoseFocus": "onRowWillLoseFocus"
+      "didGainFocus": "onRowDidGainFocus"
+      "didLoseFocus": "onRowDidLoseFocus"
+      "gainingFocus": "onRowGainingFocus"
+      "losingFocus": "onRowLosingFocus"
+      "itemSelected": "onItemSelected"
+      "rowData": "onRowData"
+      "scrollUpdate": "onScrollingUpdate"
+      "scrollStart": "onRowScrollingChange"
+      "scrollStop": "onRowScrollingChange"
+    }
+    private list as mc.types.node
+
+    function new(list as mc.types.node)
+      m.list = list
+    end function
+
+    function callCellDelegateMethod(cell as mc.types.node, eventName as string, event as mc.types.assocarray) as void
+      functionName = m.cellFunctionMap[eventName]
+      if functionName = invalid
+        ? "CELL EVENT(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
+        return
+      end if
+      ' ? "onListEventBridge OBSERVED " ; eventName
+
+      if functionName = "onCellGainingFocus" or functionName = "onCellLosingFocus"
+        cell@._apply(functionName, [event.rowIndex, event.index, event.direction, event.fraction])
+        m.list@._apply(functionName, [event.rowIndex, event.index, event.direction, event.fraction])
+      else
+        cell@._apply(functionName, [event.rowIndex, event.index, event.direction])
+        m.list@._apply(functionName, [event.rowIndex, event.index, event.direction, event.fraction])
+      end if
+    end function
+
+    function callRowDelegateMethod(row as mc.types.node, eventName as string, event as mc.types.assocarray) as void
+      functionName = m.rowFunctionMap[eventName]
+      if functionName = invalid
+        ? "ROW EVENT(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
+        return
+      end if
+
+      ' ? "LE  " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
+      if functionName = "onRowScrollingChange"
+        row@._apply("onRowScrollingChange", [event.index, eventName = "scrollStart", event.long])
+        m.list@._apply("onRowScrollingChange", [event.index, eventName = "scrollStart", event.long])
+      else if functionName = "onScrollingUpdate"
+        row@._apply(functionName, [event.startIndex, event.currentIndex])
+        m.list@._apply(functionName, [event.startIndex, event.currentIndex])
+      else if functionName = "onRowGainingFocus" or functionName = "onRowLosingFocus"
+        'TODO HERE WE NEED TO SEND SUBROW INDEX EVENTS!![[]]
+        row@._apply(functionName, [event.index, event.direction, event.fraction])
+        m.list@._apply(functionName, [event.startIndex, event.currentIndex])
+      else if functionName = "onItemSelected"
+        row@._apply(functionName, [event.index, event.cellIndex])
+        m.list@._apply(functionName, [event.startIndex, event.currentIndex])
+      else
+        row@._apply(functionName, [event.index, event.direction])
+        m.list@._apply(functionName, [event.startIndex, event.currentIndex])
+      end if
+
+    end function
+  end class
+
+end namespace
