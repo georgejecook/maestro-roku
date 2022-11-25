@@ -275,92 +275,29 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ KeyPress
+    '++ List move API implementation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onKeyPressLeft() as boolean
-      m.log.verbose("onKeyPressLeft")
-      m.itemScroller.isDoingLongPress = false
-      if m.isAlreadyScrolling(false)
-        return true
-      end if
-      if m.canScroll("left")
-        'clear this out, in case up down is stuck
-        m.isDoingFlowFocus = false
-        return m.itemScroller.moveFromPress(-1)
-      end if
-      return false
-    end function
-
-    private function onKeyPressRight() as boolean
-      m.log.verbose("onKeyPressRight")
-      if m.isAlreadyScrolling(false)
-        return true
-      end if
-
-      m.itemScroller.isDoingLongPress = false
-      if m.canScroll("right")
-        'clear this out, in case up down is stuck
-        m.isDoingFlowFocus = false
-        return m.itemScroller.moveFromPress(1)
-      end if
-      return false
-    end function
-
-    private function getLongPressIntervalForKey(key as string) as float
-      m.log.verbose("getLongPressIntervalForKey", key)
-      if m.canScroll(key)
-        return 0.2
+    function moveFromPress(direction as integer, isLongPress as boolean) as boolean
+      ? "moving row from press long? " isLongPress
+      if isLongPress
+        return m.itemScroller.moveToEnd(direction)
       else
-        return 0
+        return m.itemScroller.moveFromPress(direction)
       end if
     end function
 
-    private function canScroll(key as string)
-      if m.isAlreadyScrolling(key = "up" or key = "down")
-        return false
-      end if
+    function canMoveInDirection(direction as integer) as boolean
+      ' if m.isAlreadyScrolling(key = "up" or key = "down")
+      '   return false
+      ' end if
       index = m.itemScroller.index
       normalizedColumn = index mod m.viewManager.numCols
 
       ' ? "CAN SCROLL KEY"; key
 
       m.isScrollingEnabled = true 'hack: until we can work out if this var is needed anymore
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.length > 0) and ((key = "left" and normalizedColumn <> 0) or (key = "right" and normalizedColumn < m.viewManager.numCols - 1))
-    end function
-
-    private function isAlreadyScrolling(isUpDown as boolean) as boolean
-      ' ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus
-      return m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
-    end function
-
-    private function onLongPressStart(key as string) as boolean
-      m.log.verbose(">>>>onLongPressStart", key)
-      if m.canScroll(key)
-        ' ? "onLongPressStart - CAN SCROL KEY "; key
-        m.log.verbose("long press started on key", key, "going to animate to final scroll position")
-        m.itemScroller.isDoingLongPress = true
-        if key = "left"
-          m.itemScroller.moveToEnd(-1, true, true)
-        else
-          m.itemScroller.moveToEnd(1, true, true)
-        end if
-
-        return true
-      end if
-
-      return false
-    end function
-
-    private function onLongPressFinish(key as string) as boolean
-      m.itemScroller.isDoingLongPress = false
-      if key = "left" or key = "right"
-        m.log.verbose("long press finished on key", key)
-        m.itemScroller.cancelScrolling()
-        return true
-      end if
-
-      return false
+      return (m.isScrollingEnabled and m._content <> invalid and m._content.length > 0) and ((direction = -1 and normalizedColumn <> 0) or (direction = 1 and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

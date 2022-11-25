@@ -106,6 +106,7 @@ namespace ml
     private sourceFocusRect as object
     private targetFocusRect as object
     private isInitialized = false
+    private isDoingFlowFocus = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ views
@@ -113,6 +114,12 @@ namespace ml
 
     private contentGroup as mc.types.node
     private rowsGroup as mc.types.node
+    private keyDirections = {
+      "left": -1
+      "right": 1
+      "up": -1
+      "down": 1
+    }
 
     function new()
       super("ml_List")
@@ -482,7 +489,7 @@ namespace ml
       ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
 
       if m.top.isChildFocused or m.top.isFocused
-        m.focusOnCurrentRow()
+        m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
 
@@ -495,8 +502,75 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Movement Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function canMoveFromKeyPress(key as string) as boolean
+      ? "LIST canMoveFromKeyPress: " key
+      direction = m.keyDirections[key]
+
+      if key = "up" or key = "down"
+        return m.itemScroller.canMoveInDirection(direction)
+      else if key = "left" or key = "right"
+        row = m.getFocusedRow()
+        if row <> invalid
+          ? " ASKING ROW"
+          return row@.canMoveInDirection(direction)
+        end if
+      end if
+      return false
+    end function
+
+    private function getFocusedRow()
+      return m.itemScroller.cellInfo.component
+    end function
+
+    private function onRowKeyPress(key as string) as boolean
+      m.log.info("key", key)
+      m.itemScroller.isDoingLongPress = false
+
+      if m.isAlreadyScrolling(false)
+        return true
+      end if
+
+      if m.canMoveFromKeyPress(key)
+        ? " can move"
+        direction = m.keyDirections[key]
+        m.isDoingFlowFocus = false
+        return m.getFocusedRow()@.moveFromPress(direction, false)
+      end if
+
+      return false
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressLeft() as boolean
+      return m.onRowKeyPress("left")
+    end function
+
+    private function onKeyPressRight() as boolean
+      return m.onRowKeyPress("right")
+    end function
+
+    private function canScroll(key as string) as boolean
+      if key = "up" or key = "down"
+        if m.isAlreadyScrolling(key = "up" or key = "down")
+          return false
+        end if
+      else
+        direction = m.keyDirections[key]
+        return m.getFocusedRow()@.canMoveInDirection(direction)
+      end if
+      return true
+    end function
+
+    private function isAlreadyScrolling(isUpDown as boolean) as boolean
+      ' ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus
+      return m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
+    end function
 
     private function onKeyPressOptions() as boolean
       m.log.info("updating list")
@@ -562,7 +636,6 @@ namespace ml
     end function
 
     private function onKeyPressDown() as boolean
-      ? " onkeypdow"
       if not m.top.visible
         return false
       end if
@@ -597,7 +670,8 @@ namespace ml
         return 0
       end if
       m.log.verbose("getLongPressIntervalForKey", key)
-      if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
+
+      if m.canMoveFromKeyPress(key)
         return 0.2
       else
         return 0
@@ -607,14 +681,18 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
-      ' ? " ON LONG PRESS START  - LIST" ; key
-      if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
-        if key = "up"
-          m.log.verbose("long press started on key", key, "going to animate to start of list")
-          return m.itemScroller.moveToEnd(-1)
-        else
-          m.log.verbose("long press started on key", key, "going to animate to end of list")
-          return m.itemScroller.moveToEnd(1)
+      if m.canMoveFromKeyPress(key)
+        direction = m.keyDirections[key]
+        if key = "up" or key = "down"
+          if m.itemScroller.canMoveInDirection(direction)
+            m.log.verbose("long press started on key", key, "going to animate to start of list")
+            return m.itemScroller.moveToEnd(direction)
+          else
+            m.log.verbose("long press started on key", key, "going to animate to end of list")
+            return m.itemScroller.moveToEnd(1)
+          end if
+        else if key = "left" or key = "right"
+          return m.getFocusedRow()@.moveFromPress(direction, true)
         end if
       end if
 
@@ -627,30 +705,23 @@ namespace ml
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.cancelScrolling()
         return true
+      else if key = "left" or key = "right"
+        m.getFocusedRow()@.cancelMove()
+        return true
       end if
 
       return false
     end function
 
-    private function focusOnCurrentRow()
-      ' m.focusIndicatorManager.isHidden = m.rowHasIndicator and m.activeFocusSettings <> invalid and m.activeFocusSettings.feedbackStyle <> "none"
-      '     ' ? " ON GAINED FOCUS "
-      row = m.getRowRenderer(m.focusedRowIndex)
-      if row <> invalid
-        '  ? " SETTING FOCUS ONTO ROW "
-        m.setFocus(row)
-      end if
-
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ lifecycle
+    '++ Lifecycle Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     protected override function onGainedFocus(isSelfFocused as boolean)
       super.onGainedFocus(isSelfFocused)
       m.focusIndicatorManager.isHidden = false
       if isSelfFocused
-        m.focusOnCurrentRow()
+        m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
 
@@ -660,6 +731,7 @@ namespace ml
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
+        m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
 
@@ -667,6 +739,7 @@ namespace ml
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
+        m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
 
@@ -674,6 +747,7 @@ namespace ml
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
+        m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
   end class

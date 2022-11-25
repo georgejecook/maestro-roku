@@ -72,6 +72,7 @@ namespace ml
     private rowHasIndicator = true
     private isFocusSettingsChangePending = false
     private minFocusChangeFraction = 0.5
+    private isFocusedOnRow = false
 
     private manualMode = false
 
@@ -391,15 +392,15 @@ namespace ml
     end function
 
     'set the actual ROKU focus on an item
-    private function setSystemFocusOnRenderer() as void
+    private function setSystemFocusOnRenderer(forceFocus = false as boolean) as void
       focusTarget = m.list
 
-      if m.nextConfig <> invalid and m.nextConfig.willDoSystemFocus = true
+      'TODO - consider if the willDoSystemFocus call should be overridden
+      if m.nextConfig <> invalid and (forceFocus or m.nextConfig.willDoSystemFocus = true)
         ? " SETTING FOCUS ON " ; mc.dv(m.nextConfig.row)
         'bs:disable-next-line
         focusTarget = m.nextConfig.row
-
-        if true or m.list.isChildFocused or m.list.isFocused
+        if m.isFocusedOnRow
           mv.setFocus(focusTarget)
         else
           m.log.warn("not setting focus on", mc.dv(focusTarget), "owner child focused?", m.list.isChildFocused, "owner focused?", m.list.isFocused)
@@ -407,6 +408,13 @@ namespace ml
       end if
     end function
 
+    function setFocusedOnRow(focused as boolean)
+      ? " Focus indicator manager gained focus"
+      m.isFocusedOnRow = focused
+      if focused
+        m.setSystemFocusOnRenderer(true)
+      end if
+    end function
 
   end class
 end namespace

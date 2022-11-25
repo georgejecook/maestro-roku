@@ -11,6 +11,10 @@ namespace mc
     protected name
     protected log
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     function new(name as string)
       m.log = new log.Logger(name)
       m.name = name
@@ -29,6 +33,14 @@ namespace mc
     protected function initialize()
       'override me
 
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Internal Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function _apply(funcName as string, args as mc.types.array)
+      return mc.apply(funcName, args, m)
     end function
 
     private function _addIOCObserver(fieldName as string, instanceName as string, path as string, observedPath as string, observedField as string, callback = invalid as function)

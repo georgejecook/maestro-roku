@@ -145,6 +145,9 @@ namespace mc
         end if
         return invalid
       end if
+      if type(target) = "roSGNode"
+        return target@._apply(func, args)
+      end if
       if not mc.isFunction(target[func])
         m.log.error("target did not have function ", func)
         return invalid
