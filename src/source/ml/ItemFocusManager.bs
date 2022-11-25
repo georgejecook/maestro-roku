@@ -18,6 +18,7 @@ namespace ml
     private isNotifying = true
     private lastSentFraction = -1
     private direction = 0
+    private list as mc.types.node
 
     private delegates as mc.types.array
     private ownerDelegate as mc.types.node
@@ -83,7 +84,7 @@ namespace ml
 
 
       ' ? ">>S> "; m.viewManager.__classname
-      ' ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.colIndex ; " " ; nextFocusIndicatorConfig.gridIndex
+      ' ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.cellIndex ; " " ; nextFocusIndicatorConfig.gridIndex
       ' if focusIndicatorConfig <> invalid and focusIndicatorConfig.gridIndex <> invalid and focusIndicatorConfig.gridIndex <> -1
       '   m.previousFocusIndicatorConfig = focusIndicatorConfig
       ' else
@@ -91,7 +92,7 @@ namespace ml
       ' end if
 
       ' if m.previousFocusIndicatorConfig <> invalid
-      '   ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.colIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
+      '   ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.cellIndex ; " " ; m.previousFocusIndicatorConfig.gridIndex
       ' end if
 
       m._setNextFocusIndicatorConfig(focusIndicatorConfig)
@@ -126,23 +127,23 @@ namespace ml
     end function
 
     private function getIsSendingFromEvent()
-      return m.previousFocusIndicatorConfig.cell <> invalid and m.fromEvent.index <> -1 and m.toEvent.index <> m.fromEvent.index
+      return m.previousFocusIndicatorConfig.row <> invalid and m.fromEvent.index <> -1 and (m.previousFocusIndicatorConfig.cell = invalid or m.toEvent.index <> m.fromEvent.index)
     end function
 
     private function getIsSendingToEvent()
-      return m.toEvent.index <> -1 and (m.toEvent.index <> m.fromEvent.index) and m.previousFocusIndicatorConfig.cell <> invalid
+      return m.focusIndicatorConfig.row <> invalid and m.toEvent.index <> -1
     end function
 
     private function isSameConfig(newConfig as ml.FocusIndicatorConfig)
       if m.focusIndicatorConfig = invalid or newConfig = invalid
         return false
       end if
-      return m.focusIndicatorConfig.rowIndex = newConfig.rowIndex and m.focusIndicatorConfig.colIndex = newConfig.colIndex and m.focusIndicatorConfig.direction = newConfig.direction
+      return m.focusIndicatorConfig.rowIndex = newConfig.rowIndex and m.focusIndicatorConfig.cellIndex = newConfig.cellIndex and m.focusIndicatorConfig.direction = newConfig.direction
     end function
 
     private function onFocusUpdate(fraction as float) as void
       if fraction = 1 or fraction = 0
-        ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
       end if
       if m.didFinish
         return
@@ -163,7 +164,7 @@ namespace ml
       else if fraction = 0
         return
       else if fraction >= 1
-        ? " DID FINISH "; m.focusIndicatorConfig.rowIndex " " m.focusIndicatorConfig.colIndex
+        ? " DID FINISH "; m.focusIndicatorConfig.rowIndex " " m.focusIndicatorConfig.cellIndex
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
@@ -179,6 +180,7 @@ namespace ml
     end function
 
     private function sendEvents(name as string, nextName as string, fraction as float) as void
+      ' ? " sendEvents " name nextName fraction
       if fraction < m.lastSentFraction
         return
       end if
@@ -192,11 +194,23 @@ namespace ml
       m.toEvent.fraction = fraction
 
       if m.isSendingFromEvent
-        m.previousFocusIndicatorConfig.cell.listEvent = m.fromEvent
+        if m.previousFocusIndicatorConfig.cell <> invalid
+          ' m.previousFocusIndicatorConfig.cell.listEvent = m.fromEvent
+        end if
+        if m.focusIndicatorManager.row <> invalid
+          m.focusIndicatorManager.row.listEvent = m.fromEvent
+        end if
+        m.list.listEvent = m.fromEvent
       end if
 
       if m.isSendingToEvent
-        m.focusIndicatorConfig.cell.listEvent = m.toEvent
+        if m.focusIndicatorConfig.cell <> invalid
+          ' m.focusIndicatorConfig.cell.listEvent = m.toEvent
+        end if
+        if m.focusIndicatorConfig.row <> invalid
+          m.focusIndicatorConfig.row.listEvent = m.toEvent
+        end if
+        m.list.listEvent = m.toEvent
       end if
 
       'FIXME - send cell events to delegates
@@ -212,9 +226,9 @@ namespace ml
       event.direction = m.direction
       event.fraction = 0
       if config <> invalid
-        event.index = config.index
-        if config.index <> invalid
-          event.index = config.index
+        event.cellIndex = config.cellIndex
+        if config.cellIndex <> invalid
+          event.index = config.cellIndex
         else
           event.index = -1
         end if

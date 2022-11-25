@@ -52,6 +52,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPointAnim
+    private _list as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -90,6 +91,8 @@ namespace ml
       super.initialize()
       m.createViews()
       m.createAnims()
+      m._list = m.list
+      m.itemFocusManager.list = m._list
     end function
 
     private function createViews()
@@ -126,9 +129,9 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ? "setNextFocusIndicatorConfig"
+      ' ? "setNextFocusIndicatorConfig"
       if focusIndicatorConfig <> invalid
-        ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.colIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
+        ' ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
       else
         ' ? " next config INVALID "
       end if
@@ -146,12 +149,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.colIndex
-      m.list.focusedRowIndex = focusIndicatorConfig.rowIndex
-      m.list.focusedCellIndex = focusIndicatorConfig.colIndex
+      ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.cellIndex
+      m._list.focusedRowIndex = focusIndicatorConfig.rowIndex
+      m._list.focusedCellIndex = focusIndicatorConfig.cellIndex
       row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
       if row <> invalid
-        row.focusedCellIndex = focusIndicatorConfig.colIndex
+        row.focusedCellIndex = focusIndicatorConfig.cellIndex
       end if
       'We must be already prepared
       m.applyFocusSettings(true)
@@ -192,7 +195,7 @@ namespace ml
 
     public function setFocusedFraction(fraction as float) as void
       ' ? "ON ROW Fraction CHANGE" ; fraction " " ; m.isDoingFlowFocus
-      m.list.focusedFraction = fraction
+      m._list.focusedFraction = fraction
 
       if m.isDoingFlowFocus
         'flow focus callbacks will handle this
@@ -213,7 +216,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function preprareNextFocusConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      if m.list.state = "rendering" or m.list.content = invalid
+      if m._list.state = "rendering" or m._list.content = invalid
         return
       end if
 
@@ -289,10 +292,10 @@ namespace ml
         m.shouldShowIndicator = true
 
         if m.isIndicatorOnTop and m.nextFocusSettings.feedbackStyle = "underneath"
-          m.list.insertChild(m.focusIndicator, 0)
+          m._list.insertChild(m.focusIndicator, 0)
           m.isIndicatorOnTop = false
         else if not m.isHidden and m.nextFocusSettings.feedbackStyle = "onTop"
-          m.list.appendChild(m.focusIndicator)
+          m._list.appendChild(m.focusIndicator)
           m.isIndicatorOnTop = true
         end if
 
@@ -345,8 +348,8 @@ namespace ml
 
       'TODO - finish animation if existing delegate
       'HACK! TODO - get the correct offset for the list's location
-      m.nextConfig.indicatorTranslation[1] = m.nextConfig.indicatorTranslation[1] - m.list.translation[1]
-      m.nextConfig.indicatorTranslation[0] = m.nextConfig.indicatorTranslation[0] - m.list.translation[0]
+      m.nextConfig.indicatorTranslation[1] = m.nextConfig.indicatorTranslation[1] - m._list.translation[1]
+      m.nextConfig.indicatorTranslation[0] = m.nextConfig.indicatorTranslation[0] - m._list.translation[0]
 
       speed *= 2
       m.flowFocusDelegate = delegate
@@ -384,32 +387,32 @@ namespace ml
     end function
 
     private function getRowRenderer(index as integer)
-      return m.list@.getRowRenderer(index)
+      return m._list@.getRowRenderer(index)
     end function
 
     private function getCellRenderer(rowIndex as integer, cellIndex as integer)
-      return m.list@.getCellRenderer(rowIndex, cellIndex)
+      return m._list@.getCellRenderer(rowIndex, cellIndex)
     end function
 
     'set the actual ROKU focus on an item
     private function setSystemFocusOnRenderer(forceFocus = false as boolean) as void
-      focusTarget = m.list
+      focusTarget = m._list
 
       'TODO - consider if the willDoSystemFocus call should be overridden
       if m.nextConfig <> invalid and (forceFocus or m.nextConfig.willDoSystemFocus = true)
-        ? " SETTING FOCUS ON " ; mc.dv(m.nextConfig.row)
+        ' ? " SETTING FOCUS ON " ; mc.dv(m.nextConfig.row)
         'bs:disable-next-line
         focusTarget = m.nextConfig.row
         if m.isFocusedOnRow
           mv.setFocus(focusTarget)
         else
-          m.log.warn("not setting focus on", mc.dv(focusTarget), "owner child focused?", m.list.isChildFocused, "owner focused?", m.list.isFocused)
+          m.log.warn("not setting focus on", mc.dv(focusTarget), "owner child focused?", m._list.isChildFocused, "owner focused?", m.list.isFocused)
         end if
       end if
     end function
 
     function setFocusedOnRow(focused as boolean)
-      ? " Focus indicator manager gained focus"
+      ' ? " Focus indicator manager gained focus"
       m.isFocusedOnRow = focused
       if focused
         m.setSystemFocusOnRenderer(true)

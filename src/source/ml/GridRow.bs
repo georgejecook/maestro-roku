@@ -17,10 +17,6 @@ namespace ml
 
     public focusedCellIndex = 0
 
-    public isScrolling = false
-    private isDoingFlowFocus = false
-    private isScrollingEnabled = false
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and private state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -189,7 +185,6 @@ namespace ml
 
     public override function onFlowFocusFraction(fraction as float)
       ? " MOVED A FRACTION"
-      m.isDoingFlowFocus = fraction <> 1
       m.itemScroller.onFlowFocusFraction(fraction)
     end function
 
@@ -265,7 +260,7 @@ namespace ml
 
         config = m.itemScroller.getFocusIndicatorConfig(cellInfo, m.itemScroller.direction, false, false)
         if config <> invalid
-          config.colIndex = m.focusedCellIndex
+          config.cellIndex = m.focusedCellIndex
           ' ? "GRID ROW focusOnIndexNow"
           m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
           m.owner.focusIndicatorManager@.setFocusComplete(config)
@@ -296,24 +291,7 @@ namespace ml
 
       ' ? "CAN SCROLL KEY"; key
 
-      m.isScrollingEnabled = true 'hack: until we can work out if this var is needed anymore
-      return (m.isScrollingEnabled and m._content <> invalid and m._content.length > 0) and ((direction = -1 and normalizedColumn <> 0) or (direction = 1 and normalizedColumn < m.viewManager.numCols - 1))
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ delegate
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    protected function onWillLoseFocus(direction as integer)
-      ' m.log.verbose("This row will lose focus - disabling scrolling")
-      m.itemScroller.cancelScrolling()
-      m.toggleLongPressTimer(0)
-      m.isScrollingEnabled = false
-    end function
-
-    protected function onWillGainFocus(direction as integer)
-      ' m.log.verbose("This row will gain focus - enabling scrolling")
-      m.isScrollingEnabled = true
+      return (m._content <> invalid and m._content.length > 0) and ((direction = -1 and normalizedColumn <> 0) or (direction = 1 and normalizedColumn < m.viewManager.numCols - 1))
     end function
 
   end class
