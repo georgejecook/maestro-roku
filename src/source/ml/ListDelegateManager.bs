@@ -58,24 +58,24 @@ namespace ml
     end function
 
     function callRowDelegateMethod(eventName as string, event as mc.types.assocarray) as void
-      rowDelegateFunctionName = m.componentFunctionMap[eventName]
+      delegateFunctionName = m.rowDelegateFunctionMap[eventName]
       rowFunctionName = m.componentFunctionMap[eventName]
-      if rowDelegateFunctionName = invalid
+      if delegateFunctionName = invalid
         ? "Unknown row event" eventName
         return
       end if
 
       ' ? "LE  " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
-      if rowDelegateFunctionName = "onRowGainingFocus" or rowDelegateFunctionName = "onRowLosingFocus"
+      if delegateFunctionName = "onRowGainingFocus" or delegateFunctionName = "onRowLosingFocus"
         'TODO HERE WE NEED TO SEND SUBROW INDEX EVENTS!![[]]
         event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction])
         if m.listDelegate <> invalid
-          m.listDelegate@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction], false)
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction], false)
         end if
       else
         event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction])
         if m.listDelegate <> invalid
-          m.listDelegate@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction], false)
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction], false)
         end if
       end if
 

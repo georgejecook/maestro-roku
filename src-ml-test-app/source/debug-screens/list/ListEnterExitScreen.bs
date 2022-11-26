@@ -323,31 +323,6 @@ class ListEnterExitScreen extends mv.BaseScreen
   '++ list delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    mioc.setInstance("focusedIndex", {
-      row: rowIndex
-      cell: itemIndex
-    })
-  end function
-
-  private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    mioc.setInstance("focusedIndex", {
-      row: rowIndex
-      cell: itemIndex
-    })
-  end function
-
-
-  private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ? "+SCREEN onCellWillLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-  end function
-
-  private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-  end function
-
   private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
     ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
 
@@ -395,10 +370,35 @@ class ListEnterExitScreen extends mv.BaseScreen
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = 1 - fraction
     ' end if
-
   end function
+
+  private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    mioc.setInstance("focusedIndex", {
+      row: rowIndex
+      cell: itemIndex
+    })
+  end function
+
+  private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    mioc.setInstance("focusedIndex", {
+      row: rowIndex
+      cell: itemIndex
+    })
+  end function
+
+
+  private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellWillLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  end function
+
+  private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+    ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  end function
+
   private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-    ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
+    ' ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
     ' if direction = -1
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = fraction
@@ -406,7 +406,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-    ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
+    ' ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
     ' if direction = 1
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = 1 - fraction

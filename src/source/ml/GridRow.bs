@@ -178,12 +178,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onDidEnter(subRowIndex as integer, direction as integer, forceCellUpdate = false as boolean)
-      ? " onDidEnter "
+      ? " GRID onDidEnter "
       m.viewManager.notifyEnterEvent(subRowIndex, subRowIndex, forceCellUpdate = true)
     end function
 
     private function onDidExit(subRowIndex as integer, direction as integer)
-      ? " onDidExit "
+      ? " GRID onDidExit "
       m.viewManager.notifyExitEvent(subRowIndex, subRowIndex)
     end function
 
@@ -192,19 +192,19 @@ namespace ml
     ' end function
 
     private function onDidGainFocus(subRowIndex as integer, direction as integer)
-      ? " onDidGainFocus "
+      ? " GRID onDidGainFocus " m.index subRowIndex direction
     end function
 
     private function onDidLoseFocus(subRowIndex as integer, direction as integer)
-      ? " onDidLoseFocus "
+      ? " GRID onDidLoseFocus " m.index subRowIndex direction
     end function
 
-    private function onGainingFocus(subRowIndex as integer, direction as integer)
-      ? " onGainingFocus "
+    private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
+      ? " GRID onGainingFocus " m.index subRowIndex direction fraction
     end function
 
-    private function onLosingFocus(subRowIndex as integer, direction as integer)
-      ? " onLosingFocus "
+    private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
+      ? " GRID onLosingFocus " m.index subRowIndex direction fraction
     end function
 
     private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
