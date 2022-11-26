@@ -1,6 +1,8 @@
 namespace ml
 
   class ListDelegateManager
+    public listDelegate as mc.types.node
+
     private cellDelegateFunctionMap = {
       "willGainFocus": "onCellWillGainFocus"
       "willLoseFocus": "onCellWillLoseFocus"
@@ -26,28 +28,32 @@ namespace ml
       "gainingFocus": "onRowGainingFocus"
       "losingFocus": "onRowLosingFocus"
     }
-    private list as mc.types.node
 
-    function new(list as mc.types.node)
-      m.list = list
+
+    function new()
     end function
 
     function callCellDelegateMethod(eventName as string, event as mc.types.assocarray) as void
+      'TODO optimize this
+
       delegateFunctionName = m.cellDelegateFunctionMap[eventName]
       cellFunctionName = m.componentFunctionMap[eventName]
       if delegateFunctionName = invalid
-        ? "CELL EVENT(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
+        ? "Unknown cell event" eventName
         return
       end if
-      ' ? "onListEventBridge OBSERVED " ; eventName
 
       if delegateFunctionName = "onCellGainingFocus" or delegateFunctionName = "onCellLosingFocus"
         event.cell@._apply(cellFunctionName, [event.direction, event.fraction])
-        m.list@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction])
+        if m.listDelegate <> invalid
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction])
+        end if
 
       else
         event.cell@._apply(cellFunctionName, [event.direction])
-        m.list@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction])
+        if m.listDelegate <> invalid
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction])
+        end if
       end if
     end function
 
@@ -55,7 +61,7 @@ namespace ml
       rowDelegateFunctionName = m.componentFunctionMap[eventName]
       rowFunctionName = m.componentFunctionMap[eventName]
       if rowDelegateFunctionName = invalid
-        ? "ROW EVENT(skipped) " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
+        ? "Unknown row event" eventName
         return
       end if
 
@@ -63,10 +69,14 @@ namespace ml
       if rowDelegateFunctionName = "onRowGainingFocus" or rowDelegateFunctionName = "onRowLosingFocus"
         'TODO HERE WE NEED TO SEND SUBROW INDEX EVENTS!![[]]
         event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction])
-        m.list@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction])
+        if m.listDelegate <> invalid
+          m.listDelegate@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction])
+        end if
       else
         event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction])
-        m.list@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction])
+        if m.listDelegate <> invalid
+          m.listDelegate@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction])
+        end if
       end if
 
     end function

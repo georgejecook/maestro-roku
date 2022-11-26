@@ -57,8 +57,11 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    private list as mc.types.node
+
     function setList(list as mc.types.node)
-      m.delegateManager = new ml.ListDelegateManager(list)
+      m.list = list
+      m.delegateManager = new ml.ListDelegateManager()
     end function
 
     function reset(focusIndicatorConfig as ml.FocusIndicatorConfig)
@@ -214,13 +217,14 @@ namespace ml
 
     private function sendEvents(name as string, nextName as string, fraction as float) as void
       ? " sendEvents " name nextName mc.dv(m.previousFocusIndicatorConfig.cell) mc.dv(m.focusIndicatorConfig.cell)
+      m.delegateManager.listDelegate = m.list.delegate
+
       if fraction < m.lastSentFraction
         return
       end if
 
       m.lastSentFraction = fraction
 
-      'TODO - probabaly just send the fraction value in and not change the event
       m.fromEvent.fraction = fraction
       m.toEvent.fraction = fraction
 
@@ -233,11 +237,11 @@ namespace ml
       end if
 
       if m.toEvent.isSendingCell
-        m.delegateManager.callCellDelegateMethod(name, m.toEvent)
+        m.delegateManager.callCellDelegateMethod(nextName, m.toEvent)
       end if
 
       if m.toEvent.isSendingRow
-        m.delegateManager.callRowDelegateMethod(name, m.toEvent)
+        m.delegateManager.callRowDelegateMethod(nextName, m.toEvent)
       end if
 
     end function
