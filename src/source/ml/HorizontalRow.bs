@@ -20,24 +20,7 @@ namespace ml
 
     private viewManager
     private itemScroller
-    private currentHeaderType = invalid
     private settings
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ views
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private backgroundGroup
-    private cellsGroup
-    private contentGroup
-    private foregroundGroup
-    private header
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ view tracking
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private componentPool = m.global.componentPool
 
     function new()
       super()
@@ -48,22 +31,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function createViews()
-      m.backgroundGroup = m.createSGNode("Group", m.top, "backgroundGroup")
-      m.contentGroup = m.createSGNode("Group", m.top, "contentGroup")
-      m.cellsGroup = m.createSGNode("Group", m.contentGroup, "cellsGroup")
-      m.foregroundGroup = m.createSGNode("Group", m.top, "foregroundGroup")
-
-      'debug stuff
-      ' if m.index = 0
-      ' "SETTING LIST CONTAINER"
-      '   mioc.setInstance("listContainer", m.cellsGroup)
-      ' end if
+      super.createViews()
       m.createManagers()
     end function
 
     private function createManagers()
       m.log.info("createManagers")
-      m.viewManager = new ml.RowItemViewManager(m.owner, m.top, m.cellsGroup, m.componentPool, 0, m.width)
+      m.viewManager = new ml.RowItemViewManager(m.owner, m.top, m.contentGroup, m.global.componentPool, 0, m.width)
       m.itemScroller = new ml.RowItemScroller(m.viewManager, m.owner.focusIndicatorManager)
     end function
 
@@ -118,41 +92,6 @@ namespace ml
       end if
     end function
 
-    protected override function onIsRenderedChange()
-    end function
-
-    protected override function onListEvent(event as object) as void
-      'TODO improve this - make it more efficient
-      'make it so we can specify to pass on scroll updates
-      'or pass on scroll/start/stop, or didEnter
-      isPropagatedToAll = m.propagatedEvents[event.name]
-
-      if isPropagatedToAll <> invalid
-        ' ? " GOT HORIZONTAL EVENT "; event.name ; m.content.id
-
-        ' ? " GRID GOT " ; formatJson(event)
-        if isPropagatedToAll
-          if event.name = "didExit"
-            ' ? " GOT HORIZONTAL EXIT "; event.name ; m.content.id
-            m.viewManager.notifyExitEvent(m.viewManager.getRenderedIndexes())
-          else if event.name = "didEnter"
-            ' ? " NOTIFYING ENTER"
-            m.itemScroller.notifyViewportEvents(event.direction)
-            ' m.itemScroller.viewPortEventNotifier.notifyViewportEvents(event.direction)
-          end if
-        end if
-      else
-        'TODO propagate to all visible children!
-        ' it was a list focus event
-        cell = m.viewManager.getRenderer(m.focusedCellIndex)
-        if cell <> invalid
-          ' ? "!!!!!!!!! GIVING event " ; event.name ; " to cell"
-          ' TODO potentially filter events
-          cell.listEvent = event
-        end if
-      end if
-    end function
-
     public override function jumpToItem(index as integer, animated as boolean)
       if m._content <> invalid and index <> -1
         ' ? " DO A MOVE TO INDEX "; index, animated
@@ -164,62 +103,8 @@ namespace ml
       return m.viewManager.getRect(index, useScreenCoords = true)
     end function
 
-    public override function onFlowFocusFraction(fraction as float)
+    private function onFlowFocusFraction(fraction as float)
       m.itemScroller.onFlowFocusFraction(fraction)
-    end function
-
-    public override function getCellContainer()
-      return m.cellsGroup
-    end function
-
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ header
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function configureHeader(forceUpdate = false as boolean)
-      if m._content = invalid
-        m.cleanHeader()
-      else
-        headerSettings = m.settings.headerSettings
-        if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
-          m.cleanHeader()
-          m.currentHeaderType = headerSettings.compName
-          m.header = m.componentPool@.getComponent(headerSettings.compName, 1)
-
-          if m.header <> invalid
-            if headerSettings.position = "onTop"
-              m.foregroundGroup.appendChild(m.header)
-            else if headerSettings.position = "underneath"
-              m.backgroundGroup.appendChild(m.header)
-            end if
-          end if
-        end if
-
-        if m.header <> invalid
-          m.header.translation = [-m.settings.contentOffset[0], 0] 'cancel out this row's offset
-          m.header.width = m.width
-          m.header.height = headerSettings.height
-          m.header@.setContent(m._content, headerSettings)
-          m.contentGroup.translation = [0, headerSettings.height]
-        else
-          m.contentGroup.translation = [0, 0]
-        end if
-      end if
-    end function
-
-    public override function updateChangedItems()
-      super.updateChangedItems()
-    end function
-
-    private function cleanHeader()
-      if m.header <> invalid
-        m.log.info("cleaning header")
-        m.header@.setContent(invalid)
-        m.componentPool@.releaseComponent(m.header)
-        m.header = invalid
-        m.currentHeaderType = invalid
-      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -245,6 +130,49 @@ namespace ml
     function cancelMove()
       ? " finishing moving"
       m.itemScroller.cancelScrolling()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ List Delegate Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onDidEnter(subRowIndex as integer, direction as integer, forceAll = false as boolean)
+      ? " onDidEnter "
+      m.itemScroller.notifyViewportEvents(event.direction, forceAll = true)
+    end function
+
+    private function onDidExit(subRowIndex as integer, direction as integer)
+      ? " onDidExit "
+      m.viewManager.notifyExitEvent(m.viewManager.getRenderedIndexes())
+    end function
+
+    ' private function onScrollingChange(subRowIndex as integer, direction as integer)
+    '   ? " onScrollingChange "
+    ' end function
+
+    private function onDidGainFocus(subRowIndex as integer, direction as integer)
+      ? " onDidGainFocus "
+    end function
+
+    private function onDidLoseFocus(subRowIndex as integer, direction as integer)
+      ? " onDidLoseFocus "
+    end function
+
+    private function onGainingFocus(subRowIndex as integer, direction as integer)
+      ? " onGainingFocus "
+    end function
+
+    private function onLosingFocus(subRowIndex as integer, direction as integer)
+      ? " onLosingFocus "
+    end function
+
+    private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
+      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      if cell <> invalid
+        ' ? "!!!!!!!!! GIVING event " ; event.name ; " to cell"
+        ' TODO potentially filter events
+        cell@._apply(functionName, args)
+      end if
     end function
 
   end class

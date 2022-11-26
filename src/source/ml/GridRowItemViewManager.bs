@@ -281,44 +281,6 @@ namespace ml
       return new ml.cellInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
-    override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
-      if m.isScrolling = isScrolling
-        return
-      end if
-      m.scrollingStartIndex = isScrolling ? startIndex: -1
-      m.isScrolling = isScrolling
-
-      ' ? "++++ setIsScrolling" ; isScrolling
-      ' m.row.isScrolling = isScrolling
-
-      m.owner.isScrolling = isScrolling
-
-      event = {
-        name: isScrolling ? "scrollStart" : "scrollStop"
-        startIndex: m.scrollingStartIndex
-        long: isLong
-        startIndex: m.scrollingStartIndex
-      }
-      m.lastScrollEvent = isScrolling ? event : invalid
-
-
-      if m.listSettings.sendScrollStartStop
-        for each id in m.renderersByContentId
-          comp = m.renderersByContentId[id]
-          comp.listEvent = event
-        end for
-      end if
-
-      m.owner.listEvent = {
-        name: event.name
-        index: m.row.index
-        long: isLong
-        startIndex: startIndex
-      }
-      ' ? "++++ row - listEvent " ; formatJson(m.row.listEvent)
-      ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
-    end function
-
     private function getHeightOfGridRow()
 
       return m.numRows * (m.settings.rowHeight + m.settings.space) + m.settings.headerSettings.height
@@ -425,11 +387,7 @@ namespace ml
           if comp.isInViewPort
             comp.isInViewPort = false
             if comp.id <> "#_#phc"
-              comp.listEvent = {
-                name: "didExit"
-                direction: 1
-                index: comp.index
-              }
+              comp@._apply("onDidExit", 1)
               ' ? " releasing comp.index"
               m.releaseCellAtIndex(comp.index)
             end if
@@ -451,30 +409,10 @@ namespace ml
             ' ? " notifying enter on "; comp.id
             if not comp.isInViewPort
               comp.isInViewPort = true
-              comp.listEvent = {
-                name: "didEnter"
-                direction: 1
-                index: comp.index
-              }
+              comp@._apply("onDidEnter", 1)
             end if
           end if
         end for
-        ' for each comp in rowRenderers
-        '   index++
-        '   if comp.id = "#_#phc"
-        '     ? " comp needs to be made!! "; index
-        '     comp = m.getCell(index)
-        '   end if
-        '   if comp <> invalid and not comp.isInViewPort
-        '     comp.isInViewPort = true
-        '     comp.listEvent = {
-        '       name: "didEnter"
-        '       direction: 1
-        '       index: comp.index
-        '     }
-        '     m.inViewportComponentsById[comp.id] = comp
-        '   end if
-        ' end for
       end for
     end function
   end class

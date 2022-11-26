@@ -90,42 +90,6 @@ namespace ml
       ' ? " U C NUM ITEMS NOW "; m.numberOfItems
     end function
 
-    override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
-      ' ? "++++ setIsScrolling" ; isScrolling ; " MIS " ; m.isScrolling
-      if m.isScrolling = isScrolling
-        return
-      end if
-      m.scrollingStartIndex = isScrolling ? startIndex: -1
-      m.isScrolling = isScrolling
-
-      ' m.row.isScrolling = isScrolling
-
-      m.owner.isScrolling = isScrolling
-
-      event = {
-        name: isScrolling ? "scrollStart" : "scrollStop"
-        startIndex: m.scrollingStartIndex
-        long: isLong
-        startIndex: m.scrollingStartIndex
-      }
-      m.lastScrollEvent = isScrolling ? event : invalid
-
-      if m.listSettings.sendScrollStartStop
-
-        for each id in m.renderersByContentId
-          comp = m.renderersByContentId[id]
-          comp.listEvent = event
-        end for
-      end if
-
-      m.owner.listEvent = {
-        name: event.name
-        index: m.row.index
-        long: isLong
-        startIndex: startIndex
-      }
-    end function
-
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       oldNumComponents = m.numberOfItems

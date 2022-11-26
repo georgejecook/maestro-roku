@@ -54,7 +54,6 @@ namespace ml
     private renderedIndexUpdateInterval = 10
 
     'stored so we can send it with initialstate
-    public lastScrollEvent as mc.types.assocarray
     public itemScroller as ml.ItemScroller
 
     protected placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
@@ -99,7 +98,6 @@ namespace ml
       m.scrollingStartIndex = -1
       m.isRendering = false
 
-      m.lastScrollEvent = invalid
       m.itemScroller.reset()
     end function
 
@@ -159,31 +157,57 @@ namespace ml
       return [m.container.translation[0] - ownerTranslation[0], m.container.translation[1] - ownerTranslation[1]]
     end function
 
-    function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer)
+    function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
+      'MAYBE
+      if m.isScrolling = isScrolling
+        return
+      end if
+
       ' ? m.__classname ; " setIsScrolling " ; isScrolling
+
+      'TODO - move this logic into the LIST!!!
 
       m.isScrolling = isScrolling
       m.scrollingStartIndex = isScrolling ? startIndex: -1
       m.owner.isScrolling = isScrolling
 
-      event = {
-        name: isScrolling ? "scrollStart" : "scrollStop"
-        startIndex: m.scrollingStartIndex
-        long: isLong
-        startIndex: m.scrollingStartIndex
-      }
-      m.lastScrollEvent = isScrolling ? event : invalid
+      'TODO - reenable scrolling events!
+      ' if m.listSettings.sendScrollStartStop
+      '   ' ? " SENDING SCROLL EVENTS"
+      '   'only want this to be the components in viewPort - 'TODO make more efficient
+      '   for each id in m.renderersByContentId
+      '     comp = m.renderersByContentId[id]
+      '     if comp.isInViewPort
+      '       comp@._apply("onScrollingStart", startIndex, isLong)
+      '     end if
+      '   end for
+      ' end if
 
-      if m.listSettings.sendScrollStartStop
-        ' ? " SENDING SCROLL EVENTS"
-        'only want this to be the components in viewPort - 'TODO make more efficient
-        for each id in m.renderersByContentId
-          comp = m.renderersByContentId[id]
-          if comp.isInViewPort
-            comp.listEvent = event
-          end if
-        end for
+      ' startIndex = m.scrollingStartIndex
+      ' if m.owner.delegate <> invalid
+      '   m.owner.delegate@._apply("onScrollingStart", startIndex, m.row.index, isLong)
+      ' end if
+    end function
+
+    function updateScrolling(currentIndex as integer) as void
+
+      'TODO - tell list about this!
+      if currentIndex = m.scrollingStartIndex or m.scrollingStartIndex = -1
+        return
       end if
+
+      ' if m.listSettings.sendScrollUpdate
+      'TODO send scroll events
+      ' ? " SEND SCROLL UPDATE"
+      'only send it to rendered components..
+      ' for each id in m.renderersByContentId
+      ' comp = m.renderersByContentId[id]
+      '       comp@._apply("onScrollingChange", startIndex, isLong)
+      ' end for
+      ' end if
+      ' if m.owner.delegate <> invalid
+      '   m.owner.delegate@._apply("onScrollingChange", startIndex, m.row.index, isLong)
+      ' end if
     end function
 
     private function getCellInfoForContentIndex(contentIndex as integer) as ml.cellInfo
@@ -226,26 +250,6 @@ namespace ml
         indexes.push(cellInfo.index)
       end for
       return indexes
-    end function
-
-    function updateScrolling(currentIndex as integer) as void
-
-      if currentIndex = m.scrollingStartIndex or m.scrollingStartIndex = -1
-        return
-      end if
-      m.lastScrollEvent = {
-        name: "scrollUpdate"
-        startIndex: m.scrollingStartIndex
-        currentIndex: currentIndex
-      }
-      if m.listSettings.sendScrollUpdate
-        ' ? " SEND SCROLL UPDATE"
-        'only send it to rendered components..
-        for each id in m.renderersByContentId
-          comp = m.renderersByContentId[id]
-          comp.listEvent = m.lastScrollEvent
-        end for
-      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -344,6 +348,7 @@ namespace ml
           list: m.owner
           size: m.rects[index].size
           content: item
+          isScrolling: m.isScrolling
         }
       end if
     end function
@@ -368,16 +373,13 @@ namespace ml
             list: m.owner
             size: m.rects[index].size
             content: item
+            isScrolling: m.isScrolling
           }
 
           cell.visible = true
 
           if isRendered
-            ' cell.listEvent = { "name": "didEnter" }
-          end if
-
-          if m.lastScrollEvent <> invalid
-            cell.listEvent = m.lastScrollEvent
+            ' cell@._apply("onDidEnter", 1)
           end if
 
           m.container.appendChild(cell)
@@ -403,11 +405,7 @@ namespace ml
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
           cell.isInViewPort = false
-          cell.listEvent = {
-            name: "didExit"
-            direction: 1
-            index: cell.index
-          }
+          cell@._apply("didExit", 1)
           cell.initialState = {}
         else
         end if
@@ -423,12 +421,6 @@ namespace ml
           ' ? " notifying exit   on "; comp.id
           if comp.id <> "#_#phc"
             if comp.isInViewPort
-              ' comp.isInViewPort = false
-              ' comp.listEvent = {
-              '   name: "didExit"
-              '   direction: 1
-              '   index: comp.index
-              ' }
               m.releaseCellAtIndex(comp.index)
             end if
           end if
@@ -445,11 +437,7 @@ namespace ml
           ' ? " notifying enter on "; comp.id
           if not comp.isInViewPort
             comp.isInViewPort = true
-            comp.listEvent = {
-              name: "didEnter"
-              direction: 1
-              index: comp.index
-            }
+            comp@._apply("onDidEnter", 1)
           end if
         end if
       end for

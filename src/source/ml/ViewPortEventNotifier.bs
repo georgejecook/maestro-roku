@@ -210,12 +210,7 @@ namespace ml
 
           if didEnter
             ' ? " DID ENTER "; mc.dv(comp)
-            comp.listEvent = {
-              name: "didEnter"
-              direction: direction
-              index: compInfo.componentIndex
-              forceCellUpdate: forceAll
-            }
+            comp@._apply("onDidEnter", compInfo.componentIndex, direction, forceAll)
           end if
 
           subIndexKey = compInfo.index.toStr()
@@ -228,22 +223,14 @@ namespace ml
         for each key in m.inViewportSubIndexes
           compInfo = m.inViewportSubIndexes[key]
           ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
-          compInfo.component.listEvent = {
-            name: "didExit"
-            direction: 1
-            index: compInfo.componentIndex
-          }
+          compInfo@._apply("onDidExit", compInfo.componentIndex, direction)
         end for
       else
         ' ? "list is hidden; not rendering anything!"
         for each key in m.inViewportSubIndexes
           compInfo = m.inViewportSubIndexes[key]
           ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
-          compInfo.component.listEvent = {
-            name: "didExit"
-            direction: 1
-            index: compInfo.componentIndex
-          }
+          compInfo.component@._apply("onDidExit", [compInfo.componentIndex, 1])
         end for
         m.inViewportSubIndexes = {}
       end if
@@ -255,11 +242,7 @@ namespace ml
         if comp.isInViewPort
           ' ? " DID EXIT "; key
           comp.isInViewPort = false
-          comp.listEvent = {
-            name: "didExit"
-            direction: 1
-            index: -1
-          }
+          comp@._apply("onDidExit", [-1, 1])
         end if
       end for
 

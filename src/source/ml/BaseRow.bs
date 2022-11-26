@@ -1,5 +1,4 @@
 import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/view/BaseView.bs"
@@ -20,8 +19,7 @@ namespace ml
 
     public index = -1
     public renderState = "none"
-    @observer("onIsRenderedChange")
-    public isRendered = false
+
     public isInViewport = false
     public height = 0
     public width = 0
@@ -39,13 +37,15 @@ namespace ml
     @observer("onAnimateToIndexChange")
     public animateToIndex = -1
 
+    public owner as mc.types.node
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Event Delegation
+    '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @observer("onListEvent")
-    public listEvent as mc.types.Assocarray
-    public owner as mc.types.node
+    protected backgroundGroup as mc.types.node
+    protected contentGroup as mc.types.node
+    protected foregroundGroup as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -57,11 +57,16 @@ namespace ml
     protected wasFocusable = true
     protected settings
     protected rowInfos = []
-    protected propagatedEvents = {}
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Header Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected header as mc.types.node
+    protected currentHeaderType = invalid
 
     function new()
       super(m.top.subType())
-      ml.itemDelegateMixin.setDelegate()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -72,7 +77,13 @@ namespace ml
       super.initialize()
       m.createViews()
       m.isInitialized = true
-      m._onContentChange()
+      ' m._onContentChange()
+    end function
+
+    protected function createViews()
+      m.backgroundGroup = m.createSGNode("Group", m.top, "backgroundGroup")
+      m.contentGroup = m.createSGNode("Group", m.top, "contentGroup")
+      m.foregroundGroup = m.createSGNode("Group", m.top, "foregroundGroup")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -90,18 +101,6 @@ namespace ml
           'was no content or it changed
           m._content = m.content
           m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
-
-          'get propagation settings
-          propagateEnterExit = m.settings.propagateEnterExit
-          m.propagatedEvents["didEnter"] = propagateEnterExit
-          m.propagatedEvents["didExit"] = propagateEnterExit
-
-          propagateScroll = m.settings.propagateScroll
-          m.propagatedEvents["scrollStart"] = propagateScroll
-          m.propagatedEvents["scrollStop"] = propagateScroll
-
-          propagateScrollUpdate = m.settings.propagateScrollUpdate
-          m.propagatedEvents["scrollUpdate"] = propagateScrollUpdate
 
           m.observeNodeField(m._content, "changes", m.onContentItemsChange)
           m.onContentChange(m._content)
@@ -259,11 +258,7 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
-      m.owner.listEvent = {
-        name: "rowData"
-        index: m.top.index
-        data: data
-      }
+      m.owner@._apply("onRowData", m.top.index, data)
     end function
 
 
@@ -280,30 +275,64 @@ namespace ml
       'implement me
     end function
 
-    protected function createViews()
-      'implement me
-    end function
-
     protected function onContentchange(content as mc.types.node)
-      'implement me
-    end function
-
-    protected function onIsRenderedChange()
       'implement me
     end function
 
     public function jumpToItem(index as integer, animated as boolean)
     end function
 
-    protected function onListEvent(event as object)
-    end function
-
-    public function onFlowFocusFraction(fraction as float)
-    end function
-
     public function getCellContainer()
-      'implement me
+      return m.contentGroup
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Header Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    protected function configureHeader(forceUpdate = false as boolean)
+      if m._content = invalid
+        m.cleanHeader()
+      else
+        headerSettings = m.settings.headerSettings
+        if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
+          m.cleanHeader()
+          m.currentHeaderType = headerSettings.compName
+          m.header = m.global.componentPool@.getComponent(headerSettings.compName, 1)
+
+          if m.header <> invalid
+            if headerSettings.position = "onTop"
+              m.foregroundGroup.appendChild(m.header)
+            else if headerSettings.position = "underneath"
+              m.backgroundGroup.appendChild(m.header)
+            end if
+          end if
+        end if
+
+        if m.header <> invalid
+          m.header.translation = [-m.settings.contentOffset[0], 0] 'cancel out this row's offset
+          m.header.width = m.width
+          m.header.height = headerSettings.height
+          m.header@.setContent(m._content, headerSettings)
+          m.contentGroup.translation = [0, headerSettings.height]
+        else
+          m.contentGroup.translation = [0, 0]
+        end if
+      end if
+    end function
+
+    protected function cleanHeader()
+      if m.header <> invalid
+        m.log.info("cleaning header")
+        m.header@.setContent(invalid)
+        m.global.componentPool@.releaseComponent(m.header)
+        m.header = invalid
+        m.currentHeaderType = invalid
+      end if
+    end function
+
+
 
   end class
 end namespace
