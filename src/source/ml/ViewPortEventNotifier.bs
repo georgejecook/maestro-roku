@@ -151,12 +151,12 @@ namespace ml
     end function
 
     function notifyListViewportEvents(cellInfo as ml.cellInfo, nextCellInfo as ml.cellInfo, direction as integer, forceAll = false as boolean) as void
-      ? " NLVE nextCellInfo" nextCellInfo " VC " m.viewManager.visibleComponents
+      ' ? " NLVE nextCellInfo" nextCellInfo " VC " m.viewManager.visibleComponents
       if nextCellInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
 
-      ? "LVE " m.isAllRendered " forceAll " forceAll
+      ' ? "LVE " m.isAllRendered " forceAll " forceAll
       if forceAll
         ' ? " clearing all is rendered coz forcAll"
         m.isAllRendered = false
@@ -189,54 +189,54 @@ namespace ml
           toIndex = endIndex
         end if
 
-        ? " NVL F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
+        ' ? " NVL F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
         lastContentIndex = -1
         didEnter = false
         for i = fromIndex to toIndex - 1
           compInfo = m.viewManager.cellInfos[i]
           comp = compInfo.component
-          ? " VPN " ; i " LCI " lastContentIndex " " compInfo.contentIndex
+          ' ? " VPN " ; i " LCI " lastContentIndex " " compInfo.contentIndex
           if compInfo.contentIndex <> lastContentIndex
             lastContentIndex = compInfo.contentIndex
-            ? " ITS A NEW COMPONENT " compInfo.contentIndex
+            ' ? " ITS A NEW COMPONENT " compInfo.contentIndex
             newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById.delete(comp.id)
             didEnter = false
             if startIndex <= index and index <= endIndex
               comp.isInViewPort = true
-              ? " IT DID ENTER"
+              ' ? " IT DID ENTER"
               didEnter = true
             end if
           end if
 
           if didEnter
-            ? " SENDING DID ENTER "; mc.dv(comp)
+            ' ? " SENDING DID ENTER "; mc.dv(comp)
             comp@._apply("onDidEnter", [compInfo.componentIndex, direction, forceAll])
           end if
 
           subIndexKey = compInfo.index.toStr()
-          ? ">>> SUB INDEX KEY IS " ; subIndexKey " COMP INFO IDX " compInfo.index "CONT " compInfo.contentIndex "COMP " compInfo.componentIndex
+          ' ? ">>> SUB INDEX KEY IS " ; subIndexKey " COMP INFO IDX " compInfo.index "CONT " compInfo.contentIndex "COMP " compInfo.componentIndex
           newInViewportSubIndexes[subIndexKey] = compInfo
           m.inViewportSubIndexes.delete(subIndexKey)
         end for
 
         for each key in m.inViewportSubIndexes
           compInfo = m.inViewportSubIndexes[key]
-          ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
+          ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
           compInfo.component@._apply("onDidExit", [compInfo.componentIndex, direction])
         end for
       else
-        ? "list is hidden; not rendering anything!"
+        ' ? "list is hidden; not rendering anything!"
         for each key in m.inViewportSubIndexes
           compInfo = m.inViewportSubIndexes[key]
-          ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
+          ' ? " SUB INDEX DID EXIT "; key " " compInfo.componentIndex
           compInfo.component@._apply("onDidExit", [compInfo.componentIndex, 1])
         end for
         m.inViewportSubIndexes = {}
       end if
 
-      ? " VPN "; m.inViewportComponentsById
-      ? " VPN NEW "; newInViewportComponentsById
+      ' ? " VPN "; m.inViewportComponentsById
+      ' ? " VPN NEW "; newInViewportComponentsById
       for each key in m.inViewportComponentsById
         comp = m.inViewportComponentsById[key]
         if comp.isInViewPort
