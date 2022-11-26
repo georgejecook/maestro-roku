@@ -379,7 +379,7 @@ namespace ml
           cell.visible = true
 
           if isRendered
-            ' cell@._apply("onDidEnter", 1)
+            ' cell@._apply("onDidEnter", [1])
           end if
 
           m.container.appendChild(cell)
@@ -405,7 +405,7 @@ namespace ml
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
           cell.isInViewPort = false
-          cell@._apply("didExit", 1)
+          cell@._apply("didExit", [1])
           cell.initialState = {}
         else
         end if
@@ -437,7 +437,7 @@ namespace ml
           ' ? " notifying enter on "; comp.id
           if not comp.isInViewPort
             comp.isInViewPort = true
-            comp@._apply("onDidEnter", 1)
+            comp@._apply("onDidEnter", [1])
           end if
         end if
       end for
@@ -659,7 +659,6 @@ namespace ml
     end function
 
     protected function updateChangedItems()
-      ? " updating changed items"
       for each item in m.visibleItems
         if item.version <> invalid
           renderer = m.renderersByContentId[item.id]

@@ -138,7 +138,7 @@ namespace ml
 
     private function onDidEnter(subRowIndex as integer, direction as integer, forceAll = false as boolean)
       ? " onDidEnter "
-      m.itemScroller.notifyViewportEvents(event.direction, forceAll = true)
+      m.itemScroller.notifyViewportEvents(direction, forceAll = true)
     end function
 
     private function onDidExit(subRowIndex as integer, direction as integer)
@@ -169,7 +169,6 @@ namespace ml
     private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
       cell = m.viewManager.getRenderer(m.focusedCellIndex)
       if cell <> invalid
-        ' ? "!!!!!!!!! GIVING event " ; event.name ; " to cell"
         ' TODO potentially filter events
         cell@._apply(functionName, args)
       end if

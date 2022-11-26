@@ -2,8 +2,6 @@ namespace ml
 
   class ListDelegateManager
     private cellDelegateFunctionMap = {
-      "didEnter": "onCellDidEnter"
-      "didExit": "onCellDidExit"
       "willGainFocus": "onCellWillGainFocus"
       "willLoseFocus": "onCellWillLoseFocus"
       "didGainFocus": "onCellDidGainFocus"
@@ -12,8 +10,6 @@ namespace ml
       "losingFocus": "onCellLosingFocus"
     }
     private componentFunctionMap = {
-      "didEnter": "onDidEnter"
-      "didExit": "onDidExit"
       "willGainFocus": "onWillGainFocus"
       "willLoseFocus": "onWillLoseFocus"
       "didGainFocus": "onDidGainFocus"
@@ -23,8 +19,6 @@ namespace ml
     }
 
     private rowDelegateFunctionMap = {
-      "didEnter": "onRowDidEnter"
-      "didExit": "onRowDidExit"
       "willGainFocus": "onRowWillGainFocus"
       "willLoseFocus": "onRowWillLoseFocus"
       "didGainFocus": "onRowDidGainFocus"
@@ -38,7 +32,7 @@ namespace ml
       m.list = list
     end function
 
-    function callCellDelegateMethod(cell as mc.types.node, eventName as string, event as mc.types.assocarray) as void
+    function callCellDelegateMethod(eventName as string, event as mc.types.assocarray) as void
       delegateFunctionName = m.cellDelegateFunctionMap[eventName]
       cellFunctionName = m.componentFunctionMap[eventName]
       if delegateFunctionName = invalid
@@ -48,16 +42,16 @@ namespace ml
       ' ? "onListEventBridge OBSERVED " ; eventName
 
       if delegateFunctionName = "onCellGainingFocus" or delegateFunctionName = "onCellLosingFocus"
-        cell@._apply(cellFunctionName, [event.direction, event.fraction])
+        event.cell@._apply(cellFunctionName, [event.direction, event.fraction])
         m.list@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction])
 
       else
-        cell@._apply(delegateFunctionName, [cellFunctionName, event.direction])
+        event.cell@._apply(cellFunctionName, [event.direction])
         m.list@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction])
       end if
     end function
 
-    function callRowDelegateMethod(row as mc.types.node, eventName as string, event as mc.types.assocarray) as void
+    function callRowDelegateMethod(eventName as string, event as mc.types.assocarray) as void
       rowDelegateFunctionName = m.componentFunctionMap[eventName]
       rowFunctionName = m.componentFunctionMap[eventName]
       if rowDelegateFunctionName = invalid
@@ -66,26 +60,13 @@ namespace ml
       end if
 
       ' ? "LE  " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
-      if rowDelegateFunctionName = "onRowScrollingChange"
-        row@._apply(rowFunctionName, [event.isScrolling, event.subRowIndex, event.isLong])
-        m.list@._apply(rowDelegateFunctionName, [event.isScrolling, event.rowIndex, event.subRowIndex, event.isLong])
-
-      else if rowDelegateFunctionName = "onScrollingUpdate"
-        row@._apply(rowFunctionName, [event.startIndex, event.subRowIndex, event.currentIndex])
-        m.list@._apply(rowDelegateFunctionName, [event.startIndex, event.subRowIndex, event.currentIndex])
-
-      else if rowDelegateFunctionName = "onRowGainingFocus" or rowDelegateFunctionName = "onRowLosingFocus"
+      if rowDelegateFunctionName = "onRowGainingFocus" or rowDelegateFunctionName = "onRowLosingFocus"
         'TODO HERE WE NEED TO SEND SUBROW INDEX EVENTS!![[]]
-        row@._apply(rowFunctionName, [event.index, event.subRowIndex, event.direction, event.fraction])
-        m.list@._apply(rowDelegateFunctionName, [event.index, event.subRowIndex, event.direction, event.fraction])
-
-      else if rowDelegateFunctionName = "onItemSelected"
-        row@._apply(rowFunctionName, [event.index, event.subRowIndex, event.cellIndex])
-        m.list@._apply(rowDelegateFunctionName, [event.index, event.subRowIndex, event.cellIndex])
-
+        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction])
+        m.list@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction])
       else
-        row@._apply(rowFunctionName, [event.index, event.subRowIndex, event.direction])
-        m.list@._apply(rowDelegateFunctionName, [event.index, event.subRowIndex, event.direction])
+        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction])
+        m.list@._apply(rowDelegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction])
       end if
 
     end function

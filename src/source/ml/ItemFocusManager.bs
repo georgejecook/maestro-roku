@@ -5,6 +5,19 @@ import "pkg:/source/ml/FocusIndicatorManager.bs"
 import "pkg:/source/ml/ListDelegateManager.bs"
 
 namespace ml
+  interface ListEvent
+    name as string
+    index as integer
+    rowIndex as integer
+    subRowIndex as integer
+    direction as integer
+    fraction as float
+    isSendingCell as boolean
+    isSendingRow as boolean
+    cell as mc.types.node
+    row as mc.types.node
+  end interface
+
   class ItemFocusManager extends mc.BaseClass
 
 
@@ -25,15 +38,6 @@ namespace ml
     private ownerDelegate as mc.types.node
     private fromEvent as ml.ListEvent
     private toEvent as ml.ListEvent
-    private isSendingFromCellEvent = false
-    private isSendingToCellEvent = false
-    private isSendingFromRowEvent = true
-    private isSendingToRowEvent = true
-
-    private toRow as mc.types.node
-    private fromRow as mc.types.node
-    private toCell as mc.types.node
-    private fromCell as mc.types.node
 
     private focusIndicatorManager as ml.FocusIndicatorManager
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,18 +137,34 @@ namespace ml
       m.didStart = false
       m.didFinish = false
 
-      m.configureEventTemplate(m.fromEvent, m.previousFocusIndicatorConfig)
-      m.configureEventTemplate(m.toEvent, m.focusIndicatorConfig)
-      m.isSendingFromCellEvent = m.getIsSendingFromCellEvent()
-      m.isSendingToCellEvent = m.getIsSendingToCellEvent()
+      m.configureDelegateEvent(m.fromEvent, m.previousFocusIndicatorConfig)
+      m.configureDelegateEvent(m.toEvent, m.focusIndicatorConfig)
+
+      m.fromEvent.isSendingCell = m.getIsSendingFromCellEvent()
+      m.toEvent.isSendingCell = m.getIsSendingToCellEvent()
+      m.fromEvent.isSendingRow = m.getIsSendingFromRow()
+      m.toEvent.isSendingRow = m.getIsSendingToRow()
+
     end function
 
     private function getIsSendingFromCellEvent()
-      return m.previousFocusIndicatorConfig.row <> invalid and m.fromEvent.index <> -1 and (m.previousFocusIndicatorConfig.cell = invalid or m.toEvent.index <> m.fromEvent.index)
+      'TODO tweak
+      return m.fromEvent.row <> invalid and m.fromEvent.index <> -1 and (m.fromEvent.cell = invalid or m.toEvent.index <> m.fromEvent.index)
     end function
 
     private function getIsSendingToCellEvent()
+      'TODO tweak
       return m.focusIndicatorConfig.row <> invalid and m.toEvent.index <> -1
+    end function
+
+    private function getIsSendingFromRow()
+      'TODO tweak
+      return m.fromEvent.row <> invalid and (m.fromEvent.rowIndex <> m.toEvent.rowIndex or m.fromEvent.subRowIndex <> m.toEvent.subRowIndex)
+    end function
+
+    private function getIsSendingToRow()
+      'TODO tweak
+      return m.focusIndicatorConfig.row <> invalid
     end function
 
     private function isSameConfig(newConfig as ml.FocusIndicatorConfig)
@@ -204,44 +224,51 @@ namespace ml
       m.fromEvent.fraction = fraction
       m.toEvent.fraction = fraction
 
-      if m.isSendingFromCellEvent
-        ? " sending to cell" mc.dv(m.previousFocusIndicatorConfig.cell)
-        m.delegateManager.callCellDelegateMethod(m.fromCell, name, m.fromEvent)
+      if m.fromEvent.isSendingCell
+        m.delegateManager.callCellDelegateMethod(name, m.fromEvent)
       end if
 
-      if m.isSendingToCellEvent
-        m.delegateManager.callCellDelegateMethod(m.toCell, name, m.fromEvent)
+      if m.fromEvent.isSendingRow
+        m.delegateManager.callRowDelegateMethod(name, m.fromEvent)
       end if
 
-      'TODO check if we need to send from row event
-      'TODO send the subindex
-      if m.isSendingFromRowEvent
-        m.delegateManager.callRowDelegateMethod(m.fromRow, name, m.fromEvent)
+      if m.toEvent.isSendingCell
+        m.delegateManager.callCellDelegateMethod(name, m.toEvent)
       end if
 
-      if m.isSendingToRowEvent
-        m.delegateManager.callRowDelegateMethod(m.toRow, name, m.fromEvent)
+      if m.toEvent.isSendingRow
+        m.delegateManager.callRowDelegateMethod(name, m.toEvent)
       end if
+
     end function
 
-    private function configureEventTemplate(event as ml.ListEvent, config as ml.focusIndicatorConfig)
+    private function configureDelegateEvent(event as ml.ListEvent, config as ml.focusIndicatorConfig)
       event.direction = m.direction
       event.fraction = 0
       if config <> invalid
-        event.cellIndex = config.cellIndex
+        event.cell = config.cell
         if config.cellIndex <> invalid
           event.index = config.cellIndex
         else
           event.index = -1
         end if
+
+        event.row = config.row
         if config.rowIndex <> invalid
           event.rowIndex = config.rowIndex
         else
           event.rowIndex = -1
         end if
+        if config.subRowIndex <> invalid
+          event.subRowIndex = config.subRowIndex
+        else
+          event.subRowIndex = 0
+        end if
       else
         event.index = -1
         event.rowIndex = -1
+        event.isSendingCell = false
+        event.isSendingRow = false
       end if
     end function
 

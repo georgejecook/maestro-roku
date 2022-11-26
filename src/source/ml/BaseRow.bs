@@ -77,13 +77,17 @@ namespace ml
       super.initialize()
       m.createViews()
       m.isInitialized = true
-      ' m._onContentChange()
+      m._onContentChange()
     end function
 
     protected function createViews()
       m.backgroundGroup = m.createSGNode("Group", m.top, "backgroundGroup")
       m.contentGroup = m.createSGNode("Group", m.top, "contentGroup")
       m.foregroundGroup = m.createSGNode("Group", m.top, "foregroundGroup")
+    end function
+
+    override function _apply(funcName as string, args as mc.types.array)
+      return mc.apply(funcName, args, m, false)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -195,11 +199,14 @@ namespace ml
     end function
 
     public function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
+      ? " GETTING ROW INFO FOR " mc.dv(m.top) " force " forceRecalculate
       'bs:disable-next-line
       if m.viewManager <> invalid
+        ? " USING VIEW MANAGER"
         'bs:disable-next-line
         return m.viewManager.getRowInfos(m.top.translation[1], forceRecalculate = true)
       else
+        ? " USING DEFAULT"
         focusSettings = m.settings.focusSettings
 
         screenPos = m.settings.screenPos
@@ -258,7 +265,7 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
-      m.owner@._apply("onRowData", m.top.index, data)
+      m.owner@._apply("onRowData", [m.top.index, data])
     end function
 
 
