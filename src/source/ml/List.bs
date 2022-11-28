@@ -316,13 +316,13 @@ namespace ml
 
     private function onJumpToRowItemIndexChange(index as integer)
       if m.content <> invalid and index <> -1
-        m.moveToRowItem(m.focusedRowIndex, index, false)
+        m.moveToRowItemIndex(m.focusedRowIndex, index, false)
       end if
     end function
 
     private function onAnimateToItemIndexChange(index as integer)
       if m.content <> invalid and index <> -1
-        m.moveToRowItem(m.focusedRowIndex, index, true)
+        m.moveToRowItemIndex(m.focusedRowIndex, index, true)
       end if
     end function
 
@@ -352,8 +352,8 @@ namespace ml
       ' ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
       if m.viewManager.numberOfItems > 0
         ? "LIST HAS COMPONENTS " m.focusedRowIndex " " m.focusedCellIndex
-        ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
-        m.moveToRowItem(0, 0, true)
+        ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
+        m.moveToRowItemIndex(0, 0, true)
         m.moveToItem([m.focusedRowIndex, m.focusedCellIndex], false)
         'correct the focus if the item has changed.
 
@@ -361,7 +361,7 @@ namespace ml
         '   index = mc.clamp(m.itemScroller.index, 0, m.viewManager.numberOfItems - 1)
         '   if index >= 0
         '    ' ? "CORRECTING INDEX"; index
-        '     m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+        '     m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         '   end if
         ' else
         '   ? "MOVING TO ROW "; m.itemScroller.index
@@ -374,8 +374,8 @@ namespace ml
       end if
 
       ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
-      ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
-      ' m.moveToRowItem(0, 0, true)
+      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItemIndex(0, 0, true)
     end function
 
     public function getRow(index as integer) as dynamic
@@ -393,22 +393,22 @@ namespace ml
     public function moveToRow(index as integer, animated as boolean)
       if m.content <> invalid
         m.itemScroller.moveToContentIndex(index, animated = true, false)
-        ' m.itemScroller.forceFocusOnIndex(index, true)
       end if
     end function
 
-    public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
+    public function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean) as void
+      ? " MTRI  " rowIndex index animated
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
-        if row <> invalid and row.subType() = "ml_GridRow"
-          rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
-          if rowInfo <> invalid
-            ' ? " ROW INFO FOR INDEX " ; rowInfo
-            rect = row@.getRect(index)
-            ' ? " RECT INFO FOR INDEX " ; rect
-            m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
+        if row <> invalid
+          if row.subType() = "ml_GridRow"
+            rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
+            if rowInfo <> invalid
+              rect = row@.getRect(index)
+              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
+            end if
+            row@.moveToItem(index, animated = true)
           end if
-          row@.jumpToItem(index, animated = true)
         end if
       end if
     end function
@@ -418,9 +418,7 @@ namespace ml
         m.moveToRow(indices[0], animated = true)
         row = m.getRowRenderer(indices[0])
         if row <> invalid
-          m.moveToRowItem(indices[0], indices[1], animated = true)
-          ' m.focusIndicatorManager.focusedCellIndex = indices[1]
-          ' m.focusIndicatorManager@.setNextIndex(indices, 0)
+          m.moveToRowItemIndex(indices[0], indices[1], animated = true)
         end if
       end if
     end function
@@ -484,7 +482,7 @@ namespace ml
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)
       ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
-      ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
 
       if m.top.isChildFocused or m.top.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)

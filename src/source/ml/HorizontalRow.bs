@@ -42,15 +42,8 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ overridden
+    '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    protected override function onRecycle(newContent as mc.types.node)
-      m.cleanHeader()
-      m.viewManager.owner = m.owner
-      m.viewManager.setContent(invalid)
-      m.itemScroller.reset()
-    end function
 
     protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
       if m.owner._updatesEnabled
@@ -92,13 +85,6 @@ namespace ml
       end if
     end function
 
-    public override function jumpToItem(index as integer, animated as boolean)
-      if m._content <> invalid and index <> -1
-        ' ? " DO A MOVE TO INDEX "; index, animated
-        m.itemScroller.moveToIndex(index, animated)
-      end if
-    end function
-
     public override function getRect(index as integer, useScreenCoords = false as boolean)
       return m.viewManager.getRect(index, useScreenCoords = true)
     end function
@@ -107,11 +93,32 @@ namespace ml
       m.itemScroller.onFlowFocusFraction(fraction)
     end function
 
+    protected override function onRecycle(newContent as mc.types.node)
+      m.cleanHeader()
+      m.viewManager.owner = m.owner
+      m.viewManager.setContent(invalid)
+      m.itemScroller.reset()
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ List move API implementation
+    '++ List Row API Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function moveFromPress(direction as integer, isLongPress as boolean) as boolean
+    override function moveToItem(index as integer, animated as boolean)
+      if m._content <> invalid and index <> -1
+        ? " DO A MOVE TO INDEX "; index, animated
+        m.itemScroller.moveToIndex(index, animated)
+      end if
+    end function
+
+    override function cancelMove()
+      ? "HORIZROW cancelling move"
+      if m._content <> invalid
+        m.itemScroller.cancelScrolling()
+      end if
+    end function
+
+    override function moveFromPress(direction as integer, isLongPress as boolean) as boolean
       ? "moving row from press long? " isLongPress
       if isLongPress
         return m.itemScroller.moveToEnd(direction)
@@ -120,16 +127,11 @@ namespace ml
       end if
     end function
 
-    function canMoveInDirection(direction as integer) as boolean
+    override function canMoveInDirection(direction as integer) as boolean
       ? ">>> canMoveInDirection row"
       ? "I " ; m.itemScroller.index
       ? "direction" ; direction
       return (m._content <> invalid and m._content.length > 0) and ((direction = -1 and m.itemScroller.index > 0) or (direction = 1 and m.itemScroller.index < m._content.length - 1))
-    end function
-
-    function cancelMove()
-      ? " finishing moving"
-      m.itemScroller.cancelScrolling()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

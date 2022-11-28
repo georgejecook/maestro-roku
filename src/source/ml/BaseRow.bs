@@ -28,15 +28,6 @@ namespace ml
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
-
-    @alwaysnotify
-    @observer("onJumpToIndex")
-    public jumpToIndex = -1
-
-    @alwaysnotify
-    @observer("onAnimateToIndexChange")
-    public animateToIndex = -1
-
     public owner as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -143,26 +134,9 @@ namespace ml
       m.log.info("This content has changed in some way")
     end function
 
-
-    public function onJumpToIndex(index as integer)
-      if m.content <> invalid and index <> -1
-        m.jumpToItem(index, false)
-      end if
-    end function
-
-    public function onAnimateToIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
-        m.jumpToItem(index, true)
-      end if
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ public api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function recycle(newContent as mc.types.node)
-      m.onRecycle(newContent)
-    end function
 
     public function forceUpdate(keepOldFocusIfPossible = true as boolean, fullUpdate = false as boolean) as void
       if m.owner = invalid or m._content = invalid
@@ -270,29 +244,51 @@ namespace ml
       m.owner@._apply("onRowData", [m.top.index, data])
     end function
 
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ abstract methods
+    '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getItemSize(index as integer) as mc.types.array
+    protected function onContentchange(content as mc.types.node)
       'implement me
-      return invalid
     end function
 
     protected function onRecycle(newContent as mc.types.node)
       'implement me
     end function
 
-    protected function onContentchange(content as mc.types.node)
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ List Row API Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    override function moveFromPress(direction as integer, isLongPress as boolean) as boolean
+      'implement me
+      return false
+    end function
+
+    function getItemSize(index as integer) as mc.types.array
+      'implement me
+      return invalid
+    end function
+
+    function moveToItem(index as integer, animated as boolean)
       'implement me
     end function
 
-    public function jumpToItem(index as integer, animated as boolean)
+    function cancelMove()
+      'implement me
     end function
 
-    public function getCellContainer()
+    function canMoveInDirection(direction as integer) as boolean
+      'implement me
+      return false
+    end function
+
+    function getCellContainer()
       return m.contentGroup
+    end function
+
+    function recycle(newContent as mc.types.node)
+      m.onRecycle(newContent)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

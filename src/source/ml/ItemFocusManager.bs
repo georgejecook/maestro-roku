@@ -12,8 +12,6 @@ namespace ml
     subRowIndex as integer
     direction as integer
     fraction as float
-    isSendingCell as boolean
-    isSendingRow as boolean
     cell as mc.types.node
     row as mc.types.node
   end interface
@@ -148,11 +146,13 @@ namespace ml
       m.fromEvent.isSendingRow = m.getIsSendingFromRow()
       m.toEvent.isSendingRow = m.getIsSendingToRow()
 
+      ? " FROM SENDING CELL " m.fromEvent.isSendingCell " ROW " m.fromEvent.isSendingRow " TO SENDING CELL " m.toEvent.isSendingCell " ROW " m.toEvent.isSendingRow
     end function
 
     private function getIsSendingFromCellEvent()
-      'TODO tweak
-      return m.fromEvent.row <> invalid and m.fromEvent.index <> -1 and (m.fromEvent.cell = invalid or m.toEvent.index <> m.fromEvent.index)
+      isRowSame = m.toEvent.rowIndex = m.fromEvent.rowIndex
+      ? " IS SENDING FROM CELL INDEX " m.fromEvent.index " " m.toEvent.index "isRowSame" isRowSame " FRI " m.fromEvent.rowIndex " TRI " m.toEvent.rowIndex
+      return m.fromEvent.row <> invalid and m.fromEvent.index <> -1 and ((m.fromEvent.cell = invalid or m.toEvent.index <> m.fromEvent.index) or not isRowSame)
     end function
 
     private function getIsSendingToCellEvent()

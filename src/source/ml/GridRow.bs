@@ -49,7 +49,7 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ row movement
+    '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function onRecycle(newContent as mc.types.node)
@@ -93,7 +93,7 @@ namespace ml
       end if
     end function
 
-    public override function jumpToItem(index as integer, animated as boolean)
+    public override function moveToItem(index as integer, animated as boolean)
       if m._content <> invalid and index <> -1
         m.focusOnIndexNow(index)
       end if
@@ -152,7 +152,7 @@ namespace ml
     '++ List move API implementation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function moveFromPress(direction as integer, isLongPress as boolean) as boolean
+    override function moveFromPress(direction as integer, isLongPress as boolean) as boolean
       ? "moving row from press long? " isLongPress
       if isLongPress
         return m.itemScroller.moveToEnd(direction)
@@ -161,7 +161,7 @@ namespace ml
       end if
     end function
 
-    function canMoveInDirection(direction as integer) as boolean
+    override function canMoveInDirection(direction as integer) as boolean
       ' if m.isAlreadyScrolling(key = "up" or key = "down")
       '   return false
       ' end if
