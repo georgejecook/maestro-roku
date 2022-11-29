@@ -113,10 +113,24 @@ namespace ml
     private contentGroup as mc.types.node
     private rowsGroup as mc.types.node
     private keyDirections = {
+      "rewind": -1
+      "fastforward": 1
       "left": -1
       "right": 1
       "up": -1
       "down": 1
+    }
+
+    private rowKeys = {
+      "rewind": true
+      "fastforward": true
+      "left": true
+      "right": true
+    }
+
+    private listKeys = {
+      "up": true
+      "down": true
     }
 
     function new()
@@ -309,7 +323,7 @@ namespace ml
 
     private function onAnimateToSubRowIndexChange(index as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        m.itemScroller.moveToIndex(index, true, false)
+        m.itemScroller.moveToIndex(index, true, 1)
         ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
       end if
     end function
@@ -390,9 +404,9 @@ namespace ml
       return invalid
     end function
 
-    public function moveToRow(index as integer, animated as boolean)
+    public function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       if m.content <> invalid
-        m.itemScroller.moveToContentIndex(index, animated = true, false)
+        m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex)
       end if
     end function
 
@@ -502,15 +516,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function canMoveFromKeyPress(key as string) as boolean
-      ? "LIST canMoveFromKeyPress: " key
       direction = m.keyDirections[key]
 
-      if key = "up" or key = "down"
+      if m.listKeys[key] = true
         return m.itemScroller.canMoveInDirection(direction)
-      else if key = "left" or key = "right"
+      else if m.rowKeys[key] = true
         row = m.getFocusedRow()
         if row <> invalid
-          ? " ASKING ROW"
           return row@.canMoveInDirection(direction)
         end if
       end if
@@ -530,10 +542,11 @@ namespace ml
       end if
 
       if m.canMoveFromKeyPress(key)
-        ? " can move"
         direction = m.keyDirections[key]
         m.isDoingFlowFocus = false
-        return m.getFocusedRow()@.moveFromPress(direction, false)
+        isPage = key = "rewind" or key = "fastforward"
+        ? " FROM KEY PRESS " key " isPage " isPage
+        return m.getFocusedRow()@.moveFromPress(direction, false, isPage)
       end if
 
       return false
@@ -542,6 +555,14 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressFastForward() as boolean
+      return m.onRowKeyPress("fastforward")
+    end function
+
+    private function onKeyPressRewind() as boolean
+      return m.onRowKeyPress("rewind")
+    end function
 
     private function onKeyPressLeft() as boolean
       return m.onRowKeyPress("left")
@@ -552,11 +573,11 @@ namespace ml
     end function
 
     private function canScroll(key as string) as boolean
-      if key = "up" or key = "down"
-        if m.isAlreadyScrolling(key = "up" or key = "down")
+      if m.listKeys[key]
+        if m.isAlreadyScrolling(m.listKeys[key] = true)
           return false
         end if
-      else
+      else if m.rowKeys[key] = true
         direction = m.keyDirections[key]
         return m.getFocusedRow()@.canMoveInDirection(direction)
       end if
@@ -652,7 +673,7 @@ namespace ml
         '   m.itemScroller.cancelScrollingDuringPress()
         ' end if
 
-        return not m.itemScroller.moveFromPress(1, false)
+        return m.itemScroller.moveFromPress(1, false)
       else
         ? " SKIPPING DOWN"
         return false
@@ -677,7 +698,8 @@ namespace ml
 
       if m.canMoveFromKeyPress(key)
         direction = m.keyDirections[key]
-        if key = "up" or key = "down"
+
+        if m.listKeys[key] = true
           if m.itemScroller.canMoveInDirection(direction)
             m.log.verbose("long press started on key", key, "going to animate to start of list")
             return m.itemScroller.moveToEnd(direction)
@@ -685,8 +707,10 @@ namespace ml
             m.log.verbose("long press started on key", key, "going to animate to end of list")
             return m.itemScroller.moveToEnd(1)
           end if
-        else if key = "left" or key = "right"
-          return m.getFocusedRow()@.moveFromPress(direction, true)
+        else if m.rowKeys[key] = true
+          ? " FROM LONG PRESS " key
+          isPage = key = "rewind" or key = "fastforward"
+          return m.getFocusedRow()@.moveFromPress(direction, true, isPage)
         end if
       end if
 
@@ -695,11 +719,11 @@ namespace ml
 
     private function onLongPressFinish(key as string) as boolean
       ' ? " ON LONG PRESS FINISH - LIST "; key
-      if key = "up" or key = "down"
+      if m.listKeys[key] = true
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.cancelScrolling()
         return true
-      else if key = "left" or key = "right"
+      else if m.rowKeys[key] = true
         m.getFocusedRow()@.cancelMove()
         return true
       end if

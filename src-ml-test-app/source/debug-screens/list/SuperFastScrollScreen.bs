@@ -80,7 +80,7 @@ class BaseListScreen extends mv.BaseScreen
 
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
+    m.focusSettings = ml.listMixin.createFocusSettings("fixed", [-50, -50, 50, 50])
     listSettings = ml.listMixin.createListSettings(-1, -1)
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
@@ -146,7 +146,7 @@ class BaseListScreen extends mv.BaseScreen
 
 
   private function addRow()
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+    rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     row = createObject("roSGNode", "ml_RowContent")
     rowFocusSettings.feedbackColor = "#F4D42A"
     headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
@@ -188,7 +188,7 @@ class BaseListScreen extends mv.BaseScreen
     row.id = rnd(2147483647).toStr()
 
     m.log.info("is using grids")
-    gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
+    gridFocusSettings = ml.listMixin.createFocusSettings("floating", [0, 0, 0, 0])
     row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 70, numCols, 100, 5, 50)
     row.firstRowScreenPos = 70
     row.otherRowScreenPos = 70
@@ -322,11 +322,8 @@ class BaseListScreen extends mv.BaseScreen
   private isAtEnd = false
 
   private function onKeyPressPlay() as boolean
-    settings = m.list.content.listSettings
-    settings.animSpeed = 0.02
     isAtEnd = not isAtEnd
     m.list@.moveToRow(isAtEnd ? 0 : m.list.content.count() - 1, true)
-    settings.animSpeed = 0.05
     return true
   end function
 

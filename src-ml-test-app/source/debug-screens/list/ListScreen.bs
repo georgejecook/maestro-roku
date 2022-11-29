@@ -66,7 +66,7 @@ class ListScreen extends mv.BaseScreen
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
+    m.focusSettings = ml.listMixin.createFocusSettings("fixed", [-50, -50, 50, 50])
     ' listSettings = ml.listMixin.createListSettings(3000, 3000)
     listSettings = ml.listMixin.createListSettings(-1, -1)
     ' listSettings.rowCreationStrategy = "all"
@@ -101,8 +101,8 @@ class ListScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    ' rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+    ' rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
+    rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     showHero = true
 
     useGrids = false
@@ -114,7 +114,7 @@ class ListScreen extends mv.BaseScreen
       row.id = rnd(2147483647).toStr()
       numItems = 5
       if showHero and i = 0 or i = 10 or i = 18
-        row0FocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+        row0FocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
         if i <> 10
           row0FocusSettings.feedbackStyle = "none"
         end if
@@ -129,7 +129,7 @@ class ListScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
 
       else if useGrids and (i = 2 or i = 3 or i = 4 or i = 6 or i = 9)
-        gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
+        gridFocusSettings = ml.listMixin.createFocusSettings("floating", [0, 0, 0, 0])
         if i = -2
           numCols = 1
         else
@@ -147,8 +147,8 @@ class ListScreen extends mv.BaseScreen
         end if
 
       else
-        focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
-        ' focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
+        focusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
+        ' focusSettings = ml.listMixin.createFocusSettings("floating", [0, 0, 0, 0])
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, focusSettings)
         row.settings.contentOffset = [100, 30]
         prefix = "HORIZ"
@@ -206,7 +206,7 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function addRow(index as integer)
-    rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+    rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     row = createObject("roSGNode", "ml_RowContent")
     rowFocusSettings.feedbackColor = "#F4D42A"
     headerSettings = ml.listMixin.createHeaderSettings([30, 20], 80, "mediumBold,50", "#ffff00")
@@ -248,7 +248,7 @@ class ListScreen extends mv.BaseScreen
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
+    m.focusSettings = ml.listMixin.createFocusSettings("fixed", [-50, -50, 50, 50])
     ' listSettings = ml.listMixin.createListSettings(3000, 3000)
     listSettings = ml.listMixin.createListSettings(-1, -1)
     ' listSettings.rowCreationStrategy = "all"

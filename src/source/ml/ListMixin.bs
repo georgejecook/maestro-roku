@@ -113,6 +113,7 @@ namespace ml.listMixin
     settings = createObject("roSGNode", "ml_ListSettings")
 
     settings.update({
+      animSpeeds: [0.1, 0.05, 0.02]
       lookaheadDistance: lookaheadDistance
       lookBehindDistance: lookBehindDistance
     })
@@ -158,13 +159,13 @@ namespace ml.listMixin
     return settings
   end function
 
-  function createFocusSettings(animSpeed = 2 as float, horizAnimStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string, vertAnimStyle = "fixed" as string)
+  function createFocusSettings(horizAnimStyle = "fixed" as string, offsets = invalid as mc.types.array, feedbackStyle = "onTop" as string, vertAnimStyle = "fixed" as string)
     settings = createObject("roSGNode", "ml_FocusSettings")
     if offsets = invalid
       offsets = [0, 0, 0, 0]
     end if
     settings.update({
-      animSpeed: animSpeed / 20.0
+      animSpeeds: [0.1, 0.05, 0.02]
       horizAnimStyle: horizAnimStyle
       feedbackOffsets: offsets
       feedbackStyle: feedbackStyle

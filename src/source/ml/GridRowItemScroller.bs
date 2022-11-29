@@ -20,7 +20,7 @@ namespace ml
     end function
 
     'For a grid row, we can only move to the end of the current row
-    override function moveToEnd(direction as integer, animated = true as boolean, fast = false as boolean) as boolean
+    override function moveToEnd(direction as integer, animated = true as boolean, animSpeedIndex = 1 as integer) as boolean
 
       m.isScrollCancelled = false
 
@@ -31,10 +31,10 @@ namespace ml
 
       if direction = -1
         index = fix(m.index / m.viewManager.numCols) * m.viewManager.numCols
-        m.moveToIndex(index, animated, fast, -1, true)
+        m.moveToIndex(index, animated, animSpeedIndex, -1, true)
       else
         index = ((fix(m.index / m.viewManager.numCols) * m.viewManager.numCols) + m.viewManager.numCols) - 1
-        m.moveToIndex(index, animated, fast, 1, true)
+        m.moveToIndex(index, animated, animSpeedIndex, 1, true)
       end if
       return true
     end function

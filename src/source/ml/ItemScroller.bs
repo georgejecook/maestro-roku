@@ -132,26 +132,21 @@ namespace ml
     '++ Component Info
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function getAnimSpeed(fast as boolean)
+    private function getAnimSpeed(animSpeedIndex as integer)
       speed = 1
       'bs:disable-next-line
       if m.row <> invalid
         settings = m.viewManager.getFocusSettings()
-        if settings <> invalid
-          speed = settings.animSpeed
-        end if
       else
         settings = m.viewManager.listSettings
-        if settings <> invalid
-          speed = settings.animSpeed
-        end if
       end if
 
-      if fast
-        return speed / 2
-      else
-        return speed
+      if settings <> invalid
+        index = mc.clamp(index, 0, settings.animSpeed.count() - 1)
+        speed = settings.animSpeeds[index]
       end if
+
+      return speed
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -169,32 +164,39 @@ namespace ml
       return m.viewManager.numberOfItems > 0 and ((direction = -1 and index > -1) or (direction = 1 and index < m.viewManager.numberOfItems))
     end function
 
-    function moveToContentIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean) as boolean
+    function moveToContentIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean) as boolean
       m.viewManager.recalculateCellInfos(false)
       info = m.viewManager.getCellInfoForContentIndex(index)
       if info <> invalid
         ' ? " INFO INDEX IS "; info.index
-        return m.moveToIndex(info.index, animated, fast, direction, forceSequential)
+        return m.moveToIndex(info.index, animated, animSpeedIndex, direction, forceSequential)
       else
         ' ? "+++ cannot move to content index - no info"
       end if
       return false
     end function
 
-    function moveFromPress(offset as integer, forceSequential = true as boolean) as boolean
+    function moveFromPress(offset as integer, forceSequential = true as boolean, isPage = false as boolean) as boolean
       m.isScrollCancelled = false
+      speedIndex = 1
       if m.viewManager.isScrolling and m.direction = offset
         ? " was scrolling, moving to next!"
         m.cancelScrolling()
-        return m.move(offset, true, true, false)
-        ' return m.move(offset * 2, false, true, false)
-      else
-        return m.move(offset, true, true, forceSequential)
       end if
+      if isPage
+        offset = m.getPageOffset(offset)
+        speedIndex = 2
+      end if
+      return m.move(offset, true, speedIndex, not isPage and forceSequential)
     end function
 
-    function move(offset as integer, animated = true as boolean, fast = false as boolean, forceSequential = true as boolean) as boolean
-      ' ? " MOVE I " ; m.index ; " O " ; offset
+    private function getPageOffset(offset as integer) as integer
+      'TODO
+      return offset * 4
+    end function
+
+    function move(offset as integer, animated = true as boolean, animSpeedIndex = 0 as integer, forceSequential = true as boolean) as boolean
+      ? " MOVE I " ; m.index ; " O " ; offset
       index = m.index + offset
 
       if offset > 0
@@ -205,19 +207,19 @@ namespace ml
 
       if not m.canMoveToIndex(index, direction)
         m.log.info("move in direction", direction, " cannot be performed")
-        ' ? "+++ could not move"
+        ? "+++ could not move"
         return false
       end if
 
       if index <> -1
         ' ? "===B"
-        return m.moveToIndex(index, animated, fast, direction, forceSequential)
+        return m.moveToIndex(index, animated, animSpeedIndex, direction, forceSequential)
       end if
 
       return false
     end function
 
-    function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, fast = false as boolean) as boolean
+    function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, animSpeedIndex = 1 as integer) as boolean
       ' ? ">>>>>>>>>> MOVE TO END"
 
       m.isScrollCancelled = false
@@ -236,7 +238,7 @@ namespace ml
 
       ' ? ">>>moveToEnd  " ; m.__classname ; " I " ; m.index; " D "; direction
 
-      m.moveToIndex(index, animated, fast)
+      m.moveToIndex(index, animated, animSpeedIndex)
       return true
     end function
 
@@ -245,10 +247,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ' move to the Virtual Index
-    function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
+    function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
-      ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
-      ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      ? ">?>?>?>?>?////////////////////////////////////////////////////////"
+      ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
       index = mc.clamp(index, 0, m.viewManager.numberOfItems - 1)
       ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
@@ -295,7 +297,7 @@ namespace ml
       ' ? " NI " ; nextCellInfo.index
       ' ? " TI " ; targetCellInfo.index
 
-      m.animSpeed = m.getAnimSpeed(fast)
+      m.animSpeed = m.getAnimSpeed(animSpeedIndex)
 
       ' ? " MTI CC"
       '////////////////////////////////////////////////////////////////////////
