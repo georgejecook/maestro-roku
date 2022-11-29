@@ -97,17 +97,17 @@ namespace ml
     '++ List Row API Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function moveToIndex(index as integer, animated as boolean)
+    override function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       if m._content <> invalid and index <> -1
         ? " DO A MOVE TO INDEX "; index, animated
-        m.itemScroller.moveToIndex(index, animated)
+        m.itemScroller.moveToIndex(index, animated, animSpeedIndex)
       end if
     end function
 
-    override function cancelMove()
+    override function cancelMove(forceFocusUpdate as boolean)
       ? "HORIZROW cancelling move CANCEL CANCEL========================"
       if m._content <> invalid
-        m.itemScroller.cancelScrolling(true)
+        m.itemScroller.cancelScrolling(forceFocusUpdate)
       end if
     end function
 
@@ -150,7 +150,7 @@ namespace ml
 
     private function onDidLoseFocus(subRowIndex as integer, direction as integer)
       ? " HORIZ onDidLoseFocus " m.index subRowIndex direction
-      m.cancelMove()
+      m.cancelMove(true)
     end function
 
     private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)

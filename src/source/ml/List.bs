@@ -410,7 +410,7 @@ namespace ml
       end if
     end function
 
-    public function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean) as void
+    public function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean, animSpeedIndex = 0 as integer) as void
       ? " MTRI  " rowIndex index animated
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
@@ -419,9 +419,9 @@ namespace ml
             rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
             if rowInfo <> invalid
               rect = row@.getRect(index)
-              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
+              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true, animSpeedIndex)
             end if
-            row@.moveToIndex(index, animated = true)
+            row@.moveToIndex(index, animated = true, animSpeedIndex)
           end if
         end if
       end if
@@ -437,10 +437,10 @@ namespace ml
       end if
     end function
 
-    public function moveToSubRowIndex(index as integer, animated as boolean, setFocusIndex as boolean, useGridHack as boolean)
+    public function moveToSubRowIndex(index as integer, animated as boolean, setFocusIndex as boolean, useGridHack as boolean, animSpeedIndex = 0 as integer)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
-        m.itemScroller.moveToIndex(index, animated = true)
+        m.itemScroller.moveToIndex(index, animated = true, animSpeedIndex)
         m.itemScroller.disableNonAnimatedFocusUpdates = false
         ' ? " MOVING TO SUB ROW INDEX " ; index
         compInfo = m.viewManager.cellInfos[index]
@@ -724,7 +724,7 @@ namespace ml
         m.itemScroller.cancelScrolling()
         return true
       else if m.rowKeys[key] = true
-        m.getFocusedRow()@.cancelMove()
+        m.getFocusedRow()@.cancelMove(false)
         return true
       end if
 

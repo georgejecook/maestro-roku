@@ -48,6 +48,7 @@ namespace ml
     public moveAnimation
 
     private animSpeed = 0.05
+    private animSpeedIndex = 0.05
     private longPressEndItemOffset = 0
 
     private activeScrollLocation = 0
@@ -142,8 +143,7 @@ namespace ml
       end if
 
       if settings <> invalid
-        index = mc.clamp(index, 0, settings.animSpeed.count() - 1)
-        speed = settings.animSpeeds[index]
+        speed = settings.animSpeeds[mc.clamp(animSpeedIndex, 0, settings.animSpeeds.count() - 1)]
       end if
 
       return speed
@@ -191,8 +191,16 @@ namespace ml
     end function
 
     private function getPageOffset(offset as integer) as integer
-      'TODO
-      return offset * 4
+      offset *= 4
+      newIndex = m.index + offset
+
+      if newIndex < 0
+        return -m.index
+      else if newIndex >= m.viewManager.numberOfItems - 1
+        return (m.viewManager.numberOfItems - m.index) - 1
+      end if
+
+      return offset
     end function
 
     function move(offset as integer, animated = true as boolean, animSpeedIndex = 0 as integer, forceSequential = true as boolean) as boolean
@@ -211,15 +219,12 @@ namespace ml
         return false
       end if
 
-      if index <> -1
-        ' ? "===B"
-        return m.moveToIndex(index, animated, animSpeedIndex, direction, forceSequential)
-      end if
+      return m.moveToIndex(index, animated, animSpeedIndex, direction, forceSequential)
 
-      return false
+      ' return false
     end function
 
-    function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, animSpeedIndex = 1 as integer) as boolean
+    function moveToEnd(direction as integer, screenPos = invalid as integer, animated = true as boolean, animSpeedIndex = 0 as integer) as boolean
       ' ? ">>>>>>>>>> MOVE TO END"
 
       m.isScrollCancelled = false
@@ -298,6 +303,7 @@ namespace ml
       ' ? " TI " ; targetCellInfo.index
 
       m.animSpeed = m.getAnimSpeed(animSpeedIndex)
+      m.animSpeedIndex = m.getAnimSpeed(animSpeedIndex)
 
       ' ? " MTI CC"
       '////////////////////////////////////////////////////////////////////////
@@ -536,7 +542,6 @@ namespace ml
             ' ? "Moved past this item - need to go forward one more"
             index += m.direction
           end if
-          ' isMoving = m.moveToIndex(index, true, true, m.direction, true, true)
           isMoving = m.finishMovingToNextComponent()
           if isMoving
             return true
@@ -593,7 +598,7 @@ namespace ml
         m.updateSrollOffsetFraction(1)
       end if
       ' ? "VVVVV Need to move to index " ; m.targetCellInfo.index ; " at " ; cellInfo.index
-      isMoving = m.moveToIndex(m.targetCellInfo.index, true, true, m.direction, true, true)
+      isMoving = m.moveToIndex(m.targetCellInfo.index, true, m.animSpeedIndex, m.direction, true, true)
       ' ? " isMoving "; isMoving
       if not isMoving
         ' ? "VVVVV Final move could not be done"

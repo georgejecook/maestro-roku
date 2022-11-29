@@ -45,7 +45,7 @@ class PosterCellEfficient extends ml.BaseCell
   end function
 
   protected override function onShowWithContent(content as mc.types.node)
-    ? "SHOW"
+    ? ">>  SHOW  setFocusState"
     m.setFocusState(1, false)
     m.poster.uri = m.content.HDGRIDPOSTERURL
     m.label.text = `${m.index} ${content.title}`
@@ -76,6 +76,7 @@ class PosterCellEfficient extends ml.BaseCell
   end function
 
   private function setFocusState(fraction as float, isGaining as boolean) as void
+    ? " SFS " isGaining fraction m.index
 
     if fraction > 1
       fraction = 1
@@ -85,7 +86,6 @@ class PosterCellEfficient extends ml.BaseCell
     else
       scale = 1 + (0.1 - (0.1 * fraction))
     end if
-    ' ? " SFS " isGaining scale m.index mc.dv(m.top)
     m.poster.scale = [scale, scale]
   end function
 end class

@@ -52,9 +52,12 @@ namespace ml
 
     protected override function setCellInfo(info as ml.cellInfo)
       isSubRowChanged = m.cellInfo = invalid or info.componentIndex <> m.cellInfo.componentIndex
-      if m.cellInfo <> invalid and m.cellInfo.component <> invalid
-        m.cellInfo.component@.cancelMove()
+
+      'FIXME check this..
+      if isSubRowChanged and m.cellInfo <> invalid and m.cellInfo.component <> invalid
+        m.cellInfo.component@.cancelMove(true)
       end if
+
       super.setCellInfo(info)
       if isSubRowChanged
         m.viewManager.owner.focusedSubRowIndex = info.componentIndex

@@ -86,10 +86,18 @@ namespace ml
       end if
     end function
 
-    public override function moveToIndex(index as integer, animated as boolean)
+    public override function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
+      'FIXME - what to do here?
       ? " GRID MOVE TO INDEX - ASSUMING THIS INDEX IS ON SCREEN - OR THIS SHOULD NOT HAVE BEEN CALLED"
       if m._content <> invalid and index <> -1
         m.itemScroller.forceFocusOnIndex(index, true, false)
+      end if
+    end function
+
+    override function cancelMove(forceFocusUpdate as boolean)
+      ? "GRID cancelling move CANCEL CANCEL========================"
+      if m._content <> invalid
+        m.itemScroller.cancelScrolling(forceFocusUpdate)
       end if
     end function
 
