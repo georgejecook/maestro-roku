@@ -201,7 +201,7 @@ namespace ml
         if m.top.isFocused or m.top.isChildFocused
           m.top.focusIndicatorManager.isHidden = false
         end if
-        m.moveToIndex([m.focusedRowIndex, m.focusedCellIndex], false)
+        m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         m.top.visible = true
       end if
     end function
@@ -311,8 +311,8 @@ namespace ml
       if m.viewManager.numberOfItems > 0
         ? "LIST HAS COMPONENTS " m.focusedRowIndex " " m.focusedCellIndex
         ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
-        m.moveToRowItemIndex(0, 0, true)
-        m.moveToIndex([m.focusedRowIndex, m.focusedCellIndex], false)
+        ' m.moveToRowItemIndex(0, 0, true)
+        m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         'correct the focus if the item has changed.
 
         ' if m.itemScroller.index >= m.viewManager.numberOfItems
@@ -361,33 +361,18 @@ namespace ml
         ? " MTR A"
         if row <> invalid
           ? " MTR B"
-          if row.subType() = "ml_GridRow"
-            ? " MTR C"
-            rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
-            if rowInfo <> invalid
-              rect = row@.getRect(index)
-              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true, animSpeedIndex)
-            end if
-            ? " MTR D"
-          else
-            ? " MTR E"
-            row@.moveToIndex(index, animated = true, animSpeedIndex)
+          rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
+          if rowInfo <> invalid
+            rect = row@.getRect(index)
+            ' m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true, animSpeedIndex)
+            m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, animSpeedIndex, false, false)
           end if
+          row@.moveToIndex(index, animated = true, animSpeedIndex)
         end if
       end if
     end function
 
-    public function moveToIndex(indices as mc.types.array, animated = false as boolean)
-      if m.content <> invalid
-        m.moveToRow(indices[0], animated = true)
-        row = m.getRowRenderer(indices[0])
-        if row <> invalid
-          m.moveToRowItemIndex(indices[0], indices[1], animated = true)
-        end if
-      end if
-    end function
-
-    public function moveToSubRowIndex(index as integer, animated as boolean, setFocusIndex as boolean, useGridHack as boolean, animSpeedIndex = 0 as integer)
+    public function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
         m.itemScroller.moveToIndex(index, animated = true, animSpeedIndex)
