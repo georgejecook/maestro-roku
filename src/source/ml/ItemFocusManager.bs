@@ -12,6 +12,7 @@ namespace ml
     subRowIndex as integer
     direction as integer
     fraction as float
+    isRowEvent as boolean
     cell as mc.types.node
     row as mc.types.node
   end interface
@@ -38,6 +39,7 @@ namespace ml
     private toEvent as ml.ListEvent
 
     private focusIndicatorManager as ml.FocusIndicatorManager
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -118,6 +120,11 @@ namespace ml
     end function
 
 
+    function completeFocusNow()
+      ? " COMPLETE FOCUS NOW!!!!!"
+      m.onFocusAnimationUpdate(1)
+    end function
+
     function onFocusAnimationUpdate(fraction as float) as void
       ' ? "ANIM UPDATE "; m.name ; " F " ; fraction ; " DS" ; m.didStart ; " DF " ; m.didFinish
       ' ? " CI "; m.cellInfo.index ; " NCI "; m.nextCellInfo.index
@@ -141,17 +148,22 @@ namespace ml
       m.configureDelegateEvent(m.fromEvent, m.previousFocusIndicatorConfig)
       m.configureDelegateEvent(m.toEvent, m.focusIndicatorConfig)
 
+      m.configureSentEventTypes()
+    end function
+
+    private function configureSentEventTypes()
+      'TODO add a function to get a delegateMap from a maestro basenode - where we pass in an aa of function types, and it returns true for each of those that are implemented
       m.fromEvent.isSendingCell = m.getIsSendingFromCellEvent()
       m.toEvent.isSendingCell = m.getIsSendingToCellEvent()
-      m.fromEvent.isSendingRow = m.getIsSendingFromRow()
-      m.toEvent.isSendingRow = m.getIsSendingToRow()
+      m.fromEvent.isSendingRow = m.fromEvent.isRowEvent and m.getIsSendingFromRow()
+      m.toEvent.isSendingRow = m.toEvent.isRowEvent and m.getIsSendingToRow()
 
-      ? " FROM SENDING CELL " m.fromEvent.isSendingCell " ROW " m.fromEvent.isSendingRow " TO SENDING CELL " m.toEvent.isSendingCell " ROW " m.toEvent.isSendingRow
+      ' ? " FROM SENDING CELL " m.fromEvent.isSendingCell " ROW " m.fromEvent.isSendingRow " TO SENDING CELL " m.toEvent.isSendingCell " ROW " m.toEvent.isSendingRow
     end function
 
     private function getIsSendingFromCellEvent()
       isRowSame = m.toEvent.rowIndex = m.fromEvent.rowIndex
-      ? " IS SENDING FROM CELL INDEX " m.fromEvent.index " " m.toEvent.index "isRowSame" isRowSame " FRI " m.fromEvent.rowIndex " TRI " m.toEvent.rowIndex
+      ' ? " IS SENDING FROM CELL INDEX " m.fromEvent.index " " m.toEvent.index "isRowSame" isRowSame " FRI " m.fromEvent.rowIndex " TRI " m.toEvent.rowIndex
       return m.fromEvent.row <> invalid and m.fromEvent.index <> -1 and ((m.fromEvent.cell = invalid or m.toEvent.index <> m.fromEvent.index) or not isRowSame)
     end function
 
@@ -161,7 +173,6 @@ namespace ml
     end function
 
     private function getIsSendingFromRow()
-      'TODO tweak
       return m.fromEvent.row <> invalid and (m.fromEvent.rowIndex <> m.toEvent.rowIndex or m.fromEvent.subRowIndex <> m.toEvent.subRowIndex)
     end function
 
@@ -268,11 +279,14 @@ namespace ml
         else
           event.subRowIndex = 0
         end if
+
+        event.isRowEvent = config.isRowEvent
       else
         event.index = -1
         event.rowIndex = -1
         event.isSendingCell = false
         event.isSendingRow = false
+        event.isRowEvent = false
       end if
     end function
 

@@ -28,6 +28,7 @@ namespace ml
 
       m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, isFloatingFocus)
       m.nextFocusIndicatorConfig.row = nextCellInfo.component
+      m.nextFocusIndicatorConfig.isRowEvent = true
 
       ? " FROM LIST"
       m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
@@ -51,8 +52,8 @@ namespace ml
 
     protected override function setCellInfo(info as ml.cellInfo)
       isSubRowChanged = m.cellInfo = invalid or info.componentIndex <> m.cellInfo.componentIndex
-      if cellInfo <> invalid
-        cellInfo@.cancelMove()
+      if m.cellInfo <> invalid and m.cellInfo.component <> invalid
+        m.cellInfo.component@.cancelMove()
       end if
       super.setCellInfo(info)
       if isSubRowChanged

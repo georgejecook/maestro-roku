@@ -89,7 +89,7 @@ namespace ml.sample
       m.log.info("onListRenderState", state)
       if state = "rendered"
         m.setFocus(m.list)
-        m.list@.moveToItem([0, 0], false)
+        m.list@.moveToIndex([0, 0], false)
         m.list.visible = true
         m.loadingIndicator.isActive = false
       end if
@@ -207,7 +207,7 @@ namespace ml.sample
       m.followingModule.isHidden = m.followingModule.length = 0
       m.teamsModule.isHidden = m.teamsModule.length = 0
       if m.followingModule.isHidden
-        m.list@.moveToItem([0, 0])
+        m.list@.moveToIndex([0, 0])
       end if
     end function
 
@@ -222,7 +222,7 @@ namespace ml.sample
         m.favoriteModule@.appendChild(team)
       end if
       m.teamsModule@.setNotificationsEnabled(true, true)
-      m.list@.moveToItem([0, 0])
+      m.list@.moveToIndex([0, 0])
     end function
 
     private function followTeam(itemIndex as integer) as void
@@ -240,9 +240,9 @@ namespace ml.sample
       ? "teamsModule : "; m.teamsModule.length
       if m.teamsModule.isHidden
         ? " TEAMS IS HIDDEN"
-        m.list@.moveToItem([1, 0])
+        m.list@.moveToIndex([1, 0])
       end if
-      ' m.list@.moveToItem([2, index])
+      ' m.list@.moveToIndex([2, index])
 
     end function
 

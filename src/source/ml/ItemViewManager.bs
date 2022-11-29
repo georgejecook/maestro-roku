@@ -178,14 +178,14 @@ namespace ml
       '   for each id in m.renderersByContentId
       '     comp = m.renderersByContentId[id]
       '     if comp.isInViewPort
-      '       comp@._apply("onScrollingStart", startIndex, isLong)
+      '       comp@._apply("onScrollingStart", [startIndex, isLong], false)
       '     end if
       '   end for
       ' end if
 
       ' startIndex = m.scrollingStartIndex
       ' if m.owner.delegate <> invalid
-      '   m.owner.delegate@._apply("onScrollingStart", startIndex, m.row.index, isLong)
+      '   m.owner.delegate@._apply("onScrollingStart", [startIndex, m.row.index, isLong], false)
       ' end if
     end function
 
@@ -202,11 +202,11 @@ namespace ml
       'only send it to rendered components..
       ' for each id in m.renderersByContentId
       ' comp = m.renderersByContentId[id]
-      '       comp@._apply("onScrollingChange", startIndex, isLong)
+      '       comp@._apply("onScrollingChange", [startIndex, isLong], false)
       ' end for
       ' end if
       ' if m.owner.delegate <> invalid
-      '   m.owner.delegate@._apply("onScrollingChange", startIndex, m.row.index, isLong)
+      '   m.owner.delegate@._apply("onScrollingChange", [startIndex, m.row.index, isLong], false)
       ' end if
     end function
 
@@ -379,7 +379,7 @@ namespace ml
           cell.visible = true
 
           if isRendered
-            ' cell@._apply("onDidEnter", [1])
+            ' cell@._apply("onDidEnter", [1], false)
           end if
 
           m.container.appendChild(cell)
@@ -405,7 +405,7 @@ namespace ml
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
           cell.isInViewPort = false
-          cell@._apply("didExit", [1])
+          cell@._apply("didExit", [1], false)
           cell.initialState = {}
         else
         end if
@@ -437,7 +437,7 @@ namespace ml
           ' ? " notifying enter on "; comp.id
           if not comp.isInViewPort
             comp.isInViewPort = true
-            comp@._apply("onDidEnter", [1])
+            comp@._apply("onDidEnter", [1], false)
           end if
         end if
       end for

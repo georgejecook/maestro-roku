@@ -9,18 +9,11 @@ namespace ml
   class HorizontalRow extends ml.BaseRow
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ additional private state
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public focusedCellIndex = 0
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and private state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private viewManager
     private itemScroller
-    private settings
 
     function new()
       super()
@@ -104,7 +97,7 @@ namespace ml
     '++ List Row API Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function moveToItem(index as integer, animated as boolean)
+    override function moveToIndex(index as integer, animated as boolean)
       if m._content <> invalid and index <> -1
         ? " DO A MOVE TO INDEX "; index, animated
         m.itemScroller.moveToIndex(index, animated)
@@ -112,9 +105,9 @@ namespace ml
     end function
 
     override function cancelMove()
-      ? "HORIZROW cancelling move"
+      ? "HORIZROW cancelling move CANCEL CANCEL========================"
       if m._content <> invalid
-        m.itemScroller.cancelScrolling()
+        m.itemScroller.cancelScrolling(true)
       end if
     end function
 
@@ -158,21 +151,23 @@ namespace ml
 
     private function onDidLoseFocus(subRowIndex as integer, direction as integer)
       ? " HORIZ onDidLoseFocus " m.index subRowIndex direction
+      m.cancelMove()
     end function
 
     private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
-      ? " HORIZ onGainingFocus " m.index subRowIndex direction fraction
+      ' ? " HORIZ onGainingFocus " m.index subRowIndex direction fraction
     end function
 
     private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
-      ? " HORIZ onLosingFocus " m.index subRowIndex direction fraction
+      ' ? " HORIZ onLosingFocus " m.index subRowIndex direction fraction
     end function
 
     private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
-      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      cell = m.itemScroller.cellInfo.component
       if cell <> invalid
+
         ' TODO potentially filter events
-        cell@._apply(functionName, args)
+        cell@._apply(functionName, args, false)
       end if
     end function
 

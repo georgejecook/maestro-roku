@@ -110,12 +110,16 @@ namespace ml
       m.setFocusIndex(index, false, false)
     end function
 
-    public function cancelScrolling()
-      ' ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
+    public function cancelScrolling(setFocusNow = false as boolean)
+      if setFocusNow
+        m.focusManager@.completeFocusNow()
+      end if
+
+      ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
       'Tidy up the scrolling in here
       m.isScrollCancelled = m.viewManager.isScrolling
       if m.viewManager.isScrolling
-        ' ? "000000000000000000000000000000000000 "; m.isScrollCancelled
+        ? "000000000000000000000000000000000000 "; m.isScrollCancelled
         ' m.toggleScrolling(false)
         ' m.setTargetCellInfo(m.nextCellInfo)
         m.moveAnimation.pause()
@@ -244,7 +248,7 @@ namespace ml
     function moveToIndex(index as integer, animated = true as boolean, fast = false as boolean, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
       m.log.info("moveToIndex I", m.index, "NI", index, animated)
       ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
-      ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
       index = mc.clamp(index, 0, m.viewManager.numberOfItems - 1)
       ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
@@ -257,7 +261,7 @@ namespace ml
         return false
       end if
 
-      ? " MTI BB"
+      ' ? " MTI BB"
       if direction = invalid
         direction = 0
         if index < m.index
@@ -266,7 +270,7 @@ namespace ml
           direction = 1
         end if
       end if
-      ? "////// MTI RESOLVED " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      ' ? "////// MTI RESOLVED " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
 
       '////////////////////////////////////////////////////////////////////////
       ' ? "//// 1. get cellInfo"
@@ -293,7 +297,7 @@ namespace ml
 
       m.animSpeed = m.getAnimSpeed(fast)
 
-      ? " MTI CC"
+      ' ? " MTI CC"
       '////////////////////////////////////////////////////////////////////////
       ' ? "//// 2. Ascertain offset "; m.__classname
       '////////////////////////////////////////////////////////////////////////
@@ -306,7 +310,7 @@ namespace ml
       m.setNextCellInfo(nextCellInfo)
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
-      ? " MTI DD"
+      ' ? " MTI DD"
       if isFlowPossible
         ' ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
@@ -318,7 +322,7 @@ namespace ml
 
       ' ? "////// offset is "; translation[m.axes]
 
-      ? " MTI EE"
+      ' ? " MTI EE"
       if animated
         '////////////////////////////////////////////////////////////////////////
         ' ? "/////// 3. animated move"
@@ -345,7 +349,7 @@ namespace ml
         m.updateSrollOffsetFraction(1)
         ' ? " MTI GG"
         if not m.disableNonAnimatedFocusUpdates
-          ? " MTI HH"
+          ' ? " MTI HH"
           'Grid rows will handle getting their own focus, as they may have called this as part of going to a specific subrow
           m.setFocusIndex(index, false, true)
           m.forceFocusOnIndex(index, true)

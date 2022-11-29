@@ -12,18 +12,11 @@ namespace ml
   class GridRow extends ml.BaseRow
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ additional private state
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public focusedCellIndex = 0
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and private state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private viewManager
     private itemScroller
-    private settings
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ view tracking
@@ -93,9 +86,10 @@ namespace ml
       end if
     end function
 
-    public override function moveToItem(index as integer, animated as boolean)
+    public override function moveToIndex(index as integer, animated as boolean)
+      ? " GRID MOVE TO INDEX - ASSUMING THIS INDEX IS ON SCREEN - OR THIS SHOULD NOT HAVE BEEN CALLED"
       if m._content <> invalid and index <> -1
-        m.focusOnIndexNow(index)
+        m.itemScroller.forceFocusOnIndex(index, true, false)
       end if
     end function
 
@@ -121,31 +115,6 @@ namespace ml
 
     private function onFlowFocusFraction(fraction as float)
       m.itemScroller.onFlowFocusFraction(fraction)
-    end function
-
-    private function focusOnIndexNow(index as integer) as void
-      m.log.info("updating focus on cellIndex", index)
-
-      if m.itemScroller <> invalid
-        cellInfo = m.viewManager.getCellInfoForContentindex(index)
-        if cellInfo = invalid
-          m.log.error("No component info")
-        end if
-
-        m.itemScroller.forceFocusOnIndex(index, true, false)
-        m.itemScroller.setCellInfo(cellInfo)
-
-        ' m.setFocusIndex(index, false)
-
-        config = m.itemScroller.getFocusIndicatorConfig(cellInfo, m.itemScroller.direction, false, false)
-        if config <> invalid
-          config.cellIndex = m.focusedCellIndex
-          ' ? "GRID ROW focusOnIndexNow"
-          m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
-          m.owner.focusIndicatorManager@.setFocusComplete(config)
-        else
-        end if
-      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -208,11 +177,11 @@ namespace ml
     end function
 
     private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
-      cell = m.viewManager.getRenderer(m.focusedCellIndex)
+      cell = m.itemScroller.cellInfo.component
 
       if cell <> invalid
         ' TODO potentially filter events
-        cell@._apply(functionName, args)
+        cell@._apply(functionName, args, false)
       end if
     end function
 

@@ -23,7 +23,6 @@ namespace ml
     public isInViewport = false
     public height = 0
     public width = 0
-    public screenPos = 0
 
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
@@ -47,7 +46,6 @@ namespace ml
     protected wasHidden = false
     protected wasFocusable = true
     protected settings
-    protected rowInfos = []
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Header Fields
@@ -75,10 +73,6 @@ namespace ml
       m.backgroundGroup = m.createSGNode("Group", m.top, "backgroundGroup")
       m.contentGroup = m.createSGNode("Group", m.top, "contentGroup")
       m.foregroundGroup = m.createSGNode("Group", m.top, "foregroundGroup")
-    end function
-
-    override function _apply(funcName as string, args as mc.types.array)
-      return mc.apply(funcName, args, m, false)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -135,7 +129,7 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public api
+    '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function forceUpdate(keepOldFocusIfPossible = true as boolean, fullUpdate = false as boolean) as void
@@ -241,7 +235,7 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
-      m.owner@._apply("onRowData", [m.top.index, data])
+      m.owner@._apply("onRowData", [m.top.index, data], false)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -270,7 +264,7 @@ namespace ml
       return invalid
     end function
 
-    function moveToItem(index as integer, animated as boolean)
+    function moveToIndex(index as integer, animated as boolean)
       'implement me
     end function
 

@@ -44,7 +44,7 @@ namespace ml
       end if
 
       if delegateFunctionName = "onCellGainingFocus" or delegateFunctionName = "onCellLosingFocus"
-        event.cell@._apply(cellFunctionName, [event.direction, event.fraction])
+        event.cell@._apply(cellFunctionName, [event.direction, event.fraction], false)
         if m.listDelegate <> invalid
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction], false)
         end if
@@ -65,15 +65,13 @@ namespace ml
         return
       end if
 
-      ' ? "LE  " ; eventName ; " " ; event.direction ; " I " ; "" ; event.index ; " " ; event.fraction
       if delegateFunctionName = "onRowGainingFocus" or delegateFunctionName = "onRowLosingFocus"
-        'TODO HERE WE NEED TO SEND SUBROW INDEX EVENTS!![[]]
-        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction])
+        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction], false)
         if m.listDelegate <> invalid
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction], false)
         end if
       else
-        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction])
+        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction], false)
         if m.listDelegate <> invalid
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction], false)
         end if
