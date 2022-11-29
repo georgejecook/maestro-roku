@@ -252,9 +252,9 @@ namespace ml
       m.setActiveFocusSettings(m.nextConfig.settings)
 
       ' ? ">>> NEXT FOCUS STYLE " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
-      ' ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
+      ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
       if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
-        ' ? ">>> HIDE INDICATOR"
+        ? ">>> HIDE INDICATOR"
         ' ? "AA"
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
@@ -295,7 +295,11 @@ namespace ml
       end if
       ' ? "-------------isFinal " ; isFinal; " " ; mc.getPath(m.previousFocusSettings, "feedbackStyle") ; " NEXT " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
       'note - we don't show the focus indicator till we're in place, if the last row was hidden
-      if m.nextFocusSettings.feedbackStyle = "none" or (not isFinal and (m.previousFocusSettings <> invalid and m.previousFocusSettings.feedbackStyle = "none"))
+      nextHidden = m.nextConfig.isHidden = true or m.nextFocusSettings.feedbackStyle = "none"
+      previousHidden = (m.previousFocusSettings = invalid or m.previousFocusSettings.feedbackStyle = "none" or not m.rowHasIndicator)
+      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ? nextHidden " " previousHidden
+      if nextHidden or (not isFinal and previousHidden)
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else
