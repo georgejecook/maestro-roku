@@ -652,12 +652,14 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-      ' ? " ON LONG PRESS FINISH - LIST "; key
+      ? " ON LONG PRESS FINISH - LIST "; key
       if m.listKeys[key] = true
+        ? " OLF A"
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.cancelScrolling()
         return true
       else if m.rowKeys[key] = true
+        ? " OLF B"
         m.getFocusedRow()@.cancelMove(false)
         return true
       end if

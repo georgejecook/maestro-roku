@@ -149,7 +149,7 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    showHero = false
+    showHero = true
     showComplex = false
     showNormal = true
 
@@ -159,9 +159,9 @@ class ListEnterExitScreen extends mv.BaseScreen
     for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
-      if showHero and (i = 0 or i = 10 or i = 18 or i = 25 or i = 35 or i = 45)
+      if showHero and (i = 0 or i = 6 or i = 12 or i = 18 or i = 25 or i = 35 or i = 45)
         row0FocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
-        if i <> 10
+        if i = 0
           row0FocusSettings.feedbackStyle = "none"
         end if
         cellSettings = ml.listMixin.createCellSettings("HeroCellEfficient", [1100, 700], 30)
@@ -323,7 +323,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-    ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+    ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
 
     row = m.list@.getRowRenderer(rowIndex)
     if row <> invalid
@@ -346,7 +346,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowDidLoseFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-    ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+    ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
 
     ' row = m.list@.getRowRenderer(rowIndex)
     ' if direction = 1
@@ -356,7 +356,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowGainingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-    ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+    ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
     ' if direction = -1
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = fraction
@@ -364,7 +364,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowLosingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-    ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+    ' ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
     ' if direction = 1
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = 1 - fraction

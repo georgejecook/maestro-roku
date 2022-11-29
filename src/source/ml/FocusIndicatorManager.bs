@@ -129,7 +129,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? "setNextFocusIndicatorConfig "
+      ? "setNextFocusIndicatorConfig "
       if focusIndicatorConfig <> invalid
         ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
       else
@@ -139,6 +139,8 @@ namespace ml
         ? " is same"
         return
       end if
+      ? " SETTING LAST MOVE FRACTION 0 SET NEXT "
+      m.lastMoveFraction = 0
       m.preprareNextFocusConfig(focusIndicatorConfig)
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
       m.setSystemFocusOnRenderer()
@@ -322,10 +324,20 @@ namespace ml
       m.isFocusSettingsChangePending = false
     end function
 
+    'this prevents the indicator focus jumping back, which can happen due to screenPos movements
+    private lastMoveFraction = 0
+
     private function moveFocusIndicatorToTargetPosition(fraction as float) as void
+      ? " MOVE FOCUS INDICATOR TO POS " fraction
       if m.nextConfig = invalid
         return
       end if
+
+      if fraction < m.lastMoveFraction
+        return
+      end if
+
+      m.lastMoveFraction = fraction
 
       if fraction = 1
         translation = m.nextConfig.indicatorTranslation
@@ -355,7 +367,8 @@ namespace ml
 
       m.isDoingFlowFocus = true
       m.nextConfig = focusIndicatorConfig
-
+      ? " SETTING LAST MOVE FRACTION 0 START FLOW"
+      m.lastMoveFraction = 0
       m.setActiveFocusSettings(m.nextConfig.settings)
       m.focusScreenPosition = m.nextConfig.indicatorTranslation
 
@@ -375,6 +388,8 @@ namespace ml
     public function cancelFlowFocus()
       m.flowFocusDelegate = invalid
       m.isDoingFlowFocus = false
+      ? " SETTING LAST MOVE FRACTION 0 CANCEL FLOW"
+      m.lastMoveFraction = 0
       m.focusPointAnim.pause()
       m.focusPoint.translation = [0, 0]
     end function

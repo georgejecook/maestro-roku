@@ -112,15 +112,16 @@ namespace ml
     end function
 
     public function cancelScrolling(setFocusNow = false as boolean)
+      ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling " " setFocusNow
+
       if setFocusNow
         m.focusManager@.completeFocusNow()
       end if
 
-      ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling
       'Tidy up the scrolling in here
       m.isScrollCancelled = m.viewManager.isScrolling
       if m.viewManager.isScrolling
-        ? "000000000000000000000000000000000000 "; m.isScrollCancelled
+        ' ? "000000000000000000000000000000000000 "; m.isScrollCancelled
         ' m.toggleScrolling(false)
         ' m.setTargetCellInfo(m.nextCellInfo)
         m.moveAnimation.pause()
@@ -259,7 +260,7 @@ namespace ml
       index = mc.clamp(index, 0, m.viewManager.numberOfItems - 1)
       ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
-
+      m.fractionWhenFinishBegan = 0
       m.viewManager.recalculateCellInfos(false)
       m.focusManager@.cancelFlowFocus()
 
@@ -368,12 +369,16 @@ namespace ml
       return true
     end function
 
+    private fractionWhenFinishBegan = 0
+
     ' move to the Virtual Index
     function finishMovingToNextComponent(animated = true as boolean) as boolean
       ' ? "moving to next component"
       'FIXME - cancel/tidy up a move in progress
       ' m.focusManager@.cancelFlowFocus()
+      m.fractionWhenFinishBegan = m.getCurrentIndexFraction(m.container.translation[m.axes])
 
+      ? " FRACTION WHEN FINISH BEGAN IS " m.fractionWhenFinishBegan
       m.isScrollCancelled = false
 
       direction = m.direction
@@ -495,12 +500,18 @@ namespace ml
               m.setFocusIndex(m.nextIndex, true, true)
             end if
           else
+            ? " CMPLEX COMPLEX " f
             m.focusManager@.onFocusAnimationUpdate(f)
           end if
         end if
       else
+        ? " SIMPLE SIMPLE " fraction
         'simple one keypress case
         m.updateSrollOffsetFraction(fraction)
+        if m.fractionWhenFinishBegan <> 0
+          fraction = (fraction * (1 - m.fractionWhenFinishBegan)) + m.fractionWhenFinishBegan
+          ? " using relative to start fraction" m.fractionWhenFinishBegan
+        end if
         m.focusManager@.onFocusAnimationUpdate(fraction)
       end if
 
