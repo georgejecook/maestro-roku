@@ -143,7 +143,7 @@ namespace ml
       m.lastMoveFraction = 0
       m.preprareNextFocusConfig(focusIndicatorConfig)
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
-      m.setSystemFocusOnRenderer()
+      ' m.setSystemFocusOnRenderer()
     end function
 
     private function isSameConfig(config as ml.FocusIndicatorConfig) as boolean
@@ -429,11 +429,12 @@ namespace ml
       focusTarget = m._list
 
       'TODO - consider if the willDoSystemFocus call should be overridden
+      m.isFocusedOnRow = m._list.isChildFocused or m.list.isFocused
       if m.nextConfig <> invalid and (forceFocus or m.nextConfig.willDoSystemFocus = true)
-        ' ? " SETTING FOCUS ON " ; mc.dv(m.nextConfig.row)
-        'bs:disable-next-line
+        ? " SETTING SYSTEM FOCUS ON " ; mc.dv(m.nextConfig.row)
+
         focusTarget = m.nextConfig.row
-        if m.isFocusedOnRow
+        if m.isFocusedOnRow and focusTarget <> invalid
           mv.setFocus(focusTarget)
         else
           m.log.warn("not setting focus on", mc.dv(focusTarget), "owner child focused?", m._list.isChildFocused, "owner focused?", m.list.isFocused)
@@ -442,7 +443,7 @@ namespace ml
     end function
 
     function setFocusedOnRow(focused as boolean)
-      ' ? " Focus indicator manager gained focus"
+      ? " setFocusedOnRow " focused
       m.isFocusedOnRow = focused
       if focused
         m.setSystemFocusOnRenderer(true)

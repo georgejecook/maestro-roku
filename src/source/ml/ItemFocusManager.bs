@@ -65,28 +65,7 @@ namespace ml
     end function
 
     function reset(focusIndicatorConfig as ml.FocusIndicatorConfig)
-      'FIXME - get delegates when we set properties
-      ' if rowIndex = invalid
-      '   rowIndex = -1
-      ' end if
-      ' m.rowIndex = rowIndex
-      ' m.delegates = [viewManager.owner]
-
-      ' if ownerDelegate <> invalid
-      '   m.delegates.push(ownerDelegate)
-      ' else
-      '   m.log.error("There was no delegate passed to this focus manager - events wont be handled")
-      '   ' ? " NO OWNER DELEGATE!!!!!"
-      ' end if
-      ' owner = viewManager.owner
-      ' if owner.delegate <> invalid
-      '   m.delegates.push(owner.delegate)
-      ' end if
     end function
-
-    ' function updateCellInfo(cellInfo as ml.cellInfo, nextCellInfo as ml.cellInfo)
-    '   'ensure that the focus manager
-    ' end function
 
     function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
 
@@ -101,20 +80,6 @@ namespace ml
         m.didFinish = false
         return
       end if
-
-
-      ' ? ">>S> "; m.viewManager.__classname
-      ' ? ">>S> SET COMP INFO " ; nextFocusIndicatorConfig.rowIndex ; ", " nextFocusIndicatorConfig.cellIndex ; " " ; nextFocusIndicatorConfig.subRowIndex
-      ' if focusIndicatorConfig <> invalid and focusIndicatorConfig.subRowIndex <> invalid and focusIndicatorConfig.subRowIndex <> -1
-      '   m.previousFocusIndicatorConfig = focusIndicatorConfig
-      ' else
-      '   m.previousFocusIndicatorConfig = m.focusIndicatorConfig
-      ' end if
-
-      ' if m.previousFocusIndicatorConfig <> invalid
-      '   ? ">>S> PREVIOUS " ; ; m.previousFocusIndicatorConfig.rowIndex ; ", " m.previousFocusIndicatorConfig.cellIndex ; " " ; m.previousFocusIndicatorConfig.subRowIndex
-      ' end if
-
       m._setNextFocusIndicatorConfig(focusIndicatorConfig)
       m.onFocusUpdate(0)
     end function
@@ -127,7 +92,6 @@ namespace ml
 
     function onFocusAnimationUpdate(fraction as float) as void
       ' ? "ANIM UPDATE "; m.name ; " F " ; fraction ; " DS" ; m.didStart ; " DF " ; m.didFinish
-      ' ? " CI "; m.cellInfo.index ; " NCI "; m.nextCellInfo.index
       if m.didStart and not m.didFinish
         m.onFocusUpdate(fraction)
       end if
@@ -158,7 +122,7 @@ namespace ml
       m.fromEvent.isSendingRow = m.fromEvent.isRowEvent and m.getIsSendingFromRow()
       m.toEvent.isSendingRow = m.toEvent.isRowEvent and m.getIsSendingToRow()
 
-      ' ? " FROM SENDING CELL " m.fromEvent.isSendingCell " ROW " m.fromEvent.isSendingRow " TO SENDING CELL " m.toEvent.isSendingCell " ROW " m.toEvent.isSendingRow
+      ? " ++FOCUS EVENT CONFIG SENDING CELL " m.fromEvent.isSendingCell " ROW " m.fromEvent.isSendingRow " TO SENDING CELL " m.toEvent.isSendingCell " ROW " m.toEvent.isSendingRow
     end function
 
     private function getIsSendingFromCellEvent()

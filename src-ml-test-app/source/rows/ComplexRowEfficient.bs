@@ -63,7 +63,7 @@ class ComplextRowEfficient extends ml.BaseRow
   end function
 
   public override function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-    return ml.createFocusIndicatorConfig(m.top, invalid)
+    return ml.createFocusIndicatorConfig(m.top, invalid, direction)
   end function
 
 
@@ -98,47 +98,49 @@ class ComplextRowEfficient extends ml.BaseRow
   '++ delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onDidEnter(direction as integer)
+  private function onDidEnter(subRowIndex as integer, direction as integer, forceCellUpdate = false as boolean)
     ? "CR DID ENTER"
-    m.poster.uri = "https://i0.wp.com/fuelwar.co.za/wp-content/uploads/2018/10/art-of-fighting-quote-700.jpg?resize=700%2C361"
+    m.poster.uri = "https://www.usadojo.com/wp-content/uploads/2013/12/art-of-fighting-quote-700.jpg"
   end function
 
-  private function onDidGainFocus(direction as integer)
-    ' ? "CR: onDidGainFocus " ; " " ; direction
-    if m.owner.isFocused or m.owner.isChildFocused
-      if direction = 1
-        m.setFocus(m.button1)
-        m.isButton1Focused = true
-      else
-        m.setFocus(m.button2)
-        m.isButton1Focused = false
-      end if
-    end if
+  private function onDidGainFocus(subRowIndex as integer, direction as integer)
+    ? "CR: onDidGainFocus " ; " " ; direction
+    ' if m.owner.isFocused or m.owner.isChildFocused
+    '   if direction = 1
+    '     m.setFocus(m.button1)
+    '     m.isButton1Focused = true
+    '   else
+    '     m.setFocus(m.button2)
+    '     m.isButton1Focused = false
+    '   end if
+    ' end if
   end function
 
-  private function onWillGainFocus(direction as integer)
+  private function onWillGainFocus(subRowIndex as integer, direction as integer)
+    ? " CR: onWillGainFocus"
     if direction = 1
-      ' m.top.opacity = 1
+      m.top.opacity = 1
     end if
   end function
 
-  private function onGainingFocus(direction as integer, fraction as float)
-    ' ? "SC: onGainingFocus " ; " " ; direction ; " " ; fraction
+  private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
+    ? "CR: onGainingFocus " ; " " ; direction ; " " ; fraction
     if direction = -1
-      ' m.top.opacity = fraction
-    end if
-  end function
-  private function onLosingFocus(direction as integer, fraction as float)
-    ' ? "SC: onLosingFocus " ; " " ; direction ; " " ; fraction
-    if direction = 1
-      ' m.top.opacity = 1 - fraction
+      m.top.opacity = fraction
     end if
   end function
 
-  private function onDidLoseFocus(direction as integer)
-    ' ? "SC: onDidLoseFocus " ; " " ; direction
+  private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
+    ? "CR: onLosingFocus " ; " " ; direction ; " " ; fraction
     if direction = 1
-      ' m.top.opacity = 0
+      m.top.opacity = 1 - fraction
+    end if
+  end function
+
+  private function onDidLoseFocus(subRowIndex as integer, direction as integer)
+    ? "CR: onDidLoseFocus " ; " " ; direction
+    if direction = 1
+      m.top.opacity = 0
     end if
   end function
 
