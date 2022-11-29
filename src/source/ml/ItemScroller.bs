@@ -649,7 +649,7 @@ namespace ml
     end function
 
     function onFlowFocusFraction(fraction as float)
-      ' ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
+      ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
       ' m.log.info("onFlowFocusFraction", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex)
 
       if fraction = 1
@@ -659,8 +659,8 @@ namespace ml
         ' ? "+>+>+>+> "; mc.getPath(m.targetCellInfo, "index"); " MI "; m.index ; " NI " ; m.nextIndex
         m.finishMovingToIndex(true)
       else
-        ' ? ">>>> FLOW FOCUS "; fraction
-        ' m.updateSrollOffsetFraction(fraction)
+        m.focusManager@.onFocusAnimationUpdate(fraction)
+        m.updateSrollOffsetFraction(fraction)
       end if
     end function
 

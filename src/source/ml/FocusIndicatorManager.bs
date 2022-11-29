@@ -169,10 +169,6 @@ namespace ml
       ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.cellIndex
       m._list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m._list.focusedCellIndex = focusIndicatorConfig.cellIndex
-      row = m.getRowRenderer(focusIndicatorConfig.rowIndex)
-      if row <> invalid
-        row.focusedCellIndex = focusIndicatorConfig.cellIndex
-      end if
       'We must be already prepared
       m.applyFocusSettings(true)
       m.moveFocusIndicatorToTargetPosition(1)
@@ -384,14 +380,14 @@ namespace ml
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
-      ' ? " ON FLOW FRACTION CHANGE"
+      ? " ON FLOW FRACTION CHANGE " fraction
       m.moveFocusIndicatorToTargetPosition(fraction)
       if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
         m.applyFocusSettings(false)
       end if
 
       if m.flowFocusDelegate <> invalid
-        ' ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
       else
         ' ? " NO FOCUS"
@@ -400,6 +396,8 @@ namespace ml
       if fraction = 1
         m.applyFocusSettings(true)
         m.isDoingFlowFocus = false
+        ' else
+        ' m.onFocusAnimationUpdate(fraction)
       end if
     end function
 

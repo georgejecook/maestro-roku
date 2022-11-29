@@ -21,6 +21,7 @@ class PosterCellEfficient extends ml.BaseCell
       loadWidth: 400
       loadHeight: 250
       size: [400, 250]
+      scaleRotateCenter: [400 / 2, 250 / 2]
       loadDisplayMode: "zoomToFill"
     })
     mc.createSGNode("mv_Rectangle", m.top, "rectangle", {
@@ -66,17 +67,17 @@ class PosterCellEfficient extends ml.BaseCell
   end function
 
   private function onGainingFocus(direction as integer, fraction as float)
-    ' ? " OCGF " direction fraction
+    ? " OCGF " direction fraction
     m.setFocusState(fraction, true)
   end function
 
   private function onLosingFocus(direction as integer, fraction as float)
-    ' ? " OCLF " direction fraction
+    ? " OCLF " direction fraction
     m.setFocusState(fraction, false)
   end function
 
   private function setFocusState(fraction as float, isGaining as boolean) as void
-    ? " SFS " isGaining fraction m.index
+    ' ? " SFS " isGaining fraction m.index
 
     if fraction > 1
       fraction = 1

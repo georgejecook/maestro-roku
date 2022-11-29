@@ -86,7 +86,7 @@ namespace ml
       end if
     end function
 
-    public override function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
+    override function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       'FIXME - what to do here?
       ? " GRID MOVE TO INDEX - ASSUMING THIS INDEX IS ON SCREEN - OR THIS SHOULD NOT HAVE BEEN CALLED"
       if m._content <> invalid and index <> -1
@@ -101,27 +101,23 @@ namespace ml
       end if
     end function
 
-    public override function updateChangedItems()
+    override function updateChangedItems()
       super.updateChangedItems()
     end function
 
-    public override function getRenderer(index as integer)
+    override function getRenderer(index as integer)
       return m.viewManager.getRenderer(index)
     end function
 
-    public override function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
+    override function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
       return m.viewManager.getRect(index, useScreenCoords = true)
     end function
 
-    public override function getItemSize(index as integer) as mc.types.array
+    override function getItemSize(index as integer) as mc.types.array
       return m.viewManager.getItemSize(index)
     end function
 
-    ' function setFocusIndex(index as integer, isMoving as boolean, notifyFocusManager = true as boolean) as void
-    '   m.itemScroller.setFocusIndex(index, isMoving, notifyFocusManager = true)
-    ' end function
-
-    private function onFlowFocusFraction(fraction as float)
+    function onFlowFocusFraction(fraction as float)
       m.itemScroller.onFlowFocusFraction(fraction)
     end function
 
