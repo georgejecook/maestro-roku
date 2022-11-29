@@ -736,6 +736,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function onGainedFocus(isSelfFocused as boolean)
+      ? " LIST GAINED FOCUS" m.top.isChildFocused
       super.onGainedFocus(isSelfFocused)
       m.focusIndicatorManager.isHidden = false
       if isSelfFocused
@@ -745,7 +746,7 @@ namespace ml
 
     protected override function onLostFocus()
       super.onLostFocus()
-      ' ? " LIST LOST FOCUS"
+      ? " LIST LOST FOCUS" m.top.isChildFocused
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
@@ -754,14 +755,7 @@ namespace ml
     end function
 
     protected override function onChildLostFocus()
-      'bs:disable-next-line
-      if not m.top.isChildFocused
-        m.focusIndicatorManager.isHidden = true
-        m.focusIndicatorManager@.setFocusedOnRow(false)
-      end if
-    end function
-
-    protected function onChildGainedFocus()
+      ? " LIST CHILD LOST FOCUS" m.top.isChildFocused
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
