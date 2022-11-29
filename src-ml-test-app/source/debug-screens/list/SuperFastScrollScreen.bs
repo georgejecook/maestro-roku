@@ -323,21 +323,7 @@ class BaseListScreen extends mv.BaseScreen
 
   private function onKeyPressPlay() as boolean
     isAtEnd = not isAtEnd
-    m.list@.moveToRow(isAtEnd ? 0 : m.list.content.count() - 1, true)
-    return true
-  end function
-
-  private function onKeyPressFastForward() as boolean
-    newFocus = m.list.jumpToRowItemIndex + 1
-    m.log.info("moving item focus +1 to:", newFocus)
-    m.list.jumpToRowItemIndex = newFocus
-    return true
-  end function
-
-  private function onKeyPressRewind() as boolean
-    m.log.info("moving item focus -1 to:")
-    newFocus = m.list.jumpToRowItemIndex - 1
-    m.list.jumpToRowItemIndex = newFocus
+    m.list@.moveToRow(isAtEnd ? 0 : m.list.content.count() - 1, true, 3)
     return true
   end function
 

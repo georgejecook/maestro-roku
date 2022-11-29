@@ -11,7 +11,7 @@ namespace ml
   class List extends mv.BaseView
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ content
+    '++ Content
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'must gbe of type ListContent
@@ -19,38 +19,22 @@ namespace ml
     public content as mc.types.node
     private _content
 
+    'view that will respond to events
+    public delegate as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ View State
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     @alwaysnotify
     public state = "none"
 
     public width = 1920
     public height = 1080
 
-    'view that will respond to events
-    public delegate as mc.types.node
-
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = false
-
-    @alwaysnotify
-    @observer("onJumpToRowIndexChange")
-    public jumpToRowIndex = -1
-
-    @alwaysnotify
-    @observer("onJumpToSubRowIndexChange")
-    public jumpToSubRowIndex = -1
-
-    @alwaysnotify
-    @observer("onJumpToRowItemIndexChange")
-    public jumpToRowItemIndex = -1
-
-    @alwaysnotify
-    @observer("onAnimateToRowIndexChange")
-    public animateToRowIndex = -1
-
-    @alwaysnotify
-    @observer("onAnimateToItemIndexChange")
-    public animateToItemIndex = -1
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Debug Flags
@@ -80,6 +64,14 @@ namespace ml
 
     public _updatesEnabled = true
 
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private contentGroup as mc.types.node
+    private rowsGroup as mc.types.node
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Shared managers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -106,12 +98,9 @@ namespace ml
     private isInitialized = false
     private isDoingFlowFocus = false
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ views
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private preHiddenContent as mc.types.node
 
-    private contentGroup as mc.types.node
-    private rowsGroup as mc.types.node
+
     private keyDirections = {
       "rewind": -1
       "fastforward": 1
@@ -291,53 +280,8 @@ namespace ml
       end if
     end function
 
-    private function onAnimateToRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        m.itemScroller.moveToContentIndex(index)
-      end if
-    end function
-
-    private preHiddenContent as mc.types.node
-
     private function onIsHiddenChange()
-      ? " ============HIDDDEN START"
       m.itemScroller.notifyViewportEvents(m.itemScroller.direction)
-      ? " =================HIDDDEN STOP"
-    end function
-
-    private function onJumpToRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        'hack here
-        m.focusedRowIndex = index
-        m.moveToRow(index, false)
-      end if
-    end function
-
-    private function onJumpToSubRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        'hack here
-        m.focusedRowIndex = index
-        m.moveToSubRowIndex(index, false, index, true)
-      end if
-    end function
-
-    private function onAnimateToSubRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        m.itemScroller.moveToIndex(index, true, 1)
-        ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
-      end if
-    end function
-
-    private function onJumpToRowItemIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
-        m.moveToRowItemIndex(m.focusedRowIndex, index, false)
-      end if
-    end function
-
-    private function onAnimateToItemIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
-        m.moveToRowItemIndex(m.focusedRowIndex, index, true)
-      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -414,13 +358,19 @@ namespace ml
       ? " MTRI  " rowIndex index animated
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
+        ? " MTR A"
         if row <> invalid
+          ? " MTR B"
           if row.subType() = "ml_GridRow"
+            ? " MTR C"
             rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
             if rowInfo <> invalid
               rect = row@.getRect(index)
               m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true, animSpeedIndex)
             end if
+            ? " MTR D"
+          else
+            ? " MTR E"
             row@.moveToIndex(index, animated = true, animSpeedIndex)
           end if
         end if
@@ -736,7 +686,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function onGainedFocus(isSelfFocused as boolean)
-      ? " LIST GAINED FOCUS" m.top.isChildFocused
       super.onGainedFocus(isSelfFocused)
       m.focusIndicatorManager.isHidden = false
       if isSelfFocused
@@ -746,7 +695,6 @@ namespace ml
 
     protected override function onLostFocus()
       super.onLostFocus()
-      ? " LIST LOST FOCUS" m.top.isChildFocused
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
@@ -755,7 +703,6 @@ namespace ml
     end function
 
     protected override function onChildLostFocus()
-      ? " LIST CHILD LOST FOCUS" m.top.isChildFocused
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true

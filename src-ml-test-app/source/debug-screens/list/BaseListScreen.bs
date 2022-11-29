@@ -315,16 +315,14 @@ class SuperFastScrollScreen extends mv.BaseScreen
   end function
 
   private function onKeyPressFastForward() as boolean
-    newFocus = m.list.jumpToRowItemIndex + 1
-    m.log.info("moving item focus +1 to:", newFocus)
-    m.list.jumpToRowItemIndex = newFocus
+    m.log.info("moving item focus +1 to:", m.list.focusedCellIndex + 1)
+    m.list@.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex + 1, true)
     return true
   end function
 
   private function onKeyPressRewind() as boolean
     m.log.info("moving item focus -1 to:")
-    newFocus = m.list.jumpToRowItemIndex - 1
-    m.list.jumpToRowItemIndex = newFocus
+    m.list@.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex - 1, true)
     return true
   end function
 

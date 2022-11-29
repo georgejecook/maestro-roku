@@ -324,38 +324,6 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     return true
   end function
 
-  private function onKeyPressPlay() as boolean
-    m.list@.moveToRow(0, true)
-    return true
-    ' m.list.jumpToIndex = m.list.focusedRowIndex
-    if m.isRemoved
-      ? " IS ADDING AGAIN"
-      m.isRemoved = false
-      m.list.content@.insertChild(m.liveRow, 1)
-      ' m.list.content@.appendChild(m.liveRow)
-    else
-      ? " IS REMOVING"
-      m.list.content@.removeChild(m.liveRow)
-      m.isRemoved = true
-    end if
-    m.list@.moveToRowItemIndex(1, 4)
-    return true
-  end function
-
-  private function onKeyPressFastForward() as boolean
-    newFocus = m.list.jumpToRowItemIndex + 1
-    m.log.info("moving item focus +1 to:", newFocus)
-    m.list.jumpToRowItemIndex = newFocus
-    return true
-  end function
-
-  private function onKeyPressRewind() as boolean
-    m.log.info("moving item focus -1 to:")
-    newFocus = m.list.jumpToRowItemIndex - 1
-    m.list.jumpToRowItemIndex = newFocus
-    return true
-  end function
-
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
