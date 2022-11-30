@@ -12,7 +12,7 @@ namespace ml
     end function
   end class
 
-  class cellInfo
+  class CellInfo
     public id = ""
     public size = [0, 0]
     public index = 0
@@ -83,9 +83,16 @@ end namespace
 
 namespace ml.CellInfoUtils
   function cellInfoFromAA(otherInfo as mc.types.assocarray)
-    info = new ml.cellInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
-    info.index = otherInfo.index
-    info.id = otherInfo.id
+    if otherInfo <> invalid
+      info = new ml.CellInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
+      info.index = otherInfo.index
+      info.id = otherInfo.id
+      info.component = otherInfo.component
+    else
+      info = new ml.CellInfo([0, 0], invalid, [], false, -1, -1)
+      info.index = -1
+      info.id = ""
+    end if
     return info
   end function
 end namespace

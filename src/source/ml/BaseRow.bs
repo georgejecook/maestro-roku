@@ -186,12 +186,12 @@ namespace ml
           new ml.CellPosition(yOffset, screenPos) 'normal
           new ml.CellPosition(yOffset, screenPos) 'float-scroll
         ]
-        rowInfo = new ml.cellInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
+        rowInfo = new ml.CellInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
         return [rowInfo]
       end if
     end function
 
-    function getFocusIndicatorConfig(cellInfo as ml.cellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
 
       cellInfo = m.getRowInfos(false)[cellInfo.componentIndex]
       'bs:disable-next-line
@@ -203,7 +203,7 @@ namespace ml
       end if
     end function
 
-    function chooseCellInfoForScrollingIntoRow(cellInfo as ml.cellInfo)
+    function chooseCellInfoForScrollingIntoRow(cellInfo as ml.CellInfo)
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
@@ -211,7 +211,7 @@ namespace ml
       end if
     end function
 
-    function isVerticalFlowFocusPossible(cellInfo as ml.cellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
+    function isVerticalFlowFocusPossible(cellInfo as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line

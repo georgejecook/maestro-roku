@@ -210,7 +210,7 @@ namespace ml
       ' end if
     end function
 
-    private function getCellInfoForContentIndex(contentIndex as integer) as ml.cellInfo
+    private function getCellInfoForContentIndex(contentIndex as integer) as ml.CellInfo
       info = invalid
       ' ? "getCellInfoForContentIndex" ; contentIndex
       for each info in m.cellInfos
@@ -223,11 +223,26 @@ namespace ml
       return invalid
     end function
 
-    function getCellInfoForContent(content as mc.types.node) as ml.cellInfo
+    function getCellInfoForContent(content as mc.types.node) as ml.CellInfo
       info = invalid
       if content <> invalid and m.cellInfos <> invalid
         ' ? "getCellInfoForContentIndex" ; contentIndex
         id = content.id
+        for each info in m.cellInfos
+          ' ? ">>>" ; info.contentIndex
+          if info.id = id
+            return info
+          end if
+        end for
+      end if
+      ' ? "no match"
+      return invalid
+    end function
+
+    function getCellInfoForContentId(id as string) as ml.CellInfo
+      info = invalid
+      if id <> "" and m.cellInfos <> invalid
+        ' ? "getCellInfoForContentIndex" ; contentIndex
         for each info in m.cellInfos
           ' ? ">>>" ; info.contentIndex
           if info.id = id
@@ -547,7 +562,7 @@ namespace ml
       end if
     end function
 
-    function getIsOnScreen(info as ml.cellInfo, screenPos = 0 as integer) as boolean
+    function getIsOnScreen(info as ml.CellInfo, screenPos = 0 as integer) as boolean
       rect = m.rects[info.contentIndex]
       if rect = invalid
         return false
@@ -572,7 +587,7 @@ namespace ml
     '++ abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function isFlowFocusPossible(info as ml.cellInfo, direction as integer, activeScreenPos as integer)
+    function isFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)
       isFlowPossible = info.isFlowFocusPossible(m.container.translation[m.axes], m.maxPos, direction, m.axes)
 
       if not isFlowPossible and info.isFlowFocusAllowed
@@ -583,7 +598,7 @@ namespace ml
       return isFlowPossible
     end function
 
-    function isVerticalFlowFocusPossible(info as ml.cellInfo, direction as integer, activeScreenPos as integer)
+    function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)
       return true
     end function
 
@@ -653,7 +668,7 @@ namespace ml
           new ml.CellPosition(yOffset, screenPos) 'normal
           new ml.CellPosition(yOffset, screenPos) 'float-scroll
         ]
-        m.rowInfos = [new ml.cellInfo([0, 0], focusSettings, positions, false, 0, 0)]
+        m.rowInfos = [new ml.CellInfo([0, 0], focusSettings, positions, false, 0, 0)]
       end if
       return m.rowInfos
     end function
@@ -669,6 +684,25 @@ namespace ml
           end if
         end if
       end for
+    end function
+
+    protected function getIndexAfterItemUpdate(previousInfo as ml.CellInfo)
+      if previousInfo.index = -1
+        return 0
+      end if
+
+      cellInfoAtOldIndex = m.cellInfos[previousInfo.contentIndex]
+      if cellInfoAtOldIndex <> invalid and cellInfoAtOldIndex.id = previousInfo.id
+        return previousInfo.index
+      else
+        m.log.info("the previously focused item has moved after the list changed - trying to restore it")
+        newCellInfo = m.getCellInfoForContentId(previousInfo.id)
+        if newCellInfo <> invalid
+          return newCellInfo.index
+        end if
+      end if
+
+      return previousInfo.index
     end function
 
     function recalculateCellInfos(forceRecalculate as boolean)

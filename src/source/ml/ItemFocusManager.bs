@@ -19,9 +19,10 @@ namespace ml
 
   class ItemFocusManager extends mc.BaseClass
 
+    public isNotifyingListDelegate = true
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ State
+    '++ PrivateFields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusIndicatorConfig = ml.createFocusIndicatorConfig(invalid, invalid)
@@ -29,12 +30,9 @@ namespace ml
     private delegateManager
     private didStart = false
     private didFinish = false
-    private isNotifying = true
     private lastSentFraction = -1
     private direction = 0
 
-    private delegates as mc.types.array
-    private ownerDelegate as mc.types.node
     private fromEvent as ml.ListEvent
     private toEvent as ml.ListEvent
 
@@ -154,13 +152,9 @@ namespace ml
 
     private function onFocusUpdate(fraction as float) as void
       if fraction = 1 or fraction = 0
-        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifying " ; m.isNotifying ; fraction
+        ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifyingListDelegate " ; m.isNotifyingListDelegate ; fraction
       end if
       if m.didFinish
-        return
-      end if
-      if not m.isNotifying
-        ? "NOT NOTIFYING"
         return
       end if
       if m.focusIndicatorConfig = invalid
@@ -191,8 +185,9 @@ namespace ml
     end function
 
     private function sendEvents(name as string, nextName as string, fraction as float) as void
-      ' ? " sendEvents " name nextName mc.dv(m.previousFocusIndicatorConfig.cell) mc.dv(m.focusIndicatorConfig.cell)
+      ? " sendEvents " name nextName mc.dv(m.previousFocusIndicatorConfig.cell) mc.dv(m.focusIndicatorConfig.cell)
       m.delegateManager.listDelegate = m.list.delegate
+      m.delegateManager.isNotifyingListDelegate = m.isNotifyingListDelegate and m.list.delegate <> invalid
 
       if fraction < m.lastSentFraction
         return

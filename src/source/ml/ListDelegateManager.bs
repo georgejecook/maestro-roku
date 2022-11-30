@@ -2,6 +2,7 @@ namespace ml
 
   class ListDelegateManager
     public listDelegate as mc.types.node
+    public isNotifyingListDelegate = true
 
     private cellDelegateFunctionMap = {
       "willGainFocus": "onCellWillGainFocus"
@@ -45,13 +46,13 @@ namespace ml
 
       if delegateFunctionName = "onCellGainingFocus" or delegateFunctionName = "onCellLosingFocus"
         event.cell@._apply(cellFunctionName, [event.direction, event.fraction], false)
-        if m.listDelegate <> invalid
+        if m.isNotifyingListDelegate
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction], false)
         end if
 
       else
         event.cell@._apply(cellFunctionName, [event.direction])
-        if m.listDelegate <> invalid
+        if m.isNotifyingListDelegate
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction], false)
         end if
       end if
@@ -67,12 +68,12 @@ namespace ml
 
       if delegateFunctionName = "onRowGainingFocus" or delegateFunctionName = "onRowLosingFocus"
         event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction], false)
-        if m.listDelegate <> invalid
+        if m.isNotifyingListDelegate
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction], false)
         end if
       else
         event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction], false)
-        if m.listDelegate <> invalid
+        if m.isNotifyingListDelegate
           m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction], false)
         end if
       end if

@@ -65,12 +65,17 @@ namespace ml
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)
-      ? "content items changed"
+      m.log.info("changed content items")
+
+      ? "IS FOCUSED "; m.isFocused
       if m.owner._updatesEnabled
+        ? "content items changed AA"
         if changes <> invalid and changes.count() > 0
+          ? "content items changed BB"
           m.log.info("This content has changed in some way")
           m.viewManager.onContentItemsChange(changes)
         else
+          ? "content items changed CC"
           m.viewManager.updateChangedItems()
         end if
       else
@@ -82,6 +87,13 @@ namespace ml
       rect = m.viewManager.getRect(index, useScreenCoords = true)
       rect.subRowIndex = 0
       return rect
+    end function
+
+    override function getRenderer(index as integer)
+      if m.viewManager.cellInfos[index] <> invalid
+        return m.viewManager.cellInfos[index].component
+      end if
+      return invalid
     end function
 
     private function onFlowFocusFraction(fraction as float)

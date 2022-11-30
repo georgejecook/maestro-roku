@@ -202,7 +202,7 @@ namespace ml
             new ml.CellPosition(0, x) 'down
           ]
 
-          cellInfo = new ml.cellInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
+          cellInfo = new ml.CellInfo(settings.size, m.settings.focusSettings, positions, true, i, i)
           cellInfo.index = i
           cellInfo.id = item.id
           m.cellInfos.push(cellInfo)
@@ -235,7 +235,7 @@ namespace ml
       m.numberOfItems = m.visibleItems.count()
     end function
 
-    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.cellInfo
+    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
 
       yOffset += y
 
@@ -278,7 +278,7 @@ namespace ml
         ]
       end if
       'note - col width is irrelevant
-      return new ml.cellInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
+      return new ml.CellInfo(size, m.settings, positions, isFlowFocusAllowed, rowIndex, rowIndex)
     end function
 
     private function getHeightOfGridRow()
@@ -304,10 +304,7 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-
-      ' ? "[[[[[[[[[[[[[[[[[[[[[[[[[[[["
-      ' ? " CHANGE GRID ROW " ; m.content.length ; " I " ; m.itemScroller.index ; " " ; mc.dv(m.row)
-      numRows = m.rowOffsets.count()
+      previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
 
@@ -316,28 +313,15 @@ namespace ml
       m.recalculateCellInfos(true)
       m.itemScroller.processChanges(changes)
 
-      ' if m.itemScroller.index >= m.viewManager.numberOfItems
-      '   m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.viewManager.numberOfItems - 1)
-      '   ? "NEEDED TWEAK TO index is now: " ; m.itemScroller.index
-      ' end if
-      ' if m.cellInfos.count() <> numRows
-      '   m.itemScroller.chooseCellInfoForScrollingIntoRow(m.cellInfos[m.itemScroller.index])
-      '   ? "NEED TO TELL LIST!!!" mc.dv(m.row) "  numRows " numRows "compinfos" m.cellInfos.count()
-      '   m.owner@.forceUpdate(m.owner._updatesEnabled)
-      ' end if
+      nextIndex = m.getIndexAfterItemUpdate(previousInfo)
+      ? " ACCORDING TO GRID NEXT INDEX WILL BE " nextIndex
+      ' m.owner.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
       m.owner@.forceUpdate(m.owner._updatesEnabled)
-
-      ' m.itemScroller.processChanges(changes)
-      ' m.itemScroller.setFocusIndex(m.itemScroller.index, false, false)
-      ' if m.row.isFocused
-      ' m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-      '   ' m.owner.focusedCellIndex = m.itemScroller.index
-      '   m.owner@.moveToRowItemIndex(m.row.index, m.itemScroller.index, false)
-      ' end if
-      ' ? "]]]]]]]]]]]]]]]]]]]]]]]]"
+      m.itemScroller.forceFocusOnIndex(nextIndex, true, false)
+      ' m.owner.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
     end function
 
-    override function isVerticalFlowFocusPossible(info as ml.cellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
+    override function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
       if not m.isVerticalFlowFocusAllowed
         return false
       end if

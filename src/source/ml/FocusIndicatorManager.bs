@@ -129,17 +129,17 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ? "setNextFocusIndicatorConfig "
+      ' ? "setNextFocusIndicatorConfig "
       if focusIndicatorConfig <> invalid
-        ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
+        ' ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
       else
         ' ? " next config INVALID "
       end if
       if m.isSameConfig(focusIndicatorConfig)
-        ? " is same"
+        ' ? " is same"
         return
       end if
-      ? " SETTING LAST MOVE FRACTION 0 SET NEXT "
+      ' ? " SETTING LAST MOVE FRACTION 0 SET NEXT "
       m.lastMoveFraction = 0
       m.preprareNextFocusConfig(focusIndicatorConfig)
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
@@ -159,8 +159,13 @@ namespace ml
 
     function completeFocusNow()
       m.log.info("completing focus right now!")
-      ? " COMPLETE FOCUS NOW!!"
+      ' ? " COMPLETE FOCUS NOW!!"
       m.itemFocusManager.onFocusAnimationUpdate(1)
+    end function
+
+    function setDelegateCallbacksEnabled(listDelegateEnabled as boolean)
+      m.log.info("setting callbacks enabled to", listDelegateEnabled)
+      m.itemFocusManager.isNotifyingListDelegate = listDelegateEnabled
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -190,7 +195,7 @@ namespace ml
 
     private function onIsHiddenChange(isHidden as boolean)
       m.isHidden = isHidden
-      ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
+      ' ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
       if not m.manualMode
         m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
       end if
@@ -252,9 +257,9 @@ namespace ml
       m.setActiveFocusSettings(m.nextConfig.settings)
 
       ' ? ">>> NEXT FOCUS STYLE " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
-      ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
+      ' ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
       if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
-        ? ">>> HIDE INDICATOR"
+        ' ? ">>> HIDE INDICATOR"
         ' ? "AA"
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
@@ -294,11 +299,11 @@ namespace ml
         return
       end if
       ' ? "-------------isFinal " ; isFinal; " " ; mc.getPath(m.previousFocusSettings, "feedbackStyle") ; " NEXT " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
-      'note - we don't show the focus indicator till we're in place, if the last row was hidden
+      'note - we don't show the focus indicator till we're in place, ifE the last row was hidden
       nextHidden = m.nextConfig.isHidden = true or m.nextFocusSettings.feedbackStyle = "none"
       previousHidden = (m.previousFocusSettings = invalid or m.previousFocusSettings.feedbackStyle = "none" or not m.rowHasIndicator)
-      ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      ? nextHidden " " previousHidden
+      ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+      ' ? nextHidden " " previousHidden
       if nextHidden or (not isFinal and previousHidden)
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
@@ -332,7 +337,7 @@ namespace ml
     private lastMoveFraction = 0
 
     private function moveFocusIndicatorToTargetPosition(fraction as float) as void
-      ? " MOVE FOCUS INDICATOR TO POS " fraction
+      ' ? " MOVE FOCUS INDICATOR TO POS " fraction
       if m.nextConfig = invalid
         return
       end if
@@ -371,7 +376,7 @@ namespace ml
 
       m.isDoingFlowFocus = true
       m.nextConfig = focusIndicatorConfig
-      ? " SETTING LAST MOVE FRACTION 0 START FLOW"
+      ' ? " SETTING LAST MOVE FRACTION 0 START FLOW"
       m.lastMoveFraction = 0
       m.setActiveFocusSettings(m.nextConfig.settings)
       m.focusScreenPosition = m.nextConfig.indicatorTranslation
@@ -392,21 +397,21 @@ namespace ml
     public function cancelFlowFocus()
       m.flowFocusDelegate = invalid
       m.isDoingFlowFocus = false
-      ? " SETTING LAST MOVE FRACTION 0 CANCEL FLOW"
+      ' ? " SETTING LAST MOVE FRACTION 0 CANCEL FLOW"
       m.lastMoveFraction = 0
       m.focusPointAnim.pause()
       m.focusPoint.translation = [0, 0]
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
-      ? " ON FLOW FRACTION CHANGE " fraction
+      ' ? " ON FLOW FRACTION CHANGE " fraction
       m.moveFocusIndicatorToTargetPosition(fraction)
       if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
         m.applyFocusSettings(false)
       end if
 
       if m.flowFocusDelegate <> invalid
-        ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        ' ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
       else
         ' ? " NO FOCUS"
@@ -435,7 +440,7 @@ namespace ml
       'TODO - consider if the willDoSystemFocus call should be overridden
       m.isFocusedOnRow = m._list.isChildFocused or m.list.isFocused
       if m.nextConfig <> invalid and (forceFocus or m.nextConfig.willDoSystemFocus = true)
-        ? " SETTING SYSTEM FOCUS ON " ; mc.dv(m.nextConfig.row)
+        ' ? " SETTING SYSTEM FOCUS ON " ; mc.dv(m.nextConfig.row)
 
         focusTarget = m.nextConfig.row
         if m.isFocusedOnRow and focusTarget <> invalid
@@ -447,7 +452,7 @@ namespace ml
     end function
 
     function setFocusedOnRow(focused as boolean)
-      ? " setFocusedOnRow " focused
+      ' ? " setFocusedOnRow " focused
       m.isFocusedOnRow = focused
       if focused
         m.setSystemFocusOnRenderer(true)

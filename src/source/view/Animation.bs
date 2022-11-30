@@ -35,6 +35,14 @@ namespace mv.animations.utils
     return anim
   end function
 
+  function animateToJsonViewState(target as mc.types.node, duration as float, toValue as mc.types.assocarray, start = true as boolean, delay = 0 as float) as mv.animations.ViewJson
+    anim = new mv.animations.ViewJson(target, duration, target.translation, toValue, delay)
+    if start
+      anim.start()
+    end if
+    return anim
+  end function
+
   function getDelta(fromValue as dynamic, toValue as dynamic) as dynamic
     if mc.isPoint(fromValue) and mc.isPoint(toValue)
       return abs((fromValue[0] + fromValue [1]) - (toValue[0] + toValue[1]))

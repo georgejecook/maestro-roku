@@ -288,12 +288,12 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function onUpdateNow()
+    function onUpdateNow()
       m.log.info("force updating list")
       m.forceUpdate(true)
     end function
 
-    public function forceUpdate(fullUpdate = false as boolean) as void
+    function forceUpdate(fullUpdate = false as boolean) as void
       ' cellInfo = m.itemScroller.getCellInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
         ? "cannot forceUpdate list while rendering is taking place"
@@ -309,6 +309,7 @@ namespace ml
 
       ' ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
       if m.viewManager.numberOfItems > 0
+        m.focusIndicatorManager.isHidden = true
         ? "LIST HAS COMPONENTS " m.focusedRowIndex " " m.focusedCellIndex
         ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         ' m.moveToRowItemIndex(0, 0, true)
@@ -326,21 +327,22 @@ namespace ml
         ' m.moveToRow(m.itemScroller.index, false)
         '   ' m.focusIndicatorManager@.setFocusComplete()
         ' end if
+        m.focusIndicatorManager.isHidden = m.top.isChildFocused or m.top.isFocused
       else
         ? "LIST HAS NO COMPONENTS "
-        'TODO - hide focus
+        m.focusIndicatorManager.isHidden = true
       end if
 
-      ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
+      ' ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
       ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
       ' m.moveToRowItemIndex(0, 0, true)
     end function
 
-    public function getRow(index as integer) as dynamic
+    function getRow(index as integer) as dynamic
       return m.content@.getChild(index)
     end function
 
-    public function getItem(rowIndex as integer, index as integer) as dynamic
+    function getItem(rowIndex as integer, index as integer) as dynamic
       rowItem = m.content@.getChild(rowIndex)
       if rowItem <> invalid
         return rowItem@.getChild(index)
@@ -348,13 +350,13 @@ namespace ml
       return invalid
     end function
 
-    public function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
+    function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       if m.content <> invalid
         m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex)
       end if
     end function
 
-    public function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean, animSpeedIndex = 0 as integer) as void
+    function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean, animSpeedIndex = 0 as integer) as void
       ? " MTRI  " rowIndex index animated
       if m._content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
@@ -372,7 +374,7 @@ namespace ml
       end if
     end function
 
-    public function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
+    function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
       if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
         m.itemScroller.moveToIndex(index, animated = true, animSpeedIndex)
@@ -387,7 +389,7 @@ namespace ml
       end if
     end function
 
-    public function setUpdatesEnabled(enabled as boolean)
+    function setUpdatesEnabled(enabled as boolean)
       m._updatesEnabled = enabled
       if enabled
         m.updateListContent()
@@ -398,11 +400,11 @@ namespace ml
     '++ Renderer Helpers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getRowRenderer(index as integer)
+    function getRowRenderer(index as integer)
       return m.viewManager.getRenderer(index)
     end function
 
-    public function getCellRenderer(rowIndex as integer, cellIndex as integer)
+    function getCellRenderer(rowIndex as integer, cellIndex as integer)
       row = m.getRowRenderer(rowIndex)
 
       if row <> invalid
@@ -412,11 +414,40 @@ namespace ml
       return invalid
     end function
 
+    function getFocusedRow()
+      if m.itemScroller.cellInfo <> invalid
+        return m.itemScroller.cellInfo.component
+      else
+        return invalid
+      end if
+    end function
+
+    function getFocusedCell()
+      return m.getCellRenderer(m.focusedRowIndex, m.focusedCellIndex)
+    end function
+
+    function getFocusedRowContent()
+      if m.content <> invalid
+        return m.content@.getChild(m.focusedRowIndex)
+      else
+        return invalid
+      end if
+    end function
+
+    function getFocusedCellContent()
+      rowContent = m.getFocusedRowContent()
+      if rowContent <> invalid
+        return rowContent@.getChild(m.focusedRowIndex)
+      else
+        return invalid
+      end if
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Internal api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function _onContentItemChange(changes as mc.types.array)
+    function _onContentItemChange(changes as mc.types.array)
       ' ? "______________________________ _onContentItemChange" ; m.__classname
       ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
       '   return c.type
@@ -441,7 +472,7 @@ namespace ml
     '++ Focus indicator callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function onFlowFocusFraction(fraction as float)
+    function onFlowFocusFraction(fraction as float)
       m.itemScroller.onFlowFocusFraction(fraction)
     end function
 
@@ -461,10 +492,6 @@ namespace ml
         end if
       end if
       return false
-    end function
-
-    private function getFocusedRow()
-      return m.itemScroller.cellInfo.component
     end function
 
     private function onRowKeyPress(key as string) as boolean

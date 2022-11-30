@@ -74,7 +74,7 @@ namespace ml
           new ml.CellPosition(x, maxPos) 'float-scroll
         ]
 
-        cellInfo = new ml.cellInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
+        cellInfo = new ml.CellInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
         cellInfo.index = index
         cellInfo.id = item.id
         m.cellInfos.push(cellInfo)
@@ -93,10 +93,10 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       oldNumComponents = m.numberOfItems
-      previousFocusedItem = m.content@.getChild(m.itemScroller.index)
-      previousFocusedIndex = m.itemScroller.index
+      previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
       m.processRemovedCells(changes)
       m.forceUpdateLayout()
+
       if m.itemScroller.index >= m.content.length
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
       end if
@@ -105,38 +105,19 @@ namespace ml
       m.rowInfos = invalid
 
       if (m.numberOfItems = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.numberOfItems > 0)
-        ' ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
+        ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
         'tell list in any case - it's best suited to knowing what should happen now.
         m.owner@.forceUpdate()
       else
         m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
-        ' ? " PREVIOUS ITEM"
-        if previousFocusedItem <> invalid
-          info = m.getCellInfoForContent(previousFocusedItem)
-          if info <> invalid
-            newIndex = info.index
-            ' ? " previous index " previousFocusedIndex " new index " newIndex
-            if newIndex <> previousFocusedIndex
-              ' ? " PREVIOUS ITEM HAD DIFFERENT INDEX"
-              m.itemScroller.moveToIndex(newIndex, false)
-            end if
-          end if
-        end if
-        ' ? "FOCUSED ON A " m.itemScroller.index
-        ' m.itemScroller.focusManager.isNotifying = true
-        ' m.itemScroller.reset(true)
-        ' m.itemScroller.focusManager.isNotifying = true
-        ' ? "FOCUSED ON B " m.itemScroller.index
       end if
 
+      m.owner.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
+      nextIndex = m.getIndexAfterItemUpdate(previousInfo)
+      m.itemScroller.moveToIndex(nextIndex, false)
+      m.owner.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
 
-      ' if m.row.isFocused
-      ? " IS FOCUSED ON" ; m.itemScroller.index
-      '   m.itemScroller.moveToIndex(m.itemScroller.index, false)
-      '   m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-      ' end if
     end function
-
 
   end class
 end namespace
