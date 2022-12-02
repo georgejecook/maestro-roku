@@ -1,5 +1,6 @@
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/ListContentManager.bs"
 
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
@@ -13,6 +14,7 @@ namespace ml
     private isShowingAllComps = false
     ' public componentBufferMode = "rendered"
     public componentBufferMode = "none"
+    public contentManager as ml.ListContentManager
 
     public override function reset()
       m.log.info ("resetting viewManager. numItems: ", m.numberOfItems)
@@ -99,7 +101,7 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      ' ? "TUR ::: LIST onRenderersCreated"
+      ? "LIST onRenderersCreated"
       m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
@@ -109,7 +111,7 @@ namespace ml
         'TODO - update the scrolling position if it was on a removed row
         m.isUpdating = false
       end if
-      m.recalculateCellInfos(true)
+      m.recalculateCellInfos()
       m.updateChangedItems()
       m.restorePreviousFocus()
     end function
@@ -219,12 +221,15 @@ namespace ml
 
       if row.isInitialized
         ' ? "RECYCLE EXISTING ROW"
+        ' row.content = rowContent
+        m.contentManager.setContentOnRow(row, rowContent, false)
         row@.recycle(rowContent)
-        row.content = rowContent
       else
         ' ? "CREATE NEW ROW "
         row.content = rowContent
         row@._initialize(invalid)
+        m.contentManager.setContentOnRow(row, rowContent)
+        row@.setContent(rowContent)
       end if
 
       return row
@@ -433,10 +438,10 @@ namespace ml
     end function
 
 
-    override function recalculateCellInfos(forceRecalculate as boolean)
+    override function recalculateCellInfos() as void
+      ? " LIST recalculateCellInfos!! "
       m.cellInfos = []
       virtualIndex = 0
-      'if forceRecalculate is false, we may be best doing nothing
       for i = 0 to m.visibleItems.count() - 1
         item = m.visibleItems[i]
         settings = ml.listMixin.getRowSettings(m.content, item)
@@ -444,7 +449,7 @@ namespace ml
           ' component = m.visibleComponents[i]
           component = m.renderersByContentId[item.id]
           if component <> invalid
-            infos = component@.getRowInfos(forceRecalculate)
+            infos = component@.getRowInfos(true)
 
             contentIndex = component.index
             for subIndex = 0 to infos.count() - 1

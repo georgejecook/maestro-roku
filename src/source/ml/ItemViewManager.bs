@@ -109,6 +109,8 @@ namespace ml
       m.log.info("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
+      m.lookAheadDistance = m.settings.lookAheadDistance = -1 ? 2147483647 : m.settings.lookAheadDistance
+      m.lookBehindDistance = m.settings.lookBehindDistance = -1 ? 2147483647 : m.settings.lookBehindDistance
       m.listSettings = m.owner.content.listSettings
 
       if content = invalid
@@ -223,6 +225,7 @@ namespace ml
       return invalid
     end function
 
+    'FIXME - this is expensive
     function getCellInfoForContent(content as mc.types.node) as ml.CellInfo
       info = invalid
       if content <> invalid and m.cellInfos <> invalid
@@ -239,6 +242,7 @@ namespace ml
       return invalid
     end function
 
+    'FIXME - this is expensive
     function getCellInfoForContentId(id as string) as ml.CellInfo
       info = invalid
       if id <> "" and m.cellInfos <> invalid
@@ -647,8 +651,11 @@ namespace ml
       end if
     end function
 
-    protected function onContentItemsChange(changes as mc.types.array)
-      'override me
+    protected function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
     end function
 
     protected function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as mc.types.array
@@ -704,10 +711,5 @@ namespace ml
 
       return previousInfo.index
     end function
-
-    function recalculateCellInfos(forceRecalculate as boolean)
-      ' ? "recalculateCellInfos " m.__classname
-    end function
-
   end class
 end namespace

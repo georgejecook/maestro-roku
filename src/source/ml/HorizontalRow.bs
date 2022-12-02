@@ -38,50 +38,51 @@ namespace ml
     '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
-      if m.owner._updatesEnabled
-        m.log.info("onContentChange")
-        m.configureHeader()
-        if content = invalid
-          m.log.info("row content is set to invalid. resetting")
-          m.viewManager.reset()
-        else
-          ' ? "UPDATING CONTENT"
-          m.viewManager.reset()
-          m.viewManager.setContent(content)
+    protected override function onContentChange(content as mc.types.node)
+      m.log.info("onContentChange")
+      ? ">>>>>>>>>>>>>>>>>>" mc.dv(m.top)
+      ? " ROW ON CONTENT CHANGE"
+      m.configureHeader()
 
-          ' m.focusManager.isNotifying = keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true
-          m.itemScroller.reset(keepOldFocusIfPossible)
-          ' m.focusManager.isNotifying = true
-        end if
-        ' end if
-        if m.viewManager.numberOfItems = 0 and content <> invalid and content.isHidden <> true
-          ' ? "force update - no comps left!"
-          m.owner@.forceUpdate()
-        end if
+      changeResult = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+      if content = invalid
+        m.log.info("row content is set to invalid. resetting")
+        m.viewManager.reset()
       else
-        m.log.info("Updates are disabled. onContentChange returning without updating")
+        m.viewManager.reset()
+        m.viewManager.setContent(content)
+        m.itemScroller.reset(true)
       end if
+      ' end if
+      if m.viewManager.numberOfItems = 0 and content <> invalid and content.isHidden <> true
+        changeResult.isLayoutRequired = true
+        ' m.owner@.forceUpdate()
+      end if
+
+      return changeResult
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
-      m.log.info("changed content items")
+    ' protected override function onContentItemsChange(changes as mc.types.array)
+    '   m.log.info("changed content items")
 
-      ? "IS FOCUSED "; m.isFocused
-      if m.owner._updatesEnabled
-        ? "content items changed AA"
-        if changes <> invalid and changes.count() > 0
-          ? "content items changed BB"
-          m.log.info("This content has changed in some way")
-          m.viewManager.onContentItemsChange(changes)
-        else
-          ? "content items changed CC"
-          m.viewManager.updateChangedItems()
-        end if
-      else
-        m.log.info("Updates are disabled. onContentItemsChange returning without updating")
-      end if
-    end function
+    '   ? "IS FOCUSED "; m.isFocused
+    '   if m.owner._updatesEnabled
+    '     ? "content items changed AA"
+    '     if changes <> invalid and changes.count() > 0
+    '       ? "content items changed BB"
+    '       m.log.info("This content has changed in some way")
+    '       m.viewManager.onContentItemsChange(changes)
+    '     else
+    '       ? "content items changed CC"
+    '       m.viewManager.updateChangedItems()
+    '     end if
+    '   else
+    '     m.log.info("Updates are disabled. onContentItemsChange returning without updating")
+    '   end if
+    ' end function
 
     override function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
       rect = m.viewManager.getRect(index, useScreenCoords = true)
@@ -130,9 +131,9 @@ namespace ml
     end function
 
     override function canMoveInDirection(direction as integer) as boolean
-      ' ? ">>> canMoveInDirection row"
-      ' ? "I " ; m.itemScroller.index
-      ' ? "direction" ; direction
+      ? ">>> canMoveInDirection row"
+      ? "I " ; m.itemScroller.index
+      ? "direction" ; direction
       return (m._content <> invalid and m._content.length > 0) and ((direction = -1 and m.itemScroller.index > 0) or (direction = 1 and m.itemScroller.index < m._content.length - 1))
     end function
 
@@ -145,12 +146,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onDidEnter(subRowIndex as integer, direction as integer, forceAll = false as boolean)
-      ? " onDidEnter "
+      ' ? " onDidEnter "
       m.itemScroller.notifyViewportEvents(direction, forceAll = true)
     end function
 
     private function onDidExit(subRowIndex as integer, direction as integer)
-      ? " onDidExit "
+      ' ? " onDidExit "
       m.viewManager.notifyExitEvent(m.viewManager.getRenderedIndexes())
     end function
 

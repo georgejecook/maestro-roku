@@ -83,7 +83,6 @@ namespace ml
         m.longPressEndItemOffset = 0
       end if
       m.viewPortEventNotifier.onViewManagerUpdate()
-      m.viewManager.recalculateCellInfos(true)
     end function
 
     public function reset(keepOldFocusIfPossible = false as boolean) as void
@@ -155,18 +154,18 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveInDirection(direction as integer) as boolean
-      m.viewManager.recalculateCellInfos(false)
+      ' m.viewManager.recalculateCellInfos(false)
       return m.canMoveToIndex(m.index + direction, direction)
     end function
 
     function canMoveToIndex(index as integer, direction as integer) as boolean
       ' ? "CMTI D "; direction; " MI " ; index ; " NC "; m.viewManager.numberOfItems
-      m.viewManager.recalculateCellInfos(false)
+      ' m.viewManager.recalculateCellInfos(false)
       return m.viewManager.numberOfItems > 0 and ((direction = -1 and index > -1) or (direction = 1 and index < m.viewManager.numberOfItems))
     end function
 
     function moveToContentIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean) as boolean
-      m.viewManager.recalculateCellInfos(false)
+      ' m.viewManager.recalculateCellInfos(false)
       info = m.viewManager.getCellInfoForContentIndex(index)
       if info <> invalid
         ' ? " INFO INDEX IS "; info.index
@@ -253,7 +252,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     ' move to the Virtual Index
-    function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean) as boolean
+    function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean) as boolean
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
       ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
       ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
@@ -261,7 +260,7 @@ namespace ml
       ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
       m.fractionWhenFinishBegan = 0
-      m.viewManager.recalculateCellInfos(false)
+      ' m.viewManager.recalculateCellInfos(false)
       m.focusManager@.cancelFlowFocus()
 
       if m.viewManager.numberOfItems = 0
@@ -319,7 +318,7 @@ namespace ml
       m.setNextCellInfo(nextCellInfo)
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
-      ' ? " MTI DD"
+      ? " MTI DD"
       if isFlowPossible
         ' ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
@@ -327,8 +326,10 @@ namespace ml
       end if
 
       translation = m.container.translation
-      translation[m.axes] = -targetCellInfo.getPosition(direction)
 
+      translation[m.axes] = (-targetCellInfo.getPosition(direction))
+      'TODO - need to get a different position if we are in floating focus!
+      ' translation[m.axes] = (-targetCellInfo.getScrollOffset(direction))
       ' ? "////// offset is "; translation[m.axes]
 
       ' ? " MTI EE"
@@ -360,8 +361,8 @@ namespace ml
         if not m.disableNonAnimatedFocusUpdates
           ' ? " MTI HH"
           'Grid rows will handle getting their own focus, as they may have called this as part of going to a specific subrow
-          m.setFocusIndex(index, false, true)
-          m.forceFocusOnIndex(index, true)
+          m.setFocusIndex(index, false, notifyFocusManager)
+          m.forceFocusOnIndex(index, notifyFocusManager)
         end if
         m.setCellInfo(targetCellInfo)
       end if

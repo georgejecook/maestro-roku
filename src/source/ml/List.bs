@@ -5,6 +5,7 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
+import "pkg:/source/ml/ListContentManager.bs"
 
 namespace ml
   @node("ml_List", "mv_BaseView")
@@ -15,9 +16,8 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'must gbe of type ListContent
-    @observer("onContentChange")
+    ' @observer("onContentChange")
     public content as mc.types.node
-    private _content
 
     'view that will respond to events
     public delegate as mc.types.node
@@ -56,14 +56,7 @@ namespace ml
     public focusedSubRowIndex = 0
 
     public focusedCellIndex = 0
-
     public focusedfraction = 0.0
-
-    @alwaysnotify
-    public itemSelected as mc.types.array
-
-    public _updatesEnabled = true
-
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
@@ -93,6 +86,7 @@ namespace ml
 
     private viewManager as ml.ListItemViewManager
     private itemScroller as ml.ListItemScroller
+    private contentManager as ml.ListContentManager
     private sourceFocusRect as object
     private targetFocusRect as object
     private isInitialized = false
@@ -135,7 +129,7 @@ namespace ml
       m.createViews()
       m.initManagers()
       m.isInitialized = true
-      m.onContentChange()
+      ' m.onContentChange()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -159,7 +153,7 @@ namespace ml
 
       m.itemScroller = new ml.ListItemScroller(m.viewManager, m.focusIndicatorManager)
       m.itemScroller.offsetContainer = m.contentGroup
-      m.content = invalid
+      m.contentManager = new ml.ListContentManager(m, m.viewManager, m.itemScroller, m.focusIndicatorManager)
     end function
 
     private function createEventsBroker(id as string)
@@ -176,10 +170,9 @@ namespace ml
 
       m.wasFocused = m.top.isFocused or m.top.isChildFocused
       m.top.visible = false
-      if m._content <> invalid
+      if m.contentManager.content <> invalid
         m.log.info("new content is present")
-        m.applyListSettings(m._content.listSettings)
-        m.viewManager.setContent(m._content)
+        m.viewManager.setContent(m.contentManager.content)
         m.top.clippingrect = [0, 0, m.width, m.height]
       else
         m.log.info("content is being set to invalid - resetting view manager")
@@ -206,78 +199,22 @@ namespace ml
       end if
     end function
 
-    private function applyListSettings(settings as mc.types.node)
-      if settings <> invalid
-        m.viewManager.lookAheadDistance = settings.lookAheadDistance = -1 ? 2147483647 : settings.lookAheadDistance
-        m.viewManager.lookBehindDistance = settings.lookBehindDistance = -1 ? 2147483647 : settings.lookBehindDistance
-      end if
-    end function
-
-    private function updateListContent()
-      if m._content <> invalid and m._content.length > 0
-        rows = m._content@.getChildren(-1, 0)
-        for each row in rows
-          if row.changes <> invalid and row.changes.count() > 0
-            row@.notifyUpdate()
-          end if
-        end for
-      end if
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onContentChange() as void
-      m.log.info("onContentChange")
+    function setContent(content as mc.types.node) as void
+      m.contentManager.setContent(content)
+    end function
 
-      if m.content = invalid
-        ? " SETTING INVALID - RESETTING"
-        m.content = ml.listMixin.createListContent()
-        m.content.id = "invalidContent"
-        m.cleanup()
-        return
-      end if
-
-      if m.isInitialized
-        if m._content <> invalid and not m._content.isSameNode(m.content)
-          m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
-        end if
-        if m._content = invalid or not m._content.isSameNode(m.content)
-          m._content = m.content
-          if m._content <> invalid
-            m.observeNodeField(m._content, "changes", m.onContentItemsChange)
-          end if
-          m.resetState()
-        else
-          ' m.log.info("current content has changed in some untracked way!")
-          'TODO check case where the content items mc_Array changes entirely
-        end if
-      end if
+    function synchronizeContent()
+      m.contentManager.synchronizeContent()
     end function
 
     private function cleanup()
       ? " CLEANING UP LIST"
       m.viewManager.reset()
       m.focusIndicatorManager@.setNextFocusIndicatorConfig(invalid)
-    end function
-
-    private function onContentItemsChange(changes as mc.types.array)
-      if m._updatesEnabled
-        ? " WHY CHANGE "; formatJson(changes)
-        m.log.info("The content items have changed")
-        m.focusIndicatorManager@.cancelFlowFocus()
-        m.viewManager.onContentItemsChange(changes)
-        m.focusIndicatorManager@.cancelFlowFocus()
-        m.viewManager.isScrolling = false
-        m.itemScroller.isDoingFlowFocus = false
-        ' ? " LIST CHANGES "
-        ' m.viewManager.forceUpdateLayout()
-
-        'TODO - need to ensure that the current focus and scroll position is valid after an update!
-        ' m.itemScroller.move(0)
-        ' m.viewManager.onContentItemsChange(changes)
-      end if
     end function
 
     private function onIsHiddenChange()
@@ -303,7 +240,6 @@ namespace ml
       ? m.focusedRowIndex ; " " m.focusedCellIndex
       ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
       m.viewManager.forceUpdateLayout(fullUpdate = true)
-      m.viewManager.recalculateCellInfos(true)
       'Note - this will result in a double call; but that's what it's gonna take to be sure things are okay
       m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
 
@@ -339,26 +275,32 @@ namespace ml
     end function
 
     function getRow(index as integer) as dynamic
-      return m.content@.getChild(index)
+      if m.contentManager.content <> invalid
+        return m.contentManager.content@.getChild(index)
+      else
+        return invalid
+      end if
     end function
 
     function getItem(rowIndex as integer, index as integer) as dynamic
-      rowItem = m.content@.getChild(rowIndex)
-      if rowItem <> invalid
-        return rowItem@.getChild(index)
+      if m.contentManager.content <> invalid
+        rowItem = m.contentManager.content@.getChild(rowIndex)
+        if rowItem <> invalid
+          return rowItem@.getChild(index)
+        end if
       end if
       return invalid
     end function
 
     function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
-      if m.content <> invalid
+      if m.contentManager.content <> invalid
         m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex)
       end if
     end function
 
     function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean, animSpeedIndex = 0 as integer) as void
       ? " MTRI  " rowIndex index animated
-      if m._content <> invalid and rowIndex <> -1 and index <> -1
+      if m.contentManager.content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
         ? " MTR A"
         if row <> invalid
@@ -375,7 +317,7 @@ namespace ml
     end function
 
     function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
+      if m.contentManager.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
         m.itemScroller.moveToIndex(index, animated = true, animSpeedIndex)
         m.itemScroller.disableNonAnimatedFocusUpdates = false
@@ -390,10 +332,7 @@ namespace ml
     end function
 
     function setUpdatesEnabled(enabled as boolean)
-      m._updatesEnabled = enabled
-      if enabled
-        m.updateListContent()
-      end if
+      m.contentManager.setUpdatesEnabled(enabled)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -427,8 +366,8 @@ namespace ml
     end function
 
     function getFocusedRowContent()
-      if m.content <> invalid
-        return m.content@.getChild(m.focusedRowIndex)
+      if m.contentManager.content <> invalid
+        return m.contentManager.content@.getChild(m.focusedRowIndex)
       else
         return invalid
       end if
@@ -452,8 +391,8 @@ namespace ml
       ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
       '   return c.type
       ' end function))
+      ? " LIVM _onContentItemChange"
       m.viewManager.forceUpdateLayout()
-      m.viewManager.recalculateCellInfos(true)
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
       m.itemScroller.processChanges(changes)
@@ -489,6 +428,8 @@ namespace ml
         row = m.getFocusedRow()
         if row <> invalid
           return row@.canMoveInDirection(direction)
+        else
+          ? "FOCUSED ROW INVALID"
         end if
       end if
       return false
@@ -502,6 +443,7 @@ namespace ml
         return true
       end if
 
+      ? " OKP " key
       if m.canMoveFromKeyPress(key)
         direction = m.keyDirections[key]
         m.isDoingFlowFocus = false
@@ -603,7 +545,6 @@ namespace ml
       end if
 
       m.log.verbose("onKeyPressOk")
-      m.itemSelected = [m.focusedRowIndex, m.focusedCellIndex]
       if m.delegate <> invalid
         m.delegate@._apply("onItemSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
       end if

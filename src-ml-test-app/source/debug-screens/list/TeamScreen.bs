@@ -48,6 +48,7 @@ namespace ml.sample
         width: size[0]
         height: size[1]
       })
+
       mioc.setInstance("list", m.list)
       m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
         isActive: true
@@ -76,6 +77,7 @@ namespace ml.sample
       content@.appendChildren(items)
       m.list.visible = false
       m.list.content = content
+      m.list.delegate = m.top
       timer.log("set content")
       if m.list.state = "rendered"
         m.onListRenderState("rendered")
@@ -207,7 +209,7 @@ namespace ml.sample
       m.followingModule.isHidden = m.followingModule.length = 0
       m.teamsModule.isHidden = m.teamsModule.length = 0
       if m.followingModule.isHidden
-        m.list@.moveToIndex([0, 0])
+        m.list@.moveToRowItemIndex(0, 0, false)
       end if
     end function
 
@@ -249,109 +251,6 @@ namespace ml.sample
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ List Delegate
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      ' ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-      mioc.setInstance("focusedIndex", {
-        row: rowIndex
-        cell: itemIndex
-      })
-    end function
-
-    private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      ' ? "+SCREEN onCellWillLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-      mioc.setInstance("focusedIndex", {
-        row: rowIndex
-        cell: itemIndex
-      })
-    end function
-
-    private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-      mioc.setInstance("focusedIndex", {
-        row: rowIndex
-        cell: itemIndex
-      })
-    end function
-
-
-    private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      ' ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
-    end function
-
-    private function onRowdidEnter(rowIndex as integer, direction as integer)
-      ' ? "+SCREEN onRowdidEnter : R: "; rowIndex ; " D:" ; direction
-    end function
-    private function onRowdidExit(rowIndex as integer, direction as integer)
-      ' ? "+SCREEN onRowdidExit : R: "; rowIndex ; " D:" ; direction
-    end function
-
-    private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-      ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
-
-      row = m.list@.getRowRenderer(rowIndex)
-      if row <> invalid
-        mioc.setInstance("focusedIndex", {
-          row: rowIndex
-          cell: row.focusedCellIndex
-        })
-      else
-        mioc.setInstance("focusedIndex", {
-          row: -1
-          cell: -1
-        })
-
-      end if
-
-      ' if direction = -1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = 1
-      ' end if
-    end function
-
-    private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-      ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
-
-      ' row = m.list@.getRowRenderer(rowIndex)
-      ' if direction = 1
-      '   row.opacity = 0
-      ' end if
-
-    end function
-
-    private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-      ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
-      ' if direction = -1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = fraction
-      ' end if
-    end function
-
-    private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-      ' ? "+SCREEN onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
-      ' if direction = 1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = 1 - fraction
-      ' end if
-
-    end function
-
-    private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-      ' ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
-      ' if direction = -1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = fraction
-      ' end if
-    end function
-
-    private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-      ? "+ onCellLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
-      ' if direction = 1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = 1 - fraction
-      ' end if
-
-    end function
 
     private function onItemSelected(rowIndex as integer, itemIndex as integer)
       row = m.list.content@.getChild(rowIndex)

@@ -14,7 +14,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'Instance of RowContent
-    @observer("_onContentChange")
+    ' @observer("_onContentChange")
     public content as mc.types.node
 
     public index = -1
@@ -41,10 +41,7 @@ namespace ml
     '++ Protected Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected _content ' use this reference for speed
-    protected isInitialized = false
-    protected wasHidden = false
-    protected wasFocusable = true
+    protected _content ' use this reference on m for speed
     protected settings
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,8 +62,6 @@ namespace ml
     protected override function initialize()
       super.initialize()
       m.createViews()
-      m.isInitialized = true
-      m._onContentChange()
     end function
 
     protected function createViews()
@@ -79,54 +74,97 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function _onContentChange()
-      ' ? "ON CONTENT CHANGE "; m.isInitialized
-      m.log.info("onContentChange")
-      if m.isInitialized
-        if m._content = invalid or not m._content.isSameNode(m.content)
-          if m._content <> invalid
-            m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
-          end if
-          'was no content or it changed
-          m._content = m.content
-          m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
 
-          m.observeNodeField(m._content, "changes", m.onContentItemsChange)
-          m.onContentChange(m._content)
-
-        else if m._content <> invalid
-          changes = []
-          if m.wasHidden <> m._content.isHidden
-            ' ? ">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden
-            changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
-            m.wasHidden = m._content.isHidden
-          end if
-          if m.wasFocusable <> m._content.isFocusEnabled
-            changes.push({ row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled })
-            m.wasFocusable = m._content.isFocusEnabled
-          end if
-
-          if m.alwaysNotifyContentChange
-            m.onContentChange(m._content)
-          end if
-
-          if changes.count() > 0
-            m.owner@._onContentItemChange(changes)
-          end if
-
-          'potentially update the header
-        else
-          '   'new content is invalid
-          m.wasHidden = true
-          m.wasFocusable = false
-        end if
-
+    function onContentItemsChange() as ml.ListChangeResult
+      ? " ROW " mc.dv(m.top) " has changes ";
+      m.log.info("This content has changed in some way")
+      changes = m.content.changes
+      if changes <> invalid and changes.count() > 0
+        ? " content items changed"
+        return m.applyChildChanges(changes)
+      else
+        ? " content items changed CC"
+        return m.updateChangedCells()
       end if
     end function
 
-    protected function onContentItemsChange(changes as mc.types.array)
-      m.log.info("This content has changed in some way")
+
+    function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
+      ? " applying child changes " mc.dv(m.top)
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.onContentItemsChange(changes)
+      end if
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
     end function
+
+    function updateChangedCells() as ml.ListChangeResult
+      ? " updating changed cells " mc.dv(m.top)
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        m.viewManager.updateChangedItems()
+      end if
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+    end function
+
+    function setContent(content as mc.types.node) as ml.ListChangeResult
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
+      m._content = content
+      ? " SET CONTENT " mc.dv(m.top)
+      return m.onContentChange(content)
+    end function
+
+    ' private function _onContentChange()
+    '   m.log.info("onContentChange")
+    '   if m.isInitialized
+    '     if m._content = invalid or not m._content.isSameNode(m.content)
+    '       if m._content <> invalid
+    '         m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
+    '       end if
+    '       'was no content or it changed
+    '       m._content = m.content
+    '       m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+
+    '       m.observeNodeField(m._content, "changes", m.onContentItemsChange)
+    '       m.onContentChange(m._content)
+
+    '     else if m._content <> invalid
+    '       changes = []
+    '       if m.wasHidden <> m._content.isHidden
+    '         ' ? ">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden
+    '         changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
+    '         m.wasHidden = m._content.isHidden
+    '       end if
+    '       if m.wasFocusable <> m._content.isFocusEnabled
+    '         changes.push({ row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled })
+    '         m.wasFocusable = m._content.isFocusEnabled
+    '       end if
+
+    '       if m.alwaysNotifyContentChange
+    '         m.onContentChange(m._content)
+    '       end if
+
+    '       if changes.count() > 0
+    '         m.owner@._onContentItemChange(changes)
+    '       end if
+
+    '       'potentially update the header
+    '     else
+    '       '   'new content is invalid
+    '       m.wasHidden = true
+    '       m.wasFocusable = false
+    '     end if
+
+    '   end if
+    ' end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Methods
@@ -137,6 +175,7 @@ namespace ml
         return
       end if
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+      ? " forceUPdate " mc.dv(m.top)
       m.onContentChange(m._content)
 
       'bs:disable-next-line
@@ -242,8 +281,11 @@ namespace ml
     '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function onContentchange(content as mc.types.node)
-      'implement me
+    protected function onContentChange(content as mc.types.node) as ml.ListChangeResult
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
     end function
 
     protected function onRecycle(newContent as mc.types.node)

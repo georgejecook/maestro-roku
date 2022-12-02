@@ -15,7 +15,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 5
+  private numberOfRows = 15
   ' private numberOfRows = 2
   private numberOfItems = 15
   private defaultCellType = "PosterCellEfficient"
@@ -91,7 +91,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onResetChange()
-    m.list.content = invalid
+    m.list@.setContent(invalid)
     m.cellSettings = ml.listMixin.createCellSettings("PosterCellEfficient", [400, 250], 30)
 
     timer = new mc.utils.DebugTimer("list")
@@ -123,7 +123,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private listContent as mc.types.node
 
   private function onShowList()
-    m.list.content = m.listContent
+    m.list@.setContent(m.listContent)
     ' timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
@@ -149,8 +149,8 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    showHero = false
-    showComplex = false
+    showHero = true
+    showComplex = true
     showNormal = true
 
     showGrids = true
@@ -273,6 +273,13 @@ class ListEnterExitScreen extends mv.BaseScreen
   private function removeCell()
     rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
     rowContent@.removeChildIndex(m.list.focusedCellIndex)
+    ? " INDEX " m.list.focusedCellIndex
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
+    ? " INDEX 2" m.list.focusedCellIndex
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 4)
+    ? " INDEX 3" m.list.focusedCellIndex
+    rowContent@.setNotificationsEnabled(false)
+    m.list.content@.setNotificationsEnabled(false)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -288,6 +295,13 @@ class ListEnterExitScreen extends mv.BaseScreen
     ' m.list.content = invalid
     m.removeCell()
     ' m.setFocus(m.list)
+    return true
+  end function
+
+  private function onKeyPressPlay() as boolean
+    ? " APPLYING"
+    m.list.content@.notifyUpdate()
+    m.list@.synchronizeContent()
     return true
   end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -323,7 +337,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-    ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction
+    ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction
 
     row = m.list@.getRowRenderer(rowIndex)
     if row <> invalid
@@ -346,7 +360,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowDidLoseFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-    ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction
+    ' ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction
 
     ' row = m.list@.getRowRenderer(rowIndex)
     ' if direction = 1
@@ -356,7 +370,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowGainingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-    ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction ; " F: " ; fraction
+    ' ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction ; " F: " ; fraction
     ' if direction = -1
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = fraction
@@ -364,7 +378,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowLosingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-    ? "+ onRowLosingFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction ; " F: " ; fraction
+    ' ? "+ onRowLosingFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction ; " F: " ; fraction
     ' if direction = 1
     '   row = m.list@.getRowRenderer(rowIndex)
     '   row.opacity = 1 - fraction
@@ -380,7 +394,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-    ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+    ' ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
     mioc.setInstance("focusedIndex", {
       row: rowIndex
       cell: itemIndex
@@ -414,10 +428,20 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
+    ' ? " SELECTED ITEM " rowIndex itemIndex
     rowContent = m.list.content@.getChild(rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("PosterCellEfficient", title)
+    rowContent@.setNotificationsEnabled(false)
     rowContent@.insertChild(child, itemIndex)
+
+    child = m.makeItem("PosterCellEfficient", title)
+    rowContent@.setNotificationsEnabled(false)
+    rowContent@.insertChild(child, itemIndex + 2)
+
+    child = m.makeItem("PosterCellEfficient", title)
+    rowContent@.setNotificationsEnabled(false)
+    rowContent@.insertChild(child, itemIndex + 4)
     ' rowContent@.removeChild(child)
     ' row = m.list@.getRowRenderer(rowIndex)
     ' row@.forceUpdate()
