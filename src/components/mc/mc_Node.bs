@@ -194,7 +194,7 @@ function insertItems(index as integer, value as dynamic) as void
 
   m.top.length = m.children.count()
 
-  m.top.changes = [{ type: "insert", items: value, index: index }]
+  addChanges([{ type: "insert", items: value, index: index }])
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -221,6 +221,7 @@ end function
 function setNotificationsEnabled(active as boolean, sendUpdatedChange = false as boolean)
   m.notifyChanges = active
   if active
+    ? " NOTIFICATION REENABLED " m.pendingChanges
     if sendUpdatedChange
       m.top.changes = [{ type: "updated" }]
     else

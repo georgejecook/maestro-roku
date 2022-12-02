@@ -114,8 +114,8 @@ namespace ml
       ? " applyRowContentUpdate "
       m.log.info("setContentOnRow")
 
-      m.updateRowContentInfo(row, content, result)
-      if notifyRow
+      isChanged = m.updateRowContentInfo(row, content, result)
+      if isChanged and notifyRow
         m.applyRowContentUpdate(row, content, result)
       end if
     end function
@@ -164,12 +164,13 @@ namespace ml
       end if
     end function
 
-    private function updateRowContentInfo(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult) as void
+    private function updateRowContentInfo(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult) as boolean
       if row = invalid
         ? " updateRowContentInfo cannot set content on invalid row"
-        return
+        return false
       end if
 
+      isChanged = false
       newContentInfo = invalid
       oldRowContentInfo = invalid
 
@@ -179,6 +180,7 @@ namespace ml
         if content = invalid
           if oldRowContentInfo <> invalid
             result.isLayoutRequired = true
+            isChanged = true
           end if
           m.rowContentInfoByContentId.delete(oldContent.id)
         end if
@@ -195,9 +197,9 @@ namespace ml
         m.rowContentInfoByContentId[content.id] = newContentInfo
       end if
 
-      if result <> invalid
-        if oldRowContentInfo <> invalid and newContentInfo <> invalid
-
+      if oldRowContentInfo <> invalid and newContentInfo <> invalid
+        isChanged = oldRowContentInfo.version <> newContentInfo.version
+        if result <> invalid
           if oldRowContentInfo.isHidden <> newContentInfo.isHidden
             result.isLayoutRequired = true
           end if
@@ -209,6 +211,8 @@ namespace ml
           result.isLayoutRequired = true
         end if
       end if
+
+      return isChanged
     end function
 
     private function onRowContentItemsChange(rowContent as mc.types.node)

@@ -15,7 +15,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 15
+  private numberOfRows = 1
   ' private numberOfRows = 2
   private numberOfItems = 15
   private defaultCellType = "PosterCellEfficient"
@@ -149,11 +149,11 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function createGridData()
     content = []
-    showHero = true
-    showComplex = true
+    showHero = false
+    showComplex = false
     showNormal = true
 
-    showGrids = true
+    showGrids = false
 
     'TODO - add normal rows around this
     for i = 0 to m.numberOfRows - 1
@@ -272,14 +272,11 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function removeCell()
     rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    rowContent@.removeChildIndex(m.list.focusedCellIndex)
-    ? " INDEX " m.list.focusedCellIndex
-    rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
-    ? " INDEX 2" m.list.focusedCellIndex
-    rowContent@.removeChildIndex(m.list.focusedCellIndex + 4)
-    ? " INDEX 3" m.list.focusedCellIndex
     rowContent@.setNotificationsEnabled(false)
-    m.list.content@.setNotificationsEnabled(false)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 4)
+    ' rowContent@.setNotificationsEnabled(true)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -300,6 +297,9 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function onKeyPressPlay() as boolean
     ? " APPLYING"
+    rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
+    rowContent@.setNotificationsEnabled(true)
+
     m.list.content@.notifyUpdate()
     m.list@.synchronizeContent()
     return true
@@ -436,12 +436,11 @@ class ListEnterExitScreen extends mv.BaseScreen
     rowContent@.insertChild(child, itemIndex)
 
     child = m.makeItem("PosterCellEfficient", title)
-    rowContent@.setNotificationsEnabled(false)
     rowContent@.insertChild(child, itemIndex + 2)
 
     child = m.makeItem("PosterCellEfficient", title)
-    rowContent@.setNotificationsEnabled(false)
     rowContent@.insertChild(child, itemIndex + 4)
+    ' rowContent@.setNotificationsEnabled(true)
     ' rowContent@.removeChild(child)
     ' row = m.list@.getRowRenderer(rowIndex)
     ' row@.forceUpdate()

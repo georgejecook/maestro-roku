@@ -74,23 +74,22 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
     function onContentItemsChange() as ml.ListChangeResult
-      ? " ROW " mc.dv(m.top) " has changes ";
+      ? " ROW " mc.dv(m.top) " CHANGES: ";
       m.log.info("This content has changed in some way")
       changes = m.content.changes
       if changes <> invalid and changes.count() > 0
-        ? " content items changed"
+        ? " ITEM CHANGES " formatJson(changes)
         return m.applyChildChanges(changes)
       else
-        ? " content items changed CC"
+        ? "CELL CONTENT"
         return m.updateChangedCells()
       end if
     end function
 
 
     function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
-      ? " applying child changes " mc.dv(m.top)
+      ? " applying child changes " mc.dv(m.top) " # changes" changes.count()
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line

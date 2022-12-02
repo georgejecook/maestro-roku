@@ -280,11 +280,9 @@ namespace ml
       m.log.info("processing removed cells")
       for each change in changes
         if change.type = "remove"
-          m.log.info("removing cell at index", change.index)
-          item = change.child
-
-          if item <> invalid
-            m.releasecell(m.renderersByContentId[item.id])
+          if change.child <> invalid
+            m.log.info("removing cell with id", change.child.id)
+            m.releasecell(m.renderersByContentId[change.child.id])
           else
             m.log.error("could not find cell to release")
           end if
@@ -295,9 +293,9 @@ namespace ml
             cellInfo = m.rendereredCellInfosByIndex[key]
             m.releaseCellAtIndex(cellInfo.index)
           end for
-          m.tidyUpUnusedRenderers()
         end if
       end for
+      m.tidyUpUnusedRenderers()
     end function
 
     protected function tidyUpUnusedRenderers() as void
@@ -311,7 +309,7 @@ namespace ml
           renderer.content = invalid
         end if
       end for
-      ' ? " cleaning up "; removedRenderers.count() " renderers"
+      ? " cleaning up "; removedRenderers.count() " renderers"
       m.componentPool@.releaseComponents(removedRenderers)
     end function
 
