@@ -53,7 +53,7 @@ namespace ml
         ? "LCM content has changed"
         'TODO - observe something here
         m.list.resetState()
-      else
+      else if content <> invalid
         'TODO - add auto checking for changes
         ' m.log.info("current content has changed in some untracked way!")
         'TODO check case where the content items mc_Array changes entirely
@@ -88,6 +88,13 @@ namespace ml
         end if
       end for
 
+      ? " LIST CONTENT CHANGES " m.content.changes
+
+      if m.content.changes.count() > 0
+        ? "LIST CONTENT IS CHANGED "
+        m.onListContentItemsChange(m.content.changes)
+      end if
+
       m.processListChanges(listResult)
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
       ' if listResult.isLayoutRequired
@@ -112,7 +119,7 @@ namespace ml
         return
       end if
       ? " applyRowContentUpdate "
-      m.log.info("setContentOnRow")
+      m.log.info("updateContentOnRow")
 
       isChanged = m.updateRowContentInfo(row, content, result)
       if isChanged and notifyRow
@@ -234,22 +241,13 @@ namespace ml
     '++ List Content Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onContentItemsChange(changes as mc.types.array)
-      if m.isUpdateEnabled
-        ? " WHY CHANGE "; formatJson(changes)
-        m.log.info("The content items have changed")
-        m.focusIndicatorManager@.cancelFlowFocus()
-        m.viewManager.onContentItemsChange(changes)
-        m.focusIndicatorManager@.cancelFlowFocus()
-        m.viewManager.isScrolling = false
-        m.itemScroller.isDoingFlowFocus = false
-        ' ? " LIST CHANGES "
-        ' m.viewManager.forceUpdateLayout()
-
-        'TODO - need to ensure that the current focus and scroll position is valid after an update!
-        ' m.itemScroller.move(0)
-        ' m.viewManager.onContentItemsChange(changes)
-      end if
+    private function onListContentItemsChange(changes as mc.types.array)
+      m.log.info("The list content items have changed")
+      m.focusIndicatorManager@.cancelFlowFocus()
+      m.viewManager.onContentItemsChange(changes)
+      m.focusIndicatorManager@.cancelFlowFocus()
+      m.viewManager.isScrolling = false
+      m.itemScroller.isDoingFlowFocus = false
     end function
 
     private function processListChanges(result as ml.ListChangeResult)

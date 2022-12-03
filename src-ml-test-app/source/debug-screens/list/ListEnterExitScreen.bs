@@ -15,8 +15,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 1
-  ' private numberOfRows = 2
+  private numberOfRows = 5
   private numberOfItems = 15
   private defaultCellType = "PosterCellEfficient"
 
@@ -276,7 +275,18 @@ class ListEnterExitScreen extends mv.BaseScreen
     rowContent@.removeChildIndex(m.list.focusedCellIndex)
     rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
     rowContent@.removeChildIndex(m.list.focusedCellIndex + 4)
-    ' rowContent@.setNotificationsEnabled(true)
+
+
+    rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 1)
+    rowContent@.setNotificationsEnabled(false)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 1)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 3)
+
+    rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 2)
+    rowContent@.setNotificationsEnabled(false)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex)
+    rowContent@.removeChildIndex(m.list.focusedCellIndex + 1)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -299,6 +309,10 @@ class ListEnterExitScreen extends mv.BaseScreen
     ? " APPLYING"
     rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
     rowContent@.setNotificationsEnabled(true)
+    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 1)
+    ' rowContent@.setNotificationsEnabled(true)
+    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 2)
+    ' rowContent@.setNotificationsEnabled(true)
 
     m.list.content@.notifyUpdate()
     m.list@.synchronizeContent()
@@ -429,17 +443,26 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function onItemSelected(rowIndex as integer, itemIndex as integer)
     ' ? " SELECTED ITEM " rowIndex itemIndex
-    rowContent = m.list.content@.getChild(rowIndex)
-    title = `NEW Item ${m.contentId}`
-    child = m.makeItem("PosterCellEfficient", title)
-    rowContent@.setNotificationsEnabled(false)
-    rowContent@.insertChild(child, itemIndex)
+    ? " REMOVING ROW "rowIndex
+    m.list.content@.setNotificationsEnabled(false)
+    m.list.content@.removeChildIndex(rowIndex)
+    ' rowContent = m.list.content@.getChild(rowIndex)
+    ' rowContent@.setNotificationsEnabled(false)
+    ' title = `NEW Item ${m.contentId}`
+    ' child = m.makeItem("PosterCellEfficient", title)
+    ' rowContent@.insertChild(child, itemIndex)
 
-    child = m.makeItem("PosterCellEfficient", title)
-    rowContent@.insertChild(child, itemIndex + 2)
+    ' child = m.makeItem("PosterCellEfficient", title)
+    ' rowContent@.insertChild(child, itemIndex + 2)
 
-    child = m.makeItem("PosterCellEfficient", title)
-    rowContent@.insertChild(child, itemIndex + 4)
+    ' child = m.makeItem("PosterCellEfficient", title)
+    ' rowContent@.insertChild(child, itemIndex + 4)
+
+
+    ' rowContent = m.list.content@.getChild(rowIndex + 1)
+    ' ? " CLEDARING ROW"
+    ' rowContent@.clear()
+
     ' rowContent@.setNotificationsEnabled(true)
     ' rowContent@.removeChild(child)
     ' row = m.list@.getRowRenderer(rowIndex)
