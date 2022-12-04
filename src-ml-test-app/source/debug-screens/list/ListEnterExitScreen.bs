@@ -15,7 +15,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 5
+  private numberOfRows = 100
   private numberOfItems = 15
   private defaultCellType = "PosterCellEfficient"
 
@@ -157,6 +157,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     'TODO - add normal rows around this
     for i = 0 to m.numberOfRows - 1
       row = createObject("roSGNode", "ml_RowContent")
+      mc.setOrAddNodeField(row, "index", `${m.currentRowIndex}`)
+      m.currentRowIndex++
       row.id = rnd(2147483647).toStr()
       if showHero and (i = 0 or i = 6 or i = 12 or i = 18 or i = 25 or i = 35 or i = 45)
         row0FocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
@@ -243,6 +245,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     row@.removeChildrenIndex(startIndex, numItems)
   end function
 
+  private currentRowIndex = 0
   private function addRow(index as integer)
     rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     row = createObject("roSGNode", "ml_RowContent")
@@ -254,6 +257,8 @@ class ListEnterExitScreen extends mv.BaseScreen
 
     row.title = "NEW ROW " + m.contentId.toStr()
     row.id = rnd(2147483647).toStr()
+    mc.setOrAddNodeField(row, "index", `${m.currentRowIndex}`)
+    m.currentRowIndex++
     m.contentId++
     row@.appendChildren(m.makeItems(m.defaultCellType, 5))
     m.list.content@.insertChild(row, index)
@@ -305,7 +310,19 @@ class ListEnterExitScreen extends mv.BaseScreen
     return true
   end function
 
+  private sortAscending = true
   private function onKeyPressPlay() as boolean
+    m.sortAscending = not m.sortAscending
+
+    m.list.content@.setNotificationsEnabled(false)
+    m.list.content@.sortByKey("index", m.sortAscending)
+
+    m.list.content@.setNotificationsEnabled(true)
+    m.list@.synchronizeContent()
+    return true
+  end function
+
+  private function _onKeyPressPlay() as boolean
     ? " APPLYING"
     rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
     rowContent@.setNotificationsEnabled(true)
