@@ -40,16 +40,17 @@ end function
 
 function sortByKey(keyName as string, ascending = true as boolean)
   m.children = mc.collections.getSortedArrayByKey(m.children, keyName, ascending)
+  m.top.length = m.children.count()
   addChanges([{ type: "sort" }])
 end function
 
 function sortByCallFunc(functionName as string, ascending = true as boolean)
   m.children = mc.collections.getSortedArrayByCallFunc(m.children, functionName, ascending)
+  m.top.length = m.children.count()
   addChanges([{ type: "sort" }])
 end function
 
 function clear(args = invalid as dynamic)
-  ? " CLEARING"
   m.children = []
   m.top.length = 0
   addChanges([{ type: "clear" }])
