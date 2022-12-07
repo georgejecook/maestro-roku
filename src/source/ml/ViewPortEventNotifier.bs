@@ -40,7 +40,8 @@ namespace ml
         m.delegates.push(m.viewManager.delegate)
       end if
 
-      if m.viewManager.row = invalid
+      if m.viewManager.row = invalid or m.viewManager.__classname = "ml.GridRowItemViewManager"
+        'grids use the list settings
         settings = m.viewManager.listSettings
       else
         settings = m.viewManager.getItemSettings()

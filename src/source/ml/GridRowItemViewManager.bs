@@ -330,18 +330,24 @@ namespace ml
       m.previousRendereredByContentId = m.renderersByContentId
 
       m.itemScroller.processChanges(changes)
-      m.updateRenderersWithChanges(result, previousInfo)
-      return result
-    end function
-
-    private function updateRenderersWithChanges(result as ml.ListChangeResult, previousInfo as ml.CellInfo)
       nextIndex = m.getIndexAfterItemUpdate(previousInfo)
       ? " ACCORDING TO GRID NEXT INDEX WILL BE " nextIndex
       result.isFocusChangeRequired = nextIndex <> previousInfo.index
-      nextRowIndex = m.getRowIndexForItemIndex(nextIndex)
 
-      'TODO - work out how many rows are needed to be covered here
-      m.notifyEnterEvent(mc.clamp(nextRowIndex - 3, 0, m.numRows), mc.clamp(nextIndex + 5, 0, m.numRows), true)
+      if m.content.title = "TEAMS"
+        ? "here"
+      end if
+
+      m.updateRenderersWithChanges(nextIndex)
+      return result
+    end function
+
+    private function updateRenderersWithChanges(nextIndex as integer)
+      nextRowIndex = m.getRowIndexForItemIndex(nextIndex)
+      startRowIndex = mc.clamp(nextRowIndex - m.itemScroller.viewPortEventNotifier.numberToLookBehind, 0, m.numRows)
+      endRowIndex = mc.clamp(nextRowIndex + m.itemScroller.viewPortEventNotifier.numberToLookAhead, 0, m.numRows)
+      ? " updateRenderers " m.content.title " nextRowIndex " startRowIndex "NOTIFYING FROM " startRowIndex " to " endRowIndex
+      m.notifyEnterEvent(startRowIndex, endRowIndex, true)
     end function
 
     override function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
