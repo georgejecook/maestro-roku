@@ -54,15 +54,19 @@ namespace ml
 
     protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
+      ' ? " GRID CHANGE ========================================"
       m.configureHeader()
 
       if content = invalid
         m.log.info("row content is set to invalid. resetting")
+        ' ? " GRID CHANGE AAAA"
         m.viewManager.reset()
       else
+        ' ? " GRID CHANGE BBBB"
         m.viewManager.reset()
         m.viewManager.setContent(content)
 
+        ' ? " GRID CHANGE CCCC " keepOldFocusIfPossible
         ' m.focusManager.isNotifying = keepOldFocusIfPossible = invalid or keepOldFocusIfPossible = true
         m.itemScroller.reset(keepOldFocusIfPossible)
         ' m.focusManager.isNotifying = true
@@ -84,7 +88,7 @@ namespace ml
 
     override function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       'FIXME - what to do here?
-      ? " GRID MOVE TO INDEX - ASSUMING THIS INDEX IS ON SCREEN - OR THIS SHOULD NOT HAVE BEEN CALLED"
+      ' ? " GRID MOVE TO INDEX - ASSUMING THIS INDEX IS ON SCREEN - OR THIS SHOULD NOT HAVE BEEN CALLED"
       if m._content <> invalid and index <> -1
         m.itemScroller.forceFocusOnIndex(index, true, false)
       end if
@@ -147,12 +151,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onDidEnter(subRowIndex as integer, direction as integer, forceCellUpdate = false as boolean)
-      ? " GRID onDidEnter "
+      ? " GRID onDidEnter SRI " subRowIndex " FORCE " forceCellUpdate
       m.viewManager.notifyEnterEvent(subRowIndex, subRowIndex, forceCellUpdate = true)
     end function
 
     private function onDidExit(subRowIndex as integer, direction as integer)
-      ? " GRID onDidExit "
+      ? " GRID onDidExit SRI " subRowIndex
       m.viewManager.notifyExitEvent(subRowIndex, subRowIndex)
     end function
 
@@ -161,19 +165,19 @@ namespace ml
     ' end function
 
     private function onDidGainFocus(subRowIndex as integer, direction as integer)
-      ? " GRID onDidGainFocus " m.index subRowIndex direction
+      ' ? " GRID onDidGainFocus " m.index subRowIndex direction
     end function
 
     private function onDidLoseFocus(subRowIndex as integer, direction as integer)
-      ? " GRID onDidLoseFocus " m.index subRowIndex direction
+      ' ? " GRID onDidLoseFocus " m.index subRowIndex direction
     end function
 
     private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
-      ? " GRID onGainingFocus " m.index subRowIndex direction fraction
+      ' ? " GRID onGainingFocus " m.index subRowIndex direction fraction
     end function
 
     private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
-      ? " GRID onLosingFocus " m.index subRowIndex direction fraction
+      ' ? " GRID onLosingFocus " m.index subRowIndex direction fraction
     end function
 
     private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)

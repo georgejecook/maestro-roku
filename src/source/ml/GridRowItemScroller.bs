@@ -54,7 +54,7 @@ namespace ml
       ' m.viewPortEventNotifier.notifyViewportEvents(m.direction, isInViewPort, true, m.viewManager.getRowIndexForItemIndex(m.focusedIndex))
     end function
 
-    protected override function getCellCellInfo(cellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo
+    protected override function getCellInfo(cellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo
 
       'TODO - add the ability for a given row to _remember_ or choose the
       'default index it should give us
@@ -95,7 +95,7 @@ namespace ml
 
     public override function chooseCellInfoForScrollingIntoRow(cellInfo as ml.CellInfo)
       ' ? " GRID CHOOSE SCROLLING INTO ROW" ; cellInfo.index; " CI "; cellInfo.componentIndex
-      cellInfo = m.getCellCellInfo(cellInfo, true)
+      cellInfo = m.getCellInfo(cellInfo, true)
       if cellInfo <> invalid
         m.setCellInfo(cellInfo)
         ' ? " GRID CHOICE IS MADE index is now "; m.index
@@ -111,7 +111,12 @@ namespace ml
         ? "ERROR grid got invalid cellInfo"
         return invalid
       end if
-      info = m.getCellCellInfo(cellInfo, isFromListScroll)
+      info = m.getCellInfo(cellInfo, isFromListScroll)
+      if info = invalid
+        ? "ERROR grid could not find cellInfo matching"
+        return invalid
+      end if
+
       config = super.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, isFromListScroll)
       config.subRowIndex = m.viewManager.getRowIndexForItemIndex(info.contentIndex)
       return config

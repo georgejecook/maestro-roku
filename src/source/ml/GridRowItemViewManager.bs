@@ -19,7 +19,7 @@ namespace ml
     public downScreenPosition = 0
     private lastFlowDirection = 1
     private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
-
+    private renderedRows = {}
 
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
@@ -55,14 +55,18 @@ namespace ml
       return infos
     end function
 
-    function getRenderersInRow(rowIndex as integer) as mc.types.array
+    function getRenderersInRow(rowIndex as integer, createIfNotReady = false as boolean, forceUpdate = false as boolean) as mc.types.array
       infos = m.getCellInfosInRow(rowIndex)
       renderers = []
+      ? " renderers in row " rowIndex " "
       for each info in infos
-        renderer = m.getRenderer(info.componentIndex)
+        ? info.index " CI " info.componentIndex ;
+        renderer = m.getRenderer(info.componentIndex, createIfNotReady, forceUpdate)
         if renderer <> invalid
+          ? " [X] " ;
           renderers.push(renderer)
         end if
+        ? ""
       end for
       return renderers
     end function
@@ -147,6 +151,7 @@ namespace ml
     end function
 
     override function updateLayout(fullUpdate = false as boolean) as void
+      ? " GRID UPDATE LAYOUT"
       m.log.info("GRID updateLayout")
       m.rects = []
       m.visibleItems = []
@@ -170,11 +175,11 @@ namespace ml
       m.numCols = m.settings.numColumns
       m.numCols = m.numCols < 1 ? 1 : m.numCols
       rowIndex = 0
-      ' ? "children" ; formatJson(mc.collections.map(children, function(c as object)
-      ' return c.title
-      ' end function))
+      ? "children" ; formatJson(mc.collections.map(children, function(c as object)
+        return c.title
+      end function))
 
-      ' ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
+      ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
 
       previousCount = m.visibleItems.count()
       renderedIds = {}
@@ -187,7 +192,7 @@ namespace ml
             exit for
           end if
           renderedIds[item.id] = true
-          ' ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
+          ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
           settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y]
@@ -231,8 +236,9 @@ namespace ml
           end if
         end for
       end if
-      m.numRows = mc.clamp(m.rowOffsets.count() - 1, 0, m.settings.numRows)
+      m.numRows = mc.clamp(m.rowOffsets.count(), 0, m.rowOffsets.count())
       m.numberOfItems = m.visibleItems.count()
+      ? " UPDATE LAYOUT MADE " m.numRows " rows from " m.numberOfItems " items"
     end function
 
     private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
@@ -302,22 +308,40 @@ namespace ml
       end if
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    protected override function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
       m.log.info("updating row renderers due to contents change")
+      ? "((((((((())))))))) GRID IS UPDATING CONTENT ITEMS"
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
+      previousNumRows = m.numRows
       m.processRemovedCells(changes)
-      m.forceUpdateLayout()
+      m.forceUpdateLayout(true)
+
+      ? " GRID UPDATED HAD " previousNumRows " ROWS. Now has " m.numRows
+
+      result = {
+        isLayoutRequired: previousNumRows <> m.numRows
+        isFocusChangeRequired: false
+      }
+
+      if m.itemScroller.index >= m.content.length
+        m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
+      end if
 
       m.previousRendereredByContentId = m.renderersByContentId
 
       m.itemScroller.processChanges(changes)
+      m.updateRenderersWithChanges(result, previousInfo)
+      return result
+    end function
 
+    private function updateRenderersWithChanges(result as ml.ListChangeResult, previousInfo as ml.CellInfo)
       nextIndex = m.getIndexAfterItemUpdate(previousInfo)
       ? " ACCORDING TO GRID NEXT INDEX WILL BE " nextIndex
-      ' m.owner.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
-      m.owner@.forceUpdate(m.owner._updatesEnabled)
-      m.itemScroller.forceFocusOnIndex(nextIndex, true, false)
-      ' m.owner.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
+      result.isFocusChangeRequired = nextIndex <> previousInfo.index
+      nextRowIndex = m.getRowIndexForItemIndex(nextIndex)
+
+      'TODO - work out how many rows are needed to be covered here
+      m.notifyEnterEvent(mc.clamp(nextRowIndex - 3, 0, m.numRows), mc.clamp(nextIndex + 5, 0, m.numRows), true)
     end function
 
     override function isVerticalFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer)
@@ -353,25 +377,26 @@ namespace ml
 
 
     private function processRemovedItem(id as string)
-      ' ? " REMOVING CELL FOR ITEM ID "; id
+      ? " REMOVING CELL FOR ITEM ID "; id
       m.releaseCell(m.renderersByContentId[id])
     end function
 
     override function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
       if notifyStart = -1
-        ' ? " clearing all"
+        ? " clearing all " m.numRows
         notifyStart = 0
         notifyEnd = m.numRows
       end if
 
       for i = notifyStart to notifyEnd
+        m.renderedRows[i.toStr()] = false
         rowRenderers = m.getRenderersInRow(i)
         for each comp in rowRenderers
           if comp.isInViewPort
             comp.isInViewPort = false
             if comp.id <> "#_#phc"
               comp@._apply("onDidExit", [1], false)
-              ' ? " releasing comp.index"
+              ' ? " releasing " comp.index
               m.releaseCellAtIndex(comp.index)
             end if
           else
@@ -381,15 +406,13 @@ namespace ml
     end function
 
     override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer, forceCellUpdate = false as boolean) as void
-      ' newInViewportComponentsById = {}
       for i = notifyStart to notifyEnd
-        ' rowRenderers = m.getRenderersInRow(i)
-        index = (i * m.numCols) - 1
-        for j = 0 to m.numCols
-          comp = m.getRenderer(index + j, true, forceCellUpdate)
+        rowRenderers = m.getRenderersInRow(i, true, forceCellUpdate)
+        m.renderedRows[i.toStr()] = true
+        for each comp in rowRenderers
           if comp <> invalid
-            ' ? " ENTER FROM BBB" ; comp.index
-            ' ? " notifying enter on "; comp.id
+            ? " ENTER FROM BBB" ;
+            ? " notifying enter on row " i " cell " comp.index asString(comp.content.title)
             if not comp.isInViewPort
               comp.isInViewPort = true
               comp@._apply("onDidEnter", [1], false)
@@ -398,5 +421,26 @@ namespace ml
         end for
       end for
     end function
+
+
+    ' override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer, forceCellUpdate = false as boolean) as void
+    '   ' newInViewportComponentsById = {}
+    '   for i = notifyStart to notifyEnd
+    '     ' rowRenderers = m.getRenderersInRow(i)
+    '     index = (i * m.numCols) - 1
+    '     for j = 0 to m.numCols
+    '       comp = m.getRenderer(index + j, true, forceCellUpdate)
+    '       if comp <> invalid
+    '         ' ? " ENTER FROM BBB" ; comp.index
+    '         ' ? " notifying enter on "; comp.id
+    '         if not comp.isInViewPort
+    '           comp.isInViewPort = true
+    '           comp@._apply("onDidEnter", [1], false)
+    '         end if
+    '       end if
+    '     end for
+    '   end for
+    ' end function
+
   end class
 end namespace

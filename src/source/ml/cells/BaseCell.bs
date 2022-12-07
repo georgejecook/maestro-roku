@@ -98,6 +98,7 @@ namespace ml
       m.isContentDisplayed = false
       if state.content = invalid
         m.cleanup()
+        m.isRecyclePending = false
       else
         m.isRecyclePending = true
         m.recycle()
@@ -176,9 +177,14 @@ namespace ml
         '   m.createViews()
         '   m.isViewCreated = true
         ' end if
-        if m.isViewCreated
-          m.onShowWithContent(m.content)
-          m.isContentDisplayed = true
+        if m.content <> invalid
+          if m.isViewCreated
+            m.onShowWithContent(m.content)
+            m.isContentDisplayed = true
+          end if
+        else
+          ? " content was invalid !!! " mc.dv(m.top)
+          m.onDidExit(direction)
         end if
       end if
     end function

@@ -25,6 +25,8 @@ namespace ml.sample
     private followingModule as mc.types.node
     private teamsModule as mc.types.node
     private scrollSpeed = 0.75
+    private numberItemsToRenderAfter = 5
+    private numberItemsToRenderBefore = 2
 
     function new()
       super("TeamScreen")
@@ -60,8 +62,8 @@ namespace ml.sample
     end function
 
     private function onResetChange()
-      m.list.content = invalid
-      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [528, 297], 30)
+      m.list@.setContent(invalid)
+      m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [307, 100], 30)
 
       timer = new mc.utils.DebugTimer("list")
       m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
@@ -69,14 +71,20 @@ namespace ml.sample
       listSettings.rowCreationStrategy = "async"
       listSettings.rowCreationBatchSize = 10
       listSettings.rowCreationBatchDelay = 0.1
+      ' listSettings.renderStrategy = "dynamic"
+      listSettings.renderStrategy = "all"
+      listSettings.numberItemsToRenderAfter = m.numberItemsToRenderAfter
+      listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
+
       focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed)
       content = ml.listMixin.createListContent(focusSettings, m.rowSettings, listSettings)
       items = m.createData()
       timer.log("makeData")
       m.setFocus(m.loadingIndicator)
       content@.appendChildren(items)
+      content@.setNotificationsEnabled(false)
       m.list.visible = false
-      m.list.content = content
+      m.list@.setContent(content)
       m.list.delegate = m.top
       timer.log("set content")
       if m.list.state = "rendered"
@@ -94,19 +102,21 @@ namespace ml.sample
         m.list@.moveToIndex([0, 0], false)
         m.list.visible = true
         m.loadingIndicator.isActive = false
+        m.list.clippingRect = [0, -5000, 20000, 20000]
+        m.list.translation = [0, 300]
+        m.list.scale = [0.5, 0.5]
+
       end if
     end function
 
     private function createData()
       content = []
-      rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [-20, -20, 20, 20])
-      showHero = true
+      rowFocusSettings = ml.listMixin.createFocusSettings("fixed")
       headerSettings = ml.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "FAVORITE TEAM"
       row.id = rnd(2147483647).toStr()
-      cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 30)
-      row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings)
+      row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, headerSettings)
       row.settings.contentOffset = [200, 0]
       numItems = 1
       content.push(row)
@@ -116,7 +126,6 @@ namespace ml.sample
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "FOLLOWING"
       row.id = rnd(2147483647).toStr()
-      cellSettings = ml.listMixin.createCellSettings(m.defaultCellType, [307, 200], 40)
       ' row.settings = ml.listMixin.createRowSettings(cellSettings, rowFocusSettings, 30, headerSettings, 330)
       row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 150, 3, 100, 5, 50)
       row.settings.contentOffset = [200, 0]
@@ -128,11 +137,12 @@ namespace ml.sample
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "TEAMS"
       row.id = rnd(2147483647).toStr()
-      cellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
+      longCellSettings = ml.listMixin.createCellSettings("LongCell", [1192, 144], 40)
       gridFocusSettings = ml.listMixin.createFocusSettings("floating", invalid, "underneath", "fixed")
       gridFocusSettings.feedbackUri = "pkg:/images/solid.9.png"
       gridFocusSettings.feedbackColor = "#aaaaaa"
-      row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 100, 1, 144, 4, 150)
+      row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, headerSettings, 200)
+      ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 100, 1, 144, 4, 150)
       ' row.settings = ml.listMixin.createGridRowSettings(cellSettings, gridFocusSettings, 30, headerSettings, 690, 1, 144, 5, 150)
       row.settings.contentOffset = [200, 30]
       numItems = 20
@@ -197,34 +207,36 @@ namespace ml.sample
         return
       end if
 
-      ? "un-follow "; team.title
+      ? "un-follow "; team.title " ID " team.id
 
       m.teamsModule@.setNotificationsEnabled(false)
+      m.followingModule@.setNotificationsEnabled(false)
 
       m.followingModule@.removeChildIndex(index)
       m.teamsModule@.insertChild(team, 0)
       m.teamsModule@.sortByKey("title")
 
-      m.teamsModule@.setNotificationsEnabled(true, true)
-      m.followingModule.isHidden = m.followingModule.length = 0
-      m.teamsModule.isHidden = m.teamsModule.length = 0
-      if m.followingModule.isHidden
-        m.list@.moveToRowItemIndex(0, 0, false)
-      end if
+      m.teamsModule@.setNotificationsEnabled(true)
+      m.followingModule@.setNotificationsEnabled(true)
+      m.list.content@.notifyUpdate()
+      m.list@.synchronizeContent()
     end function
 
     private function selectFavorite()
       team = m.followingModule@.getChild(0)
       ? "selected fave>>>>>:"; mc.dv(team)
       m.teamsModule@.setNotificationsEnabled(false)
+      m.favoriteModule@.setNotificationsEnabled(false)
       m.favoriteModule@.clear()
       if team <> invalid
         'we need a clone, because this team will show in 2 modules
         team = team.clone(true)
         m.favoriteModule@.appendChild(team)
       end if
-      m.teamsModule@.setNotificationsEnabled(true, true)
-      m.list@.moveToIndex([0, 0])
+      m.teamsModule@.setNotificationsEnabled(true)
+      m.favoriteModule@.setNotificationsEnabled(true)
+      m.list.content@.notifyUpdate()
+      m.list@.synchronizeContent()
     end function
 
     private function followTeam(itemIndex as integer) as void
@@ -234,16 +246,23 @@ namespace ml.sample
       end if
 
       ? "follow "; team.title
-      m.teamsModule@.removeChildIndex(itemIndex)
+      m.teamsModule@.setNotificationsEnabled(false)
+      m.followingModule@.setNotificationsEnabled(false)
       m.followingModule@.insertChild(team, 0)
-      m.followingModule.isHidden = m.followingModule.length = 0
-      m.teamsModule.isHidden = m.teamsModule.length = 0
+      m.teamsModule@.removeChild(team)
+
+      ' m.followingModule.isHidden = m.followingModule.length = 0
+      ' m.teamsModule.isHidden = m.teamsModule.length = 0
+      m.teamsModule@.setNotificationsEnabled(true)
+      m.followingModule@.setNotificationsEnabled(true)
+      m.list.content@.notifyUpdate()
+      m.list@.synchronizeContent()
       ? "followingModule : "; m.followingModule.length
       ? "teamsModule : "; m.teamsModule.length
-      if m.teamsModule.isHidden
-        ? " TEAMS IS HIDDEN"
-        m.list@.moveToIndex([1, 0])
-      end if
+      ' if m.teamsModule.isHidden
+      '   ? " TEAMS IS HIDDEN"
+      '   m.list@.moveToIndex([1, 0])
+      ' end if
       ' m.list@.moveToIndex([2, index])
 
     end function

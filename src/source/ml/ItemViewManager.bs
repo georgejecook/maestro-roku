@@ -383,7 +383,7 @@ namespace ml
         ' ? "getting placeholder"
         return m.placeHolderCell
       else
-        ' ? "getting real cell"
+        ? "getting real cell"
         cell = m.componentPool@.getComponent(compName)
         if cell <> invalid
           cell.index = index
@@ -413,23 +413,30 @@ namespace ml
     protected override function releaseCellAtIndex(index as integer)
       item = m.content@.getChild(index)
       if item <> invalid
+        ? " RELEASE CELL " index
         m.releasecell(m.renderersByContentId[item.id])
       end if
     end function
 
     protected override function releaseCell(cell as mc.types.node)
+      ? " RELEASE CELL 2 "
       if cell <> invalid and cell.id <> "#_#phc"
+        ? " RELEASE CELL 2 BB"
         cellInfo = m.cellInfos[cell.index]
         if cellInfo <> invalid
+          ? " RELEASE CELL 2 CC " cellInfo.index
           m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
           cell.isInViewPort = false
+          ? " RELEASE CELL 2 DD " cell.id
           m.componentPool@.releaseComponent(cell)
+          ? " RELEASE CELL 2 EE"
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
           cell.isInViewPort = false
           cell@._apply("didExit", [1], false)
           cell.initialState = {}
         else
+          ? "No cellInfo for index " cell.index
         end if
       else
       end if
@@ -713,6 +720,29 @@ namespace ml
       end if
 
       return previousInfo.index
+    end function
+
+    @warning("potentially unsafe probably don't want this")
+    protected function synchronizeRenderers() as boolean
+      ? " SYNC RENDERERERS"
+      isChanged = false
+
+      for each key in m.rendereredCellInfosByIndex
+        info = m.rendereredCellInfosByIndex[key]
+        renderer = m.renderersByContentId[info.id]
+        ? " SYNCING CELL " key " CIDX " m.content@.getChild(info.contentIndex).title " IDX " info.index
+        if renderer <> invalid
+          if info.component <> invalid and info.component.id <> renderer.id
+            ? " CELL HAS CHANGED"
+            m.updateCell(renderer, info.index, m.content@.getChild(info.contentIndex))
+            isChanged = true
+          end if
+        else
+          ? " COULD NOT FIND RENDERER FOR KEY " key
+        end if
+      end for
+
+      return isChanged
     end function
   end class
 end namespace

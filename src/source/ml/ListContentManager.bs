@@ -88,28 +88,35 @@ namespace ml
         end if
       end for
 
-      ? " LIST CONTENT CHANGES " m.content.changes
+      ? "~>~>~> AAA"
+      ? " LIST CONTENT CHANGES "
+      mc.collections.forEach(m.content.changes, function(item as object): ? item: end function)
 
+      ? "~>~>~> BBB"
       if m.content.changes.count() > 0
+        ? "~>~>~> CCC"
         ? "LIST CONTENT IS CHANGED "
         m.onListContentItemsChange(m.content.changes)
+        listResult.isFocusChangeRequired = true
       end if
 
-      m.processListChanges(listResult)
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
-      ' if listResult.isLayoutRequired
-      '   ? " list has to update after this!"
-      '   m.processListChanges(listResult)
-      ' end if
-      if listResult.isFocusChangeRequired
-        ? " list has to update focus after this change"
-        row = m.list.getFocusedRow()
-        if row <> invalid
-          row@.focusOnContentsNow()
-        end if
-        if m.list.top.isChildFocused or m.list.top.isFocused
-          m.focusIndicatorManager@.setFocusedOnRow(true)
-        end if
+      ? "~>~>~> DDD"
+      m.updateListContentIfRequired(listResult)
+      ? "~>~>~> EEEE"
+      if listResult.isFocusChangeRequired or listResult.isLayoutRequired
+        m.updateListFocus()
+      end if
+    end function
+
+    private function updateListFocus()
+      ? " list has to update focus after this change"
+      row = m.list.getFocusedRow()
+      if row <> invalid
+        row@.focusOnContentsNow()
+      end if
+      if m.list.top.isChildFocused or m.list.top.isFocused
+        m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
 
@@ -250,23 +257,24 @@ namespace ml
       m.itemScroller.isDoingFlowFocus = false
     end function
 
-    private function processListChanges(result as ml.ListChangeResult)
-      ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
-      '   return c.type
-      ' end function))
+    private function updateListContentIfRequired(result as ml.ListChangeResult)
+      m.log.info("processing list changes")
+
+
       ? "LCM processing list changes"
       if result.isLayoutRequired
+        m.log.info("the list needs to update it's layout as a result of these changes")
 
-        m.viewManager.forceUpdateLayout()
+        m.viewManager.forceUpdateLayout(false)
 
         'TODO - need to ensure that the current focus and scroll position is valid after an update! Probably want per row changes from this!
         m.itemScroller.processChanges([])
+        m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false)
       end if
       '// cspell:disable-next-line
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)
       ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
-      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
     end function
 
     override function forceUpdateLayout(fullUpdate = false as boolean)
