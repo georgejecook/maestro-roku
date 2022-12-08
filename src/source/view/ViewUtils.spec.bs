@@ -851,5 +851,109 @@ namespace tests
       m.assertEqual(label.height, 0.0)
     end function
 
+    @it("does not crash with invalid template types")
+    @params(invalid)
+    @params(123)
+    @params([])
+    @params({})
+    @params(true)
+    function _(template)
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "size": [1, 1]
+          "_dataMap": {
+            "text": {
+              field: "json.text"
+              template: template
+            }
+          }
+        }
+      ]
+      item = {
+        json: {
+          text: "text"
+        }
+      }
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+
+      mv.applyDataMap(label, item)
+
+      m.assertEqual(label.text, "text")
+    end function
+
+    @it("doesn't replace data map value with template string if value is empty")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "size": [1, 1]
+          "_dataMap": {
+            "text": {
+              field: "json.text"
+              template: "{{value}}_replaced"
+            }
+          }
+        }
+      ]
+      item = {
+        json: {
+          text: ""
+        }
+      }
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+
+      mv.applyDataMap(label, item)
+
+      m.assertEqual(label.text, "")
+    end function
+
+    @it("replaces data map value with template string")
+    function _()
+      node = mc.createSGNode("Label", invalid, "view")
+
+      json = [
+        {
+          "_type": "mv_Label"
+          "id": "v1"
+          "size": [1, 1]
+          "_dataMap": {
+            "text": {
+              field: "json.text"
+              template: "{{value}}_replaced"
+            }
+          }
+        }
+      ]
+      item = {
+        json: {
+          text: "text"
+        }
+      }
+
+      target = m.executeCreateviews(json, node)
+      m.assertNodeCount(node, 1)
+      label = node.getChild(0)
+      m.assertNode(target, label, "mv_Label", 1)
+
+      mv.applyDataMap(label, item)
+
+      m.assertEqual(label.text, "text_replaced")
+    end function
+
   end class
 end namespace

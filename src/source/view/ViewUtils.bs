@@ -323,7 +323,13 @@ namespace mv
         mc.setPath(control, field, mc.getPath(dataSource, dataMap))
       else if mc.isAACompatible(dataMap)
         if dataMap.field <> invalid
-          mc.setPath(control, field, mc.getPath(dataSource, dataMap.field))
+          value = mc.getPath(dataSource, dataMap.field)
+          if dataMap.template <> invalid and mc.isString(dataMap.template)
+            if value <> ""
+              value = dataMap.template.replace("{{value}}", value)
+            end if
+          end if
+          mc.setPath(control, field, value)
         else if dataMap.value <> invalid
           mc.setPath(control, field, dataMap.value)
         end if
