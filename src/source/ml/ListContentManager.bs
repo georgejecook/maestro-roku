@@ -111,6 +111,7 @@ namespace ml
 
     private function updateListFocus()
       ? " list has to update focus after this change"
+      ? "~>~>~> FFFF"
       row = m.list.getFocusedRow()
       if row <> invalid
         row@.focusOnContentsNow()
@@ -118,6 +119,7 @@ namespace ml
       if m.list.top.isChildFocused or m.list.top.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
+      ? "~>~>~> GGG"
     end function
 
     private function updateContentOnRow(row as mc.types.node, content as mc.types.node, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
@@ -261,7 +263,7 @@ namespace ml
       m.log.info("processing list changes")
 
 
-      ? "LCM processing list changes"
+      ? "LCM processing list changes>>>>>>>>>>>>>>>"
       if result.isLayoutRequired
         m.log.info("the list needs to update it's layout as a result of these changes")
 
@@ -270,6 +272,7 @@ namespace ml
         'TODO - need to ensure that the current focus and scroll position is valid after an update! Probably want per row changes from this!
         m.itemScroller.processChanges([])
         m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false)
+        ? " LCM PROCESSING END<<<<<<<<<<<<<<<<<<<<<<<<"
       end if
       '// cspell:disable-next-line
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex

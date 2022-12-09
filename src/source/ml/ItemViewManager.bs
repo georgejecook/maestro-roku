@@ -42,8 +42,6 @@ namespace ml
     public axes = 0
     public minPos = 0
     public maxPos = 1080
-    public lookAheadDistance = 1000
-    public lookBehindDistance = 1000
     public lastScrollIndex = 0
     public lastScrollDirection = 0
     public isScrolling = false
@@ -109,8 +107,6 @@ namespace ml
       m.log.info("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
-      m.lookAheadDistance = m.settings.lookAheadDistance = -1 ? 2147483647 : m.settings.lookAheadDistance
-      m.lookBehindDistance = m.settings.lookBehindDistance = -1 ? 2147483647 : m.settings.lookBehindDistance
       m.listSettings = m.owner.content.listSettings
 
       if content = invalid
@@ -415,23 +411,23 @@ namespace ml
     protected override function releaseCellAtIndex(index as integer)
       item = m.content@.getChild(index)
       if item <> invalid
-        ? " RELEASE CELL " index
+        ' ? " RELEASE CELL " index
         m.releasecell(m.renderersByContentId[item.id])
       end if
     end function
 
     protected override function releaseCell(cell as mc.types.node)
-      ? " RELEASE CELL 2 "
+      ' ? " RELEASE CELL 2 "
       if cell <> invalid and cell.id <> "#_#phc"
-        ? " RELEASE CELL 2 BB"
+        ' ? " RELEASE CELL 2 BB"
         cellInfo = m.cellInfos[cell.index]
         if cellInfo <> invalid
-          ? " RELEASE CELL 2 CC " cellInfo.index
+          ' ? " RELEASE CELL 2 CC " cellInfo.index
           m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
           cell.isInViewPort = false
-          ? " RELEASE CELL 2 DD " cell.id
+          ' ? " RELEASE CELL 2 DD " cell.id
           m.componentPool@.releaseComponent(cell)
-          ? " RELEASE CELL 2 EE"
+          ' ? " RELEASE CELL 2 EE"
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
           m.previousRendereredByContentId.delete(cellInfo.id)
           cell.isInViewPort = false
