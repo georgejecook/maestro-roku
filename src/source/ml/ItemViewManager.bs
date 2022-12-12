@@ -381,7 +381,6 @@ namespace ml
         ' ? "getting placeholder"
         return m.placeHolderCell
       else
-        ? "getting real cell"
         cell = m.componentPool@.getComponent(compName)
         if cell <> invalid
           cell.index = index
@@ -701,23 +700,32 @@ namespace ml
       end for
     end function
 
-    protected function getIndexAfterItemUpdate(previousInfo as ml.CellInfo)
+    protected function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
       if previousInfo.index = -1
         return 0
       end if
 
-      cellInfoAtOldIndex = m.cellInfos[previousInfo.contentIndex]
+      cellInfoAtOldIndex = m.getCellInfoForContentIndex(previousInfo.contentIndex)
+      if m.__classname <> "ml.GridRowItemViewManager"
+        ? "ddd"
+      end if
+      ' cellInfoAtOldIndex = m.cellInfos[previousInfo.index]
       if cellInfoAtOldIndex <> invalid and cellInfoAtOldIndex.id = previousInfo.id
-        return previousInfo.index
+        newIndex = cellInfoAtOldIndex.contentIndex
       else
         m.log.info("the previously focused item has moved after the list changed - trying to restore it")
         newCellInfo = m.getCellInfoForContentId(previousInfo.id)
         if newCellInfo <> invalid
-          return newCellInfo.index
+          m.log.verbose("detected move to new list position")
+          newIndex = newCellInfo.contentIndex
+        else
+          newIndex = previousInfo.contentIndex
         end if
       end if
 
-      return previousInfo.index
+      m.log.info("the newIndex wants to be", newIndex, "numberOfItems", m.numberOfItems)
+
+      return mc.clamp(newIndex, 0, m.numberOfItems - 1)
     end function
 
     @warning("potentially unsafe probably don't want this")

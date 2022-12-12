@@ -75,21 +75,21 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function onContentItemsChange() as ml.ListChangeResult
-      ? " ROW " mc.dv(m.top) " CHANGES: ";
+      m.log.verbose(" ROW ", mc.dv(m.top), " CHANGES: ")
       m.log.info("This content has changed in some way")
       changes = m.content.changes
       if changes <> invalid and changes.count() > 0
-        ? " ITEM CHANGES " formatJson(changes)
+        m.log.verbose(" ITEM CHANGES ", formatJson(changes))
         return m.applyChildChanges(changes)
       else
-        ? "CELL CONTENT"
+        m.log.verbose("CELL CONTENT")
         return m.updateChangedCells()
       end if
     end function
 
 
     function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
-      ? " applying child changes " mc.dv(m.top) " # changes" changes.count()
+      m.log.verbose(" applying child changes ", mc.dv(m.top), " # changes", changes.count())
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
@@ -102,7 +102,7 @@ namespace ml
     end function
 
     function updateChangedCells() as ml.ListChangeResult
-      ? " updating changed cells " mc.dv(m.top)
+      m.log.verbose(" updating changed cells ", mc.dv(m.top))
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
@@ -117,7 +117,7 @@ namespace ml
     function setContent(content as mc.types.node) as ml.ListChangeResult
       m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
       m._content = content
-      ? " SET CONTENT " mc.dv(m.top)
+      m.log.verbose(" SET CONTENT ", mc.dv(m.top))
       return m.onContentChange(content)
     end function
 
@@ -138,7 +138,7 @@ namespace ml
     '     else if m._content <> invalid
     '       changes = []
     '       if m.wasHidden <> m._content.isHidden
-    '         ' ? ">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden
+    '         ' m.log.verbose(">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden)
     '         changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
     '         m.wasHidden = m._content.isHidden
     '       end if
@@ -170,12 +170,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function forceUpdate(keepOldFocusIfPossible = true as boolean, fullUpdate = false as boolean) as void
-      ? " FORCE UPDATE ON " m.__classname
+      m.log.verbose(" FORCE UPDATE ON ", m.__classname)
       if m.owner = invalid or m._content = invalid
         return
       end if
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
-      ? " forceUPdate " mc.dv(m.top)
+      m.log.verbose(" forceUPdate ", mc.dv(m.top))
       m.onContentChange(m._content)
 
       'bs:disable-next-line
@@ -186,13 +186,41 @@ namespace ml
     end function
 
     function updateChangedItems()
-      ? " Base row updateChangedItems"
+      m.log.verbose(" Base row updateChangedItems")
       'bs:disable-next-line
       if m.viewManager <> invalid and m.viewManager.updateChangedItems <> invalid
-        ' ? "invoking on view manager"
+        ' m.log.verbose("invoking on view manager")
         'bs:disable-next-line
         m.viewManager.updateChangedItems()
       end if
+    end function
+
+    function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
+      m.log.verbose(" Base row updateChangedItems")
+      'bs:disable-next-line
+      if m.viewManager <> invalid and m.viewManager.getIndexAfterItemUpdate <> invalid
+        'bs:disable-next-line
+        return m.viewManager.getIndexAfterItemUpdate(previousInfo)
+      end if
+      return previousInfo.index
+    end function
+
+    function getFocusedCellInfo() as ml.CellInfo
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        return m.itemScroller.cellInfo
+      end if
+      return invalid
+    end function
+
+    function getCellInfo(index as integer) as ml.CellInfo
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.cellInfos[index]
+      end if
+      return invalid
     end function
 
     function getRenderer(index as integer) as object
@@ -261,7 +289,7 @@ namespace ml
 
     'FIXME - when!!!
     function focusOnContentsNow()
-      ? " FOCUS  ON CONTENTS NOW " mc.dv(m.top)
+      m.log.verbose(" FOCUS  ON CONTENTS NOW ", mc.dv(m.top))
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line

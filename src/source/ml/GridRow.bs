@@ -95,7 +95,7 @@ namespace ml
     end function
 
     override function cancelMove(forceFocusUpdate as boolean)
-      ? "GRID cancelling move CANCEL CANCEL========================"
+      m.log.verbose("GRID cancelling move CANCEL CANCEL========================")
       if m._content <> invalid
         m.itemScroller.cancelScrolling(forceFocusUpdate)
       end if
@@ -151,12 +151,12 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onDidEnter(subRowIndex as integer, direction as integer, forceCellUpdate = false as boolean)
-      ? " GRID onDidEnter SRI " subRowIndex " FORCE " forceCellUpdate
+      m.log.verbose("onDidEnter SRI ", subRowIndex, " FORCE ", forceCellUpdate)
       m.viewManager.notifyEnterEvent(subRowIndex, subRowIndex, forceCellUpdate = true)
     end function
 
     private function onDidExit(subRowIndex as integer, direction as integer)
-      ? " GRID onDidExit SRI " subRowIndex
+      m.log.verbose(" GRID onDidExit SRI ", subRowIndex)
       m.viewManager.notifyExitEvent(subRowIndex, subRowIndex)
     end function
 

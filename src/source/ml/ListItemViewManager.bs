@@ -9,8 +9,6 @@ namespace ml
     private visibleComponents = []
 
     private isUpdating = false
-    private previousFocusedRow as mc.types.node
-    private previousFocusedIndex = 0
     private isShowingAllComps = false
     ' public componentBufferMode = "rendered"
     public componentBufferMode = "none"
@@ -70,7 +68,7 @@ namespace ml
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
 
-      ? ">>> LIST CREATE RENDERERS "
+      m.log.verbose(">>> LIST CREATE RENDERERS ")
       m.visibleComponents = []
       m.visibleItems = []
       m.updateRects()
@@ -100,7 +98,7 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      ? "LIST onRenderersCreated"
+      m.log.verbose("LIST onRenderersCreated")
       m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
@@ -112,7 +110,7 @@ namespace ml
       end if
       m.recalculateCellInfos()
       m.updateChangedItems()
-      m.restorePreviousFocus()
+      ' m.restorePreviousFocus()
     end function
 
     protected override function updateChangedItems()
@@ -122,33 +120,30 @@ namespace ml
       end for
     end function
 
-    private function restorePreviousFocus()
-      focusIndex = [0, 0]
-      ' ? " RESTORE PRE FOCUS"
-      if m.previousFocusedRow <> invalid
-        ' ? " RESTORE PRE FOCUS AAA"
-        row = m.renderersByContentId[m.previousFocusedRow.id]
-        if row = invalid
-          ' ? " RESTORE PRE FOCUS BBB"
-          index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
-          row = m.visibleComponents[index]
-        end if
+    ' private function restorePreviousFocus()
 
-        if row <> invalid
-          ' ? " RESTORE PRE FOCUS CCC"
-          focusIndex[0] = row.index
-          focusIndex[1] = row.focusedCellIndex
-        end if
-      end if
-      ' ? " RESTORE PRE FOCUS DDDD"
-      m.previousFocusedIndex = 0
-      m.previousFocusedRow = invalid
-      ' 'TODO need to actually set the focus properly
-      ' ? " RESTORE PRE FOCUS EEE " ;focusIndex[0]
-      m.itemScroller.moveToIndex(focusIndex[0], false)
-      ' ? " RESTORE PRE FOCUS : END"
-      ' m.itemScroller.forceFocusOnIndex(focusIndex[0])
-    end function
+    '   focusIndex = [0, 0]
+    '   m.log.info("restoring previous focus")
+    '   if m.previousFocusedRow <> invalid
+    '     row = m.renderersByContentId[m.previousFocusedRow.id]
+    '     if row = invalid
+    '       index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
+    '       row = m.visibleComponents[index]
+    '     end if
+
+    '     if row <> invalid
+    '       focusIndex[0] = row.index
+    '       focusIndex[1] = row.focusedCellIndex
+    '     end if
+    '   end if
+    '   m.previousFocusedIndex = 0
+    '   m.previousFocusedRow = invalid
+    '   ' 'TODO need to actually set the focus properly
+    '   ' ? " RESTORE PRE FOCUS EEE " ;focusIndex[0]
+    '   m.itemScroller.moveToIndex(focusIndex[0], false)
+    '   ' ? " RESTORE PRE FOCUS : END"
+    '   ' m.itemScroller.forceFocusOnIndex(focusIndex[0])
+    ' end function
 
     override function createRendererBatch() as void
       if m.content <> invalid
@@ -236,7 +231,7 @@ namespace ml
 
     override function updateLayout(fullUpdate = false as boolean)
       if fullUpdate
-        ' ? " LUL A"
+        m.log.verbose(" LUL A")
         'first check if any comps have changed type
         for i = 0 to m.rects.count() - 1
           ' ? " LUL B"
@@ -262,7 +257,7 @@ namespace ml
           comp.translation = rect.translation
           comp.visible = rect.visible
           if fullUpdate
-            ? " >>>> DO FULL UPDATE on " ; mc.dv(comp)
+            m.log.verbose(" >>>> DO FULL UPDATE on ", mc.dv(comp))
             comp@.forceUpdate(true, fullUpdate)
           end if
         end if
@@ -379,14 +374,8 @@ namespace ml
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       m.isUpdating = true
-      m.previousFocusedRow = m.itemScroller.focusedItem
-      m.previousFocusedIndex = m.itemScroller.index
-      ' ? " GOT CHANGES "; formatJson(mc.collections.map(changes, function(c as object)
-      '   return c.type
-      ' end function))
       m.createRenderers(m.content)
       m.itemScroller.processChanges(changes)
-      m.itemScroller.move(0)
     end function
 
     override function isFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)
@@ -438,7 +427,7 @@ namespace ml
 
 
     override function recalculateCellInfos() as void
-      ? " LIST recalculateCellInfos!! "
+      m.log.verbose(" LIST recalculateCellInfos!! ")
       m.cellInfos = []
       virtualIndex = 0
       for i = 0 to m.visibleItems.count() - 1
@@ -458,6 +447,7 @@ namespace ml
               cellInfo.contentIndex = contentIndex
               cellInfo.index = virtualIndex
               cellInfo.contentVersion = item.version
+              cellInfo.id = item.id
               m.cellInfos.push(cellInfo)
               virtualIndex++
             end for

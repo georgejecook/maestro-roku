@@ -129,12 +129,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? "setNextFocusIndicatorConfig "
+      m.log.verbose("setNextFocusIndicatorConfig ")
       if focusIndicatorConfig <> invalid
-        ' ? "[[ Next FIC is: R:" focusIndicatorConfig.rowIndex " C:" focusIndicatorConfig.cellIndex " ROW:" mc.dv(focusIndicatorConfig.row) " CELL:" mc.dv(focusIndicatorConfig.cell)
+        m.log.verbose("[[ Next FIC is: R:", focusIndicatorConfig.rowIndex, " C:", focusIndicatorConfig.cellIndex, " ROW:", mc.dv(focusIndicatorConfig.row), " CELL:", mc.dv(focusIndicatorConfig.cell))
       else
-        ' ? " next config INVALID "
+        m.log.verbose(" next config INVALID ")
       end if
+
       if m.isSameConfig(focusIndicatorConfig)
         ' ? " is same"
         return
@@ -250,6 +251,7 @@ namespace ml
         return
       end if
 
+      m.log.verbose(" SET CONFIG TO ", m.nextconfig.rowIndex, " ", m.nextConfig.cellIndex)
       if m.nextConfig <> invalid
         ' ? " GOT TARGET RECT "; formatJson (targetIndex) ; "  " ; m.nextConfig.indicatorTranslation[1]
       end if
@@ -275,6 +277,10 @@ namespace ml
       end if
 
       m.isFocusSettingsChangePending = true
+    end function
+
+    function getCurrentFocusSettings()
+      return m.nextConfig
     end function
 
     private function setActiveFocusSettings(newSettings as mc.types.node)
@@ -376,6 +382,7 @@ namespace ml
 
       m.isDoingFlowFocus = true
       m.nextConfig = focusIndicatorConfig
+      m.log.verbose(" SET CONFIG TO ", m.nextconfig.rowIndex, " ", m.nextConfig.cellIndex)
       ' ? " SETTING LAST MOVE FRACTION 0 START FLOW"
       m.lastMoveFraction = 0
       m.setActiveFocusSettings(m.nextConfig.settings)

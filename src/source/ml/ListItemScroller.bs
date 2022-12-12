@@ -21,7 +21,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
-      ? " LIST setFocusManagerInfo " m.viewManager.isScrolling
+      m.log.info(" LIST setFocusManagerInfo ", m.viewManager.isScrolling)
       if m.viewManager.isScrolling
         nextCellInfo.component@.chooseCellInfoForScrollingIntoRow(nextCellInfo)
       end if
@@ -30,7 +30,7 @@ namespace ml
       m.nextFocusIndicatorConfig.row = nextCellInfo.component
       m.nextFocusIndicatorConfig.isRowEvent = true
 
-      ? " FROM LIST"
+      m.log.info(" FROM LIST")
       m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
 
@@ -53,7 +53,7 @@ namespace ml
     protected override function setCellInfo(info as ml.CellInfo)
       isSubRowChanged = m.cellInfo = invalid or info.componentIndex <> m.cellInfo.componentIndex
 
-      ? ">>>>>>>>>> SCI "
+      m.log.info(">>>>>>>>>> SCI ")
       'FIXME check this..
       if isSubRowChanged and m.cellInfo <> invalid and m.cellInfo.component <> invalid
         m.cellInfo.component@.cancelMove(true)
@@ -68,7 +68,7 @@ namespace ml
     end function
 
     protected override function setNextCellInfo(info as ml.CellInfo) as void
-      ? ">>>>>>>>>>>>>>> SNCI "; m.isLastMoveFlowFocus
+      m.log.info(">>>>>>>>>>>>>>> SNCI ", m.isLastMoveFlowFocus)
       super.setNextCellInfo(info)
       if not m.isLastMoveFlowFocus
         m.focusManager.nextScreenPos = m.nextScreenPos
@@ -127,17 +127,18 @@ namespace ml
 
       'FIXME - this needs revisiting
 
+      m.log.increaseIndent()
       'all changes result in downward movements
-      ' ? "LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
+      m.log.info("LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems)
       if isIndexUpdateRequired
-        ' ? " NOTIFYING FOCUS"
+        m.log.info(" NOTIFYING FOCUS")
         ' ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
         ' wasNotifying = m.focusManager.isNotifying
         ' m.focusManager.isNotifying = true
         m.reset(true)
         ' m.focusManager.isNotifying = wasNotifying
       else
-        ' ? " not notifying focus"
+        m.log.info(" not notifying focus")
         m.reset(true)
       end if
     end function

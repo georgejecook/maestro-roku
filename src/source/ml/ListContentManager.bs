@@ -21,7 +21,8 @@ namespace ml
     private itemScroller as ml.ListItemScroller
     private focusIndicatorManager as mc.types.node
     private rowContentInfoByContentId = {}
-
+    private previousFocusedRowInfo as ml.CellInfo
+    private previousFocusedCellInfo as ml.CellInfo
 
     function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as mc.types.node)
       super("ListContentManager")
@@ -35,7 +36,7 @@ namespace ml
     public function setContent(content as mc.types.node) as void
 
       if content = invalid
-        ? " SETTING INVALID - RESETTING"
+        m.log.verbose(" SETTING INVALID - RESETTING")
         content = ml.listMixin.createListContent()
         content.id = "invalidContent"
         m.content = content
@@ -50,7 +51,7 @@ namespace ml
       m.list.top.content = content
 
       if previousContent = invalid or not previousContent.isSameNode(content)
-        ? "LCM content has changed"
+        m.log.verbose("LCM content has changed")
         'TODO - observe something here
         m.list.resetState()
       else if content <> invalid
@@ -68,7 +69,7 @@ namespace ml
 
     function synchronizeContent(notifyRows = true as boolean) as void
       if m.content = invalid
-        ? " no content"
+        m.log.verbose(" no content")
         return
       end if
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
@@ -77,57 +78,98 @@ namespace ml
         isFocusChangeRequired: false
       }
 
-      ? " SYNC ROWS"
+      m.log.resetIndent()
+
+      m.log.verbose(" SYNC content")
+      m.log.increaseIndent("synchronizeContent")
+
+      m.previousFocusedRowInfo = m.itemScroller.cellInfo
+      if m.previousFocusedRowInfo <> invalid and m.previousFocusedRowInfo.component <> invalid
+        m.previousFocusedCellInfo = m.previousFocusedRowInfo.component@.getFocusedCellInfo()
+      end if
+
       for each rowContent in m.content@.getChildren()
         info = m.rowContentInfoByContentId[rowContent.id]
         if info <> invalid
-          ' m.setContentOnRow(info.row, rowContent, notifyRows, listResult)
           m.updateContentOnRow(info.row, rowContent, notifyRows, listResult)
         else
-          ? " THERE SHOULD HAVE BEEN A ROW SET FOR " rowContent.id
+          m.log.verbose(" THERE SHOULD HAVE BEEN A ROW SET FOR ", rowContent.id)
         end if
       end for
 
-      ? "~>~>~> AAA"
-      ? " LIST CONTENT CHANGES "
-      mc.collections.forEach(m.content.changes, function(item as object): ? item: end function)
+      m.log.increaseIndent("list changes are")
+      mc.collections.forEach(m.content.changes, function(item as object): m.log.verbose(item): end function)
+      m.log.decreaseIndent()
 
-      ? "~>~>~> BBB"
       if m.content.changes.count() > 0
-        ? "~>~>~> CCC"
-        ? "LIST CONTENT IS CHANGED "
+        m.log.increaseIndent("listHasChanges")
+        m.log.verbose("LIST CONTENT IS CHANGED ")
         m.onListContentItemsChange(m.content.changes)
         listResult.isFocusChangeRequired = true
+        m.log.decreaseIndent()
       end if
 
-      m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
-      ? "~>~>~> DDD"
       m.updateListContentIfRequired(listResult)
-      ? "~>~>~> EEEE"
-      if listResult.isFocusChangeRequired or listResult.isLayoutRequired
-        m.updateListFocus()
-      end if
+
+      m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
+
+      ' if listResult.isFocusChangeRequired or listResult.isLayoutRequired
+
+      m.updateListFocus()
+      ' end if
+      m.log.resetIndent()
     end function
 
     private function updateListFocus()
-      ? " list has to update focus after this change"
-      ? "~>~>~> FFFF"
-      row = m.list.getFocusedRow()
-      if row <> invalid
-        row@.focusOnContentsNow()
+      m.log.verbose(" list has to update focus after this change")
+      m.log.info("restoring focus to", m.previousFocusedRowInfo, m.previousFocusedCellInfo)
+
+      rowIndex = 0
+      cellIndex = 0
+      newRowInfo = invalid
+      m.log.increaseIndent("updateListFocus")
+
+      if m.previousFocusedRowInfo <> invalid
+        rowIndex = m.viewManager.getIndexAfterItemUpdate(m.previousFocusedRowInfo)
+        newRowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
+        if newRowInfo <> invalid
+          row = newRowInfo.component
+          rowIndex = newRowInfo.contentIndex
+          if m.previousFocusedRowInfo.id <> newRowInfo.id
+            m.log.verbose("the contents are different at this index")
+            'TODO - might need to choose this more logically
+            cellIndex = 0
+          else
+            cellIndex = row@.getIndexAfterItemUpdate(m.previousFocusedCellInfo)
+          end if
+          m.log.info("after changes, the new cellIndex is", cellIndex)
+        end if
       end if
+
+      m.log.info("after updating, restoring focus to ", rowIndex, cellIndex)
+
+      if rowIndex < 0
+        rowIndex = 0
+      end if
+
+      if cellIndex < 0
+        cellIndex = 0
+      end if
+      m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
+
       if m.list.top.isChildFocused or m.list.top.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
-      ? "~>~>~> GGG"
+
+      m.log.decreaseIndent()
     end function
 
     private function updateContentOnRow(row as mc.types.node, content as mc.types.node, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
-        ? "applyRowContentUpdate cannot set content on invalid row"
+        m.log.verbose("applyRowContentUpdate cannot set content on invalid row")
         return
       end if
-      ? " applyRowContentUpdate "
+      m.log.verbose(" applyRowContentUpdate ")
       m.log.info("updateContentOnRow")
 
       isChanged = m.updateRowContentInfo(row, content, result)
@@ -138,10 +180,9 @@ namespace ml
 
     public function setContentOnRow(row as mc.types.node, content as mc.types.node, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
-        ? "setContentOnRow cannot set content on invalid row"
+        m.log.verbose("setContentOnRow cannot set content on invalid row")
         return
       end if
-      ' ? "ON CONTENT CHANGE "; m.isInitialized
       m.log.info("setContentOnRow")
 
       m.updateRowContentInfo(row, content, result)
@@ -182,7 +223,7 @@ namespace ml
 
     private function updateRowContentInfo(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult) as boolean
       if row = invalid
-        ? " updateRowContentInfo cannot set content on invalid row"
+        m.log.verbose(" updateRowContentInfo cannot set content on invalid row")
         return false
       end if
 
@@ -231,21 +272,6 @@ namespace ml
       return isChanged
     end function
 
-    private function onRowContentItemsChange(rowContent as mc.types.node)
-      ? " ROW " mc.dv(rowContent) " has changes "
-      ' m.log.info("This content has changed in some way")
-      ' if m.isUpdateEnabled
-      '   row = m.rowsByContentId[rowContent.id]
-      '   if row <> invalid
-      '     row@.onContentItemsChange()
-      '   else
-      '     m.log.error("could not find row for content item change")
-      '   end if
-      ' else
-      '   m.log.info("Updates are disabled. onContentItemsChange returning without updating")
-      ' end if
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ List Content Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -257,27 +283,31 @@ namespace ml
       m.focusIndicatorManager@.cancelFlowFocus()
       m.viewManager.isScrolling = false
       m.itemScroller.isDoingFlowFocus = false
+      m.log.info("previous focus ", m.itemScroller.previousFocusedRow, m.itemScroller.previousFocusedIndex)
+
     end function
 
     private function updateListContentIfRequired(result as ml.ListChangeResult)
       m.log.info("processing list changes")
 
-
-      ? "LCM processing list changes>>>>>>>>>>>>>>>"
+      m.log.increaseIndent()
+      info = m.focusIndicatorManager@.getCurrentFocusSettings()
+      m.log.verbose("LCM processing list changes>>>>>>>>>>>>>>>")
+      m.log.verbose(" INFO ", info.rowIndex, " ICI ", info.cellIndex)
+      m.log.verbose(" RI ", m.list.focusedRowIndex, " CI ", m.list.focusedCellIndex)
       if result.isLayoutRequired
         m.log.info("the list needs to update it's layout as a result of these changes")
-
+        m.log.increaseIndent()
         m.viewManager.forceUpdateLayout(false)
 
-        'TODO - need to ensure that the current focus and scroll position is valid after an update! Probably want per row changes from this!
         m.itemScroller.processChanges([])
+
+        'this move allows us to render anything, and clean up renderers
         m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false)
-        ? " LCM PROCESSING END<<<<<<<<<<<<<<<<<<<<<<<<"
+        m.log.decreaseIndent()
+        m.log.verbose(" LCM PROCESSING END<<<<<<<<<<<<<<<<<<<<<<<<")
       end if
-      '// cspell:disable-next-line
-      ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
-      ' m.moveToRow(m.itemScroller.index, false)
-      ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
+      m.log.decreaseIndent()
     end function
 
     override function forceUpdateLayout(fullUpdate = false as boolean)

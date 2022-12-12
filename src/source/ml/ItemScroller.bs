@@ -107,7 +107,9 @@ namespace ml
         end if
       end if
 
+      m.log.verbose(" +>+>>>+>++> CCCC 11")
       m.setFocusIndex(index, false, false)
+      m.log.verbose(" +>+>>>+>++> CCCC 22")
     end function
 
     public function cancelScrolling(setFocusNow = false as boolean)
@@ -253,18 +255,18 @@ namespace ml
 
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean) as boolean
+      m.log.increaseIndent("MOVE TO INDEX")
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
-      ' ? ">?>?>?>?>?////////////////////////////////////////////////////////"
-      ' ? "////// MTI " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
+      m.log.verbose(">?>?>?>?>?////////////////////////////////////////////////////.v///")
+      m.log.verbose("////// MTI ", m.index, " NI ", index, " d ", direction, " FS ", forceSequential)
       index = mc.clamp(index, 0, m.viewManager.numberOfItems - 1)
-      ' index = mc.clamp(index, 0, 3)
       'FIXME - cancel/tidy up a move in progress
       m.fractionWhenFinishBegan = 0
-      ' m.viewManager.recalculateCellInfos(false)
       m.focusManager@.cancelFlowFocus()
 
       if m.viewManager.numberOfItems = 0
         ' ? " NO ITEMS"
+        m.log.decreaseIndent()
         return false
       end if
 
@@ -318,10 +320,11 @@ namespace ml
       m.setNextCellInfo(nextCellInfo)
       ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
-      ? " MTI DD"
+      m.log.verbose(" MTI DD")
       if isFlowPossible
         ' ? "///// 2.b flow IS POSSIBLE I " ; index
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
+        m.log.decreaseIndent()
         return true
       end if
 
@@ -367,6 +370,7 @@ namespace ml
         m.setCellInfo(targetCellInfo)
       end if
 
+      m.log.decreaseIndent()
       return true
     end function
 
@@ -652,6 +656,7 @@ namespace ml
 
       m.isLastMoveFlowFocus = true
       m.toggleScrolling(true)
+      m.log.verbose("==== FROM moveUsingFlowAnim")
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
       ' ? "FLOW "; m.animSpeed
       m.focusManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
@@ -791,6 +796,7 @@ namespace ml
       end if
 
       if notifyFocusManager
+        m.log.verbose("==== FROM setFocusIndex ")
         m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
       end if
     end function
@@ -820,6 +826,7 @@ namespace ml
       m.setNextCellInfo(m.viewManager.cellInfos[index])
       if notifyFocusManager
         ' ? "list notifying focus manager"
+        m.log.verbose("==== FROM forceFocusOnIndex ")
         m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
         m.focusManager@.onFocusAnimationUpdate(1)
       end if

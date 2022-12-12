@@ -56,6 +56,8 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/list/UpdateGridItemsScreen.json")
     m.createViewsFromStyleJson(bundle.views)
     m.resetData()
+
+    m.list@.setDelegate(m.top)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -120,7 +122,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
   end function
 
   private function makeListData()
-    m.list.content = invalid
+    m.list@.setContent(invalid)
 
     timer = new mc.utils.DebugTimer("list")
 
@@ -137,7 +139,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
 
     m.setFocus(m.loadingIndicator)
 
-    m.list.content = content
+    m.list@.setContent(content)
 
     timer.log("set content")
     if m.list.state = "rendered"
