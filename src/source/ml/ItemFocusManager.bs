@@ -62,7 +62,21 @@ namespace ml
       m.delegateManager = new ml.ListDelegateManager()
     end function
 
-    function reset(focusIndicatorConfig as ml.FocusIndicatorConfig)
+    function reset(focusIndicatorConfig = invalid as ml.FocusIndicatorConfig)
+      m.log.info("resetting focus on the item focus manager")
+
+      m.lastSentFraction = -1
+      m.direction = 0
+      m.didStart = false
+      m.didFinish = false
+      m.configureDelegateEvent(m.fromEvent, m.previousFocusIndicatorConfig)
+      m.configureDelegateEvent(m.toEvent, m.focusIndicatorConfig)
+      m.configureSentEventTypes()
+
+      m.delegateManager.callCellDelegateMethod("didLoseFocus", m.fromEvent)
+      m.delegateManager.callCellDelegateMethod("didLoseFocus", m.toEvent)
+      m.previousFocusIndicatorConfig = invalid
+      m.focusIndicatorConfig = invalid
     end function
 
     function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
@@ -112,6 +126,7 @@ namespace ml
 
       m.configureSentEventTypes()
     end function
+
 
     private function configureSentEventTypes()
       'TODO add a function to get a delegateMap from a maestro basenode - where we pass in an aa of function types, and it returns true for each of those that are implemented

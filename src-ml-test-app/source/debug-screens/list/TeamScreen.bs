@@ -71,8 +71,8 @@ namespace ml.sample
       listSettings.rowCreationStrategy = "async"
       listSettings.rowCreationBatchSize = 10
       listSettings.rowCreationBatchDelay = 0.1
-      listSettings.renderStrategy = "dynamic"
-      ' listSettings.renderStrategy = "all"
+      ' listSettings.renderStrategy = "dynamic"
+      listSettings.renderStrategy = "all"
       listSettings.numberItemsToRenderAfter = m.numberItemsToRenderAfter
       listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
 
@@ -111,16 +111,17 @@ namespace ml.sample
 
     private function createData()
       content = []
-      rowFocusSettings = ml.listMixin.createFocusSettings("fixed")
+      favoriteFocusSettings = ml.listMixin.createFocusSettings("fixed")
       headerSettings = ml.listMixin.createHeaderSettings([30, 20], 100, "mediumBold,50", "#ffff00")
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "FAVORITE TEAM"
       row.id = rnd(2147483647).toStr()
-      row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, headerSettings)
+      row.settings = ml.listMixin.createRowSettings(m.cellSettings, favoriteFocusSettings, 30, headerSettings)
       row.settings.contentOffset = [200, 0]
       numItems = 1
       content.push(row)
       m.favoriteModule = row
+      rowFocusSettings = ml.listMixin.createFocusSettings()
       row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
 
       row = createObject("roSGNode", "ml_RowContent")
@@ -205,7 +206,7 @@ namespace ml.sample
         return
       end if
 
-      ? "un-follow "; team.title " ID " team.id
+      ? "un-follow ", team.title " ID " team.id
 
       m.teamsModule@.setNotificationsEnabled(false)
       m.followingModule@.setNotificationsEnabled(false)
@@ -222,7 +223,7 @@ namespace ml.sample
 
     private function selectFavorite()
       team = m.followingModule@.getChild(0)
-      ? "selected fave>>>>>:"; mc.dv(team)
+      ? "selected fave>>>>>:", mc.dv(team)
       m.teamsModule@.setNotificationsEnabled(false)
       m.favoriteModule@.setNotificationsEnabled(false)
       m.favoriteModule@.clear()
@@ -243,7 +244,7 @@ namespace ml.sample
         return
       end if
 
-      ? "follow "; team.title
+      ? "follow ", team.title
       m.teamsModule@.setNotificationsEnabled(false)
       m.followingModule@.setNotificationsEnabled(false)
       m.followingModule@.insertChild(team, 0)
@@ -255,8 +256,8 @@ namespace ml.sample
       m.followingModule@.setNotificationsEnabled(true)
       m.list.content@.notifyUpdate()
       m.list@.synchronizeContent()
-      ? "followingModule : "; m.followingModule.length
-      ? "teamsModule : "; m.teamsModule.length
+      ? "followingModule : ", m.followingModule.length
+      ? "teamsModule : ", m.teamsModule.length
       ' if m.teamsModule.isHidden
       '   ? " TEAMS IS HIDDEN"
       '   m.list@.moveToIndex([1, 0])
@@ -271,7 +272,7 @@ namespace ml.sample
 
     private function onItemSelected(rowIndex as integer, itemIndex as integer)
       row = m.list.content@.getChild(rowIndex)
-      ? " ITEM IS SELECTED r " ; rowIndex, "i "; itemIndex ; " "; mc.dv(row)
+      ? " ITEM IS SELECTED r ", rowIndex, "i ", itemIndex, " ", mc.dv(row)
       if m.favoriteModule.isSameNode(row)
         ? "SELECT FAVE"
         m.selectFavorite()
@@ -283,5 +284,101 @@ namespace ml.sample
         m.followTeam(itemIndex)
       end if
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ List Delegate Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
+      m.log.info("onRowDidGainFocus : R: ", rowIndex, "SR: ", subRowIndex, " D:", direction)
+
+      row = m.list@.getRowRenderer(rowIndex)
+      if row <> invalid
+        mioc.setInstance("focusedIndex", {
+          row: rowIndex
+          cell: row.focusedCellIndex
+        })
+      else
+        mioc.setInstance("focusedIndex", {
+          row: -1
+          cell: -1
+        })
+
+      end if
+
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1
+      ' end if
+    end function
+
+    private function onRowDidLoseFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
+      m.log.info("onRowDidLoseFocus : R: ", rowIndex, "SR: ", subRowIndex, " D:", direction)
+
+      ' row = m.list@.getRowRenderer(rowIndex)
+      ' if direction = 1
+      '   row.opacity = 0
+      ' end if
+
+    end function
+
+    private function onRowGainingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
+      m.log.info("onRowGainingFocus : R: ", rowIndex, "SR: ", subRowIndex, " D:", direction, " F: ", fraction)
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = fraction
+      ' end if
+    end function
+
+    private function onRowLosingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
+      m.log.info(": R: ", rowIndex, "SR: ", subRowIndex, " D:", direction, " F: ", fraction)
+      ' if direction = 1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1 - fraction
+      ' end if
+    end function
+
+    private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      m.log.info("onCellWillGainFocus : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: itemIndex
+      })
+    end function
+
+    private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      m.log.info("onCellDidGainFocus  : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+      mioc.setInstance("focusedIndex", {
+        row: rowIndex
+        cell: itemIndex
+      })
+    end function
+
+
+    private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      m.log.info("onCellWillLoseFocus : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+    end function
+
+    private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
+      m.log.info("onCellDidLoseFocus : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+    end function
+
+    private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+      m.log.info("onCellGainingFocus : R: ", rowIndex, " C ", cellIndex, " D:", direction, " F: ", fraction)
+      ' if direction = -1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = fraction
+      ' end if
+    end function
+
+    private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
+      m.log.info(": R: ", rowIndex, " D:", " C ", cellIndex, direction, " F: ", fraction)
+      ' if direction = 1
+      '   row = m.list@.getRowRenderer(rowIndex)
+      '   row.opacity = 1 - fraction
+      ' end if
+
+    end function
+
   end class
 end namespace

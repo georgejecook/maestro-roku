@@ -111,12 +111,8 @@ namespace ml
 
       m.updateListContentIfRequired(listResult)
 
-      m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
-
-      ' if listResult.isFocusChangeRequired or listResult.isLayoutRequired
-
       m.updateListFocus()
-      ' end if
+
       m.log.resetIndent()
     end function
 
@@ -155,8 +151,20 @@ namespace ml
       if cellIndex < 0
         cellIndex = 0
       end if
+
+      m.log.increaseIndent("RESET")
+      m.focusIndicatorManager@.reset()
+
+      m.log.increaseIndent("MOVE")
       m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
 
+      m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
+      m.log.increaseIndent("COMPLETE")
+      m.itemScroller.setFocusManagerInfo(m.itemScroller.cellInfo, m.itemScroller.nextCellInfo, m.itemScroller.direction, false)
+      m.focusIndicatorManager@.completeFocusNow(true)
+      m.log.decreaseIndent()
+      m.log.decreaseIndent()
+      m.log.decreaseIndent()
       if m.list.top.isChildFocused or m.list.top.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
       end if

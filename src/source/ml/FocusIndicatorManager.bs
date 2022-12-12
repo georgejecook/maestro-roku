@@ -158,15 +158,23 @@ namespace ml
       m.itemFocusManager.onFocusAnimationUpdate(fraction)
     end function
 
-    function completeFocusNow()
+    function completeFocusNow(force = false as boolean)
       m.log.info("completing focus right now!")
-      ' ? " COMPLETE FOCUS NOW!!"
+      if force = true
+        m.itemFocusManager.didStart = true
+        m.itemFocusManager.didFinish = false
+      end if
       m.itemFocusManager.onFocusAnimationUpdate(1)
     end function
 
     function setDelegateCallbacksEnabled(listDelegateEnabled as boolean)
       m.log.info("setting callbacks enabled to", listDelegateEnabled)
       m.itemFocusManager.isNotifyingListDelegate = listDelegateEnabled
+    end function
+
+    function reset()
+      m.log.info("resetting item focus manager, so that it can get all it's delegates in the right state")
+      m.itemFocusManager.reset()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
