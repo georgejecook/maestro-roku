@@ -93,6 +93,16 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
+      if m.content = invalid
+        m.log.info("gridrow has invalid")
+        return []
+      end if
+
+      if m.settings = invalid or m.settings.subType() <> "ml_GridRowSettings"
+        m.log.info("gridrow has invalid/incorrect settings type")
+        return []
+      end if
+
       if forceRecalculate
         m.rowInfos = invalid
       end if

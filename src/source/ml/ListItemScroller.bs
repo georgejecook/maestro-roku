@@ -39,11 +39,11 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public override function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      ' ? "::::::::::::::::::::::: LIST GET FOCUS INDICATOR CONFIG" ; cellInfo.componentIndex ; " D " ; direction
       if cellInfo <> invalid and cellInfo <> invalid
         config = cellInfo.component@.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, true)
-        'todo think about this.. only when moving?
-        config.willDoSystemFocus = true
+        if config <> invalid
+          config.willDoSystemFocus = true
+        end if
       else
         return invalid
       end if

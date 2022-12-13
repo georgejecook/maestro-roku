@@ -110,7 +110,7 @@ namespace ml
       end if
       m.recalculateCellInfos()
       m.updateChangedItems()
-      ' m.restorePreviousFocus()
+      m.restorePreviousFocus()
     end function
 
     protected override function updateChangedItems()
@@ -120,30 +120,11 @@ namespace ml
       end for
     end function
 
-    ' private function restorePreviousFocus()
+    private function restorePreviousFocus()
+      m.log.verbose("restoring the previous focus")
 
-    '   focusIndex = [0, 0]
-    '   m.log.info("restoring previous focus")
-    '   if m.previousFocusedRow <> invalid
-    '     row = m.renderersByContentId[m.previousFocusedRow.id]
-    '     if row = invalid
-    '       index = m.previousFocusedIndex < m.numberOfItems ? m.previousFocusedIndex : m.numberOfItems - 1
-    '       row = m.visibleComponents[index]
-    '     end if
-
-    '     if row <> invalid
-    '       focusIndex[0] = row.index
-    '       focusIndex[1] = row.focusedCellIndex
-    '     end if
-    '   end if
-    '   m.previousFocusedIndex = 0
-    '   m.previousFocusedRow = invalid
-    '   ' 'TODO need to actually set the focus properly
-    '   ' ? " RESTORE PRE FOCUS EEE " ;focusIndex[0]
-    '   m.itemScroller.moveToIndex(focusIndex[0], false)
-    '   ' ? " RESTORE PRE FOCUS : END"
-    '   ' m.itemScroller.forceFocusOnIndex(focusIndex[0])
-    ' end function
+      m.contentManager.updateListFocus()
+    end function
 
     override function createRendererBatch() as void
       if m.content <> invalid

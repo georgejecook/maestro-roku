@@ -73,8 +73,12 @@ namespace ml
       m.configureDelegateEvent(m.toEvent, m.focusIndicatorConfig)
       m.configureSentEventTypes()
 
-      m.delegateManager.callCellDelegateMethod("didLoseFocus", m.fromEvent)
-      m.delegateManager.callCellDelegateMethod("didLoseFocus", m.toEvent)
+      if m.fromEvent.cell <> invalid
+        m.delegateManager.callCellDelegateMethod("didLoseFocus", m.fromEvent)
+      end if
+      if m.toEvent.cell <> invalid
+        m.delegateManager.callCellDelegateMethod("didLoseFocus", m.toEvent)
+      end if
       m.previousFocusIndicatorConfig = invalid
       m.focusIndicatorConfig = invalid
     end function

@@ -15,8 +15,8 @@ class ListEnterExitScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 5
-  private numberOfItems = 4
+  private numberOfRows = 50
+  private numberOfItems = 20
   private defaultCellType = "PosterCellEfficient"
 
   'state
@@ -104,8 +104,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
 
-    listSettings.renderStrategy = "dynamic"
-    ' listSettings.renderStrategy = "all"
+    ' listSettings.renderStrategy = "dynamic"
+    listSettings.renderStrategy = "all"
     listSettings.numberItemsToRenderAfter = m.numberItemsToRenderAfter
     listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
 
@@ -302,6 +302,13 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
     return key <> "back"
+  end function
+
+  protected override function onKeyPressBack() as boolean
+    m.log.info("resetting list content")
+
+    m.list@.setContent(invalid)
+    return super.onKeyPressBack()
   end function
 
   private function onKeyPressOptions() as boolean
