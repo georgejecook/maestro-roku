@@ -294,6 +294,25 @@ namespace ml
       return invalid
     end function
 
+    function moveToEnd(direction = -1 as integer, animated = false as boolean)
+      'TODO get content index of first visible row
+      if direction = -1
+        rowIndex = 0
+      else
+        rowIndex = m.viewManager.numberOfItems
+      end if
+
+      animSpeedIndex = 0
+      if m.viewManager.listSettings <> invalid
+        if m.viewManager.listSettings.fastAnimateToEndEnabled
+          animSpeedIndex = m.viewManager.listSettings.animSpeeds.count() - 1
+        else
+          animated = false
+        end if
+      end if
+      m.moveToRow(rowIndex, animated, animSpeedIndex)
+    end function
+
     function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       if m.contentManager.content <> invalid
         m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex)
@@ -311,7 +330,11 @@ namespace ml
           rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
           if rowInfo <> invalid
             rect = row@.getRect(index)
-            m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, animSpeedIndex, false, false)
+            subIndex = rowInfo.index
+            if rect <> invalid
+              subIndex += rect.subRowIndex
+            end if
+            m.moveToSubRowIndex(subIndex, animated = true, animSpeedIndex, false, false)
           end if
           row@.moveToIndex(index, false)
         end if
@@ -425,6 +448,12 @@ namespace ml
     private function canMoveFromKeyPress(key as string) as boolean
       direction = m.keyDirections[key]
 
+      if m.focusIndicatorManager.isFocusing
+        'TODO - improve this
+        m.log.info("ignoring press", key, "because the focus indiciator is moving")
+        return false
+      end if
+
       if m.listKeys[key] = true
         return m.itemScroller.canMoveInDirection(direction)
       else if m.rowKeys[key] = true
@@ -492,7 +521,9 @@ namespace ml
 
     private function isAlreadyScrolling(isUpDown as boolean) as boolean
       ' ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus
-      return m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
+      m.log.info("isAlreadyScrolling? ", m.focusIndicatorManager.isFocusing)
+
+      return m.focusIndicatorManager.isFocusing or m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
     end function
 
     private function onKeyPressOptions() as boolean

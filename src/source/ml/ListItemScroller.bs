@@ -22,13 +22,17 @@ namespace ml
 
     protected override function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
       m.log.info(" LIST setFocusManagerInfo ", m.viewManager.isScrolling)
-      if m.viewManager.isScrolling
+      if m.viewManager.isScrolling and nextCellInfo <> invalid
         nextCellInfo.component@.chooseCellInfoForScrollingIntoRow(nextCellInfo)
       end if
 
       m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, isFloatingFocus)
-      m.nextFocusIndicatorConfig.row = nextCellInfo.component
-      m.nextFocusIndicatorConfig.isRowEvent = true
+      if m.nextFocusIndicatorConfig <> invalid
+        if nextCellInfo <> invalid
+          m.nextFocusIndicatorConfig.row = nextCellInfo.component
+        end if
+        m.nextFocusIndicatorConfig.isRowEvent = true
+      end if
 
       m.log.info(" FROM LIST")
       m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)

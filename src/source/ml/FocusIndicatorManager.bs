@@ -16,7 +16,7 @@ namespace ml
     @observer("onIsHiddenChange")
     public isHidden = false
     public list as mc.types.node
-    public isScrolling = false
+    public isFocusing = false
 
     'TODO - revisit this
     @alwaysnotify
@@ -137,14 +137,13 @@ namespace ml
       end if
 
       if m.isSameConfig(focusIndicatorConfig)
-        ' ? " is same"
+        m.log.verbose(" is same")
         return
       end if
-      ' ? " SETTING LAST MOVE FRACTION 0 SET NEXT "
+      m.log.verbose(" SETTING LAST MOVE FRACTION 0 SET NEXT ")
       m.lastMoveFraction = 0
       m.preprareNextFocusConfig(focusIndicatorConfig)
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
-      ' m.setSystemFocusOnRenderer()
     end function
 
     private function isSameConfig(config as ml.FocusIndicatorConfig) as boolean
@@ -182,7 +181,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
-      ' ? " FOCUS COMPLETE " ; focusIndicatorConfig.rowIndex ; ", "; focusIndicatorConfig.cellIndex
+      m.log.verbose(" FOCUS COMPLETE ", focusIndicatorConfig.rowIndex, ", ", focusIndicatorConfig.cellIndex)
       m._list.focusedRowIndex = focusIndicatorConfig.rowIndex
       m._list.focusedCellIndex = focusIndicatorConfig.cellIndex
       'We must be already prepared
@@ -204,7 +203,7 @@ namespace ml
 
     private function onIsHiddenChange(isHidden as boolean)
       m.isHidden = isHidden
-      ' ? "on isHidden change "; m.isHidden ; " should show " ; m.shouldShowIndicator
+      m.log.verbose("on isHidden change ", m.isHidden, " should show ", m.shouldShowIndicator)
       if not m.manualMode
         m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
       end if
@@ -223,7 +222,7 @@ namespace ml
     end function
 
     public function setFocusedFraction(fraction as float) as void
-      ' ? "ON ROW Fraction CHANGE" ; fraction " " ; m.isDoingFlowFocus
+      m.log.verbose("ON ROW Fraction CHANGE", fraction, " ", m.isDoingFlowFocus)
       m._list.focusedFraction = fraction
 
       if m.isDoingFlowFocus
@@ -245,6 +244,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function preprareNextFocusConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+      m.isFocusing = true
       if m._list.state = "rendering" or m._list.content = invalid
         return
       end if
@@ -252,6 +252,8 @@ namespace ml
       m.nextConfig = focusIndicatorConfig
 
       if m.nextConfig = invalid
+        m.log.info("nextConfig is invalid - hiding")
+
         m.focusIndicator.visible = false
         m.shouldShowIndicator = false
         m.rowHasIndicator = false
@@ -260,27 +262,24 @@ namespace ml
       end if
 
       m.log.verbose(" SET CONFIG TO ", m.nextconfig.rowIndex, " ", m.nextConfig.cellIndex)
-      if m.nextConfig <> invalid
-        ' ? " GOT TARGET RECT "; formatJson (targetIndex) ; "  " ; m.nextConfig.indicatorTranslation[1]
-      end if
 
       m.setActiveFocusSettings(m.nextConfig.settings)
 
-      ' ? ">>> NEXT FOCUS STYLE " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
-      ' ? ">>> NEXT HIDDEN " ; mc.getPath(m.nextConfig, "isHidden")
+      m.log.verbose(">>> NEXT FOCUS STYLE ", mc.getPath(m.nextFocusSettings, "feedbackStyle"))
+      m.log.verbose(">>> NEXT HIDDEN ", mc.getPath(m.nextConfig, "isHidden"))
       if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
-        ' ? ">>> HIDE INDICATOR"
-        ' ? "AA"
+        m.log.verbose(">>> HIDE INDICATOR")
+        m.log.verbose("AA")
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.nextFocusSettings.feedbackStyle))
-        ' ? "BB"
+        m.log.verbose("BB")
         m.focusIndicator.visible = false
       else if m.isHidden
-        ' ? "CC"
+        m.log.verbose("CC")
         m.focusIndicator.visible = false
       else
-        ' ? "DD"
+        m.log.verbose("DD")
         m.rowHasIndicator = true
       end if
 
@@ -307,23 +306,26 @@ namespace ml
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(isFinal as boolean) as void
+      m.isFocusing = false
+
       m.shouldShowIndicator = false
-      ' ? ">>applyFocusSettings"
+
+      m.log.verbose(">>applyFocusSettings")
       if m.nextFocusSettings = invalid or m.nextConfig = invalid
         return
       end if
-      ' ? "-------------isFinal " ; isFinal; " " ; mc.getPath(m.previousFocusSettings, "feedbackStyle") ; " NEXT " ; mc.getPath(m.nextFocusSettings, "feedbackStyle")
+      m.log.verbose("-------------isFinal ", isFinal, " ", mc.getPath(m.previousFocusSettings, "feedbackStyle"), " NEXT ", mc.getPath(m.nextFocusSettings, "feedbackStyle"))
       'note - we don't show the focus indicator till we're in place, ifE the last row was hidden
       nextHidden = m.nextConfig.isHidden = true or m.nextFocusSettings.feedbackStyle = "none"
       previousHidden = (m.previousFocusSettings = invalid or m.previousFocusSettings.feedbackStyle = "none" or not m.rowHasIndicator)
-      ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
-      ' ? nextHidden " " previousHidden
+      m.log.verbose(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+      m.log.verbose(nextHidden, " ", previousHidden)
       if nextHidden or (not isFinal and previousHidden)
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else
         m.rowHasIndicator = true
-        ' ? "APPLY FOCUS SETTINGS VIS"
+        m.log.verbose("APPLY FOCUS SETTINGS VIS")
         if not m.focusIndicator.visible and not m.isHidden
           m.focusIndicator.visible = not m.isHidden
         end if
@@ -351,7 +353,7 @@ namespace ml
     private lastMoveFraction = 0
 
     private function moveFocusIndicatorToTargetPosition(fraction as float) as void
-      ' ? " MOVE FOCUS INDICATOR TO POS " fraction
+      m.log.verbose(" MOVE FOCUS INDICATOR TO POS ", fraction)
       if m.nextConfig = invalid
         return
       end if
@@ -366,7 +368,7 @@ namespace ml
         translation = m.nextConfig.indicatorTranslation
         size = m.nextConfig.indicatorSize
         m.focusScreenPosition = m.nextConfig.indicatorTranslation
-        ' ? "ACTIVE FOCUS POS IS NOW "; formatJson(m.nextConfig.indicatorTranslation)
+        m.log.verbose("ACTIVE FOCUS POS IS NOW ", formatJson(m.nextConfig.indicatorTranslation))
       else
         translation = mc.interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
         size = mc.interpolateArray(m.previousSize, m.nextConfig.indicatorSize, fraction)
@@ -376,7 +378,7 @@ namespace ml
         m.focusIndicator.translation = translation
         m.focusIndicator.size = size
       end if
-      ' ? "moveFocusIndicatorToTargetPosition " ; fraction ; " " ; m.nextConfig.indicatorTranslation[1]
+      m.log.verbose("moveFocusIndicatorToTargetPosition ", fraction, " ", m.nextConfig.indicatorTranslation[1])
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -386,12 +388,12 @@ namespace ml
     public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
 
       m.log.info("starting flow focus ")
-      ' ? "START FLOW FOCUS "; m.__classname
+      m.log.verbose("START FLOW FOCUS ", m.__classname)
 
       m.isDoingFlowFocus = true
       m.nextConfig = focusIndicatorConfig
       m.log.verbose(" SET CONFIG TO ", m.nextconfig.rowIndex, " ", m.nextConfig.cellIndex)
-      ' ? " SETTING LAST MOVE FRACTION 0 START FLOW"
+      m.log.verbose(" SETTING LAST MOVE FRACTION 0 START FLOW")
       m.lastMoveFraction = 0
       m.setActiveFocusSettings(m.nextConfig.settings)
       m.focusScreenPosition = m.nextConfig.indicatorTranslation
@@ -403,33 +405,34 @@ namespace ml
 
       speed *= 2
       m.flowFocusDelegate = delegate
-      ' ? ">>>> ANIMATE FLOW FOCUS " ; speed
+      m.log.verbose(">>>> ANIMATE FLOW FOCUS ", speed)
       m.focusPointAnim.setFromToValue(m.focusIndicator.translation, m.nextConfig.indicatorTranslation)
       m.focusPointAnim.animateTo(m.nextConfig.indicatorTranslation, speed)
+      m.isFocusing = true
       m.focusPointAnim.start()
     end function
 
     public function cancelFlowFocus()
       m.flowFocusDelegate = invalid
       m.isDoingFlowFocus = false
-      ' ? " SETTING LAST MOVE FRACTION 0 CANCEL FLOW"
+      m.log.verbose(" SETTING LAST MOVE FRACTION 0 CANCEL FLOW")
       m.lastMoveFraction = 0
       m.focusPointAnim.pause()
       m.focusPoint.translation = [0, 0]
     end function
 
     private function onFlowFocusFractionChange(fraction as float)
-      ' ? " ON FLOW FRACTION CHANGE " fraction
+      m.log.verbose(" ON FLOW FRACTION CHANGE ", fraction)
       m.moveFocusIndicatorToTargetPosition(fraction)
       if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
         m.applyFocusSettings(false)
       end if
 
       if m.flowFocusDelegate <> invalid
-        ' ? " telling delegate " ; mc.dv(m.flowFocusDelegate)
+        m.log.verbose(" telling delegate ", mc.dv(m.flowFocusDelegate))
         m.flowFocusDelegate@.onFlowFocusFraction(fraction)
       else
-        ' ? " NO FOCUS"
+        m.log.verbose(" NO FOCUS")
       end if
 
       if fraction = 1
@@ -455,7 +458,7 @@ namespace ml
       'TODO - consider if the willDoSystemFocus call should be overridden
       m.isFocusedOnRow = m._list.isChildFocused or m.list.isFocused
       if m.nextConfig <> invalid and (forceFocus or m.nextConfig.willDoSystemFocus = true)
-        ' ? " SETTING SYSTEM FOCUS ON " ; mc.dv(m.nextConfig.row)
+        m.log.verbose(" SETTING SYSTEM FOCUS ON ", mc.dv(m.nextConfig.row))
 
         focusTarget = m.nextConfig.row
         if m.isFocusedOnRow and focusTarget <> invalid
@@ -467,7 +470,7 @@ namespace ml
     end function
 
     function setFocusedOnRow(focused as boolean)
-      ' ? " setFocusedOnRow " focused
+      m.log.verbose(" setFocusedOnRow ", focused)
       m.isFocusedOnRow = focused
       if focused
         m.setSystemFocusOnRenderer(true)
