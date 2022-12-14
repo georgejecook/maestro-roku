@@ -445,7 +445,7 @@ namespace ml
     '++ Movement Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function canMoveFromKeyPress(key as string) as boolean
+    private function canMoveFromKeyPress(key as string, isLongPress as boolean) as boolean
       direction = m.keyDirections[key]
 
       if m.focusIndicatorManager.isFocusing
@@ -455,7 +455,7 @@ namespace ml
       end if
 
       if m.listKeys[key] = true
-        return m.itemScroller.canMoveInDirection(direction)
+        return m.itemScroller.canMoveInDirection(direction) and (not isLongPress or m.viewManager.settings.focusSettings.canLongPress)
       else if m.rowKeys[key] = true
         row = m.getFocusedRow()
         if row <> invalid
@@ -476,7 +476,7 @@ namespace ml
       end if
 
       m.log.verbose(" OKP ", key)
-      if m.canMoveFromKeyPress(key)
+      if m.canMoveFromKeyPress(key, false)
         direction = m.keyDirections[key]
         m.isDoingFlowFocus = false
         isPage = key = "rewind" or key = "fastforward"
@@ -622,7 +622,7 @@ namespace ml
       end if
       m.log.verbose("getLongPressIntervalForKey", key)
 
-      if m.canMoveFromKeyPress(key)
+      if key = "OK" or m.canMoveFromKeyPress(key, true)
         return 0.2
       else
         return 0
@@ -632,7 +632,11 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
-      if m.canMoveFromKeyPress(key)
+      if key = "OK"
+        if m.delegate <> invalid
+          m.delegate@._apply("onItemLongSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+        end if
+      else if m.canMoveFromKeyPress(key, true)
         direction = m.keyDirections[key]
 
         if m.listKeys[key] = true
@@ -655,7 +659,9 @@ namespace ml
 
     private function onLongPressFinish(key as string) as boolean
       m.log.verbose(" ON LONG PRESS FINISH - LIST ", key)
-      if m.listKeys[key] = true
+      if key = "OK"
+        'nothing yet
+      else if m.listKeys[key] = true
         m.log.verbose(" OLF A")
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.cancelScrolling()

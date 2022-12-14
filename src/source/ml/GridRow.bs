@@ -134,7 +134,11 @@ namespace ml
       end if
     end function
 
-    override function canMoveInDirection(direction as integer) as boolean
+    override function canMoveInDirection(direction as integer, longPress as boolean) as boolean
+      settings = m.viewManager.getFocusSettings()
+      if settings = invalid or settings.allowLongPress = false
+        return false
+      end if
       ' if m.isAlreadyScrolling(key = "up" or key = "down")
       '   return false
       ' end if
