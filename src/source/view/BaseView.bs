@@ -95,8 +95,27 @@ namespace mv
     '++ key support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    private lastPressTime = 0
+
     private function onKeyEvent(key as string, press as boolean) as boolean
       result = false
+      timeNow = UpTime(0)
+      ' ? "key " ; key ; " P " ; press ; " " ; abs(timeNow - m.lastPressTime)
+      ' if abs(timeNow - m.lastPressTime) < 0.35 and press
+      '   ? " skipping rapid key"
+      '   m.lastPressTime = timeNow
+      '   return true
+      ' end if
+      m.lastPressTime = timeNow
+      if m.longPressKey <> ""
+        wasStarted = m.isLongPressStarted
+        m.toggleLongPressTimer(0)
+        if not wasStarted and mc.isFunction(m[`onKeyPress${key}`])
+          result = m[`onKeyPress${key}`]()
+        end if
+        return true
+      end if
+
       if press
         'bs:disable-next-line
         if mc.isFunction(m.isAnyKeyPressLocked) and m.isAnyKeyPressLocked(key)
@@ -109,7 +128,6 @@ namespace mv
           if longPressInterval > 0
             m.log.info("entering long press for key ", key)
             m.longPressKey = key
-            'bs:disable-next-line
             m.toggleLongPressTimer(longPressInterval)
             return true
           end if
@@ -118,13 +136,7 @@ namespace mv
         if mc.isFunction(m[`onKeyPress${key}`])
           result = m[`onKeyPress${key}`]()
         end if
-      else if m.longPressKey <> ""
-        wasStarted = m.isLongPressStarted
-        m.toggleLongPressTimer(0)
-        if not wasStarted and mc.isFunction(m[`onKeyPress${key}`])
-          result = m[`onKeyPress${key}`]()
-        end if
-        return true
+
       end if
 
       if result = invalid

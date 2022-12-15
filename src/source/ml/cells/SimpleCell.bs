@@ -1,9 +1,7 @@
 import "pkg:/source/core/Utils.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/cells/BaseCell.bs"
 
@@ -61,7 +59,7 @@ namespace ml
       m.scale = 1
     end function
 
-    protected override function onContentChange(content as mc.types.node)
+    protected override function onShowWithContent(content as mc.types.node)
 
       m.poster.width = m.posterSize[0]
       m.poster.height = m.posterSize[1]
@@ -70,6 +68,11 @@ namespace ml
       m.label.text = "C:" + m.content.title
       m.poster.uri = m.content.HDGRIDPOSTERURL
       m.label.visible = true
+      m.label.fontKey = "medium,30"
+      m.label.color = "#aaaaaa"
+    end function
+
+    protected override function onHide()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -87,25 +90,6 @@ namespace ml
       ' ? "SC: isScrolling UPDATE " ; " " ; startIndex ; " SI " ; currentIndex
       textVisible = abs(startIndex - currentIndex) < 4
       m.label.visible = textVisible
-    end function
-
-    private function onWillExit(direction as integer)
-      ' ? "SC: onCellWillExit " ; " " ; direction
-    end function
-
-    private function onWillEnter(direction as integer)
-      ' ? "SC: onWillEnter " ; m.index ; " " ; direction
-    end function
-    private function onDidEnter(direction as integer)
-      ' ? "SC: onCellDidEnter " ; m.index ; " " ; direction
-      m.label.fontKey = "medium,30"
-      m.label.color = "#aaaaaa"
-    end function
-
-    private function onDidExit(direction as integer)
-      ' ? "SC: onCellDidExit " ; m.index ; " " ; direction
-      m.label.fontKey = "medium,30"
-      m.label.color = "#aaaaaa"
     end function
 
     private function onWillGainFocus(direction as integer)

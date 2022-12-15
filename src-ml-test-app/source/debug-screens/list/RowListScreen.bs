@@ -1,6 +1,5 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
-import "pkg:/source/ml/ListDelegateMixin.bs"
 
 @node("RowListScreen", "mv_BaseScreen")
 class RowListScreen extends mv.BaseScreen
@@ -22,6 +21,8 @@ class RowListScreen extends mv.BaseScreen
 
   private isSmall = false
 
+  private button as mc.types.node
+
   function new()
     super("RowListScreen")
     m.log.info("RowListScreen new")
@@ -42,15 +43,24 @@ class RowListScreen extends mv.BaseScreen
       rowItemSize: [480, 320]
       numRows: 3
     })
-    m.onResetChange()
+    m.button = m.createSGNode("mv_Button", m.top, "button", {
+      text: "create list"
+      autosize: true
+    })
+
+    m.observe(m.button.selected, m.onResetChange, "none")
+
+    m.content = m.createSGNode("ContentNode", invalid, "content")
+    m.content.appendChildren(m.createRows())
+    m.button.text = `create list with ${m.contentId} items`
   end function
 
+
+  private content as mc.types.node
+
   private function onResetChange()
-    m.list.content = invalid
-    ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
-    content = m.createSGNode("ContentNode", invalid, "content")
-    content.appendChildren(m.createRows())
-    m.list.content = content
+    m.list.content = m.content
+    m.setFocus(m.list)
   end function
 
   private function createRows()
@@ -123,7 +133,6 @@ class RowListScreen extends mv.BaseScreen
 
   protected override function onShow()
     super.onShow()
-    m.setFocus(m.list)
   end function
 
   protected override function onHide()
@@ -135,7 +144,7 @@ class RowListScreen extends mv.BaseScreen
     m.log.info("onGainedFocus", isSelfFocused)
 
     if isSelfFocused
-      m.setFocus(m.list)
+      m.setFocus(m.button)
     end if
   end function
 

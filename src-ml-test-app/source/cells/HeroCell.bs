@@ -1,9 +1,7 @@
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/cells/BaseCell.bs"
 import "pkg:/source/view/Animation.bs"
@@ -64,15 +62,6 @@ class HeroCell extends ml.BaseCell
   end function
 
   protected override function onContentChange(content as mc.types.node)
-    m.poster.width = m.size[0]
-    m.poster.height = m.size[1]
-    m.setFocusState(0, true)
-
-    m.poster.uri = content.HDGRIDPOSTERURL
-    ' m.label.text = content.title
-    m.label.text = `${m.top.translation[0]} : ${m.index}`
-    'TODO - this should be part of initial state setting
-    ' m.onScrollingChange(m.list.isScrolling, false)
   end function
 
   private function toggleLabelVisible(visible as boolean) as void
@@ -102,23 +91,29 @@ class HeroCell extends ml.BaseCell
     m.toggleLabelVisible(abs(startIndex - currentIndex) < 2)
   end function
 
+  protected override function onDidEnter(direction as integer)
+    m.poster.width = m.size[0]
+    m.poster.height = m.size[1]
+    m.setFocusState(0, true)
+
+    content = m.content
+    m.poster.uri = content.HDGRIDPOSTERURL
+    m.label.text = `${m.top.translation[0]} : ${m.index}`
+  end function
+
   private function onDidGainFocus(direction as integer)
-'    ? " ODGF " ; m.index ; " D " ; direction
     m.setFocusState(1, true)
   end function
 
   private function onDidLoseFocus(direction as integer)
-'    ? " ODLF " ; m.index ; " D " ; direction
     m.setFocusState(1, false)
   end function
 
   private function onGainingFocus(direction as integer, fraction as float)
-'    ? " OGF " ; m.index ; " D " ; direction; " f " ; fraction
     m.setFocusState(fraction, true)
   end function
 
   private function onLosingFocus(direction as integer, fraction as float)
-'    ? " OLF " ; m.index ; " D " ; direction; " f " ; fraction
     m.setFocusState(fraction, false)
   end function
 

@@ -1,6 +1,5 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
-import "pkg:/source/ml/ListDelegateMixin.bs"
 import "pkg:/source/core/DebugTimer.bs"
 
 @node("UpdateListDataScreen", "mv_BaseScreen")
@@ -55,7 +54,6 @@ class UpdateListDataScreen extends mv.BaseScreen
     super.initialize()
     bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/list/UpdateListDataScreen.json")
     m.createViewsFromStyleJson(bundle.views)
-    ml.delegateMixin.setListDelegate(m.list)
     m.resetData()
   end function
 
@@ -90,7 +88,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   private updateCount = 0
   private function reload()
     m.log.info("loading data again for dayIndex", m.dayIndex)
-    item = m.list.content.getChild(1).getChild(0)
+    item = m.list.content@.getChild(1).getChild(0)
     if item <> invalid
       m.updateCount++
       json = item.json
@@ -120,8 +118,8 @@ class UpdateListDataScreen extends mv.BaseScreen
 
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
 
-    m.focusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [-50, -50, 50, 50])
-    listSettings = ml.listMixin.createListSettings(-1, -1)
+    m.focusSettings = ml.listMixin.createFocusSettings("fixed", [-50, -50, 50, 50])
+    listSettings = ml.listMixin.createListSettings()
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
@@ -163,7 +161,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     m.log.info("onListRenderState", state)
     if state = "rendered"
       m.setFocus(m.list)
-      m.list@.moveToItem([0, 0], false)
+      m.list@.moveToIndex([0, 0], false)
       m.loadingIndicator.isActive = false
     end if
   end function
@@ -189,13 +187,13 @@ class UpdateListDataScreen extends mv.BaseScreen
 
     if m.isUsingGrids
       m.log.info("is using grids")
-      gridFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "floating", [0, 0, 0, 0])
+      gridFocusSettings = ml.listMixin.createFocusSettings("floating", [0, 0, 0, 0])
       row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 310, numCols, 100, 5, 50)
       row.firstRowScreenPos = 330
       row.otherRowScreenPos = 70
     else
       m.log.info("is using rows")
-      rowFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed, "fixed", [0, 0, 0, 0])
+      rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
       row.settings = ml.listMixin.createRowSettings(m.cellSettings, rowFocusSettings, 30, invalid, 340)
     end if
 
@@ -207,7 +205,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function addItems(cellType as string, number as integer)
-    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row = m.list.content@.getChild(m.list.focusedRowIndex)
     row@.appendChildren(m.makeItems(cellType, number))
   end function
 
@@ -278,7 +276,7 @@ class UpdateListDataScreen extends mv.BaseScreen
 
     'ensure that row offsets are applied correctly
     for each module in modules
-      if module.getChildCount() > 0
+      if module.length > 0
         if numModules > 0 and module.settings.subType() = "ml_GridRowSettings"
           settings = module.settings.clone(true)
           settings.firstRowScreenPos = settings.otherRowScreenPos
@@ -294,7 +292,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function removeNonHeaderRows(update = true as boolean)
-    header = m.list.content.getChild(0)
+    header = m.list.content@.getChild(0)
     m.list.content@.setNotificationsEnabled(false)
     m.list.content@.clear()
     m.list.content@.appendChild(header)
@@ -385,7 +383,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     row@.insertChild(child, 1)
 
     row = m.list@.getRow(3)
-    row@.removeChildrenIndex(row.getChildCount() - 1, 0)
+    row@.removeChildrenIndex(row.length - 1, 0)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

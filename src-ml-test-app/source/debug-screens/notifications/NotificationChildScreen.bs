@@ -21,9 +21,8 @@ class NotificationChildScreen extends mv.BaseScreen
   protected override function initialize()
     super.initialize()
     m.createViews()
-
-    m.observeNotification("Success", m._onNotification)
-    m.observeNotification("Error", m._onNotification)
+    m.observeNotification("Success", m.onSuccess)
+    m.observeNotification("Error", m.onError)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -48,7 +47,12 @@ class NotificationChildScreen extends mv.BaseScreen
   '++ Notifications callbacks
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function _onNotification(notification as mc.Notification)
+  private function onSuccess(notification as mc.Notification)
+    m.log.info("Received notification", notification)
+    m.label.text = `Received ${notification.name} notification`
+  end function
+
+  private function onError(notification as mc.Notification)
     m.log.info("Received notification", notification)
     m.label.text = `Received ${notification.name} notification`
   end function

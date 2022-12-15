@@ -1,8 +1,6 @@
 import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/ml/BaseRow.bs"
 
 @node("DateHeaderRow", "ml_BaseRow")
@@ -45,8 +43,8 @@ class DateHeaderRow extends ml.BaseRow
     'do stuff with content here
   end function
 
-  public override function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-    return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings.focusSettings, true)
+  public override function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    return ml.createFocusIndicatorConfig(m.top, invalid, direction)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

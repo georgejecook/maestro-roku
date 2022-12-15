@@ -1,0 +1,84 @@
+namespace ml
+
+  class ListDelegateManager
+    public listDelegate as mc.types.node
+    public isNotifyingListDelegate = true
+
+    private cellDelegateFunctionMap = {
+      "willGainFocus": "onCellWillGainFocus"
+      "willLoseFocus": "onCellWillLoseFocus"
+      "didGainFocus": "onCellDidGainFocus"
+      "didLoseFocus": "onCellDidLoseFocus"
+      "gainingFocus": "onCellGainingFocus"
+      "losingFocus": "onCellLosingFocus"
+    }
+    private componentFunctionMap = {
+      "willGainFocus": "onWillGainFocus"
+      "willLoseFocus": "onWillLoseFocus"
+      "didGainFocus": "onDidGainFocus"
+      "didLoseFocus": "onDidLoseFocus"
+      "gainingFocus": "onGainingFocus"
+      "losingFocus": "onLosingFocus"
+    }
+
+    private rowDelegateFunctionMap = {
+      "willGainFocus": "onRowWillGainFocus"
+      "willLoseFocus": "onRowWillLoseFocus"
+      "didGainFocus": "onRowDidGainFocus"
+      "didLoseFocus": "onRowDidLoseFocus"
+      "gainingFocus": "onRowGainingFocus"
+      "losingFocus": "onRowLosingFocus"
+    }
+
+
+    function new()
+    end function
+
+    function callCellDelegateMethod(eventName as string, event as mc.types.assocarray) as void
+      'TODO optimize this
+
+      delegateFunctionName = m.cellDelegateFunctionMap[eventName]
+      cellFunctionName = m.componentFunctionMap[eventName]
+      if delegateFunctionName = invalid
+        ? "Unknown cell event" eventName
+        return
+      end if
+
+      if delegateFunctionName = "onCellGainingFocus" or delegateFunctionName = "onCellLosingFocus"
+        event.cell@._apply(cellFunctionName, [event.direction, event.fraction], false)
+        if m.isNotifyingListDelegate
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction, event.fraction], false)
+        end if
+
+      else
+        event.cell@._apply(cellFunctionName, [event.direction])
+        if m.isNotifyingListDelegate
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.index, event.direction], false)
+        end if
+      end if
+    end function
+
+    function callRowDelegateMethod(eventName as string, event as mc.types.assocarray) as void
+      delegateFunctionName = m.rowDelegateFunctionMap[eventName]
+      rowFunctionName = m.componentFunctionMap[eventName]
+      if delegateFunctionName = invalid
+        ? "Unknown row event" eventName
+        return
+      end if
+
+      if delegateFunctionName = "onRowGainingFocus" or delegateFunctionName = "onRowLosingFocus"
+        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction, event.fraction], false)
+        if m.isNotifyingListDelegate
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction, event.fraction], false)
+        end if
+      else
+        event.row@._apply(rowFunctionName, [event.subRowIndex, event.direction], false)
+        if m.isNotifyingListDelegate
+          m.listDelegate@._apply(delegateFunctionName, [event.rowIndex, event.subRowIndex, event.direction], false)
+        end if
+      end if
+
+    end function
+  end class
+
+end namespace

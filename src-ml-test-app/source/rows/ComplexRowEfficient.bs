@@ -1,0 +1,146 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/ml/ItemFocusManager.bs"
+import "pkg:/source/ml/BaseRow.bs"
+
+@node("ComplexRowEfficient", "ml_BaseRow")
+class ComplextRowEfficient extends ml.BaseRow
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ state
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private isButton1Focused = true
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private bgRect
+  private contentGroup
+  private videoPlayer
+  private button1
+  private button2
+  private poster
+  private label as mc.types.node
+
+  function new()
+    super()
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ overridden
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  protected override function createViews()
+    m.bgRect = m.createSGNode("mv_Rectangle", m.top, "bgRect", {
+      size: [1920, 1080]
+      color: "#000000"
+      opacity: 1
+    })
+    m.poster = m.createSGNode("mv_Poster", m.top, "poster", {
+      translation: [0, 0]
+      size: [1920, 700]
+    })
+    m.button1 = m.createSGNode("mv_Button", m.top, "button1", {
+      text: "WHAT IS YOUR STYLE?"
+      translation: [1000, 300]
+      size: [800, 80]
+    })
+    m.button2 = m.createSGNode("mv_Button", m.top, "button2", {
+      text: "THE ART OF FIGHTING WITHOUT FIGHTING"
+      translation: [1000, 400]
+      size: [800, 80]
+    })
+    m.observe(m.button1.selected, function(): ? " ADD" : m.sendRowData({ action: "add" }): end function, "none")
+    m.observe(m.button2.selected, function(): ? " REMOVE " : m.sendRowData({ action: "remove" }): end function, "none")
+  end function
+
+  protected override function onContentChange(content as mc.types.node)
+    'do stuff with content here
+  end function
+
+  public override function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+    return ml.createFocusIndicatorConfig(m.top, invalid, direction, -1, true)
+  end function
+
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ KeyPress
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onKeyPressUp() as boolean
+    m.log.info("onKeyPressUp")
+    if m.isButton1Focused
+      return false
+    else
+      m.setFocus(m.button1)
+      m.isButton1Focused = true
+      return true
+    end if
+  end function
+
+  private function onKeyPressDown() as boolean
+    m.log.info("onKeyPressDown")
+    if m.isButton1Focused
+      m.setFocus(m.button2)
+      m.isButton1Focused = false
+      return true
+    else
+      return false
+    end if
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ delegate
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onDidEnter(subRowIndex as integer, direction as integer, forceCellUpdate = false as boolean)
+    ? "CR DID ENTER"
+    m.poster.uri = "https://www.usadojo.com/wp-content/uploads/2013/12/art-of-fighting-quote-700.jpg"
+  end function
+
+  private function onDidGainFocus(subRowIndex as integer, direction as integer)
+    ? "CR: onDidGainFocus " ; " " ; direction
+    if m.owner.isFocused or m.owner.isChildFocused
+      if direction = 1
+        m.setFocus(m.button1)
+        m.isButton1Focused = true
+      else
+        m.setFocus(m.button2)
+        m.isButton1Focused = false
+      end if
+    end if
+  end function
+
+  private function onWillGainFocus(subRowIndex as integer, direction as integer)
+    ? " CR: onWillGainFocus"
+    if direction = 1
+      m.top.opacity = 1
+    end if
+  end function
+
+  private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
+    ? "CR: onGainingFocus " ; " " ; direction ; " " ; fraction
+    if direction = -1
+      m.top.opacity = fraction
+    end if
+  end function
+
+  private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
+    ? "CR: onLosingFocus " ; " " ; direction ; " " ; fraction
+    if direction = 1
+      m.top.opacity = 1 - fraction
+    end if
+  end function
+
+  private function onDidLoseFocus(subRowIndex as integer, direction as integer)
+    ? "CR: onDidLoseFocus " ; " " ; direction
+    if direction = 1
+      m.top.opacity = 0
+    end if
+  end function
+
+end class

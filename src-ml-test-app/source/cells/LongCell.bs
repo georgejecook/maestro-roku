@@ -1,9 +1,7 @@
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/cells/BaseCell.bs"
 import "pkg:/source/view/Animation.bs"
@@ -44,9 +42,16 @@ class LongCell extends ml.BaseCell
     })
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onShowWithContent(content as mc.types.node)
     m.poster.uri = content.HDGRIDPOSTERURL
     m.label.text = `${m.index} ${content.title}`
+    m.label.fontKey = "medium,30"
+    m.label.color = "#aaaaaa"
+  end function
+
+  protected override function onHide()
+    m.label.fontKey = "medium,30"
+    m.label.color = "#aaaaaa"
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -65,21 +70,6 @@ class LongCell extends ml.BaseCell
   '   m.label.visible = textVisible
   ' end function
 
-  private function onWillExit(direction as integer)
-    ' ? "SC: onCellWillExit " ; " " ; direction
-  end function
-
-  private function onDidEnter(direction as integer)
-    ' ? "SC: onCellDidEnter " ; m.index ; " " ; direction
-    m.label.fontKey = "medium,30"
-    m.label.color = "#aaaaaa"
-  end function
-
-  private function onDidExit(direction as integer)
-    ' ? "SC: onCellDidExit " ; m.index ; " " ; direction
-    m.label.fontKey = "medium,30"
-    m.label.color = "#aaaaaa"
-  end function
 
   private function onWillGainFocus(direction as integer)
     if m.index = 3

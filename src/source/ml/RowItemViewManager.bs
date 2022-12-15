@@ -9,10 +9,6 @@ namespace ml
     function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
-
-      'TODO - make configurable - or calculate on cell size
-      m.lookAheadDistance = maxPos * 1.5
-      m.lookBehindDistance = maxPos * 1.5
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -33,11 +29,13 @@ namespace ml
       ' ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
+      m.rendereredCellInfosByIndex = {}
       m.renderersByContentId = {}
       return true
     end function
 
     override function updateLayout(fullUpdate = false as boolean) as void
+      ' ? " U A"
       m.log.info("ROW updateLayout")
       m.rects = []
       m.visibleItems = []
@@ -52,8 +50,9 @@ namespace ml
       ' m.contentGroup.translation = [0, 0]
       focusSettings = m.settings.focusSettings
       x = 0
-      for each item in m.content.getChildren(-1, 0)
-        ' ? ">>>> laying out ", item.title
+      for each item in m.content@.getChildren(-1, 0)
+        ' ? " U B"
+        ' ? ">>>> laying out ", item.title, index
         settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
         xSpace = settings.space
 
@@ -67,12 +66,13 @@ namespace ml
         maxPos = m.maxPos - settings.size[0] - xSpace
 
         positions = [
-          new ml.ComponentPosition(x, 0) 'normal
-          new ml.ComponentPosition(x, maxPos) 'float-scroll
+          new ml.CellPosition(x, 0) 'normal
+          new ml.CellPosition(x, maxPos) 'float-scroll
         ]
 
-        cellInfo = new ml.ComponentInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
+        cellInfo = new ml.CellInfo(settings.size, focusSettings, positions, focusSettings.horizAnimStyle = "floating", index, index)
         cellInfo.index = index
+        cellInfo.id = item.id
         m.cellInfos.push(cellInfo)
 
         'TODO - for now, no vis options for rows children..
@@ -83,212 +83,42 @@ namespace ml
       end for
 
       m.numberOfItems = m.visibleItems.count()
-    end function
-
-    override function shouldUpdateRenderedIndexes(direction as integer, index as integer)
-      return true
-    end function
-
-    override function applyRenderStateMap(renderStateMap as mc.types.assocarray)
-      m.log.info("ROW applyRenderStateMap", m.row.index, m.row.isRendered)
-      m.renderedComponents = []
-      if m.row.isRendered
-        for each id in renderStateMap
-          m.applyrenderStateForCell(id, renderStateMap[id])
-        end for
-      else
-        ' ? "ROW IS NOT !! RENDERED" ; m.row.index
-        for each id in renderStateMap
-          m.applyrenderStateForCell(id, "none")
-        end for
-      end if
-
-      ' ? " RENDERED COMPONENTS IS NOW "; m.renderedComponents
-      m.lastRowIsRendered = m.row.isRendered
-    end function
-
-    function applyrenderStateForCell(id as string, renderState as string)
-      m.log.verbose("applyrenderStateForCell", id, renderState)
-      ' ? "APPLY RENDER STATE FOR CELL"
-      index = id.toInt()
-      ' isRendered = m.row.isRendered
-      item = m.content.getChild(index)
-      cell = invalid
-      if item <> invalid
-        itemId = item.id
-        if renderState = "rendered"
-          cell = m.renderersByContentId[itemId]
-          if cell = invalid
-            settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
-            ' ? "GETTING CELL " ; id ; " " ; settings.compName ; " " ; m.__classname
-            cell = m.componentPool@.getComponent(settings.compName, 1)
-
-            if cell = invalid
-              cell = m.previousRendereredByContentId[itemId]
-            end if
-            if cell <> invalid
-              cell.index = index
-              cell.translation = m.rects[index].translation
-
-              cell.initialState = {
-                row: m.row
-                rowIndex: m.row.index
-                list: m.owner
-                size: m.rects[index].size
-                content: item
-              }
-
-              cell.visible = true
-              ' cell.visible = isRendered
-
-              ' ? ">>>>>>>> " ; isRendered
-
-              ' if isRendered
-              cell.listEvent = { "name": "didEnter" }
-              ' end if
-
-              if m.lastScrollEvent <> invalid
-                cell.listEvent = m.lastScrollEvent
-              end if
-
-              m.container.appendChild(cell)
-            else
-              ' ? ">>ERR no cell for " ; settings.compName
-            end if
-          else
-            cell.translation = m.rects[index].translation
-          end if
-          if cell <> invalid
-            m.renderersByContentId[itemId] = cell
-            m.renderedComponents.push(cell)
-            m.previousRendereredByContentId.delete(itemId)
-          end if
-        else
-          cell = m.renderersByContentId[itemId]
-          if cell <> invalid
-            m.componentPool@.releaseComponent(cell)
-            m.renderersByContentId.delete(itemId)
-            m.previousRendereredByContentId.delete(itemId)
-            ' ? " REMOVING " ; cell.id
-          else
-            'this is almost certainly due to trying to release a cell during setting content
-            ' ? " COULD NOT FIND CELL TO RELEASE" ; id.
-          end if
-          cell = invalid
-        end if
-      end if
-      'ensure that the componentconfig has a component for a dynamically generated cell index
-      componentConfig = m.cellInfos[index]
-      componentConfig.component = cell
-    end function
-
-    override function getRenderer(index as integer)
-      if m.content <> invalid
-        item = m.content.getChild(index)
-        if item <> invalid
-          return m.renderersByContentId[item.id]
-        else
-          ' ? "ERROR could not find renderer for ", index
-          return invalid
-        end if
-      else
-        return invalid
-      end if
-    end function
-
-    override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
-      ' ? "++++ setIsScrolling" ; isScrolling ; " MIS " ; m.isScrolling
-      if m.isScrolling = isScrolling
-        return
-      end if
-      m.scrollingStartIndex = isScrolling ? startIndex: -1
-      m.isScrolling = isScrolling
-
-      m.row.isScrolling = isScrolling
-
-      m.owner.isScrolling = isScrolling
-
-      event = {
-        name: isScrolling ? "scrollStart" : "scrollStop"
-        startIndex: m.scrollingStartIndex
-        long: isLong
-        startIndex: m.scrollingStartIndex
-      }
-      m.lastScrollEvent = isScrolling ? event : invalid
-
-
-      for each id in m.renderersByContentId
-        comp = m.renderersByContentId[id]
-        comp.listEvent = event
-      end for
-
-      m.owner.listEvent = {
-        name: event.name
-        index: m.row.index
-        long: isLong
-        startIndex: startIndex
-      }
-      ' ? "++++ row - listEvent " ; formatJson(m.row.listEvent)
-      ' ? "++++ owner - listEvent " ; formatJson(m.owner.listEvent)
+      ' ? " U C NUM ITEMS NOW "; m.numberOfItems
     end function
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-      ' ? "ROW CHANGES"
-      oldNumComponents = m.itemScroller.numberOfComponents
+      oldNumComponents = m.numberOfItems
+      previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
       m.processRemovedCells(changes)
-      ' ? "FORCING LAYOUT"
       m.forceUpdateLayout()
-      ' ? m.__classname ; " I " ; m.itemScroller.index ; " C " ; m.content.length ; m.content.length
+
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+
       if m.itemScroller.index >= m.content.length
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
       end if
-      m.updateRenderedComponents(m.direction, m.itemScroller.index, true)
-      m.itemScroller.getComponentInfos(true)
+
       m.itemScroller.processChanges(changes)
-      ' ? " LLLL " ; m.itemScroller.numberOfComponents ; " ONC " ; oldNumComponents ; " FI "; m.itemScroller.index
       m.rowInfos = invalid
-      if (m.itemScroller.numberOfComponents = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.itemScroller.numberOfComponents > 0)
-        ' ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
-        m.owner@.forceUpdate()
+
+      if (m.numberOfItems = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.numberOfItems > 0)
+        ? "::::::::::::::::: SUB ITEMS ZERO CHANGE - TELL LIST"
+        'tell list in any case - it's best suited to knowing what should happen now.
+        ' m.owner@.forceUpdate()
+        result.isLayoutRequired = true
+      else
+        m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
       end if
-      if m.row.isFocused
-        ' ? " IS FOCUSED ON" ; m.itemScroller.index
-        m.itemScroller.moveToIndex(m.itemScroller.index, false)
-        m.itemScroller.forceFocusOnIndex(m.itemScroller.index)
-      end if
-    end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Private Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      nextIndex = m.getIndexAfterItemUpdate(previousInfo)
+      result.isFocusChangeRequired = nextIndex <> previousInfo.index
+      m.itemScroller.moveToIndex(nextIndex, false)
 
-    private function processRemovedCells(changes as mc.types.array)
-      m.log.info("processing removed cells")
-      for each change in changes
-        ' ? ">>> got change " ; change.type
-        if change.type = "remove"
-          m.log.info("removing cell at index", change.index)
-          item = change.child
-
-          if item <> invalid
-            cell = m.renderersByContentId[item.id]
-            if cell <> invalid
-              m.componentPool@.releaseComponent(cell)
-              m.renderersByContentId.delete(item.id)
-            else
-              'this is almost certainly due to trying to release a cell during setting content
-              m.log.error("could not find cell to release", item.id)
-            end if
-          else
-            m.log.error("could not find cell to release")
-          end if
-        else if change.type = "clear" or change.type = "sort" or change.type = "updated"
-          'we've reset the list - all renderers are going now
-          m.renderersByContentId = {}
-          m.tidyUpUnusedRenderers()
-        end if
-      end for
+      return result
     end function
 
   end class

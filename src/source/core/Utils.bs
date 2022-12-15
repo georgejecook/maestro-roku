@@ -116,7 +116,7 @@ namespace mc
     return invalid
   end function
 
-  function apply(func as dynamic, args = [] as mc.types.array, target = invalid as mc.types.assocarray) as dynamic
+  function apply(func as dynamic, args = [] as mc.types.array, target = invalid as mc.types.assocarray, warnIfNoFunction = true as boolean) as dynamic
     if not mc.isArray(args)
       m.log.error("apply expects an array of args")
       return invalid
@@ -145,8 +145,13 @@ namespace mc
         end if
         return invalid
       end if
+      if type(target) = "roSGNode"
+        return target@._apply(func, args, warnIfNoFunction)
+      end if
       if not mc.isFunction(target[func])
-        m.log.error("target did not have function ", func)
+        if warnIfNoFunction
+          m.log.error("target did not have function ", func)
+        end if
         return invalid
       end if
 

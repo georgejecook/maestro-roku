@@ -247,21 +247,18 @@ function onGainedFocus(isSelfFocused as boolean)
     m.log.info("onGainedFocus", m.top.subType(), isSelfFocused)
   end if
 
-  if isSelfFocused
-    if m.vm <> invalid
-      if m.vm.onGainedFocus <> invalid
-        m.vm.onGainedFocus(isSelfFocused)
-      end if
-
-      'bs:disable-next-line
-      if mc.isFunction(mx_onFocusIdChange)
-        'bs:disable-next-line
-        mx_onFocusIdChange(m.vm.focusId)
-      end if
-    else if m.onGainedFocus <> invalid
-      m.onGainedFocus(isSelfFocused)
+  if m.vm <> invalid
+    if m.vm.onGainedFocus <> invalid
+      m.vm.onGainedFocus(isSelfFocused)
     end if
 
+    'bs:disable-next-line
+    if mc.isFunction(mx_onFocusIdChange)
+      'bs:disable-next-line
+      mx_onFocusIdChange(m.vm.focusId)
+    end if
+  else if m.onGainedFocus <> invalid
+    m.onGainedFocus(isSelfFocused)
   end if
 end function
 
@@ -285,7 +282,7 @@ end function
 
 function onChildLostFocus()
   if m.global.focusManager.isLogging
-    m.log.info("lost focus:", m.top.subType(), ".", m.top.id)
+    m.log.info("child lost focus:", m.top.subType(), ".", m.top.id)
   end if
   if m.vm <> invalid and m.vm.onChildLostFocus <> invalid
     m.vm.onChildLostFocus()

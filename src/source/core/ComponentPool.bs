@@ -40,7 +40,7 @@ namespace mc
       m.numberOfComponentsInUse = 0
     end function
 
-    function getComponentPool(componentType as string) as mc.types.node
+    function getComponentPool(componentType as string) as mc.types.assocarray
       pool = m.poolsByComponentType[componentType]
       if pool = invalid
         pool = { usedComponentsById: {}
@@ -64,9 +64,6 @@ namespace mc
         component = createObject("roSGNode", compName)
         if component <> invalid
           component.id = rnd(2147483647).toStr()
-          if component.isPrebaked <> invalid
-            component.isPrebaked = true
-          end if
           pool.numberOfComponentsInPool++
           pool.freeComponentsById[component.id] = component
           pool.allComponents.push(component)

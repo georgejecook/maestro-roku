@@ -1,5 +1,5 @@
 namespace ml
-  class ComponentPosition
+  class CellPosition
     public position = 0
     public screenPosition = 0
     function new(position as integer, screenPosition as integer)
@@ -12,7 +12,8 @@ namespace ml
     end function
   end class
 
-  class ComponentInfo
+  class CellInfo
+    public id = ""
     public size = [0, 0]
     public index = 0
     public contentIndex = 0
@@ -54,7 +55,7 @@ namespace ml
         direction = 0
       end if
       position = m.positions[direction]
-      return - position.position + position.screenPosition
+      return -position.position + position.screenPosition
     end function
 
     public function isFlowFocusPossible(scrollOffset as integer, maxOffset as integer, direction as integer, axes as integer) as boolean
@@ -62,7 +63,7 @@ namespace ml
         return false
       end if
 
-      scrollPos = - scrollOffset
+      scrollPos = -scrollOffset
       maxPos = scrollPos + maxOffset
       'TODO - put the size in here, too!
       ' if direction = -1 or direction = 0
@@ -80,10 +81,18 @@ namespace ml
 
 end namespace
 
-namespace ml.ComponentInfoUtils
-  function componentInfoFromAA(otherInfo as mc.types.assocarray)
-    info = new ml.ComponentInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
-    info.index = otherInfo.index
+namespace ml.CellInfoUtils
+  function cellInfoFromAA(otherInfo as mc.types.assocarray)
+    if otherInfo <> invalid
+      info = new ml.CellInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
+      info.index = otherInfo.index
+      info.id = otherInfo.id
+      info.component = otherInfo.component
+    else
+      info = new ml.CellInfo([0, 0], invalid, [], false, -1, -1)
+      info.index = -1
+      info.id = ""
+    end if
     return info
   end function
 end namespace

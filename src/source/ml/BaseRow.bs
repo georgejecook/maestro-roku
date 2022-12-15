@@ -1,10 +1,8 @@
 import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/ItemDelegateMixin.bs"
 import "pkg:/source/ml/RowItemScroller.bs"
 import "pkg:/source/ml/RowItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/view/BaseView.bs"
-import "pkg:/source/ml/ComponentInfo.bs"
+import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
 
 namespace ml
@@ -16,52 +14,45 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'Instance of RowContent
-    @observer("_onContentChange")
+    ' @observer("_onContentChange")
     public content as mc.types.node
 
     public index = -1
     public renderState = "none"
-    @observer("onIsRenderedChange")
-    public isRendered = false
+
     public isInViewport = false
     public height = 0
     public width = 0
-    public screenPos = 0
 
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
-
-    @alwaysnotify
-    @observer("onJumpToIndex")
-    public jumpToIndex = -1
-
-    @alwaysnotify
-    @observer("onAnimateToIndexChange")
-    public animateToIndex = -1
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Event Delegation
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @observer("onListEvent")
-    public listEvent as mc.types.Assocarray
     public owner as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected backgroundGroup as mc.types.node
+    protected contentGroup as mc.types.node
+    protected foregroundGroup as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected _content ' use this reference for speed
-    protected isInitialized = false
-    protected wasHidden = false
-    protected wasFocusable = true
+    protected _content ' use this reference on m for speed
     protected settings
-    protected rowInfos = []
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Header Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected header as mc.types.node
+    protected currentHeaderType = invalid
 
     function new()
       super(m.top.subType())
-      ml.itemDelegateMixin.setDelegate()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -71,88 +62,120 @@ namespace ml
     protected override function initialize()
       super.initialize()
       m.createViews()
-      m.isInitialized = true
-      m._onContentChange()
+    end function
+
+    protected function createViews()
+      m.backgroundGroup = m.createSGNode("Group", m.top, "backgroundGroup")
+      m.contentGroup = m.createSGNode("Group", m.top, "contentGroup")
+      m.foregroundGroup = m.createSGNode("Group", m.top, "foregroundGroup")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function _onContentChange()
-      ' ? "ON CONTENT CHANGE "; m.isInitialized
-      m.log.info("onContentChange")
-      if m.isInitialized
-        if m._content = invalid or not m._content.isSameNode(m.content)
-          if m._content <> invalid
-            m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
-          end if
-          'was no content or it changed
-          m._content = m.content
-          m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
-          m.observeNodeField(m._content, "changes", m.onContentItemsChange)
-          m.onContentChange(m._content)
-
-        else if m._content <> invalid
-          changes = []
-          if m.wasHidden <> m._content.isHidden
-            ' ? ">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden
-            changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
-            m.wasHidden = m._content.isHidden
-          end if
-          if m.wasFocusable <> m._content.isFocusEnabled
-            changes.push({ row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled })
-            m.wasFocusable = m._content.isFocusEnabled
-          end if
-
-          if m.alwaysNotifyContentChange
-            m.onContentChange(m._content)
-          end if
-
-          if changes.count() > 0
-            m.owner@._onContentItemChange(changes)
-          end if
-
-          'potentially update the header
-        else
-          '   'new content is invalid
-          m.wasHidden = true
-          m.wasFocusable = false
-        end if
-
-      end if
-    end function
-
-    protected function onContentItemsChange(changes as mc.types.array)
+    function onContentItemsChange() as ml.ListChangeResult
+      m.log.verbose(" ROW ", mc.dv(m.top), " CHANGES: ")
       m.log.info("This content has changed in some way")
-    end function
-
-
-    public function onJumpToIndex(index as integer)
-      if m.content <> invalid and index <> -1
-        m.jumpToItem(index, false)
+      changes = m.content.changes
+      if changes <> invalid and changes.count() > 0
+        m.log.verbose(" ITEM CHANGES ", formatJson(changes))
+        return m.applyChildChanges(changes)
+      else
+        m.log.verbose("CELL CONTENT")
+        return m.updateChangedCells()
       end if
     end function
 
-    public function onAnimateToIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
-        m.jumpToItem(index, true)
+
+    function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
+      m.log.verbose(" applying child changes ", mc.dv(m.top), " # changes", changes.count())
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.onContentItemsChange(changes)
       end if
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ public api
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public function recycle(newContent as mc.types.node)
-      m.onRecycle(newContent)
+    function updateChangedCells() as ml.ListChangeResult
+      m.log.verbose(" updating changed cells ", mc.dv(m.top))
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        m.viewManager.updateChangedItems()
+      end if
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
     end function
 
-    public function forceUpdate(keepOldFocusIfPossible = true as boolean, fullUpdate = false as boolean) as void
+    function setContent(content as mc.types.node) as ml.ListChangeResult
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
+      m._content = content
+      m.log.verbose(" SET CONTENT ", mc.dv(m.top))
+      return m.onContentChange(content)
+    end function
+
+    ' private function _onContentChange()
+    '   m.log.info("onContentChange")
+    '   if m.isInitialized
+    '     if m._content = invalid or not m._content.isSameNode(m.content)
+    '       if m._content <> invalid
+    '         m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
+    '       end if
+    '       'was no content or it changed
+    '       m._content = m.content
+    '       m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+
+    '       m.observeNodeField(m._content, "changes", m.onContentItemsChange)
+    '       m.onContentChange(m._content)
+
+    '     else if m._content <> invalid
+    '       changes = []
+    '       if m.wasHidden <> m._content.isHidden
+    '         ' m.log.verbose(">>>>>>>>>>>>>>> IS HIDDEN CHANGE " ; m._content.isHidden)
+    '         changes.push({ row: m._content, type: "isHidden", value: m._content.isHidden })
+    '         m.wasHidden = m._content.isHidden
+    '       end if
+    '       if m.wasFocusable <> m._content.isFocusEnabled
+    '         changes.push({ row: m._content, type: "isFocusEnabled", value: m._content.isFocusEnabled })
+    '         m.wasFocusable = m._content.isFocusEnabled
+    '       end if
+
+    '       if m.alwaysNotifyContentChange
+    '         m.onContentChange(m._content)
+    '       end if
+
+    '       if changes.count() > 0
+    '         m.owner@._onContentItemChange(changes)
+    '       end if
+
+    '       'potentially update the header
+    '     else
+    '       '   'new content is invalid
+    '       m.wasHidden = true
+    '       m.wasFocusable = false
+    '     end if
+
+    '   end if
+    ' end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function forceUpdate(keepOldFocusIfPossible = true as boolean, fullUpdate = false as boolean) as void
+      m.log.verbose(" FORCE UPDATE ON ", m.__classname)
       if m.owner = invalid or m._content = invalid
         return
       end if
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+      m.log.verbose(" forceUPdate ", mc.dv(m.top))
       m.onContentChange(m._content)
 
       'bs:disable-next-line
@@ -162,27 +185,60 @@ namespace ml
       end if
     end function
 
-    public function updateChangedItems()
-      '  ? " Base row updateChangedItems"
+    function updateChangedItems()
+      m.log.verbose(" Base row updateChangedItems")
       'bs:disable-next-line
       if m.viewManager <> invalid and m.viewManager.updateChangedItems <> invalid
-        ' ? "invoking on view manager"
+        ' m.log.verbose("invoking on view manager")
         'bs:disable-next-line
         m.viewManager.updateChangedItems()
       end if
     end function
 
-    public function getRenderer(index as integer) as object
+    function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
+      m.log.verbose(" Base row updateChangedItems")
+      'bs:disable-next-line
+      if m.viewManager <> invalid and m.viewManager.getIndexAfterItemUpdate <> invalid
+        'bs:disable-next-line
+        return m.viewManager.getIndexAfterItemUpdate(previousInfo)
+      end if
+      return previousInfo.index
+    end function
+
+    function getFocusedCellInfo() as ml.CellInfo
+      'bs:disable-next-line
+      if m.itemScroller <> invalid
+        'bs:disable-next-line
+        return m.itemScroller.cellInfo
+      end if
+      return invalid
+    end function
+
+    function getCellInfo(index as integer) as ml.CellInfo
+      'bs:disable-next-line
+      if m.viewManager <> invalid
+        'bs:disable-next-line
+        return m.viewManager.cellInfos[index]
+      end if
+      return invalid
+    end function
+
+    function getRenderer(index as integer) as object
       'implement me
       return invalid
     end function
 
-    public function getRect(index as integer, useScreenCoords = false as boolean) as object
+    function getRenderersAtSubRowIndex(subRowIndex as integer) as mc.types.array
+      'implement me
+      return []
+    end function
+
+    function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
       'implement me
       return invalid
     end function
 
-    public function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
+    function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
@@ -194,47 +250,50 @@ namespace ml
         yOffset = m.top.translation[1]
 
         positions = [
-          new ml.ComponentPosition(yOffset, screenPos) 'normal
-          new ml.ComponentPosition(yOffset, screenPos) 'float-scroll
+          new ml.CellPosition(yOffset, screenPos) 'normal
+          new ml.CellPosition(yOffset, screenPos) 'float-scroll
         ]
-        rowInfo = new ml.ComponentInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
+        rowInfo = new ml.CellInfo([m.width, m.height], focusSettings, positions, false, m.index, 0)
         return [rowInfo]
       end if
     end function
 
-    public function getFocusIndicatorConfig(componentInfo as ml.ComponentInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
-      componentInfo = m.getRowInfos(false)[componentInfo.componentIndex]
+    function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+
       'bs:disable-next-line
       if m.itemScroller <> invalid
+        cellInfo = m.getRowInfos(false)[cellInfo.componentIndex]
         'bs:disable-next-line
-        return m.itemScroller.getFocusIndicatorConfig(componentInfo, direction, isFloatingFocus, isFromLIstScroll)
+        return m.itemScroller.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, isFromListScroll)
       else
-        return new ml.FocusIndicatorConfig(m.index, -1, [0, 0], [0, 0], m.settings, true)
+        return ml.createFocusIndicatorConfig(m.top, invalid, direction)
       end if
     end function
 
-    public function chooseComponentInfoForScrollingIntoRow(componentInfo as ml.ComponentInfo)
+    function chooseCellInfoForScrollingIntoRow(cellInfo as ml.CellInfo)
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        m.itemScroller.chooseComponentInfoForScrollingIntoRow(componentInfo)
+        m.itemScroller.chooseCellInfoForScrollingIntoRow(cellInfo)
       end if
     end function
 
-    public function isVerticalFlowFocusPossible(componentInfo as ml.ComponentInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
+    function isVerticalFlowFocusPossible(cellInfo as ml.CellInfo, direction as integer, activeScreenPos as integer, scrollPos as integer) as boolean
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
-        return m.viewManager.isVerticalFlowFocusPossible(componentInfo, direction, activeScreenPos, scrollPos)
+        return m.viewManager.isVerticalFlowFocusPossible(cellInfo, direction, activeScreenPos, scrollPos)
       end if
       return true
     end function
 
-    public function focusOnContentsNow()
+    'FIXME - when!!!
+    function focusOnContentsNow()
+      m.log.verbose(" FOCUS  ON CONTENTS NOW ", mc.dv(m.top))
       'bs:disable-next-line
       if m.itemScroller <> invalid
         'bs:disable-next-line
-        config = m.itemScroller.getFocusIndicatorConfig(m.itemScroller.componentInfo, m.itemScroller.direction, false, false)
+        config = m.itemScroller.getFocusIndicatorConfig(m.itemScroller.cellInfo, m.itemScroller.direction, false, false)
         'bs:disable-next-line
         m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
         m.owner.focusIndicatorManager@.setFocusComplete(config)
@@ -243,50 +302,106 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
-      m.owner.listEvent = {
-        name: "rowData"
-        index: m.top.index
-        data: data
-      }
+      m.owner@._apply("onRowData", [m.top.index, data], false)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ abstract methods
+    '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getItemSize(index as integer) as mc.types.array
-      'implement me
-      return invalid
+    protected function onContentChange(content as mc.types.node) as ml.ListChangeResult
+      return {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
     end function
 
     protected function onRecycle(newContent as mc.types.node)
       'implement me
     end function
 
-    protected function createViews()
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ List Row API Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function moveFromPress(direction as integer, isLongPress as boolean, isPage = false as boolean) as boolean
+      'implement me
+      return false
+    end function
+
+    function getItemSize(index as integer) as mc.types.array
+      'implement me
+      return invalid
+    end function
+
+    function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       'implement me
     end function
 
-    protected function onContentchange(content as mc.types.node)
+    function cancelMove(forceFocusUpdate as boolean)
       'implement me
     end function
 
-    protected function onIsRenderedChange()
+    function canMoveInDirection(direction as integer, longPress as boolean) as boolean
       'implement me
+      return false
     end function
 
-    public function jumpToItem(index as integer, animated as boolean)
+    function getCellContainer()
+      return m.contentGroup
     end function
 
-    protected function onListEvent(event as object)
+    function recycle(newContent as mc.types.node)
+      m.onRecycle(newContent)
     end function
 
-    public function onFlowFocusFraction(fraction as float)
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Header Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    protected function configureHeader(forceUpdate = false as boolean)
+      if m._content = invalid
+        m.cleanHeader()
+      else
+        headerSettings = m.settings.headerSettings
+        if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
+          m.cleanHeader()
+          m.currentHeaderType = headerSettings.compName
+          m.header = m.global.componentPool@.getComponent(headerSettings.compName, 1)
+
+          if m.header <> invalid
+            if headerSettings.position = "onTop"
+              m.foregroundGroup.appendChild(m.header)
+            else if headerSettings.position = "underneath"
+              m.backgroundGroup.appendChild(m.header)
+            end if
+          end if
+        end if
+
+        if m.header <> invalid
+          m.header.translation = [-m.settings.contentOffset[0], 0] 'cancel out this row's offset
+          m.header.width = m.width
+          m.header.height = headerSettings.height
+          m.header@.setContent(m._content, headerSettings)
+          m.contentGroup.translation = [0, headerSettings.height]
+        else
+          m.contentGroup.translation = [0, 0]
+        end if
+      end if
     end function
 
-    public function getCellContainer()
-      'implement me
+    protected function cleanHeader()
+      if m.header <> invalid
+        m.log.info("cleaning header")
+        m.header@.setContent(invalid)
+        m.global.componentPool@.releaseComponent(m.header)
+        m.header = invalid
+        m.currentHeaderType = invalid
+      end if
     end function
+
+
 
   end class
 end namespace

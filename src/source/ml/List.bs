@@ -1,52 +1,47 @@
 import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/ListItemViewManager.bs"
-import "pkg:/source/ml/ItemFocusManager.bs"
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/view/Animation.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
+import "pkg:/source/ml/ListContentManager.bs"
 
 namespace ml
   @node("ml_List", "mv_BaseView")
   class List extends mv.BaseView
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ content
+    '++ Content
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'must gbe of type ListContent
-    @observer("onContentChange")
+    ' @observer("onContentChange")
     public content as mc.types.node
-    private _content
+
+    'view that will respond to events
+    public delegate as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ View State
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @alwaysnotify
     public state = "none"
 
     public width = 1920
     public height = 1080
+
+    @alwaysnotify
+    @observer("onIsHiddenChange")
     public isHidden = false
-
-    @alwaysnotify
-    @observer("onJumpToRowIndexChange")
-    public jumpToRowIndex = -1
-
-    @alwaysnotify
-    @observer("onJumpToRowItemIndexChange")
-    public jumpToRowItemIndex = -1
-
-    @alwaysnotify
-    @observer("onAnimateToRowIndexChange")
-    public animateToRowIndex = -1
-
-    @alwaysnotify
-    @observer("onAnimateToItemIndexChange")
-    public animateToItemIndex = -1
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Debug Flags
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @observer("onUpdateNow")
+    public _updateNow = false
     public _forceReloadListWhenPressingOption = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -61,13 +56,14 @@ namespace ml
     public focusedSubRowIndex = 0
 
     public focusedCellIndex = 0
-
     public focusedfraction = 0.0
 
-    @alwaysnotify
-    public itemSelected as mc.types.array
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public _updatesEnabled = true
+    private contentGroup as mc.types.node
+    private rowsGroup as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Shared managers
@@ -81,13 +77,8 @@ namespace ml
 
     public nextFocusIndex as mc.types.array
 
-    public cellEvents as mc.types.node
-    public rowEvents as mc.types.node
     public screenPos = 0
     public nextScreenPos = 0
-
-    @alwaysnotify
-    public listEvent as mc.types.Assocarray
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and internal state
@@ -95,16 +86,35 @@ namespace ml
 
     private viewManager as ml.ListItemViewManager
     private itemScroller as ml.ListItemScroller
+    private contentManager as ml.ListContentManager
     private sourceFocusRect as object
     private targetFocusRect as object
     private isInitialized = false
+    private isDoingFlowFocus = false
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ views
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private preHiddenContent as mc.types.node
 
-    private contentGroup as mc.types.node
-    private rowsGroup as mc.types.node
+
+    private keyDirections = {
+      "rewind": -1
+      "fastforward": 1
+      "left": -1
+      "right": 1
+      "up": -1
+      "down": 1
+    }
+
+    private rowKeys = {
+      "rewind": true
+      "fastforward": true
+      "left": true
+      "right": true
+    }
+
+    private listKeys = {
+      "up": true
+      "down": true
+    }
 
     function new()
       super("ml_List")
@@ -119,7 +129,7 @@ namespace ml
       m.createViews()
       m.initManagers()
       m.isInitialized = true
-      m.onContentChange()
+      ' m.onContentChange()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -137,16 +147,13 @@ namespace ml
     end function
 
     private function initManagers()
-      m.cellEvents = m.createEventsBroker("cells")
-      m.rowEvents = m.createEventsBroker("rows")
       m.rowsGroup = m.top.findNode("rowsGroup")
 
       m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
 
-      focusManager = new ml.ItemFocusManager(m.viewManager, m.rowEvents)
-      m.itemScroller = new ml.ListItemScroller(m.viewManager, focusManager)
+      m.itemScroller = new ml.ListItemScroller(m.viewManager, m.focusIndicatorManager)
       m.itemScroller.offsetContainer = m.contentGroup
-      m.content = invalid
+      m.contentManager = new ml.ListContentManager(m, m.viewManager, m.itemScroller, m.focusIndicatorManager)
     end function
 
     private function createEventsBroker(id as string)
@@ -163,10 +170,9 @@ namespace ml
 
       m.wasFocused = m.top.isFocused or m.top.isChildFocused
       m.top.visible = false
-      if m._content <> invalid
+      if m.contentManager.content <> invalid
         m.log.info("new content is present")
-        m.applyListSettings(m._content.listSettings)
-        m.viewManager.setContent(m._content)
+        m.viewManager.setContent(m.contentManager.content)
         m.top.clippingrect = [0, 0, m.width, m.height]
       else
         m.log.info("content is being set to invalid - resetting view manager")
@@ -188,26 +194,8 @@ namespace ml
         if m.top.isFocused or m.top.isChildFocused
           m.top.focusIndicatorManager.isHidden = false
         end if
-        m.moveToItem([m.focusedRowIndex, m.focusedCellIndex], false)
+        m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         m.top.visible = true
-      end if
-    end function
-
-    private function applyListSettings(settings as mc.types.node)
-      if settings <> invalid
-        m.viewManager.lookAheadDistance = settings.lookAheadDistance = -1 ? 2147483647 : settings.lookAheadDistance
-        m.viewManager.lookBehindDistance = settings.lookBehindDistance = -1 ? 2147483647 : settings.lookBehindDistance
-      end if
-    end function
-
-    private function updateListContent()
-      if m._content <> invalid and m._content.getChildCount() > 0
-        rows = m._content.getChildren(-1, 0)
-        for each row in rows
-          if row.changes <> invalid and row.changes.count() > 0
-            row@.notifyUpdate()
-          end if
-        end for
       end if
     end function
 
@@ -215,204 +203,173 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onContentChange() as void
-      m.log.info("onContentChange")
-
-      if m.content = invalid
-        m.content = ml.listMixin.createListContent()
-        m.content.id = "invalidContent"
-        return
-      end if
-
-      if m.isInitialized
-        if m._content <> invalid and not m._content.isSameNode(m.content)
-          m.unobserveNodeField(m._content, "changes", m.onContentItemsChange)
-        end if
-        if m._content = invalid or not m._content.isSameNode(m.content)
-          m._content = m.content
-          if m._content <> invalid
-            m.observeNodeField(m._content, "changes", m.onContentItemsChange)
-          end if
-          m.resetState()
-        else
-          ' m.log.info("current content has changed in some untracked way!")
-          'TODO check case where the content items mc_Array changes entirely
-        end if
-      end if
+    function setContent(content as mc.types.node) as void
+      m.contentManager.setContent(content)
     end function
 
-    private function onContentItemsChange(changes as mc.types.array)
-      if m._updatesEnabled
-        m.log.info("The content items have changed")
-        m.focusIndicatorManager@.cancelFlowFocus()
-        m.viewManager.onContentItemsChange(changes)
-        m.focusIndicatorManager@.cancelFlowFocus()
-        m.viewManager.isScrolling = false
-        m.itemScroller.isDoingFlowFocus = false
-        ' ? " LIST CHANGES "
-        ' m.viewManager.forceUpdateLayout()
-        ' m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-
-        'TODO - need to ensure that the current focus and scroll position is valid after an update!
-        ' m.itemScroller.move(0)
-        ' m.viewManager.onContentItemsChange(changes)
-      end if
+    function synchronizeContent()
+      m.contentManager.synchronizeContent()
     end function
 
-    private function onAnimateToRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        m.itemScroller.moveToContentIndex(index)
-      end if
+    private function cleanup()
+      m.log.verbose(" CLEANING UP LIST")
+      m.viewManager.reset()
+      m.focusIndicatorManager@.setNextFocusIndicatorConfig(invalid)
     end function
 
-    private function onJumpToRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        'hack here
-        m.focusedRowIndex = index
-        m.moveToRow(index, false)
-      end if
-    end function
+    private function onIsHiddenChange()
+      m.log.info("hiding the list")
 
-    private function onAnimateToSubRowIndexChange(index as integer)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
-        m.itemScroller.moveToIndex(index, true, false)
-        ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
-      end if
-    end function
-
-    private function onJumpToRowItemIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
-        m.moveToRowItem(m.focusedRowIndex, index, false)
-      end if
-    end function
-
-    private function onAnimateToItemIndexChange(index as integer)
-      if m.content <> invalid and index <> -1
-        m.moveToRowItem(m.focusedRowIndex, index, true)
-      end if
+      m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function forceUpdate(fullUpdate = false as boolean) as void
-      ' componentInfo = m.itemScroller.getComponentInfoForContentIndex(m.focusedRowIndex)
+    function onUpdateNow()
+      m.log.info("force updating list")
+      m.forceUpdate(true)
+    end function
+
+    function forceUpdate(fullUpdate = false as boolean) as void
+      ' cellInfo = m.itemScroller.getCellInfoForContentIndex(m.focusedRowIndex)
       if m.top.state = "rendering"
-        ' ? "cannot forceUpdate list while rendering is taking place"
+        m.log.verbose("cannot forceUpdate list while rendering is taking place")
         return
       end if
 
-      ' ? m.focusedRowIndex ; " " m.focusedCellIndex
-      ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
+      m.log.verbose(m.focusedRowIndex, " ", m.focusedCellIndex)
+      m.log.verbose(" NC ", m.viewManager.numberOfItems, " I ", m.itemScroller.index)
       m.viewManager.forceUpdateLayout(fullUpdate = true)
-      m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-      m.itemScroller.getComponentInfos(true)
+      'Note - this will result in a double call; but that's what it's gonna take to be sure things are okay
+      m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
 
-      ' ? " NC " ; m.itemScroller.numberOfComponents ; " I " ; m.itemScroller.index
-      if m.itemScroller.numberOfComponents > 0
-        ' ? "LIST HAS COMPONENTS"
-        ' if m.itemScroller.index >= m.itemScroller.numberOfComponents
-        '   index = mc.clamp(m.itemScroller.index, 0, m.itemScroller.numberOfComponents - 1)
+      ' ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
+      if m.viewManager.numberOfItems > 0
+        m.focusIndicatorManager.isHidden = true
+        m.log.verbose("LIST HAS COMPONENTS ", m.focusedRowIndex, " ", m.focusedCellIndex)
+        ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
+        ' m.moveToRowItemIndex(0, 0, true)
+        m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
+        'correct the focus if the item has changed.
+
+        ' if m.itemScroller.index >= m.viewManager.numberOfItems
+        '   index = mc.clamp(m.itemScroller.index, 0, m.viewManager.numberOfItems - 1)
         '   if index >= 0
         '    ' ? "CORRECTING INDEX"; index
-        '     m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+        '     m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         '   end if
         ' else
-        '   ? "MOVING TO ROW "; m.itemScroller.index
-        '   m.moveToRow(m.itemScroller.index, false)
+        m.log.verbose("MOVING TO ROW ", m.itemScroller.index)
+        ' m.moveToRow(m.itemScroller.index, false)
         '   ' m.focusIndicatorManager@.setFocusComplete()
         ' end if
+        m.focusIndicatorManager.isHidden = m.top.isChildFocused or m.top.isFocused
       else
-        ' ? "LIST HAS NO COMPONENTS "
-        'TODO - hide focus
+        m.log.verbose("LIST HAS NO COMPONENTS ")
+        m.focusIndicatorManager.isHidden = true
       end if
 
       ' ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
-      ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItemIndex(0, 0, true)
     end function
 
-    public function getRow(index as integer) as dynamic
-      return m.content.getChild(index)
+    function getRow(index as integer) as dynamic
+      if m.contentManager.content <> invalid
+        return m.contentManager.content@.getChild(index)
+      else
+        return invalid
+      end if
     end function
 
-    public function getItem(rowIndex as integer, index as integer) as dynamic
-      rowItem = m.content.getChild(rowIndex)
-      if rowItem <> invalid
-        return rowItem.getChild(index)
+    function getItem(rowIndex as integer, index as integer) as dynamic
+      if m.contentManager.content <> invalid
+        rowItem = m.contentManager.content@.getChild(rowIndex)
+        if rowItem <> invalid
+          return rowItem@.getChild(index)
+        end if
       end if
       return invalid
     end function
 
-    public function moveToRow(index as integer, animated as boolean)
-      if m.content <> invalid
-        m.itemScroller.moveToContentIndex(index, animated = true, false)
-        ' m.itemScroller.forceFocusOnIndex(index, true)
+    function moveToEnd(direction = -1 as integer, animated = false as boolean)
+      'TODO get content index of first visible row
+      if direction = -1
+        rowIndex = 0
+      else
+        rowIndex = m.viewManager.numberOfItems
+      end if
+
+      animSpeedIndex = 0
+      if m.viewManager.listSettings <> invalid
+        if m.viewManager.listSettings.fastAnimateToEndEnabled
+          animSpeedIndex = m.viewManager.listSettings.animSpeeds.count() - 1
+        else
+          animated = false
+        end if
+      end if
+      m.moveToRow(rowIndex, animated, animSpeedIndex)
+    end function
+
+    function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
+      if m.contentManager.content <> invalid
+        m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex)
       end if
     end function
 
-    public function moveToRowItem(rowIndex as integer, index as integer, animated as boolean) as void
-      if m._content <> invalid and rowIndex <> -1 and index <> -1
+    function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean, animSpeedIndex = 0 as integer) as void
+      m.log.verbose(" MTRI  ", rowIndex, index, animated)
+      m.log.increaseIndent()
+      if m.contentManager.content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
+        m.log.verbose(" MTR A")
         if row <> invalid
-          if row.subType() = "ml_GridRow"
-            rowInfo = m.itemScroller.getComponentInfoForContentIndex(rowIndex)
-            if rowInfo <> invalid
-              ' ? " ROW INFO FOR INDEX " ; rowInfo
-              rect = row@.getRect(index)
-              ' ? " RECT INFO FOR INDEX " ; rect
-              m.moveToSubRowIndex(rowInfo.index + rect.subRowIndex, animated = true, false, true)
+          m.log.verbose(" MTR B")
+          rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
+          if rowInfo <> invalid
+            rect = row@.getRect(index)
+            subIndex = rowInfo.index
+            if rect <> invalid
+              subIndex += rect.subRowIndex
             end if
+            m.moveToSubRowIndex(subIndex, animated = true, animSpeedIndex, false, false)
           end if
-          row@.jumpToItem(index, animated = true)
+          row@.moveToIndex(index, false)
         end if
       end if
+      m.log.decreaseIndent()
     end function
 
-    public function moveToItem(indices as mc.types.array, animated = false as boolean)
-      if m.content <> invalid
-        m.moveToRow(indices[0], animated = true)
-        row = m.getRowRenderer(indices[0])
-        if row <> invalid
-          m.moveToRowItem(indices[0], indices[1], animated = true)
-          ' m.focusIndicatorManager.focusedCellIndex = indices[1]
-          ' m.focusIndicatorManager@.setNextIndex(indices, 0)
-        end if
-      end if
-    end function
-
-    public function moveToSubRowIndex(index as integer, animated as boolean, setFocusIndex as boolean, useGridHack as boolean)
-      if m.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
+    function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
+      if m.contentManager.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
-        m.itemScroller.moveToIndex(index, animated = true)
+        m.itemScroller.moveToIndex(index, animated = true, animSpeedIndex)
         m.itemScroller.disableNonAnimatedFocusUpdates = false
         ' ? " MOVING TO SUB ROW INDEX " ; index
-        compInfo = m.itemScroller.componentInfos[index]
+        compInfo = m.viewManager.cellInfos[index]
         if setFocusIndex and compInfo <> invalid
-          compInfo.component.focusedCellIndex = index
-          m.focusedCellIndex = compInfo.component.focusedCellIndex
+          m.focusedCellIndex = index
         end if
         ' m.itemScroller.forceFocusOnIndex(m.focusedRowIndex, true)
         ' ? "DONE"
       end if
     end function
 
-    public function setUpdatesEnabled(enabled as boolean)
-      m._updatesEnabled = enabled
-      if enabled
-        m.updateListContent()
-      end if
+    function setUpdatesEnabled(enabled as boolean)
+      m.contentManager.setUpdatesEnabled(enabled)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Renderer Helpers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getRowRenderer(index as integer)
+    function getRowRenderer(index as integer)
       return m.viewManager.getRenderer(index)
     end function
 
-    public function getCellRenderer(rowIndex as integer, cellIndex as integer)
+    function getCellRenderer(rowIndex as integer, cellIndex as integer)
       row = m.getRowRenderer(rowIndex)
 
       if row <> invalid
@@ -422,19 +379,46 @@ namespace ml
       return invalid
     end function
 
+    function getFocusedRow()
+      if m.itemScroller.cellInfo <> invalid
+        return m.itemScroller.cellInfo.component
+      else
+        return invalid
+      end if
+    end function
+
+    function getFocusedCell()
+      return m.getCellRenderer(m.focusedRowIndex, m.focusedCellIndex)
+    end function
+
+    function getFocusedRowContent()
+      if m.contentManager.content <> invalid
+        return m.contentManager.content@.getChild(m.focusedRowIndex)
+      else
+        return invalid
+      end if
+    end function
+
+    function getFocusedCellContent()
+      rowContent = m.getFocusedRowContent()
+      if rowContent <> invalid
+        return rowContent@.getChild(m.focusedRowIndex)
+      else
+        return invalid
+      end if
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Internal api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function _onContentItemChange(changes as mc.types.array)
+    function _onContentItemChange(changes as mc.types.array)
       ' ? "______________________________ _onContentItemChange" ; m.__classname
       ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
       '   return c.type
       ' end function))
+      m.log.verbose(" LIVM _onContentItemChange")
       m.viewManager.forceUpdateLayout()
-      m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
-      m.itemScroller.getComponentInfos(true)
-      m.viewManager.updateRenderedComponents(m.itemScroller.direction, m.itemScroller.index, true)
 
       'TODO - need to ensure that the current focus and scroll position is valid after an update!
       m.itemScroller.processChanges(changes)
@@ -442,10 +426,10 @@ namespace ml
       ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
       ' m.moveToRow(m.itemScroller.index, false)
       ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
-      ' m.moveToRowItem(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
 
       if m.top.isChildFocused or m.top.isFocused
-        m.focusOnCurrentRow()
+        m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
 
@@ -453,13 +437,94 @@ namespace ml
     '++ Focus indicator callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function onFlowFocusFraction(fraction as float)
+    function onFlowFocusFraction(fraction as float)
       m.itemScroller.onFlowFocusFraction(fraction)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Movement Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function canMoveFromKeyPress(key as string, isLongPress as boolean) as boolean
+      direction = m.keyDirections[key]
+
+      if m.focusIndicatorManager.isFocusing
+        'TODO - improve this
+        m.log.info("ignoring press", key, "because the focus indiciator is moving")
+        return false
+      end if
+
+      if m.listKeys[key] = true
+        return m.itemScroller.canMoveInDirection(direction) and (not isLongPress or m.viewManager.settings.focusSettings.canLongPress)
+      else if m.rowKeys[key] = true
+        row = m.getFocusedRow()
+        if row <> invalid
+          return row@.canMoveInDirection(direction)
+        else
+          m.log.verbose("FOCUSED ROW INVALID")
+        end if
+      end if
+      return false
+    end function
+
+    private function onRowKeyPress(key as string) as boolean
+      m.log.info("key", key)
+      m.itemScroller.isDoingLongPress = false
+
+      if m.isAlreadyScrolling(false)
+        return true
+      end if
+
+      m.log.verbose(" OKP ", key)
+      if m.canMoveFromKeyPress(key, false)
+        direction = m.keyDirections[key]
+        m.isDoingFlowFocus = false
+        isPage = key = "rewind" or key = "fastforward"
+        m.log.verbose(" FROM KEY PRESS ", key, " isPage ", isPage)
+        return m.getFocusedRow()@.moveFromPress(direction, false, isPage)
+      end if
+
+      return false
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressFastForward() as boolean
+      return m.onRowKeyPress("fastforward")
+    end function
+
+    private function onKeyPressRewind() as boolean
+      return m.onRowKeyPress("rewind")
+    end function
+
+    private function onKeyPressLeft() as boolean
+      return m.onRowKeyPress("left")
+    end function
+
+    private function onKeyPressRight() as boolean
+      return m.onRowKeyPress("right")
+    end function
+
+    private function canScroll(key as string) as boolean
+      if m.listKeys[key]
+        if m.isAlreadyScrolling(m.listKeys[key] = true)
+          return false
+        end if
+      else if m.rowKeys[key] = true
+        direction = m.keyDirections[key]
+        return m.getFocusedRow()@.canMoveInDirection(direction)
+      end if
+      return true
+    end function
+
+    private function isAlreadyScrolling(isUpDown as boolean) as boolean
+      ' ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus
+      m.log.info("isAlreadyScrolling? ", m.focusIndicatorManager.isFocusing)
+
+      return m.focusIndicatorManager.isFocusing or m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
+    end function
 
     private function onKeyPressOptions() as boolean
       m.log.info("updating list")
@@ -479,13 +544,18 @@ namespace ml
       m.log.verbose("onKeyPressUp")
 
       'FIXME - add ability to change of direction, mid-animation
-      isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
-      if isScrolling
-        m.log.info("was already scrolling - ignoring")
-        ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
-        'TODO - improve this
-        return true
-      end if
+      ' isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
+      ' if isScrolling
+      '   m.log.info("was already scrolling - ignoring")
+      m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
+      '   'TODO - improve this
+      '   ' if m.focusIndicatorManager.isDoingFlowFocus
+      '   '   return true
+      '   ' end if
+      '   m.itemScroller.move(1, false, true, true)
+
+      '   return true
+      ' end if
 
       if m.itemScroller.canMoveInDirection(-1)
         result = m.itemScroller.moveFromPress(-1, false)
@@ -509,12 +579,9 @@ namespace ml
       end if
 
       m.log.verbose("onKeyPressOk")
-      m.itemSelected = [m.focusedRowIndex, m.focusedCellIndex]
-      m.listEvent = {
-        name: "itemSelected"
-        index: m.focusedRowIndex
-        cellIndex: m.focusedCellIndex
-      }
+      if m.delegate <> invalid
+        m.delegate@._apply("onItemSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+      end if
 
       return true
     end function
@@ -526,21 +593,25 @@ namespace ml
       m.log.verbose("onKeyPressDown")
 
       'FIXME - add ability to change of direction, mid-animation
-      isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
-      ' if m.itemScroller.direction = 1 and isScrolling
-      if false and isScrolling
-        ' ? " CANNOT SCROLL is already scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
-        m.log.info("was already scrolling - ignoring")
-        return true
-      end if
+      ' isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
+      ' ' if m.itemScroller.direction = 1 and isScrolling
+      ' if isScrolling
+      '   ' if false and isScrolling
+      m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
+      '   m.log.info("was already scrolling - ignoring")
+      '   if m.focusIndicatorManager.isDoingFlowFocus
+      '     return true
+      '   end if
+      ' end if
 
       if m.itemScroller.canMoveInDirection(1)
         ' if false and isScrolling
         '   m.itemScroller.cancelScrollingDuringPress()
         ' end if
 
-        return not m.itemScroller.moveFromPress(1, false)
+        return m.itemScroller.moveFromPress(1, false)
       else
+        m.log.verbose(" SKIPPING DOWN")
         return false
       end if
     end function
@@ -550,7 +621,8 @@ namespace ml
         return 0
       end if
       m.log.verbose("getLongPressIntervalForKey", key)
-      if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
+
+      if key = "OK" or m.canMoveFromKeyPress(key, true)
         return 0.2
       else
         return 0
@@ -560,14 +632,25 @@ namespace ml
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
 
-      ' ? " ON LONG PRESS START  - LIST" ; key
-      if (key = "up" and m.itemScroller.canMoveInDirection(-1)) or (key = "down" and m.itemScroller.canMoveInDirection(1))
-        if key = "up"
-          m.log.verbose("long press started on key", key, "going to animate to start of list")
-          return m.itemScroller.moveToEnd(-1)
-        else
-          m.log.verbose("long press started on key", key, "going to animate to end of list")
-          return m.itemScroller.moveToEnd(1)
+      if key = "OK"
+        if m.delegate <> invalid
+          m.delegate@._apply("onItemLongSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+        end if
+      else if m.canMoveFromKeyPress(key, true)
+        direction = m.keyDirections[key]
+
+        if m.listKeys[key] = true
+          if m.itemScroller.canMoveInDirection(direction)
+            m.log.verbose("long press started on key", key, "going to animate to start of list")
+            return m.itemScroller.moveToEnd(direction)
+          else
+            m.log.verbose("long press started on key", key, "going to animate to end of list")
+            return m.itemScroller.moveToEnd(1)
+          end if
+        else if m.rowKeys[key] = true
+          m.log.verbose(" FROM LONG PRESS ", key)
+          isPage = key = "rewind" or key = "fastforward"
+          return m.getFocusedRow()@.moveFromPress(direction, true, isPage)
         end if
       end if
 
@@ -575,58 +658,52 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-      ' ? " ON LONG PRESS FINISH - LIST "; key
-      if key = "up" or key = "down"
+      m.log.verbose(" ON LONG PRESS FINISH - LIST ", key)
+      if key = "OK"
+        'nothing yet
+      else if m.listKeys[key] = true
+        m.log.verbose(" OLF A")
         m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.cancelScrolling()
+        return true
+      else if m.rowKeys[key] = true
+        m.log.verbose(" OLF B")
+        m.getFocusedRow()@.cancelMove(false)
         return true
       end if
 
       return false
     end function
 
-    private function focusOnCurrentRow()
-      ' m.focusIndicatorManager.isHidden = m.rowHasIndicator and m.activeFocusSettings <> invalid and m.activeFocusSettings.feedbackStyle <> "none"
-      '     ' ? " ON GAINED FOCUS "
-      row = m.getRowRenderer(m.focusedRowIndex)
-      if row <> invalid
-        '  ? " SETTING FOCUS ONTO ROW "
-        m.setFocus(row)
-      end if
-
-    end function
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ lifecycle
+    '++ Lifecycle Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     protected override function onGainedFocus(isSelfFocused as boolean)
       super.onGainedFocus(isSelfFocused)
       m.focusIndicatorManager.isHidden = false
       if isSelfFocused
-        m.focusOnCurrentRow()
+        m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
 
     protected override function onLostFocus()
       super.onLostFocus()
-      ' ? " LIST LOST FOCUS"
       'bs:disable-next-line
       if not m.top.isChildFocused
         m.focusIndicatorManager.isHidden = true
+        m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
 
     protected override function onChildLostFocus()
       'bs:disable-next-line
-      if not m.top.isChildFocused
+      if m.top.isChildFocused
+        m.focusIndicatorManager.isHidden = false
+        m.focusIndicatorManager@.setFocusedOnRow(true)
+      else
         m.focusIndicatorManager.isHidden = true
-      end if
-    end function
-
-    protected function onChildGainedFocus()
-      'bs:disable-next-line
-      if not m.top.isChildFocused
-        m.focusIndicatorManager.isHidden = true
+        m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
   end class

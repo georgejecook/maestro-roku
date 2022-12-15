@@ -1,14 +1,46 @@
 import "pkg:/source/view/debug/DeveloperScreen.bs"
-
+import "pkg:/source/core/DebugTimer.bs"
 namespace main
   @node("DeveloperScreen", "mv_DeveloperScreen")
   class DeveloperScreen extends mv.debug.DeveloperScreen
 
+    private views = []
+
+    protected override function initialize()
+      super.initialize()
+
+    end function
+
+    private function makeViews()
+      timer = new mc.utils.DebugTimer("make cells")
+      for i = 0 to 100
+        ' m.views.push(m.top.createChild("Group"))
+        '   ' m.views.push(m.createSGNode("mv_Poster"))
+        '   ' m.views.push(m.createSGNode("mv_Label"))
+        '   ' m.views.push(m.createSGNode("mv_Rectangle"))
+        '   ' m.views.push(m.createSGNode("mv_Rectangle"))
+        ' m.views.push(m.createSGNode("HeroCellEfficient"))
+        ' m.views.push(m.createSGNode("HeroCellEfficient"))
+        m.views.push(m.top.createChild("HeroCellEfficient"))
+      end for
+      ' m.global.componentPool@.prebakeComponents(1000, "HeroCellEfficient")
+      ' timer.log("made 100 posters")
+      ' m.global.componentPool@.prebakeComponents(500, "PosterCellEfficient")
+      ' timer.log("made 500 posters cells")
+      ' m.global.componentPool@.prebakeComponents(59, "ml_RowHeader")
+      ' timer.log("made 59 row headers")
+      ' m.global.componentPool@.prebakeComponents(20, "ml_GridRow")
+      ' timer.log("made 20 grid rows")
+      ' m.global.componentPool@.prebakeComponents(50, "ml_HorizontalRow")
+      timer.log("finished")
+
+    end function
     protected override function createMenuPages() as mc.types.array
       return [
         m.getDefaultPage()
         m.getPage2()
         m.getPage3()
+        m.getPage4()
       ]
     end function
 
@@ -18,10 +50,15 @@ namespace main
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     protected function getPage2()
       return [
-        ["List Editing (team screen)", function(): m.showScreen(m.createSGNode("TeamScreen")): end function]
-        ["Grid Item JumpToItem", function(): m.showScreen(m.createSGNode("FocusOnGridItemScreen")): end function]
-        ["Grid Item Moving", function(): m.showScreen(m.createSGNode("UpdateGridItemsScreen")): end function]
-        ["List Updates", function(): m.showScreen(m.createSGNode("UpdateListDataScreen")): end function]
+        ["Add ", m.makeViews],
+        ["Remove ", function()
+            ? "WILL REMOVE"
+            for each view in m.views
+              view.getParent().removeChild(view)
+            end for
+            m.views = []
+            ? "REMOVED"
+        end function]
         ["Buttons", function(): m.showScreen(m.createSGNode("ButtonScreen")): end function]
         ["ControlGroup", function(): m.showScreen(m.createSGNode("ControlGroupScreen")): end function]
         ["TextInput", function(): m.showScreen(m.createSGNode("TextInputScreen")): end function]
@@ -40,6 +77,18 @@ namespace main
         ["Dynamic Container", function(): m.showScreen(m.createSGNode("DynamicContainerTestScreen")): end function]
         ["Animations", function(): m.showScreen(m.createSGNode("AnimationScreen")): end function]
         ["Advanced Animations", function(): m.showScreen(m.createSGNode("AdvancedAnimationExampleScreen")): end function]
+      ]
+    end function
+    protected function getPage4()
+      return [
+        ["Disney Inspired Hero ", function(): m.showScreen(m.createSGNode("DisneyHeroScreen")): end function]
+        ["List OnEnterOnExit", function(): m.showScreen(m.createSGNode("ListEnterExitScreen")): end function]
+        ["List ", function(): m.showScreen(m.createSGNode("ListScreen")): end function]
+        ["List Editing (team screen)", function(): m.showScreen(m.createSGNode("TeamScreen")): end function]
+        ["Grid Item JumpToItem", function(): m.showScreen(m.createSGNode("FocusOnGridItemScreen")): end function]
+        ["Grid Item Moving", function(): m.showScreen(m.createSGNode("UpdateGridItemsScreen")): end function]
+        ["RowList", function(): m.showScreen(m.createSGNode("RowListScreen")): end function]
+        ["List Updates", function(): m.showScreen(m.createSGNode("UpdateListDataScreen")): end function]
       ]
     end function
 
