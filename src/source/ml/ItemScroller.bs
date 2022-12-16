@@ -352,7 +352,7 @@ namespace ml
         m.nextScreenPos = targetCellInfo.getScreenPosition(m.direction)
         ' ? "nextScreenpos " ; m.nextScreenPos ; " index " ; index
 
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
         ' ? " MTI GG"
         if not m.disableNonAnimatedFocusUpdates
           ' ? " MTI HH"
@@ -425,7 +425,7 @@ namespace ml
         m.nextScreenPos = m.nextCellInfo.getScreenPosition(m.direction)
         index = m.nextCellInfo.index
         ' ? " NI " ; index
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
 
         m.setFocusIndex(index, false, true)
         m.forceFocusOnIndex(index, true)
@@ -472,21 +472,21 @@ namespace ml
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
         m.screenPos = m.nextCellInfo.getScreenPosition(m.direction)
 
-        ' m.updateSrollOffsetFraction(1)
+        ' m.updateScrollOffsetFraction(1)
         m.finishMovingToIndex()
       else if m.isMovingMultiple
 
         if fraction = 1
           ' isInPlace = (m.targetCellInfo = invalid or m.cellInfo.index <> m.targetCellInfo.index)
           ' ? " REGULAR ANIM FINISHED " ; isInPlace '": BUT STILL NOT IN PLACE!"
-          ' m.updateSrollOffsetFraction(1)
+          ' m.updateScrollOffsetFraction(1)
           m.finishMovingToIndex()
         else
 
           f = mc.clamp(m.getCurrentIndexFraction(m.container.translation[m.axes]), 0, 1)
 
           ' ? "+>>>+>>>>+ DDDDD " ; f ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
-          m.updateSrollOffsetFraction(f)
+          m.updateScrollOffsetFraction(f)
           if f >= 1
             ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>"
             ' ? " SET NEXT FOCUS INDEX "; m.nextIndex ; " " ; m.isScrollCancelled
@@ -503,7 +503,7 @@ namespace ml
         end if
       else
         'simple one keypress case
-        m.updateSrollOffsetFraction(fraction)
+        m.updateScrollOffsetFraction(fraction)
         if m.fractionWhenFinishBegan <> 0
           fraction = (fraction * (1 - m.fractionWhenFinishBegan)) + m.fractionWhenFinishBegan
         end if
@@ -532,7 +532,7 @@ namespace ml
           m.toggleScrolling(false)
           if isFromFlow
             m.focusManager@.onFocusAnimationUpdate(1)
-            m.updateSrollOffsetFraction(1)
+            m.updateScrollOffsetFraction(1)
             ' m.setFocusIndex(m.index, false, false)
           else
             m.setFocusIndex(m.nextIndex, false, false)
@@ -560,7 +560,7 @@ namespace ml
       if not m.viewManager.isScrolling
         ' ? "VVVVV Scrolling is finished - cannot finish move"
         m.focusManager@.onFocusAnimationUpdate(1)
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
         return false
       end if
 
@@ -569,7 +569,7 @@ namespace ml
         ' ? "MI "; m.index ; " NI "; m.nextIndex
 
         m.focusManager@.onFocusAnimationUpdate(1)
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         return false
@@ -581,7 +581,7 @@ namespace ml
       if cellInfo = invalid
         ' ? "VVVVV NO Component Info"
         m.focusManager@.onFocusAnimationUpdate(1)
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
         m.setFocusIndex(m.nextIndex, true, true)
         m.toggleScrolling(false)
         m.isMultiMoveFinished = true
@@ -591,7 +591,7 @@ namespace ml
       if m.targetCellInfo = invalid or cellInfo.index = m.targetCellInfo.index
         ' ? "VVVVV HAVE ARRIVED"
         m.focusManager@.onFocusAnimationUpdate(1)
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         m.isMultiMoveFinished = true
@@ -601,7 +601,7 @@ namespace ml
       if isFromFlow
         m.setFocusIndex(m.nextIndex, true, false)
         m.focusManager@.onFocusAnimationUpdate(1)
-        m.updateSrollOffsetFraction(1)
+        m.updateScrollOffsetFraction(1)
       end if
       ' ? "VVVVV Need to move to index " ; m.targetCellInfo.index ; " at " ; cellInfo.index
       isMoving = m.moveToIndex(m.targetCellInfo.index, true, m.animSpeedIndex, m.direction, true, true)
@@ -667,11 +667,11 @@ namespace ml
         m.finishMovingToIndex(true)
       else
         m.focusManager@.onFocusAnimationUpdate(fraction)
-        m.updateSrollOffsetFraction(fraction)
+        m.updateScrollOffsetFraction(fraction)
       end if
     end function
 
-    protected function updateSrollOffsetFraction(fraction as float) as void
+    protected function updateScrollOffsetFraction(fraction as float) as void
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
