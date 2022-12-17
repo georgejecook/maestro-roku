@@ -1,6 +1,7 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/core/DebugTimer.bs"
+import "pkg:/source/ml/CommonListApi.bs"
 
 @node("UpdateListDataScreen", "mv_BaseScreen")
 class UpdateListDataScreen extends mv.BaseScreen
@@ -30,14 +31,13 @@ class UpdateListDataScreen extends mv.BaseScreen
   private rowSettings
   private focusSettings
   private cellSettings
-  private loadingIndicator
   private scrollSpeed = 2
   private numberOfRows = 20
   private defaultCellType = "ml_SimpleCell"
 
   private firstItem = invalid
   private dataIndex = 0
-  private isUsingGrids = false
+  private isUsingGrids = true
 
   private dayIndex = 0
   private dayModules = []
@@ -54,7 +54,9 @@ class UpdateListDataScreen extends mv.BaseScreen
     super.initialize()
     bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/list/UpdateListDataScreen.json")
     m.createViewsFromStyleJson(bundle.views)
+    ' m.list.delegate = m.top
     m.resetData()
+    m.list.delegate = m.top
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -72,8 +74,10 @@ class UpdateListDataScreen extends mv.BaseScreen
       m.reload()
     else if button.isSameNode(m.moveItemUpButton)
       m.log.info("moving an item up")
+      m.removeNonHeaderRows(true)
     else if button.isSameNode(m.moveItemDownButton)
       m.log.info("moving an item down")
+      m.moveDay(0)
     else if button.isSameNode(m.useGridButton)
       m.isUsingGrids = not m.isUsingGrids
       m.log.info("changing to useGrids", m.isUsingGrids)
@@ -88,7 +92,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   private updateCount = 0
   private function reload()
     m.log.info("loading data again for dayIndex", m.dayIndex)
-    item = m.list.content@.getChild(1).getChild(0)
+    item = m.list.content@.getChild(1)@.getChild(0)
     if item <> invalid
       m.updateCount++
       json = item.json
@@ -112,7 +116,9 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function makeListData()
-    m.list.content = invalid
+    m.log.info("make list data")
+
+    m.list@.setContent(invalid)
 
     timer = new mc.utils.DebugTimer("list")
 
@@ -123,25 +129,27 @@ class UpdateListDataScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
+    listSettings.renderStrategy = "all"
+    ' listSettings.renderStrategy = "all"
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
 
-    m.setFocus(m.loadingIndicator)
-
     content@.appendChildren([m.makeHeader()])
-    m.list.content = content
+    content@.setNotificationsEnabled(false)
+    m.list@.setContent(content)
 
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
-      m.loadingIndicator.isActive = false
     else
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
   end function
 
   private function makeHeader()
+    m.log.info("make header")
+
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
     row.settings = ml.listMixin.createCustomRowSettings("DateHeaderRow", 310)
@@ -150,6 +158,8 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function makeVideoRow()
+    m.log.info("make video row")
+
     row = createObject("roSGNode", "ml_RowContent")
     row.id = rnd(2147483647).toStr()
     row.settings = ml.listMixin.createCustomRowSettings("VideoRow", 500)
@@ -158,15 +168,16 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function onListRenderState(state as string)
+    m.log.info("list render state", state)
+
     m.log.info("onListRenderState", state)
     if state = "rendered"
       m.setFocus(m.list)
-      m.list@.moveToIndex([0, 0], false)
-      m.loadingIndicator.isActive = false
     end if
   end function
 
   private function makeDayModules()
+    m.log.info("make day modules")
     m.dayModules = []
 
     for i = 0 to 3
@@ -174,6 +185,8 @@ class UpdateListDataScreen extends mv.BaseScreen
         live: m.createModule("live", 5)
         upcoming: m.createModule("upcoming", 5)
         complete: m.createModule("complete", 5)
+        other: m.createModule("other", 5)
+        other2: m.createModule("other2", 5)
       })
     end for
   end function
@@ -201,19 +214,17 @@ class UpdateListDataScreen extends mv.BaseScreen
     numItems = rnd(5) + (m.isUsingGrids ? 6 : 0)
     row.title = title
     row@.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
+    row@.setNotificationsEnabled(false)
     return row
-  end function
-
-  private function addItems(cellType as string, number as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    row@.appendChildren(m.makeItems(cellType, number))
   end function
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
     items = []
-    for i = 0 to number - 1
-      items.push(m.makeItem(cellType, `${prefix} ${m.contentId} [${i}]`))
-    end for
+    if rnd(10) > 6
+      for i = 0 to rnd(number - 1)
+        items.push(m.makeItem(cellType, `${prefix} ${m.contentId} [${i}]`))
+      end for
+    end if
     return items
   end function
 
@@ -288,84 +299,86 @@ class UpdateListDataScreen extends mv.BaseScreen
     end for
 
     m.list.content@.insertChildren(newModules, 1)
-    m.list.content@.notifyUpdate()
+    m.list@.synchronizeContent()
   end function
 
-  private function removeNonHeaderRows(update = true as boolean)
+  private function removeNonHeaderRows(update = true as boolean) as void
+    if m.list.content = invalid
+      return
+    end if
     header = m.list.content@.getChild(0)
-    m.list.content@.setNotificationsEnabled(false)
     m.list.content@.clear()
     m.list.content@.appendChild(header)
 
     if update
-      m.list.content@.notifyUpdate()
+      m.list@.synchronizeContent()
     end if
   end function
 
   private function setRowOpacity(rowIndex as integer, opacity as float, direction as integer, applyToAll = false as boolean)
-    row = m.list@.getRowRenderer(rowIndex)
-    if rowIndex = 0
-      row.opacity = 1
-    else if row.subType() <> "ml_GridRow"
-      row.opacity = opacity
-    else
-      if applyToAll
-        startIndex = 0
-        endIndex = row.content.length - 1
-      else
-        'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-        startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
-        endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
-      end if
-      for i = startIndex to endIndex
-        cell = m.list@.getCellRenderer(rowIndex, i)
-        if cell <> invalid
-          cell.opacity = opacity
-        end if
-      end for
-    end if
+    ' row = m.list@.getRowRenderer(rowIndex)
+    ' if rowIndex = 0
+    '   row.opacity = 1
+    ' else if row.subType() <> "ml_GridRow"
+    '   row.opacity = opacity
+    ' else
+    '   if applyToAll
+    '     startIndex = 0
+    '     endIndex = row.content.length - 1
+    '   else
+    '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
+    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
+    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
+    '   end if
+    '   for i = startIndex to endIndex
+    '     cell = m.list@.getCellRenderer(rowIndex, i)
+    '     if cell <> invalid
+    '       cell.opacity = opacity
+    '     end if
+    '   end for
+    ' end if
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ List Delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ' ? ">>>onItemSelected" ; rowIndex ; "," ; itemIndex
+  private function onItemSelected(event as ml.ListEvent)
+    ? ">>>onItemSelected" ; event.rowIndex ; "," ; event.itemIndex
   end function
 
-  private function onRowData(rowIndex as integer, data as dynamic)
-    if rowIndex = 0
-      offset = mc.getInteger(data, "offset")
+  private function onRowData(event as ml.ListEvent)
+    if event.rowIndex = 0
+      offset = mc.getInteger(event.data, "offset")
       m.log.info(`moving day by ${offset}`)
       m.moveDay(offset)
     end if
   end function
 
-  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-    if direction = -1
-      m.setRowOpacity(rowIndex, 1, direction)
+  private function onRowDidGainFocus(event as ml.ListEvent)
+    if event.direction = -1
+      m.setRowOpacity(event.rowIndex, 1, event.direction)
     end if
   end function
 
-  private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-    if direction = 1
-      m.setRowOpacity(rowIndex, 0, direction)
+  private function onRowDidLoseFocus(event as ml.ListEvent)
+    if event.direction = 1
+      m.setRowOpacity(event.rowIndex, 0, event.direction)
     end if
   end function
 
-  private function onRowWillLoseFocus(rowIndex as integer, direction as integer)
+  private function onRowWillLoseFocus(event as ml.ListEvent)
   end function
 
-  private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-    if direction = -1
-      m.setRowOpacity(rowIndex, fraction, direction)
+  private function onRowGainingFocus(event as ml.ListEvent)
+    if event.direction = -1
+      m.setRowOpacity(event.rowIndex, event.fraction, event.direction)
     end if
   end function
 
-  private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-    if direction = 1
-      m.setRowOpacity(rowIndex, 1 - fraction, direction)
+  private function onRowLosingFocus(event as ml.ListEvent)
+    if event.direction = 1
+      m.setRowOpacity(event.rowIndex, 1 - event.fraction, event.direction)
     end if
   end function
 

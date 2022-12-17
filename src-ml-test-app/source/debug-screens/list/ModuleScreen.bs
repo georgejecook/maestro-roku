@@ -199,51 +199,51 @@ class ModuleScreen extends mv.BaseScreen
   '++ List Delegate Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  ' private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  '   ? "+SCREEN onCellWillGainFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' private function onCellWillGainFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onCellWillGainFocus : R: "; event.rowIndex ; " I: " ; event.cellIndex; " D:" ; direction
   ' end function
 
-  ' private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  '   ? "+SCREEN onCellDidGainFocus  : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' private function onCellDidGainFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onCellDidGainFocus  : R: "; event.rowIndex ; " I: " ; event.cellIndex; " D:" ; direction
   ' end function
 
 
-  ' private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-  '   ? "+SCREEN onCellDidLoseFocus : R: "; rowIndex ; " I: " ; itemIndex; " D:" ; direction
+  ' private function onCellDidLoseFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onCellDidLoseFocus : R: "; event.rowIndex ; " I: " ; event.cellIndex; " D:" ; direction
   ' end function
 
-  ' private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-  '   ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; " D:" ; direction
+  ' private function onRowDidGainFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onRowDidGainFocus : R: "; event.rowIndex ; " D:" ; direction
   ' end function
 
-  ' private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-  '   ? "+SCREEN onRowDidLoseFocus : R: "; rowIndex ; " D:" ; direction
+  ' private function onRowDidLoseFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onRowDidLoseFocus : R: "; event.rowIndex ; " D:" ; direction
   ' end function
 
-  ' private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-  '   ? "+SCREEN onRowGainingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  ' private function onRowGainingFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onRowGainingFocus : R: "; event.rowIndex ; " D:" ; direction ; " F: " ; fraction
   ' end function
 
-  ' private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-  '   ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; direction ; " F: " ; fraction
+  ' private function onRowLosingFocus(event as ml.ListEvent)
+  '   ? "+ onRowLosingFocus : R: "; event.rowIndex ; " D:" ; direction ; " F: " ; fraction
   ' end function
 
-  ' private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-  '   ? "+SCREEN onCellGainingFocus : R: "; rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
+  ' private function onCellGainingFocus(event as ml.ListEvent)
+  '   ? "+SCREEN onCellGainingFocus : R: "; event.rowIndex ; " C " ; cellIndex; " D:" ; direction ; " F: " ; fraction
   ' end function
 
-  ' private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-  '   ? "+ onRowLosingFocus : R: "; rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
+  ' private function onCellLosingFocus(event as ml.ListEvent)
+  '   ? "+ onRowLosingFocus : R: "; event.rowIndex ; " D:" ; " C " ; cellIndex; direction ; " F: " ; fraction
   ' end function
 
-  private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; itemIndex
-    rowContent = m.list.content@.getChild(rowIndex)
+  private function onItemSelected(event as ml.ListEvent)
+    ? ">>>onItemSelected changed to:" ; event.rowIndex ; "," ; event.cellIndex
+    rowContent = m.list.content@.getChild(event.rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)
-    rowContent@.insertChild(child, itemIndex)
+    rowContent@.insertChild(child, event.cellIndex)
     ' rowContent.removeChild(child)
-    row = m.list@.getRowRenderer(rowIndex)
+    row = m.list@.getRowRenderer(event.rowIndex)
     row@.forceUpdate()
   end function
 

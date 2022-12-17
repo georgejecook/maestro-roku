@@ -1,3 +1,4 @@
+import "pkg:/source/ml/CommonListApi.bs"
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/CellInfo.bs"
 
@@ -27,9 +28,12 @@ namespace ml
     end function
 
     protected override function updateScreenRect()
+      ? " aaaaa"
       'bs:disable-next-line
       bounds = m.owner.sceneBoundingRect()
+      ? " bbb"
       m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.maxRowPos] }
+      ? " ccc"
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -404,7 +408,7 @@ namespace ml
           if comp.isInViewPort
             comp.isInViewPort = false
             if comp.id <> "#_#phc"
-              comp@._apply("onDidExit", [1], false)
+              comp@._apply("onDidExit", [{ direction: 1 }], false)
               ' ? " releasing " comp.index
               m.releaseCellAtIndex(comp.index)
             end if
@@ -415,20 +419,29 @@ namespace ml
     end function
 
     override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer, forceCellUpdate = false as boolean) as void
+      m.log.verbose("notifyEnterEvent", notifyStart, notifyEnd, forceCellUpdate)
+
+      m.log.increaseIndent()
+
       for i = notifyStart to notifyEnd
         rowRenderers = m.getRenderersInRow(i, true, forceCellUpdate)
         m.renderedRows[i.toStr()] = true
         for each comp in rowRenderers
           if comp <> invalid
-            ' ? " ENTER FROM BBB" ;
-            ' ? " notifying enter on row " i " cell " comp.index asString(comp.content.title)
-            if not comp.isInViewPort
+
+            if not comp.isInViewPort or forceCellUpdate
+              m.log.verbose("notifying enter on row", i, "cell", comp.index, comp.content.title)
               comp.isInViewPort = true
-              comp@._apply("onDidEnter", [1], false)
+              ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!2222222"
+              comp@._apply("onDidEnter", [{ direction: 1 }], false)
+            else
+              m.log.verbose("SKIPPING notify enter on row", i, "cell", comp.index, comp.content.title)
             end if
           end if
         end for
       end for
+
+      m.log.decreaseIndent()
     end function
 
 
@@ -444,7 +457,7 @@ namespace ml
     '         ' ? " notifying enter on "; comp.id
     '         if not comp.isInViewPort
     '           comp.isInViewPort = true
-    '           comp@._apply("onDidEnter", [1], false)
+    '           comp@._apply("onDidEnter", [direction:1}], false)
     '         end if
     '       end if
     '     end for

@@ -104,9 +104,7 @@ namespace ml
         end if
       end if
 
-      m.log.verbose(" +>+>>>+>++> CCCC 11")
       m.setFocusIndex(index, false, false)
-      m.log.verbose(" +>+>>>+>++> CCCC 22")
     end function
 
     public function cancelScrolling(setFocusNow = false as boolean)
@@ -153,6 +151,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveInDirection(direction as integer) as boolean
+      m.log.resetIndent()
       ' m.viewManager.recalculateCellInfos(false)
       return m.canMoveToIndex(m.index + direction, direction)
     end function
@@ -253,6 +252,7 @@ namespace ml
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean) as boolean
       m.log.increaseIndent("MOVE TO INDEX")
+
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
       m.log.verbose(">?>?>?>?>?////////////////////////////////////////////////////.v///")
       m.log.verbose("////// MTI ", m.index, " NI ", index, " d ", direction, " FS ", forceSequential)

@@ -42,38 +42,39 @@ class PosterCellEfficient extends ml.BaseCell
   end function
 
   protected override function cleanup()
-    ' ? "CLEANUP"
+    ? "CLEANUP"
   end function
 
   protected override function onShowWithContent(content as mc.types.node)
-    ' ? ">>  SHOW  setFocusState"
+    ? ">>  SHOW  onShowWithContent"
     m.setFocusState(1, false)
     m.poster.uri = m.content.HDGRIDPOSTERURL
     m.label.text = `${m.index} ${content.title}`
   end function
 
   protected override function onHide()
+    ? ">> HIDE"
     m.poster.uri = ""'m.poster.loadingBitmapUri
   end function
 
-  private function onDidGainFocus(direction as integer)
+  private function onDidGainFocus(event as ml.ListEvent)
     ' ? " OCDGF " direction m.index
     m.setFocusState(1, true)
   end function
 
-  private function onDidLoseFocus(direction as integer)
+  private function onDidLoseFocus(event as ml.ListEvent)
     ' ? " OCDLF " direction m.index
     m.setFocusState(1, false)
   end function
 
-  private function onGainingFocus(direction as integer, fraction as float)
+  private function onGainingFocus(event as ml.ListEvent)
     ' ? " OCGF " direction fraction
-    m.setFocusState(fraction, true)
+    m.setFocusState(event.fraction, true)
   end function
 
-  private function onLosingFocus(direction as integer, fraction as float)
+  private function onLosingFocus(event as ml.ListEvent)
     ' ? " OCLF " direction fraction
-    m.setFocusState(fraction, false)
+    m.setFocusState(event.fraction, false)
   end function
 
   private function setFocusState(fraction as float, isGaining as boolean) as void

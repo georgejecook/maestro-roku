@@ -1,0 +1,91 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/ml/ListItemViewManager.bs"
+
+@AIGenerated
+namespace tests
+  @suite("ListItemViewManagerTests")
+  class ListItemViewManagerTests extends tests.BaseTestSuite
+
+    private manager
+    private list
+    private container
+    private componentPool
+
+    protected override function beforeEach()
+      m.name = { id: "manager" }
+      m.list = { id: "list" }
+      m.container = { id: "container" }
+      m.componentPool = { id: "componentPool" }
+      m.manager = new ml.ListItemViewManager(m.list, m.container, 0, 1080, m.componentPool)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("updateLayout")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("full update updates the component type if it has changed")
+    function _()
+      ' Set up test data
+      m.manager.rects = [{
+        content: {
+          settings: {
+            componentName: "component1"
+          }
+        }
+      }, {
+        content: {
+          settings: {
+            componentName: "component2"
+          }
+        }
+      }]
+      m.manager.visibleComponents = [
+        m.manager.createRow(m.manager.rects[0].content, 0, { componentName: "component1" }),
+        m.manager.createRow(m.manager.rects[1].content, 1, { componentName: "component1" })
+      ]
+      m.manager.renderersByContentId = {
+        "id1": m.manager.visibleComponents[0],
+        "id2": m.manager.visibleComponents[1]
+      }
+
+      ' Set up expectations
+      m.expectCalled(m.manager.createRow(m.manager.rects[1].content, 1, { componentName: "component2" }), {
+        id: "id2"
+      })
+      m.expectNotCalled(m.manager.visibleComponents[0]@.forceUpdate(true, true))
+      m.expectCalled(m.manager.visibleComponents[1]@.forceUpdate(true, true))
+
+      ' Run test
+      m.manager.updateLayout(true)
+    end function
+
+    @it("full update - updates visible components and sets full update flag on visible components")
+    function _()
+      m.manager.fullUpdate = false
+      m.manager.rects = [{ id: "rect1" }, { id: "rect2" }]
+      m.manager.visibleComponents = [{ id: "comp1" }, { id: "comp2" }]
+      m.manager.renderersByContentId = { "rect1": { id: "comp1" }, "rect2": { id: "comp2" } }
+
+      m.expectCalled(m.manager.createRow({ id: "comp1" }, 0, { componentName: "prevType" }, { id: "rect1" })).returns({ id: "newComp" })
+      m.expectCalled(m.manager.createRow({ id: "comp2" }, 1, { componentName: "prevType" }, { id: "rect2" })).returns({ id: "newComp" })
+      m.expectCalled(m.manager.visibleComponents[0]@.forceUpdate(true, true))
+      m.expectCalled(m.manager.visibleComponents[1]@.forceUpdate(true, true))
+
+      m.manager.updateLayout(true)
+
+      m.assertTrue(m.manager.fullUpdate)
+      m.assertEqual(m.manager.visibleComponents[0], { id: "newComp" })
+      m.assertEqual(m.manager.visibleComponents[1], { id: "newComp" })
+      m.assertEqual(m.manager.renderersByContentId, { "rect1": { id: "newComp" }, "rect2": { id: "newComp" } })
+    end function
+
+    '     "full update updates the component type if it has changed"
+    ' "full update removes the component from its parent if it has one"
+    ' "full update creates a new component with the correct settings and index"
+    ' "full update sets the visibleComponents and renderersByContentId arrays correctly"
+    ' "update rectangles updates the rectangles with the correct translation and visibility"
+    ' "update components updates the components with the correct translation and visibility"
+    ' "update components calls forceUpdate with the correct arguments for full updates"
+    ' "update layout does not crash if any of the input arrays are invalid"
+  end class
+end namespace
