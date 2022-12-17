@@ -1,13 +1,10 @@
 # Tasks
 
-Methods
--------
+## Functions
 
+<br/>
 
-
-`setTimeout`
-------------
-
+## `setTimeout`
 Schedules a function to be called after a specified delay.
 
 ### Arguments
@@ -26,8 +23,6 @@ Schedules a function to be called after a specified delay.
 <br/>
 
 `setInterval`
--------------
-
 Schedules a function to be called repeatedly at a specified interval.
 
 ### Arguments
@@ -48,9 +43,7 @@ Schedules a function to be called repeatedly at a specified interval.
 <br/>
 
 
-`cancelTimeout`
----------------
-
+## `cancelTimeout`
 Cancels a previously scheduled timeout.
 
 ### Arguments
@@ -66,8 +59,7 @@ Cancels a previously scheduled timeout.
 <br/>
 
 
-`createTask`
-------------
+## `createTask`
 
 Creates a task node of the specified `taskType` with the provided `fields` and returns it.
 
@@ -92,9 +84,7 @@ Creates a task node of the specified `taskType` with the provided `fields` and r
 
 <br />
 
-`observeNodeField`
-------------------
-
+## `observeNodeField`
 Observes the given `fieldName` field on the `node` and calls the `callback` function when the field changes. If `sendMode` is set to "fieldAndValue", the `fieldAndValueTargetField` is set to the field name and value when the `callback` function is called. If `once` is set to `true`, the observer is removed after the first field change. If a `scope` is provided, the `callback` function is called with the `scope` as the `this` value. If `callback` is a string, it is assumed to be a member of the `scope` object and is called as a method on the `scope` object.
 
 
@@ -118,9 +108,7 @@ Observes the given `fieldName` field on the `node` and calls the `callback` func
 
 <br />
 
-`unObserveNodeField`
---------------------
-
+## `unObserveNodeField`
 This method removes a callback from observing a specific field of a node.
 
 ### Arguments
@@ -135,9 +123,7 @@ This method removes a callback from observing a specific field of a node.
 
 <br />
 
-`cleanNodeObserver`
--------------------
-
+## `cleanNodeObserver`
 This method is used to remove all observers for a particular field on a node.
 
 ### Arguments
@@ -148,24 +134,15 @@ This method is used to remove all observers for a particular field on a node.
 | fieldName | string | The name of the field whose observers should be removed. |
 
 
-
----
-
 <br />
 
-`cleanScope`
-------------
-
+## `cleanScope`
 This method is used to remove all observers for the current scope.
 
-
-
 ---
 <br />
 
-`cancelTask`
-------------
-
+## `cancelTask`
 This method is used to stop a task and remove any observers for the task's output field.
 
 ### Arguments
@@ -178,8 +155,8 @@ This method is used to stop a task and remove any observers for the task's outpu
 <br />
 
 
-`ValueObserver`
-===============
+# ValueObserver
+
 
 Class summary
 -------------
@@ -190,12 +167,10 @@ The `ValueObserver` class allows you to observe a field on a node and define cal
 
 
 
-Methods
--------
+## Methods
+<br />
 
-`new`
------
-
+## `new`
 Constructs a new instance of the `ValueObserver` class.
 
 ### Arguments
@@ -209,9 +184,7 @@ Constructs a new instance of the `ValueObserver` class.
 
 <br />
 
-`reset`
--------
-
+## `reset`
 Resets the `pendingComparators` field.
 
 ### Arguments
@@ -222,9 +195,7 @@ Resets the `pendingComparators` field.
 
 <br />
 
-`destroy`
----------
-
+## `destroy`
 Stops observing the node and field and removes all comparators.
 
 ### Arguments
@@ -233,9 +204,7 @@ None.
 
 <br />
 
-`onValue`
----------
-
+## `onValue`
 Registers a callback to be executed when the observed field has a value matching the specified `value` and `comparator`.
 
 ### Arguments
@@ -250,9 +219,7 @@ Registers a callback to be executed when the observed field has a value matching
 <br />
 
 
-`valueCallback`
----------------
-
+## `valueCallback`
 Compares the value of the observed field against the registered comparators and executes the corresponding callback if a match is found.
 
 ### Arguments
@@ -266,15 +233,15 @@ Compares the value of the observed field against the registered comparators and 
 <br />
 
 
-`TaskRunner`
-============
-
-Class summary
--------------
-
+# TaskRunner
+## Class summary
 A class that allows you to create and run a group of tasks. It provides support for running tasks in either parallel or sequential mode and has the ability to cancel or reset the group of tasks.
 
+<br/>
+
 ## Methods
+
+<br/>
 
 ## `run`
 

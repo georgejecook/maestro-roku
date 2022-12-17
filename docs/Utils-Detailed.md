@@ -1,4 +1,4 @@
-# Utils-Detailed
+# Utils
 
 Methods
 -------

@@ -97,3 +97,4 @@ Been in production for > 2 years at:
   - [Callbacks](/docs/List-Component:-Callbacks.md)
   - [CustomCells](/docs/List-Component:-CustomCells.md)
 * [Debugging](/docs/Debugging.md)
+* [API documentation](/docs/API-Docs.md)

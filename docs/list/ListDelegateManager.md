@@ -10,7 +10,7 @@ The `ListDelegateManager` class is responsible for handling delegate events for 
 ## Methods
 -------
 
-### `callCellDelegateMethod()`
+### `callCellDelegateMethod`
 
 Calls a delegate method on the `List` delegate and the cell component for a given cell event.
 
@@ -26,7 +26,7 @@ Calls a delegate method on the `List` delegate and the cell component for a give
 
 <br/>
 
-### `callRowDelegateMethod()`
+### `callRowDelegateMethod`
 
 Calls a delegate method on the `List` delegate and the row component for a given row event.
 
@@ -43,9 +43,9 @@ Calls a delegate method on the `List` delegate and the row component for a given
 Method Descriptions
 -------------------
 
-The `callCellDelegateMethod()` and `callRowDelegateMethod()` methods are called to handle delegate events for cells and rows, respectively. They do the following:
+The `callCellDelegateMethod` and `callRowDelegateMethod` methods are called to handle delegate events for cells and rows, respectively. They do the following:
 
-1.  They determine the name of the delegate method to call based on the `eventName` parameter and the `cellDelegateFunctionMap` or `rowDelegateFunctionMap` maps (for `callCellDelegateMethod()` and `callRowDelegateMethod()`, respectively).
+1.  They determine the name of the delegate method to call based on the `eventName` parameter and the `cellDelegateFunctionMap` or `rowDelegateFunctionMap` maps (for `callCellDelegateMethod` and `callRowDelegateMethod`, respectively).
 2.  They determine the name of the component method to call based on the `eventName` parameter and the `componentFunctionMap` map.
 3.  They call the component method on the cell or row component with the appropriate arguments.
 4.  If `isNotifyingListDelegate` is `true`, they call the delegate method on the `List` delegate with the appropriate arguments.

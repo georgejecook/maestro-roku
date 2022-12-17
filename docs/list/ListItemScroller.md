@@ -2,8 +2,6 @@
 
 
 ## Class Summary
--------------
-
 The `ListItemScroller` class is a subclass of `ml.ItemScroller` and is used to handle the scrolling for a list component in a Roku application. It provides several methods for updating and manipulating the scroll position and focus of the list, as well as starting, cancelling, and ending item moves within the list. It also provides a method for setting the focus manager information and a method for getting the focus indicator configuration for the list.
 
 
@@ -17,9 +15,10 @@ The `ListItemScroller` class is a subclass of `ml.ItemScroller` and is used to h
 <br/>
 
 ## Methods
--------
 
-### `setFocusManagerInfo()`
+<br/>
+
+## `setFocusManagerInfo`
 Sets focus manager information for the list.
 
 ### Arguments
@@ -35,9 +34,7 @@ Sets focus manager information for the list.
 
 <br />
 
-### `getFocusIndicatorConfig()`
--------------------------
-
+## `getFocusIndicatorConfig`
 Gets the focus indicator configuration for the list.
 
 ### Arguments
@@ -54,10 +51,9 @@ Returns `ml.FocusIndicatorConfig` - The focus indicator configuration.
 
 <br/>
 
-### `setCellInfo()`
+## `setCellInfo`
 
 Sets the current cell information for the list.
-
 ### Arguments
 
 | Argument Name | Type | Default Value | Description |
@@ -65,7 +61,7 @@ Sets the current cell information for the list.
 | `info` | `ml.CellInfo` | N/A | The cell information. |
 
 
-### `setNextCellInfo()`
+## `setNextCellInfo`
 Sets the next cell information for the list.
 
 ### Arguments
@@ -74,8 +70,7 @@ Sets the next cell information for the list.
 | ---| ---| ---| --- |
 | `info` | `ml.CellInfo` | N/A | The cell information. |
 
-### `updateSrollOffsetFraction()`
-
+## `updateSrollOffsetFraction`
 Updates the scroll offset fraction for the list.
 
 ### Arguments
@@ -86,29 +81,21 @@ Updates the scroll offset fraction for the list.
 
 
 
-### `startItemMove()`
-
+## `startItemMove`
 Starts the item move for the list.
 
-###
 
-### `cancelItemMove()`
-
-
+## `cancelItemMove`
 Cancels the item move for the list.
 
 ######
 
-### `endItemMove()`
--------------
-
+## `endItemMove`
 Ends the item move for the list.
 
 ######
 
-### `onMove()`
---------
-
+## `onMove`
 Handles the move action for the list.
 
 ### Arguments
