@@ -6,6 +6,7 @@
 * [Requests](/docs/Requests.md)
   - [RequestTask](/docs/RequestTask.md)
 * [Registry](/docs/Registry.md)
+* [mc.Node](/docs/mc.Node.md)
 * [Views](/docs/views/Base-View.md)
     -   [Base View](/docs/views/Base-View.md)
     -   [Base Screen](/docs/views/Base-Screen.md)
