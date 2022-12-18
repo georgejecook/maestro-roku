@@ -79,6 +79,8 @@ namespace ml
       m.log.info("This content has changed in some way")
       changes = m.content.changes
       if changes <> invalid and changes.count() > 0
+        m.log.info("doing a content update, in case this is important for the row, itself")
+        m.onContentUpdate(m.content)
         m.log.verbose(" ITEM CHANGES ", formatJson(changes))
         return m.applyChildChanges(changes)
       else
@@ -86,7 +88,6 @@ namespace ml
         return m.updateChangedCells()
       end if
     end function
-
 
     function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
       m.log.verbose(" applying child changes ", mc.dv(m.top), " # changes", changes.count())
@@ -118,7 +119,9 @@ namespace ml
       m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
       m._content = content
       m.log.verbose(" SET CONTENT ", mc.dv(m.top))
-      return m.onContentChange(content)
+      result = m.onContentChange(content)
+      m.onContentUpdate(content)
+      return result
     end function
 
     ' private function _onContentChange()
@@ -202,7 +205,11 @@ namespace ml
         'bs:disable-next-line
         return m.viewManager.getIndexAfterItemUpdate(previousInfo)
       end if
-      return previousInfo.index
+      if previousInfo <> invalid
+        return previousInfo.index
+      else
+        return -1
+      end if
     end function
 
     function getFocusedCellInfo() as ml.CellInfo
@@ -288,7 +295,6 @@ namespace ml
       return true
     end function
 
-    'FIXME - when!!!
     function focusOnContentsNow()
       m.log.verbose(" FOCUS  ON CONTENTS NOW ", mc.dv(m.top))
       'bs:disable-next-line
@@ -303,7 +309,9 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
-      m.owner@._apply("onRowData", [m.top.index, data], false)
+      if m.owner <> invalid and m.owner.delegate <> invalid
+        m.owner.delegate@._apply("onRowData", [m.top.index, data], false)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -315,6 +323,10 @@ namespace ml
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
+    end function
+
+    protected function onContentUpdate(content as mc.types.node)
+      m.configureHeader(false)
     end function
 
     protected function onRecycle(newContent as mc.types.node)
@@ -364,7 +376,7 @@ namespace ml
     protected function configureHeader(forceUpdate = false as boolean)
       if m._content = invalid
         m.cleanHeader()
-      else
+      else if m.contentGroup <> invalid
         headerSettings = m.settings.headerSettings
         if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()

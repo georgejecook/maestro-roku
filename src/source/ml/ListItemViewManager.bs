@@ -45,7 +45,6 @@ namespace ml
 
     function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
       super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
-      m.delegate = list.rowEvents
     end function
 
     override function getRenderer(index as integer)
@@ -72,6 +71,7 @@ namespace ml
       m.visibleComponents = []
       m.visibleItems = []
       m.updateRects()
+
       if content <> invalid
         m.creationIndex = -1
         m.previousRendereredByContentId = m.renderersByContentId
@@ -80,13 +80,14 @@ namespace ml
         m.visibleComponents = []
         m.listSettings = content.listSettings
         if not forceSync and m.listSettings.rowCreationStrategy = "async" and not m.isUpdating
+          m.log.verbose("creating renderers in async mode")
           m.batchSize = m.listSettings.rowCreationBatchSize
           m.batchDelay = m.listSettings.rowCreationBatchDelay
           m.owner.state = "rendering"
           isReady = false
           m.batchTimer = m.waitAFrame(m.createRendererBatch, 0.15)
         else
-          ' ? "USING SYNC MODE"
+          m.log.verbose("creating renderers in sync mode")
           m.batchSize = m.content.length
           isReady = true
         end if
@@ -130,12 +131,14 @@ namespace ml
       if m.content <> invalid
         index = 0
         for i = 0 to m.batchSize
-          ' m.log.info(">>> BEGIN CREATE ROW", i)
+          m.log.increaseIndent("BEGIN CREATE ROW" + i.toStr())
           m.creationIndex++
           index = m.creationIndex
           if m.creationIndex >= m.content.length
-            ' ? "FINISHED RENDERING LIST ROWS"
+            m.log.verbose("finished creating batch")
+
             m.onRenderersCreated()
+            m.log.decreaseIndent()
             return
           end if
           rowContent = m.content@.getChild(index)
@@ -145,7 +148,7 @@ namespace ml
           comp = m.previousRendereredByContentId[rowContent.id]
           if comp <> invalid
             ' m.log.info("using comp for the same row")
-            ' ? " REUSING COMP FOR SAME ROW "; index
+            m.log.verbose(" REUSING COMP FOR SAME ROW ", index)
             comp.index = index
             comp.translation = rect.translation
             comp.owner = m.owner
@@ -153,7 +156,7 @@ namespace ml
             m.previousRendereredByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
           else
-            ' m.log.info("creating row for this item")
+            m.log.verbose("creating row for this item")
             comp = m.createRow(rowContent, index, settings, rect)
           end if
 
@@ -166,16 +169,17 @@ namespace ml
           end if
           m.visibleComponents.push(comp)
           index++
-          ' m.log.info(">>> END CREATE ROW", i)
         end for
         if m.creationIndex < m.content.length
           m.waitAFrame(m.createRendererBatch, 0.15)
         end if
       end if
+      m.log.decreaseIndent()
     end function
 
     function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, rect as mc.types.assocarray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
+      m.log.increaseIndent("CREATE ROW " + index.toStr() + " " + compName)
       'TODO - measure height to ascertain how many
       isRendered = index < 4
       ' isRendered = true
@@ -184,42 +188,49 @@ namespace ml
 
       row.setFields(rect)
 
-      ' ? " CREATING row "; index ; " isRendered" ; isRendered
+
+      m.log.info("CREATING ROW ", index, " isRendered ", isRendered)
       state = {
         renderState: isRendered ? "rendered" : m.componentBufferMode
         owner: m.owner
         width: m.owner.width
         isInViewport: isRendered
       }
+
       row.setFields(state)
       m.container.appendChild(row)
+      m.log.info("appending row to container")
 
       if row.isInitialized
-        ' ? "RECYCLE EXISTING ROW"
+        m.log.info("RECYCLE EXISTING ROW")
+
         ' row.content = rowContent
         m.contentManager.setContentOnRow(row, rowContent, false)
         row@.recycle(rowContent)
       else
-        ' ? "CREATE NEW ROW "
+        m.log.info("CREATE NEW ROW")
+
         row.content = rowContent
         row@._initialize(invalid)
         m.contentManager.setContentOnRow(row, rowContent)
         row@.setContent(rowContent)
       end if
 
+      m.log.decreaseIndent()
       return row
     end function
 
     override function updateLayout(fullUpdate = false as boolean)
+      m.log.increaseIndent("UPDATE LAYOUT")
+
       if fullUpdate
-        m.log.verbose(" LUL A")
-        'first check if any comps have changed type
+        m.log.verbose("full update - checking for changed types")
         for i = 0 to m.rects.count() - 1
-          ' ? " LUL B"
           rect = m.rects[i]
           comp = m.visibleComponents[i]
           if comp <> invalid and comp.content <> invalid and comp.subType() <> comp.content.settings.componentName
             if comp.getParent() <> invalid
+              m.log.verbose("removing comp from parent")
               comp.getParent().removeChild(comp)
             end if
             comp = m.createRow(comp.content, comp.index, comp.content.settings, rect)
@@ -229,8 +240,11 @@ namespace ml
         end for
       end if
 
+      m.log.verbose("updating rectangles")
+
       m.updateRects()
 
+      m.log.verbose("updating components")
       for i = 0 to m.rects.count() - 1
         rect = m.rects[i]
         comp = m.visibleComponents[i]
@@ -243,9 +257,13 @@ namespace ml
           end if
         end if
       end for
+
+      m.log.decreaseIndent()
     end function
 
     override function updateRects() as void
+      m.log.verbose("updating rectangles on LIST")
+
       y = 0
       w = m.owner.width
       m.rects = []
@@ -257,11 +275,13 @@ namespace ml
         return
       end if
 
+      m.log.increaseIndent()
       for i = 0 to m.content.length - 1
         item = m.content@.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
-        ' ? "ITEM " ; i ; " VISIBLE "; visible ; " L "; item.length ; " " ; item.length ; " isHidden " ; item.isHidden
+        m.log.verbose(i, mc.dv(item), " VISIBLE ", visible, " L ", item.length, " isHidden ", item.isHidden)
+
         if visible
           if settings.subType() = "ml_GridRowSettings"
             height = m.calculateGridRowHeight(item, settings)
@@ -290,7 +310,7 @@ namespace ml
           height = 0
           screenPos = 0
           translation = [0, 0]
-          ' ? " NOT VISIBLE"
+          m.log.verbose("not visible")
         end if
 
         m.visibleItems.push(item)
@@ -309,6 +329,7 @@ namespace ml
           m.visibleComponents.push(comp)
         end if
       end for
+      m.log.decreaseIndent()
 
       m.numberOfItems = m.visibleItems.count()
       m.numberOfVisibleItems = m.visibleComponents.count()
@@ -360,8 +381,6 @@ namespace ml
     end function
 
     override function isFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)
-
-
       if info <> invalid and info.component <> invalid and info.component.subType() = "ml_GridRow"
 
         isFlowPossible = info.component@.isVerticalFlowFocusPossible(info, direction, activeScreenPos, m.container.translation[m.axes])
@@ -411,12 +430,14 @@ namespace ml
       m.log.verbose(" LIST recalculateCellInfos!! ")
       m.cellInfos = []
       virtualIndex = 0
+      m.log.increaseIndent("recalculateCellInfos")
       for i = 0 to m.visibleItems.count() - 1
         item = m.visibleItems[i]
         settings = ml.listMixin.getRowSettings(m.content, item)
         if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.length > 0)
-          ' component = m.visibleComponents[i]
           component = m.renderersByContentId[item.id]
+          m.log.verbose("got component", mc.dv(component))
+
           if component <> invalid
             infos = component@.getRowInfos(true)
 
@@ -432,12 +453,42 @@ namespace ml
               m.cellInfos.push(cellInfo)
               virtualIndex++
             end for
+          else
+            m.log.error("no component found for item", mc.dv(item))
+
           end if
         else
-          'FIXME - some race condition seems to occur here - probs multiple grids doing force recalculations
+          m.log.verbose("skipping item", mc.dv(item))
         end if
       end for
+      m.log.decreaseIndent()
       m.numberOfItems = m.cellInfos.count()
+    end function
+
+    protected override function tidyUpUnusedRenderers() as void
+      removedRenderers = []
+      m.log.verbose("cleaning unused renderers")
+
+      for i = 1 to m.container.getChildCount() - 1
+        renderer = m.container.getChild(i)
+        if renderer.content <> invalid and m.renderersByContentId[renderer.content.id] = invalid
+          m.log.verbose("Releasing renderer at index", i, " as it is no longer in use: it has different content")
+
+          removedRenderers.push(renderer)
+          renderer.content = invalid
+        else
+
+          currentInfoAtIndex = m.rendereredCellInfosByIndex[renderer.index.toStr()]
+          if currentInfoAtIndex <> invalid and not currentInfoAtIndex.component.isSameNode(renderer)
+            m.log.verbose("releasing renderer at index", i, " as it is no longer in use: it is a different component")
+
+            removedRenderers.push(renderer)
+            renderer.content = invalid
+          end if
+        end if
+      end for
+      m.log.verbose("Releasing", removedRenderers.count(), " renderers")
+      m.componentPool@.releaseComponents(removedRenderers)
     end function
   end class
 end namespace

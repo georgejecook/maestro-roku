@@ -184,7 +184,6 @@ namespace ml
       else
         m.observeNodeField(m.top, "state", m.onListRenderState, "value", true)
       end if
-
     end function
 
     private function onListRenderState(state as string)
@@ -207,8 +206,12 @@ namespace ml
       m.contentManager.setContent(content)
     end function
 
-    function synchronizeContent()
+    function synchronizeContent(updateListContent = true as boolean)
+      if updateListContent = true and m.content <> invalid
+        m.content@.notifyUpdate()
+      end if
       m.contentManager.synchronizeContent()
+      m.log.resetIndent()
     end function
 
     private function cleanup()
@@ -580,7 +583,7 @@ namespace ml
 
       m.log.verbose("onKeyPressOk")
       if m.delegate <> invalid
-        m.delegate@._apply("onItemSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+        ' m.delegate@._apply("onItemSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
       end if
 
       return true
@@ -620,9 +623,9 @@ namespace ml
       if not m.top.visible
         return 0
       end if
-      m.log.verbose("getLongPressIntervalForKey", key)
 
       if key = "OK" or m.canMoveFromKeyPress(key, true)
+        m.log.verbose("valid long press with key", key)
         return 0.2
       else
         return 0
@@ -630,11 +633,11 @@ namespace ml
     end function
 
     private function onLongPressStart(key as string) as boolean
-      m.log.info(">>>>onLongPressStart", key)
+      ' m.log.info(">>>>onLongPressStart", key)
 
       if key = "OK"
         if m.delegate <> invalid
-          m.delegate@._apply("onItemLongSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+          ' m.delegate@._apply("onItemLongSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
         end if
       else if m.canMoveFromKeyPress(key, true)
         direction = m.keyDirections[key]
@@ -658,16 +661,14 @@ namespace ml
     end function
 
     private function onLongPressFinish(key as string) as boolean
-      m.log.verbose(" ON LONG PRESS FINISH - LIST ", key)
+      ' m.log.verbose(" ON LONG PRESS FINISH - LIST ", key)
       if key = "OK"
         'nothing yet
       else if m.listKeys[key] = true
-        m.log.verbose(" OLF A")
-        m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
+        ' m.log.verbose("long press finished on key", key, "going to animate to final scroll position")
         m.itemScroller.cancelScrolling()
         return true
       else if m.rowKeys[key] = true
-        m.log.verbose(" OLF B")
         m.getFocusedRow()@.cancelMove(false)
         return true
       end if

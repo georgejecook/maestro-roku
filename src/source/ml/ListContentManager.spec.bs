@@ -1,0 +1,154 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/ml/ListContentManager.bs"
+
+namespace tests
+
+  @fixme
+  @aiGenerated
+  @suite("ListContentManager tests")
+  class ListContentManagerTests extends tests.BaseTestSuite
+
+    private manager as ml.ListContentManager
+
+    private list
+    private viewManager
+    private itemScroller
+    private focusIndicatorManager
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.list = { "id": "list" }
+      m.viewManager = { "id": "viewManager" }
+      m.itemScroller = { "id": "itemScroller" }
+      m.focusIndicatorManager = { "id": "focusIndicatorManager" }
+
+      m.manager = new ml.ListContentManager(m.list, m.viewManager, m.itemScroller, m.focusIndicatorManager)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onListContentItemsChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("updates content and returns true")
+    function _()
+      row = { id: "row" }
+      content = { id: "content" }
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+      m.manager.updateRowContentInfo(row, content, result)
+      m.assertTrue(result.isLayoutRequired, "should set isLayoutRequired to true")
+      m.assertEqual(row.content, content, "should set row's content to new content")
+      m.assertEqual(m.manager.rowContentInfoByContentId[content.id], {
+        id: content.id
+        version: content.version
+        isHidden: content.isHidden
+        isFocusEnabled: content.isFocusEnabled
+        row: row
+      }, "should add new content info to rowContentInfoByContentId dictionary")
+    end function
+
+    @it("removes content and returns true")
+    function _()
+      row = { id: "row" }
+      oldContent = { id: "content" }
+      row.content = oldContent
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+      m.manager.updateRowContentInfo(row, invalid, result)
+      m.assertTrue(result.isLayoutRequired, "should set isLayoutRequired to true")
+      m.assertEqual(row.content, invalid, "should set row's content to invalid")
+      m.assertEqual(m.manager.rowContentInfoByContentId[oldContent.id], invalid, "should remove old content info from rowContentInfoByContentId dictionary")
+    end function
+
+    @it("updates content version and returns true")
+    function _()
+      row = { id: "row" }
+      oldContent = { id: "content" }
+      row.content = oldContent
+      oldContent.version = 1
+      newContent = { id: "content" }
+      newContent.version = 2
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+      m.manager.updateRowContentInfo(row, newContent, result)
+      m.assertFalse(result.isLayoutRequired, "should not set isLayoutRequired to true")
+      m.assertEqual(row.content, newContent, "should set row's content to new content")
+      m.assertEqual(m.manager.rowContentInfoByContentId[newContent.id], {
+        id: newContent.id
+        version: newContent.version
+        isHidden: newContent.isHidden
+        isFocusEnabled: newContent.isFocusEnabled
+        row: row
+      }, "should update content info in rowContentInfoByContentId dictionary")
+    end function
+
+    @it("updates hidden status and returns true")
+    function _()
+      row = { id: "row" }
+      oldContent = { id: "oldContent" }
+      oldContent.isHidden = false
+      row.content = oldContent
+      newContent = { id: "newContent" }
+      newContent.isHidden = true
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+
+      m.manager.updateRowContentInfo(row, newContent, result)
+
+      m.assertTrue(result.isLayoutRequired, "should set isLayoutRequired to true")
+      m.assertEqual(row.content, newContent, "should set row's content to new content")
+      m.assertEqual(m.manager.rowContentInfoByContentId[newContent.id], {
+        id: newContent.id
+        version: newContent.version
+        isHidden: newContent.isHidden
+        isFocusEnabled: newContent.isFocusEnabled
+        row: row
+      }, "should update content info in rowContentInfoByContentId dictionary")
+    end function
+
+    @it("updates focus enabled status and returns true")
+    function _()
+      row = { id: "row" }
+      oldContent = { id: "oldContent" }
+      oldContent.isFocusEnabled = false
+      row.content = oldContent
+      newContent = { id: "newContent" }
+      newContent.isFocusEnabled = true
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+
+      m.manager.updateRowContentInfo(row, newContent, result)
+
+      m.assertTrue(result.isFocusChangeRequired, "should set isFocusChangeRequired to true")
+      m.assertEqual(row.content, newContent, "should set row's content to new content")
+      m.assertEqual(m.manager.rowContentInfoByContentId[newContent.id], {
+        id: newContent.id
+        version: newContent.version
+        isHidden: newContent.isHidden
+        isFocusEnabled: newContent.isFocusEnabled
+        row: row
+      }, "should update content info in rowContentInfoByContentId dictionary")
+    end function
+
+    @it("handles invalid row and returns false")
+    function _()
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+      m.assertFalse(
+      m.manager.updateRowContentInfo(invalid, { id: "row" },
+      result), "should return false")
+    end function
+  end class
+end namespace

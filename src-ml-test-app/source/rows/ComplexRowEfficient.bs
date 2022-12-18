@@ -54,18 +54,25 @@ class ComplextRowEfficient extends ml.BaseRow
       translation: [1000, 400]
       size: [800, 80]
     })
+    m.label = m.createSGNode("mv_Label", m.top, "label", {
+      translation: [1000, 500]
+      size: [800, 80]
+      text: "Default"
+      fontKey: "small,30"
+    })
     m.observe(m.button1.selected, function(): ? " ADD" : m.sendRowData({ action: "add" }): end function, "none")
     m.observe(m.button2.selected, function(): ? " REMOVE " : m.sendRowData({ action: "remove" }): end function, "none")
   end function
 
-  protected override function onContentChange(content as mc.types.node)
-    'do stuff with content here
+  protected override function onContentUpdate(content as mc.types.node)
+    m.log.info("ROW CHANGE")
+    super.onContentUpdate(content)
+    m.label.text = asString(content.rowText)
   end function
 
   public override function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
     return ml.createFocusIndicatorConfig(m.top, invalid, direction, -1, true)
   end function
-
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ KeyPress

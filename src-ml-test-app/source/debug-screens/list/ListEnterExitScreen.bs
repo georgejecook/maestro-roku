@@ -104,8 +104,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
 
-    ' listSettings.renderStrategy = "dynamic"
-    listSettings.renderStrategy = "all"
+    listSettings.renderStrategy = "dynamic"
+    ' listSettings.renderStrategy = "all"
     listSettings.numberItemsToRenderAfter = m.numberItemsToRenderAfter
     listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
 
@@ -151,7 +151,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private function createGridData()
     content = []
     showHero = false
-    showComplex = false
+    showComplex = true
     showNormal = true
 
     showGrids = true
@@ -375,13 +375,21 @@ class ListEnterExitScreen extends mv.BaseScreen
   '++ List Delegate Methods
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-    ' ? "+SCREEN onRowDidGainFocus : R: "; rowIndex ; "SR: "; subRowIndex ; " D:" ; direction
+  private function onRowData(rowIndex as integer, data as dynamic)
+    m.log.info("received row data for index", rowIndex, data)
+    m.log.info("updating data")
+    item = m.list.content@.getChild(rowIndex)
+    mc.setOrAddNodeField(item, "rowText", "ROW HAS changed")
+    item@.notifyUpdate()
+    m.list@.synchronizeContent()
+  end function
 
-    row = m.list@.getRowRenderer(rowIndex)
+  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
+
+    row = m.list@.getRowRenderer(event.rowIndex)
     if row <> invalid
       mioc.setInstance("focusedIndex", {
-        row: rowIndex
+        row: event.rowIndex
         cell: row.focusedCellIndex
       })
     else

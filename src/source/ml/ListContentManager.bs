@@ -264,16 +264,11 @@ namespace ml
 
       if oldRowContentInfo <> invalid and newContentInfo <> invalid
         isChanged = oldRowContentInfo.version <> newContentInfo.version
-        if result <> invalid
-          if oldRowContentInfo.isHidden <> newContentInfo.isHidden
-            result.isLayoutRequired = true
-          end if
-          if oldRowContentInfo.isFocusEnabled <> newContentInfo.isFocusEnabled
-            result.isFocusChangeRequired = true
-          end if
-        else
-          'the row is either added, or removed
+        if oldRowContentInfo.isHidden <> newContentInfo.isHidden
           result.isLayoutRequired = true
+        end if
+        if oldRowContentInfo.isFocusEnabled <> newContentInfo.isFocusEnabled
+          result.isFocusChangeRequired = true
         end if
       end if
 
