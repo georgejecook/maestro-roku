@@ -15,7 +15,7 @@ namespace ml
     public contentManager as ml.ListContentManager
 
     public override function reset()
-      m.log.info ("resetting viewManager. numItems: ", m.numberOfItems)
+      m.log.info("resetting LIST. numItems: ", m.numberOfItems)
 
       if m.isRendering
         m.cancelBatching()
@@ -204,9 +204,11 @@ namespace ml
       if row.isInitialized
         m.log.info("RECYCLE EXISTING ROW")
 
-        ' row.content = rowContent
         m.contentManager.setContentOnRow(row, rowContent, false)
         row@.recycle(rowContent)
+        row@.setContent(rowContent)
+        row.content = rowContent
+        m.log.verbose("row content is now", mc.dv(row.content))
       else
         m.log.info("CREATE NEW ROW")
 
@@ -214,6 +216,7 @@ namespace ml
         row@._initialize(invalid)
         m.contentManager.setContentOnRow(row, rowContent)
         row@.setContent(rowContent)
+        m.log.verbose("row content is now", mc.dv(row.content))
       end if
 
       m.log.decreaseIndent()
@@ -471,8 +474,8 @@ namespace ml
 
       for i = 1 to m.container.getChildCount() - 1
         renderer = m.container.getChild(i)
-        if renderer.content <> invalid and m.renderersByContentId[renderer.content.id] = invalid
-          m.log.verbose("Releasing renderer at index", i, " as it is no longer in use: it has different content")
+        if renderer.content = invalid or m.renderersByContentId[renderer.content.id] = invalid
+          m.log.verbose("Releasing renderer at index", i, " as it is no longer in use: it has different/invalid content")
 
           removedRenderers.push(renderer)
           renderer.content = invalid

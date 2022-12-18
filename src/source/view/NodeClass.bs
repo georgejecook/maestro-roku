@@ -43,7 +43,7 @@ namespace mv
       end for
     end function
 
-    private function ___onDebugCallFunction(text as string)
+    private function ___onDebugCallFunction(text as string) as void
       if text <> ""
         try
           m.log.debug("calling function now:", text)
@@ -51,8 +51,9 @@ namespace mv
           matches = regex.match(text)
           name = matches[1]
           args = parseJson("[" + matches[2] + "]")
-          if not m.doesExist(text)
+          if not m.doesExist(name)
             m.log.error("function does not exist on:", m.__classname)
+            return
           end if
           'bs:disable-next-line
           result = mc.apply(m[name], args)

@@ -182,6 +182,8 @@ class UpdateListDataScreen extends mv.BaseScreen
         live: m.createModule("live", 5)
         upcoming: m.createModule("upcoming", 5)
         complete: m.createModule("complete", 5)
+        other: m.createModule("other", 5)
+        other2: m.createModule("other2", 5)
       })
     end for
   end function
@@ -215,7 +217,7 @@ class UpdateListDataScreen extends mv.BaseScreen
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
     items = []
-    for i = 0 to number - 1
+    for i = 0 to rnd(number - 1)
       items.push(m.makeItem(cellType, `${prefix} ${m.contentId} [${i}]`))
     end for
     return items

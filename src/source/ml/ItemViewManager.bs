@@ -446,7 +446,7 @@ namespace ml
     end function
 
     function notifyExitEvent(indexes as mc.types.array) as void
-      m.log.verbose("notifyExitEvent")
+      m.log.verbose("notifyExitEvent", m.__classname, indexes)
 
       for each index in indexes
         comp = m.getRenderer(index)
@@ -462,12 +462,13 @@ namespace ml
     end function
 
     function notifyEnterEvent(indexes as mc.types.array) as void
-      m.log.verbose("notifyEnterEvent")
+      m.log.verbose("notifyEnterEvent", m.__classname, indexes)
 
       for each index in indexes
         comp = m.getRenderer(index, true)
         if comp <> invalid
-          m.log.verbose("notifying enter on ", comp.id)
+          m.log.verbose("notifying enter on ", comp.id, " with index ", comp.index, " and id ", comp.id)
+
           if not comp.isInViewPort
             comp.isInViewPort = true
             comp@._apply("onDidEnter", [1], false)

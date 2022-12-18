@@ -418,13 +418,17 @@ namespace ml
     end function
 
     override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer, forceCellUpdate = false as boolean) as void
+      m.log.verbose("notifyEnterEvent", notifyStart, notifyEnd, forceCellUpdate)
+
+      m.log.increaseIndent()
+
       for i = notifyStart to notifyEnd
         rowRenderers = m.getRenderersInRow(i, true, forceCellUpdate)
         m.renderedRows[i.toStr()] = true
         for each comp in rowRenderers
           if comp <> invalid
-            ' ? " ENTER FROM BBB" ;
-            ' ? " notifying enter on row " i " cell " comp.index asString(comp.content.title)
+            m.log.verbose("notifying enter on row", i, "cell", comp.index, comp.content.title)
+
             if not comp.isInViewPort
               comp.isInViewPort = true
               comp@._apply("onDidEnter", [1], false)
@@ -432,6 +436,8 @@ namespace ml
           end if
         end for
       end for
+
+      m.log.decreaseIndent()
     end function
 
 
