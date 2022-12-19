@@ -128,6 +128,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
+    listSettings.renderStrategy = "all"
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
@@ -217,9 +218,11 @@ class UpdateListDataScreen extends mv.BaseScreen
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
     items = []
-    for i = 0 to rnd(number - 1)
-      items.push(m.makeItem(cellType, `${prefix} ${m.contentId} [${i}]`))
-    end for
+    if rnd(10) > 6
+      for i = 0 to rnd(number - 1)
+        items.push(m.makeItem(cellType, `${prefix} ${m.contentId} [${i}]`))
+      end for
+    end if
     return items
   end function
 

@@ -204,18 +204,23 @@ namespace ml
       if row.isInitialized
         m.log.info("RECYCLE EXISTING ROW")
 
-        m.contentManager.setContentOnRow(row, rowContent, false)
-        row@.recycle(rowContent)
-        row@.setContent(rowContent)
+        m.contentManager.setContentOnRow(row, rowContent, true)
         row.content = rowContent
+        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
+          row@._apply("onDidEnter", [0, 1, true], false)
+        end if
+
         m.log.verbose("row content is now", mc.dv(row.content))
       else
         m.log.info("CREATE NEW ROW")
 
         row.content = rowContent
         row@._initialize(invalid)
-        m.contentManager.setContentOnRow(row, rowContent)
-        row@.setContent(rowContent)
+        m.contentManager.setContentOnRow(row, rowContent, false)
+        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
+          row@._apply("onDidEnter", [0, 1, true], false)
+        end if
+
         m.log.verbose("row content is now", mc.dv(row.content))
       end if
 

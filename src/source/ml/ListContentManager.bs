@@ -177,25 +177,44 @@ namespace ml
         m.log.verbose("applyRowContentUpdate cannot set content on invalid row")
         return
       end if
-      m.log.verbose(" applyRowContentUpdate ")
-      m.log.info("updateContentOnRow")
 
       isChanged = m.updateRowContentInfo(row, content, result)
-      if isChanged and notifyRow
-        m.applyRowContentUpdate(row, content, result)
+      m.log.verbose("applyRowContentUpdate isChanged:", isChanged)
+      if isChanged
+        if notifyRow
+          m.applyRowContentUpdate(row, content, result)
+        else
+          m.log.verbose("not notifying row", isChanged, notifyRow)
+        end if
+
+        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
+          m.log.verbose("informing changed row that it has to re-render")
+          row@._apply("onDidEnter", [0, 1, true], false)
+        end if
       end if
     end function
 
-    public function setContentOnRow(row as mc.types.node, content as mc.types.node, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
+    public function setContentOnRow(row as mc.types.node, content as mc.types.node, isRecycled = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
         m.log.verbose("setContentOnRow cannot set content on invalid row")
         return
       end if
-      m.log.info("setContentOnRow")
 
-      m.updateRowContentInfo(row, content, result)
-      if notifyRow
-        m.applyRowContentChange(row, content, result)
+      isChanged = m.updateRowContentInfo(row, content, result)
+
+      m.log.info("setContentOnRow isChanged:", isChanged)
+
+      if isRecycled
+        row@.recycle(content)
+      end if
+
+      m.applyRowContentChange(row, content, result)
+
+      if isChanged
+        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
+          m.log.verbose("informing new row that it has to re-render")
+          row@._apply("onDidEnter", [0, 1, true], false)
+        end if
       end if
     end function
 
@@ -230,6 +249,8 @@ namespace ml
     end function
 
     private function updateRowContentInfo(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult) as boolean
+      m.log.verbose("updateRowContentInfo")
+
       if row = invalid
         m.log.verbose(" updateRowContentInfo cannot set content on invalid row")
         return false
@@ -244,6 +265,7 @@ namespace ml
         oldRowContentInfo = m.rowContentInfoByContentId[oldContent.id]
         if content = invalid
           if oldRowContentInfo <> invalid
+            m.log.verbose("updateRowContentInfo - removing old content")
             result.isLayoutRequired = true
             isChanged = true
           end if
@@ -259,15 +281,19 @@ namespace ml
           isFocusEnabled: content.isFocusEnabled
           row: row
         }
+        m.log.verbose("updateRowContentInfo - adding new content")
+
         m.rowContentInfoByContentId[content.id] = newContentInfo
       end if
 
       if oldRowContentInfo <> invalid and newContentInfo <> invalid
         isChanged = oldRowContentInfo.version <> newContentInfo.version
         if oldRowContentInfo.isHidden <> newContentInfo.isHidden
+          m.log.verbose("updateRowContentInfo - isHidden changed")
           result.isLayoutRequired = true
         end if
         if oldRowContentInfo.isFocusEnabled <> newContentInfo.isFocusEnabled
+          m.log.verbose("updateRowContentInfo - isFocusEnabled changed")
           result.isFocusChangeRequired = true
         end if
       end if
