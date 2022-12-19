@@ -160,7 +160,7 @@ namespace ml
     '++ List Delegate
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function onDidExit(direction as integer)
+    protected function onDidExit(event as ml.ListEvent)
       ' ? " ON EXIT CELL "; m.index
       if m.isContentDisplayed
         m.onHide()
@@ -168,7 +168,7 @@ namespace ml
       end if
     end function
 
-    protected function onDidEnter(direction as integer)
+    protected function onDidEnter(event as ml.ListEvent)
       ? " ON ENTER CELL "; m.index
       if not m.isContentDisplayed
         ' if not m.isViewCreated
@@ -187,7 +187,7 @@ namespace ml
           ? " ON ENTER CELL 444 " m.index
         else
           ? " content was invalid !!! " mc.dv(m.top)
-          m.onDidExit(direction)
+          m.onDidExit(event)
         end if
       end if
     end function

@@ -1,3 +1,4 @@
+import "pkg:/source/ml/CommonListApi.bs"
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ListItemViewManager.bs"
 import "pkg:/source/ml/ListItemScroller.bs"
@@ -154,16 +155,17 @@ namespace ml
 
       m.log.increaseIndent("RESET")
       m.focusIndicatorManager@.reset()
+      m.log.decreaseIndent()
 
       m.log.increaseIndent("MOVE")
       m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
+      m.log.decreaseIndent()
 
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
+
       m.log.increaseIndent("COMPLETE")
       m.itemScroller.setFocusManagerInfo(m.itemScroller.cellInfo, m.itemScroller.nextCellInfo, m.itemScroller.direction, false)
       m.focusIndicatorManager@.completeFocusNow(true)
-      m.log.decreaseIndent()
-      m.log.decreaseIndent()
       m.log.decreaseIndent()
       if m.list.top.isChildFocused or m.list.top.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
@@ -189,7 +191,7 @@ namespace ml
 
         if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
           m.log.verbose("informing changed row that it has to re-render")
-          row@._apply("onDidEnter", [0, 1, true], false)
+          row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
         end if
       end if
     end function
@@ -213,7 +215,7 @@ namespace ml
       if isChanged
         if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
           m.log.verbose("informing new row that it has to re-render")
-          row@._apply("onDidEnter", [0, 1, true], false)
+          row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
         end if
       end if
     end function
@@ -320,9 +322,11 @@ namespace ml
       m.log.info("processing list changes")
 
       m.log.increaseIndent()
-      info = m.focusIndicatorManager@.getCurrentFocusSettings()
+      currentFocusSettings = m.focusIndicatorManager@.getCurrentFocusSettings()
       m.log.verbose("LCM processing list changes>>>>>>>>>>>>>>>")
-      m.log.verbose(" INFO ", info.rowIndex, " ICI ", info.cellIndex)
+      if currentFocusSettings <> invalid
+        m.log.verbose(" current focus settings ", currentFocusSettings.rowIndex, " ICI ", currentFocusSettings.cellIndex)
+      end if
       m.log.verbose(" RI ", m.list.focusedRowIndex, " CI ", m.list.focusedCellIndex)
       if result.isLayoutRequired
         m.log.info("the list needs to update it's layout as a result of these changes")

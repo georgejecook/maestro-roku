@@ -237,40 +237,40 @@ class FocusOnGridItemScreen extends mv.BaseScreen
   '++ List Delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    m.selectedRowIndex = rowIndex
-    m.selectedRow = m.rows[rowIndex]
-    m.selectedItem = m.selectedRow.getChild(itemIndex)
-    m.selectedItemIndex = itemIndex
+  private function onItemSelected(event as ml.ListEvent)
+    m.selectedRowIndex = event.rowIndex
+    m.selectedRow = m.rows[event.rowIndex]
+    m.selectedItem = m.selectedRow.getChild(event.cellIndex)
+    m.selectedItemIndex = event.cellIndex
     m.log.info("selected item ", mc.dv(m.selectedItem), "from row", mc.dv(m.selectedRow))
 
   end function
 
-  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-    if direction = -1
+  private function onRowDidGainFocus(event as ml.ListEvent)
+    if event.direction = -1
     end if
   end function
 
-  private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-    if direction = 1
+  private function onRowDidLoseFocus(event as ml.ListEvent)
+    if event.direction = 1
     end if
   end function
 
-  private function onRowWillLoseFocus(rowIndex as integer, direction as integer)
+  private function onRowWillLoseFocus(event as ml.ListEvent)
   end function
 
-  private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-    if direction = -1
+  private function onRowGainingFocus(event as ml.ListEvent)
+    if event.direction = -1
     end if
   end function
 
-  private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-    if direction = 1
+  private function onRowLosingFocus(event as ml.ListEvent)
+    if event.direction = 1
     end if
   end function
 
-  private function onRowData(rowIndex as integer, data as dynamic)
-    if data.action = "add"
+  private function onRowData(event as ml.ListEvent)
+    if event.data.action = "add"
       ? " add row"
       m.liveRow@.appendChildren(m.makeItems(m.defaultCellType, 1, ""))
     else

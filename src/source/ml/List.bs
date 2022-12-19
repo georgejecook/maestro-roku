@@ -207,10 +207,15 @@ namespace ml
     end function
 
     function synchronizeContent(updateListContent = true as boolean)
+      'TODO add check that notifications are present, and if so use those
       if updateListContent = true and m.content <> invalid
         m.content@.notifyUpdate()
       end if
       m.contentManager.synchronizeContent()
+      if m.content <> invalid
+        m.content@.resetChanges()
+      end if
+      'reset the content's notifications
       m.log.resetIndent()
     end function
 
@@ -583,7 +588,10 @@ namespace ml
 
       m.log.verbose("onKeyPressOk")
       if m.delegate <> invalid
-        ' m.delegate@._apply("onItemSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+        m.delegate@._apply("onItemSelected", [{
+          rowIndex: m.focusedRowIndex
+          cellIndex: m.focusedCellIndex
+        }], false)
       end if
 
       return true
@@ -620,10 +628,10 @@ namespace ml
     end function
 
     private function getLongPressIntervalForKey(key as string) as float
+      m.log.resetIndent()
       if not m.top.visible
         return 0
       end if
-
       if key = "OK" or m.canMoveFromKeyPress(key, true)
         m.log.verbose("valid long press with key", key)
         return 0.2
@@ -634,10 +642,14 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       ' m.log.info(">>>>onLongPressStart", key)
+      m.log.resetIndent()
 
       if key = "OK"
         if m.delegate <> invalid
-          ' m.delegate@._apply("onItemLongSelected", [m.focusedRowIndex, m.focusedCellIndex], false)
+          m.delegate@._apply("onItemLongSelected", [{
+              rowIndex: m.focusedRowIndex
+            cellIndex: m.focusedCellIndex }
+          ], false)
         end if
       else if m.canMoveFromKeyPress(key, true)
         direction = m.keyDirections[key]

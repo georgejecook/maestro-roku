@@ -1,6 +1,7 @@
 import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/core/DebugTimer.bs"
+import "pkg:/source/ml/CommonListApi.bs"
 
 @node("UpdateListDataScreen", "mv_BaseScreen")
 class UpdateListDataScreen extends mv.BaseScreen
@@ -341,44 +342,44 @@ class UpdateListDataScreen extends mv.BaseScreen
   '++ List Delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    ? ">>>onItemSelected" ; rowIndex ; "," ; itemIndex
+  private function onItemSelected(event as ml.ListEvent)
+    ? ">>>onItemSelected" ; event.rowIndex ; "," ; event.itemIndex
   end function
 
-  private function onRowData(rowIndex as integer, data as dynamic)
-    if rowIndex = 0
-      offset = mc.getInteger(data, "offset")
+  private function onRowData(event as ml.ListEvent)
+    if event.rowIndex = 0
+      offset = mc.getInteger(event.data, "offset")
       m.log.info(`moving day by ${offset}`)
       m.moveDay(offset)
     end if
   end function
 
-  ' private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-  '   if direction = -1
-  '     m.setRowOpacity(rowIndex, 1, direction)
-  '   end if
-  ' end function
+  private function onRowDidGainFocus(event as ml.ListEvent)
+    if event.direction = -1
+      m.setRowOpacity(event.rowIndex, 1, event.direction)
+    end if
+  end function
 
-  ' private function onRowDidLoseFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-  '   if direction = 1
-  '     m.setRowOpacity(rowIndex, 0, direction)
-  '   end if
-  ' end function
+  private function onRowDidLoseFocus(event as ml.ListEvent)
+    if event.direction = 1
+      m.setRowOpacity(event.rowIndex, 0, event.direction)
+    end if
+  end function
 
-  ' private function onRowWillLoseFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-  ' end function
+  private function onRowWillLoseFocus(event as ml.ListEvent)
+  end function
 
-  ' private function onRowGainingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-  '   if direction = -1
-  '     m.setRowOpacity(rowIndex, fraction, direction)
-  '   end if
-  ' end function
+  private function onRowGainingFocus(event as ml.ListEvent)
+    if event.direction = -1
+      m.setRowOpacity(event.rowIndex, event.fraction, event.direction)
+    end if
+  end function
 
-  ' private function onRowLosingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-  '   if direction = 1
-  '     m.setRowOpacity(rowIndex, 1 - fraction, direction)
-  '   end if
-  ' end function
+  private function onRowLosingFocus(event as ml.ListEvent)
+    if event.direction = 1
+      m.setRowOpacity(event.rowIndex, 1 - event.fraction, event.direction)
+    end if
+  end function
 
   private function toggleListUpdates(enabled as boolean)
     m.log.info("Setting list updates to ", enabled)

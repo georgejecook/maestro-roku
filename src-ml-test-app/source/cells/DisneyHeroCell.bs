@@ -41,7 +41,12 @@ class DisneyHeroCell extends ml.BaseCell
     })
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onShowWithContent(content as mc.types.node)
+    m.poster.width = m.size[0]
+    m.poster.height = m.size[1]
+    m.setFocusState(0, true, 1)
+
+    m.poster.uri = `pkg:/images/movies/${(m.index + 1) mod 7}.jpg`
   end function
 
 
@@ -49,28 +54,20 @@ class DisneyHeroCell extends ml.BaseCell
   '++ delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  protected override function onDidEnter(direction as integer)
-    m.poster.width = m.size[0]
-    m.poster.height = m.size[1]
-    m.setFocusState(0, true, direction)
-
-    m.poster.uri = `pkg:/images/movies/${(m.index + 1) mod 7}.jpg`
+  private function onDidGainFocus(event as ml.ListEvent)
+    m.setFocusState(1, true, event.direction)
   end function
 
-  private function onDidGainFocus(direction as integer)
-    m.setFocusState(1, true, direction)
+  private function onDidLoseFocus(event as ml.ListEvent)
+    m.setFocusState(1, false, event.direction)
   end function
 
-  private function onDidLoseFocus(direction as integer)
-    m.setFocusState(1, false, direction)
+  private function onGainingFocus(event as ml.ListEvent)
+    m.setFocusState(event.fraction, true, event.direction)
   end function
 
-  private function onGainingFocus(direction as integer, fraction as float)
-    m.setFocusState(fraction, true, direction)
-  end function
-
-  private function onLosingFocus(direction as integer, fraction as float)
-    m.setFocusState(fraction, false, direction)
+  private function onLosingFocus(event as ml.ListEvent)
+    m.setFocusState(event.fraction, false, event.direction)
   end function
 
   private function setFocusState(fraction as float, isGaining as boolean, direction as integer) as void

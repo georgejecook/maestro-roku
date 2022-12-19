@@ -4,6 +4,7 @@ import "pkg:/source/ml/RowItemViewManager.bs"
 import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
+import "pkg:/source/ml/CommonListApi.bs"
 
 namespace ml
   @node("ml_BaseRow", "mv_BaseView")
@@ -309,7 +310,10 @@ namespace ml
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
       if m.owner <> invalid and m.owner.delegate <> invalid
-        m.owner.delegate@._apply("onRowData", [m.top.index, data], false)
+        m.owner.delegate@._apply("onRowData", [{
+          rowIndex: m.top.index
+          data: data
+        }], false)
       end if
     end function
 

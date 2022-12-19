@@ -129,35 +129,35 @@ namespace ml
     '++ List Delegate Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onDidEnter(subRowIndex as integer, direction as integer, forceAll = false as boolean)
+    private function onDidEnter(event as ml.ListEvent)
       ' ? " onDidEnter "
-      m.itemScroller.notifyViewportEvents(direction, forceAll = true)
+      m.itemScroller.notifyViewportEvents(event.direction, event.forceCellUpdate = true)
     end function
 
-    private function onDidExit(subRowIndex as integer, direction as integer)
+    private function onDidExit(event as ml.ListEvent)
       ' ? " onDidExit "
       m.viewManager.notifyExitEvent(m.viewManager.getRenderedIndexes())
     end function
 
-    ' private function onScrollingChange(subRowIndex as integer, direction as integer)
+
+    ' private function onScrollingChange(event as ml.ListEvent)
     '   ? " onScrollingChange "
     ' end function
 
-    private function onDidGainFocus(subRowIndex as integer, direction as integer)
-      ? " HORIZ onDidGainFocus " m.index subRowIndex direction
+    private function onDidGainFocus(event as ml.ListEvent)
+      ' ? " GRID onDidGainFocus " m.index subRowIndex direction
     end function
 
-    private function onDidLoseFocus(subRowIndex as integer, direction as integer)
-      ? " HORIZ onDidLoseFocus " m.index subRowIndex direction
-      m.cancelMove(true)
+    private function onDidLoseFocus(event as ml.ListEvent)
+      ' ? " GRID onDidLoseFocus " m.index subRowIndex direction
     end function
 
-    private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
-      ' ? " HORIZ onGainingFocus " m.index subRowIndex direction fraction
+    private function onGainingFocus(event as ml.ListEvent)
+      ' ? " GRID onGainingFocus " m.index subRowIndex direction fraction
     end function
 
-    private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
-      ' ? " HORIZ onLosingFocus " m.index subRowIndex direction fraction
+    private function onLosingFocus(event as ml.ListEvent)
+      ' ? " GRID onLosingFocus " m.index subRowIndex direction fraction
     end function
 
     private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)

@@ -239,6 +239,13 @@ function notifyUpdate(args = invalid as dynamic)
   end if
 end function
 
+function resetChanges(resetAll = true as boolean)
+  m.pendingChanges = []
+  if resetAll = true
+    m.top.changes = []
+  end if
+end function
+
 function addChanges(changes as mc.types.array)
   if m.notifyChanges
     m.top.changes = changes
@@ -263,10 +270,6 @@ function setNotificationsEnabled(active as boolean, sendUpdatedChange = false as
     m.pendingChanges = []
     m.top.version++
   end if
-end function
-
-function resetPendingChanges(args = invalid as dynamic)
-  m.pendingChanges = []
 end function
 
 function _onShowChildren()
