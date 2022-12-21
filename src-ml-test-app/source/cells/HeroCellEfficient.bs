@@ -106,24 +106,24 @@ class HeroCellEfficient extends ml.BaseCell
   end function
 
 
-  private function onDidGainFocus(direction as integer)
+  private function onDidGainFocus(event as ml.ListEvent)
     ' ? " HERO ODGF " ; m.index ; " D " ; direction
     m.setFocusState(1, true)
   end function
 
-  private function onDidLoseFocus(direction as integer)
+  private function onDidLoseFocus(event as ml.ListEvent)
     ' ? " HERO ODLF " ; m.index ; " D " ; direction
     m.setFocusState(1, false)
   end function
 
-  private function onGainingFocus(direction as integer, fraction as float)
+  private function onGainingFocus(event as ml.ListEvent)
     ' ? " HERO OGF " ; m.index ; " D " ; direction; " f " ; fraction
-    m.setFocusState(fraction, true)
+    m.setFocusState(event.fraction, true)
   end function
 
-  private function onLosingFocus(direction as integer, fraction as float)
-    ' ? " HERO OLF " ; m.index ; " D " ; direction; " f " ; fraction
-    m.setFocusState(fraction, false)
+  private function onLosingFocus(event as ml.ListEvent)
+    ' ? " HERO OLF " ; m.index ; " D " ; direction; " f " ; event.fraction
+    m.setFocusState(event.fraction, false)
   end function
 
   private function setFocusState(fraction as float, isGaining as boolean) as void

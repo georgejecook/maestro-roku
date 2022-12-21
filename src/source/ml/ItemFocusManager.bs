@@ -5,7 +5,7 @@ import "pkg:/source/ml/FocusIndicatorManager.bs"
 import "pkg:/source/ml/ListDelegateManager.bs"
 
 namespace ml
-  interface ListEvent
+  interface InternalListEvent
     name as string
     index as integer
     rowIndex as integer
@@ -33,8 +33,8 @@ namespace ml
     private lastSentFraction = -1
     private direction = 0
 
-    private fromEvent as ml.ListEvent
-    private toEvent as ml.ListEvent
+    private fromEvent as ml.InternalListEvent
+    private toEvent as ml.InternalListEvent
 
     private focusIndicatorManager as ml.FocusIndicatorManager
 
@@ -236,7 +236,7 @@ namespace ml
 
     end function
 
-    private function configureDelegateEvent(event as ml.ListEvent, config as ml.focusIndicatorConfig)
+    private function configureDelegateEvent(event as ml.InternalListEvent, config as ml.focusIndicatorConfig)
       event.direction = m.direction
       event.fraction = 0
       if config <> invalid

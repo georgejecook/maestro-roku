@@ -231,7 +231,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     end if
   end function
 
-  private function setRowOpacity(rowIndex as integer, opacity as float, direction as integer, applyToAll = false as boolean)
+  private function setRowOpacity(rowIndex as integer, fraction as float, direction as integer)
     'FIXME - need to have separate callback for subrows too
 
     ' row = m.list@.getRowRenderer(rowIndex)
@@ -249,7 +249,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     '     endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
     '   end if
     '   for i = startIndex to endIndex
-    '     cell = m.list@.getCellRenderer(rowIndex, i)
+    '     cell = m.list@.getCellRenderer(event.rowIndex, i)
     '     if cell <> invalid
     '       cell.opacity = opacity
     '     end if
@@ -261,39 +261,39 @@ class UpdateGridItemsScreen extends mv.BaseScreen
   '++ List Delegate
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onItemSelected(rowIndex as integer, itemIndex as integer)
-    m.selectedRowIndex = rowIndex
-    m.selectedRow = m.rows[rowIndex]
-    m.selectedItem = m.selectedRow@.getChild(itemIndex)
-    m.selectedItemIndex = itemIndex
+  private function onItemSelected(event as ml.ListEvent)
+    m.selectedRowIndex = event.rowIndex
+    m.selectedRow = m.rows[event.rowIndex]
+    m.selectedItem = m.selectedRow@.getChild(event.cellIndex)
+    m.selectedItemIndex = event.cellIndex
     m.log.info("selected item ", mc.dv(m.selectedItem), "from row", mc.dv(m.selectedRow))
 
   end function
 
-  private function onRowDidGainFocus(rowIndex as integer, direction as integer)
-    if direction = -1
-      m.setRowOpacity(rowIndex, 1, direction)
+  private function onRowDidGainFocus(event as ml.ListEvent)
+    if event.direction = -1
+      m.setRowOpacity(event.rowIndex, 1, event.direction)
     end if
   end function
 
-  private function onRowDidLoseFocus(rowIndex as integer, direction as integer)
-    if direction = 1
-      m.setRowOpacity(rowIndex, 0, direction)
+  private function onRowDidLoseFocus(event as ml.ListEvent)
+    if event.direction = 1
+      m.setRowOpacity(event.rowIndex, 0, event.direction)
     end if
   end function
 
-  private function onRowWillLoseFocus(rowIndex as integer, direction as integer)
+  private function onRowWillLoseFocus(event as ml.ListEvent)
   end function
 
-  private function onRowGainingFocus(rowIndex as integer, direction as integer, fraction as float)
-    if direction = -1
-      m.setRowOpacity(rowIndex, fraction, direction)
+  private function onRowGainingFocus(event as ml.ListEvent)
+    if event.direction = -1
+      m.setRowOpacity(event.rowIndex, event.fraction, event.direction)
     end if
   end function
 
-  private function onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)
-    if direction = 1
-      m.setRowOpacity(rowIndex, 1 - fraction, direction)
+  private function onRowLosingFocus(event as ml.ListEvent)
+    if event.direction = 1
+      m.setRowOpacity(event.rowIndex, 1 - event.fraction, event.direction)
     end if
   end function
 

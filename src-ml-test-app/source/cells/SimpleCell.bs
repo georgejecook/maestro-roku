@@ -84,30 +84,30 @@ namespace sample
       m.label.visible = textVisible
     end function
 
-    private function onWillGainFocus(direction as integer)
+    private function onWillGainFocus(event as ml.ListEvent)
     end function
 
-    private function onWillLoseFocus(direction as integer)
+    private function onWillLoseFocus(event as ml.ListEvent)
       m.toggleHighlighted(false)
 
     end function
 
-    private function onDidGainFocus(direction as integer)
+    private function onDidGainFocus(event as ml.ListEvent)
       m.setScale(1, true)
       m.toggleHighlighted(true)
     end function
 
-    private function onDidLoseFocus(direction as integer)
+    private function onDidLoseFocus(event as ml.ListEvent)
       m.setScale(1, false)
       m.toggleHighlighted(false)
     end function
 
-    private function onGainingFocus(direction as integer, fraction as float)
-      m.setScale(fraction, true)
+    private function onGainingFocus(event as ml.ListEvent)
+      m.setScale(event.fraction, true)
     end function
 
-    private function onLosingFocus(direction as integer, fraction as float)
-      m.setScale(fraction, false)
+    private function onLosingFocus(event as ml.ListEvent)
+      m.setScale(event.fraction, false)
     end function
   end class
 end namespace

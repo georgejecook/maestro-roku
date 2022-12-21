@@ -238,8 +238,8 @@ namespace ml.sample
       m.list@.synchronizeContent()
     end function
 
-    private function followTeam(itemIndex as integer) as void
-      team = m.teamsModule@.getChild(itemIndex)
+    private function followTeam(cellIndex as integer) as void
+      team = m.teamsModule@.getChild(cellIndex)
       if team = invalid
         return
       end if
@@ -270,32 +270,31 @@ namespace ml.sample
     '++ List Delegate
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onItemSelected(rowIndex as integer, itemIndex as integer)
-      row = m.list.content@.getChild(rowIndex)
-      ? " ITEM IS SELECTED r ", rowIndex, "i ", itemIndex, " ", mc.dv(row)
+    private function onItemSelected(event as ml.ListEvent)
+      row = m.list.content@.getChild(event.rowIndex)
+      ? " ITEM IS SELECTED r ", event.rowIndex, "i ", event.cellIndex, " ", mc.dv(row)
       if m.favoriteModule.isSameNode(row)
         ? "SELECT FAVE"
         m.selectFavorite()
       else if m.followingModule.isSameNode(row)
         ? "UN-FOLLOW"
-        m.unFollowTeam(itemIndex)
+        m.unFollowTeam(event.cellIndex)
       else if m.teamsModule.isSameNode(row)
         ? " FOLLOW"
-        m.followTeam(itemIndex)
+        m.followTeam(event.cellIndex)
       end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ List Delegate Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private function onRowDidGainFocus(event as ml.ListEvent)
+      m.log.info("onRowDidGainFocus : R: ", event.rowIndex, "SR: ", event.subRowIndex, " D:", event.direction)
 
-    private function onRowDidGainFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-      m.log.info("onRowDidGainFocus : R: ", rowIndex, "SR: ", subRowIndex, " D:", direction)
-
-      row = m.list@.getRowRenderer(rowIndex)
+      row = m.list@.getRowRenderer(event.rowIndex)
       if row <> invalid
         mioc.setInstance("focusedIndex", {
-          row: rowIndex
+          row: event.rowIndex
           cell: row.focusedCellIndex
         })
       else
@@ -306,78 +305,76 @@ namespace ml.sample
 
       end if
 
-      ' if direction = -1
-      '   row = m.list@.getRowRenderer(rowIndex)
+      ' if event.direction = -1
+      '   row = m.list@.getRowRenderer(event.rowIndex)
       '   row.opacity = 1
       ' end if
     end function
 
-    private function onRowDidLoseFocus(rowIndex as integer, subRowIndex as integer, direction as integer)
-      m.log.info("onRowDidLoseFocus : R: ", rowIndex, "SR: ", subRowIndex, " D:", direction)
+    private function onRowDidLoseFocus(event as ml.ListEvent)
+      m.log.info("onRowDidLoseFocus : R: ", event.rowIndex, "SR: ", event.subRowIndex, " D:", event.direction)
 
-      ' row = m.list@.getRowRenderer(rowIndex)
-      ' if direction = 1
+      ' row = m.list@.getRowRenderer(event.rowIndex)
+      ' if event.direction = 1
       '   row.opacity = 0
       ' end if
 
     end function
 
-    private function onRowGainingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-      m.log.info("onRowGainingFocus : R: ", rowIndex, "SR: ", subRowIndex, " D:", direction, " F: ", fraction)
-      ' if direction = -1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = fraction
+    private function onRowGainingFocus(event as ml.ListEvent)
+      m.log.info("onRowGainingFocus : R: ", event.rowIndex, "SR: ", event.subRowIndex, " D:", event.direction, " F: ", event.fraction)
+      ' if event.direction = -1
+      '   row = m.list@.getRowRenderer(event.rowIndex)
+      '   row.opacity = event.fraction
       ' end if
     end function
 
-    private function onRowLosingFocus(rowIndex as integer, subRowIndex as integer, direction as integer, fraction as float)
-      m.log.info(": R: ", rowIndex, "SR: ", subRowIndex, " D:", direction, " F: ", fraction)
-      ' if direction = 1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = 1 - fraction
+    private function onRowLosingFocus(event as ml.ListEvent)
+      m.log.info(": R: ", event.rowIndex, "SR: ", event.subRowIndex, " D:", event.direction, " F: ", event.fraction)
+      ' if event.direction = 1
+      '   row = m.list@.getRowRenderer(event.rowIndex)
+      '   row.opacity = 1 - event.fraction
       ' end if
     end function
 
-    private function onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      m.log.info("onCellWillGainFocus : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+    private function onCellWillGainFocus(event as ml.ListEvent)
+      m.log.info("onCellWillGainFocus : R: ", event.rowIndex, " I: ", event.cellIndex, " D:", event.direction)
       mioc.setInstance("focusedIndex", {
-        row: rowIndex
-        cell: itemIndex
+        row: event.rowIndex
+        cell: event.cellIndex
       })
     end function
 
-    private function onCellDidGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      m.log.info("onCellDidGainFocus  : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+    private function onCellDidGainFocus(event as ml.ListEvent)
+      m.log.info("onCellDidGainFocus  : R: ", event.rowIndex, " I: ", event.cellIndex, " D:", event.direction)
       mioc.setInstance("focusedIndex", {
-        row: rowIndex
-        cell: itemIndex
+        row: event.rowIndex
+        cell: event.cellIndex
       })
     end function
 
-
-    private function onCellWillLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      m.log.info("onCellWillLoseFocus : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+    private function onCellWillLoseFocus(event as ml.ListEvent)
+      m.log.info("onCellWillLoseFocus : R: ", event.rowIndex, " I: ", event.cellIndex, " D:", event.direction)
     end function
 
-    private function onCellDidLoseFocus(rowIndex as integer, itemIndex as integer, direction as integer)
-      m.log.info("onCellDidLoseFocus : R: ", rowIndex, " I: ", itemIndex, " D:", direction)
+    private function onCellDidLoseFocus(event as ml.ListEvent)
+      m.log.info("onCellDidLoseFocus : R: ", event.rowIndex, " I: ", event.cellIndex, " D:", event.direction)
     end function
 
-    private function onCellGainingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-      m.log.info("onCellGainingFocus : R: ", rowIndex, " C ", cellIndex, " D:", direction, " F: ", fraction)
-      ' if direction = -1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = fraction
+    private function onCellGainingFocus(event as ml.ListEvent)
+      m.log.info("onCellGainingFocus : R: ", event.rowIndex, " C ", event.cellIndex, " D:", event.direction, " F: ", event.fraction)
+      ' if event.direction = -1
+      '   row = m.list@.getRowRenderer(event.rowIndex)
+      '   row.opacity = event.fraction
       ' end if
     end function
 
-    private function onCellLosingFocus(rowIndex as integer, cellIndex as integer, direction as integer, fraction as float)
-      m.log.info(": R: ", rowIndex, " D:", " C ", cellIndex, direction, " F: ", fraction)
-      ' if direction = 1
-      '   row = m.list@.getRowRenderer(rowIndex)
-      '   row.opacity = 1 - fraction
+    private function onCellLosingFocus(event as ml.ListEvent)
+      m.log.info("onCellLosingFocus : R: ", event.rowIndex, " C ", event.cellIndex, " D:", event.direction, " F: ", event.fraction)
+      ' if event.direction = 1
+      '   row = m.list@.getRowRenderer(event.rowIndex)
+      '   row.opacity = 1 - event.fraction
       ' end if
-
     end function
 
   end class

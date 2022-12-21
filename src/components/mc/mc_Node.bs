@@ -108,6 +108,15 @@ function insertChild(child as object, index as integer) as void
 end function
 
 function insertChildren(children as mc.types.array, index as integer) as void
+
+  if type(children) = "roSGNode"
+    children = [children]
+  end if
+
+  if not mc.isArray(children)
+    children = [children]
+  end if
+
   for each child in children
     notifyParentOfRemoval(child)
     if type(child) <> "roSGNode"
@@ -123,6 +132,14 @@ function removeChildIndex(index as integer)
 end function
 
 function appendChildren(children as mc.types.array) as void
+  if type(children) = "roSGNode"
+    children = [children]
+  end if
+
+  if not mc.isArray(children)
+    children = [children]
+  end if
+
   for each child in children
     notifyParentOfRemoval(child)
     if type(child) <> "roSGNode"
@@ -173,15 +190,21 @@ function getIndex(child as object, key = invalid as string)
 end function
 
 function insertItems(index as integer, value as dynamic) as void
+  if type(value) = "roSGNode"
+    value = [value]
+  end if
+
   if not mc.isArray(value)
     value = [value]
   end if
+
   for each child in value
     if type(child) <> "roSGNode"
       m.log.error("tried to insert at least one non-node child")
       return
     end if
   end for
+
   if index > m.children.count() or index < 0
     ? " cannot insert items ILLEGAL INDEX " ; index
     return
@@ -216,6 +239,13 @@ function notifyUpdate(args = invalid as dynamic)
   end if
 end function
 
+function resetChanges(resetAll = true as boolean)
+  m.pendingChanges = []
+  if resetAll = true
+    m.top.changes = []
+  end if
+end function
+
 function addChanges(changes as mc.types.array)
   if m.notifyChanges
     m.top.changes = changes
@@ -240,10 +270,6 @@ function setNotificationsEnabled(active as boolean, sendUpdatedChange = false as
     m.pendingChanges = []
     m.top.version++
   end if
-end function
-
-function resetPendingChanges(args = invalid as dynamic)
-  m.pendingChanges = []
 end function
 
 function _onShowChildren()

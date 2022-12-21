@@ -71,47 +71,47 @@ class LongCell extends ml.BaseCell
   ' end function
 
 
-  private function onWillGainFocus(direction as integer)
+  private function onWillGainFocus(event as ml.ListEvent)
     if m.index = 3
     end if
     ' ? "SC: onCellWillGainFocus " ; m.index ; " " ; direction
 
   end function
 
-  private function onWillLoseFocus(direction as integer)
+  private function onWillLoseFocus(event as ml.ListEvent)
     ' ? "SC: onCellWillLoseFocus " ; m.index ; " " ; direction
     m.label.fontKey = "medium,30"
     m.label.color = "#aaaaaa"
 
   end function
 
-  private function onDidGainFocus(direction as integer)
+  private function onDidGainFocus(event as ml.ListEvent)
     ' ? "SC: onCellDidGainFocus " ; m.index ; " " ; direction
     m.setScale(1, true)
     m.label.fontKey = "mediumBold,40"
     m.label.color = "#ffffff"
   end function
 
-  private function onDidLoseFocus(direction as integer)
+  private function onDidLoseFocus(event as ml.ListEvent)
     ' ? "SC: onCellDidLoseFocus " ; m.index ; " " ; direction
     m.label.fontKey = "medium,30"
     m.label.color = "#aaaaaa"
     m.setScale(1, false)
   end function
 
-  private function onGainingFocus(direction as integer, fraction as float)
-    ' ? "SC: onGainingFocus " ; m.index ; " " ; direction ; " " ; fraction
-    m.setScale(fraction, true)
-    if fraction > 0.8
+  private function onGainingFocus(event as ml.ListEvent)
+    ' ? "SC: onGainingFocus " ; m.index ; " " ; direction ; " " ; event.fraction
+    m.setScale(event.fraction, true)
+    if event.fraction > 0.8
       m.label.fontKey = "mediumBold,40"
       m.label.color = "#ffffff"
     end if
   end function
 
-  private function onLosingFocus(direction as integer, fraction as float)
-    ' ? "SC: onLosingFocus " ; m.index ; " " ; direction ; " " ; fraction
-    m.setScale(fraction, false)
-    if fraction > 0.8
+  private function onLosingFocus(event as ml.ListEvent)
+    ' ? "SC: onLosingFocus " ; m.index ; " " ; direction ; " " ; event.fraction
+    m.setScale(event.fraction, false)
+    if event.fraction > 0.8
       m.label.fontKey = "mediumBold,30"
       m.label.color = "#aaaaaa"
     end if
@@ -120,18 +120,18 @@ class LongCell extends ml.BaseCell
 
   private function setScale(fraction as float, isGaining as boolean) as void
     ' if isGaining
-    '   m.scale = (fraction + 0.3)
+    '   m.scale = (event.fraction + 0.3)
     ' else
-    '   m.scale = (1 - fraction) + 0.3
+    '   m.scale = (1 - event.fraction) + 0.3
     ' end if
     ' m.scale = m.scale * 0.8
     ' m.poster.width = m.posterSize[0] * m.scale
     ' m.poster.height = m.posterSize[1] * m.scale
 
     ' if isGaining
-    '   m.poster.opacity = 0.3 + fraction
+    '   m.poster.opacity = 0.3 + event.fraction
     ' else
-    '   m.poster.opacity = 0.3 + (1 - fraction)
+    '   m.poster.opacity = 0.3 + (1 - event.fraction)
     ' end if
   end function
 

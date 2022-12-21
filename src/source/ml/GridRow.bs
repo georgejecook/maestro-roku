@@ -46,6 +46,8 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected override function onRecycle(newContent as mc.types.node)
+      super.onRecycle(newContent)
+
       m.cleanHeader()
       m.viewManager.owner = m.owner
       m.viewManager.setContent(invalid)
@@ -154,33 +156,33 @@ namespace ml
     '++ List Delegate Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onDidEnter(subRowIndex as integer, direction as integer, forceCellUpdate = false as boolean)
-      m.log.verbose("onDidEnter SRI ", subRowIndex, " FORCE ", forceCellUpdate)
-      m.viewManager.notifyEnterEvent(subRowIndex, subRowIndex, forceCellUpdate = true)
+    private function onDidEnter(event as ml.listEvent)
+      m.log.verbose("onDidEnter SRI ", event.subRowIndex, " FORCE ", event.forceCellUpdate = true)
+      m.viewManager.notifyEnterEvent(event.subRowIndex, event.subRowIndex, event.forceCellUpdate = true)
     end function
 
-    private function onDidExit(subRowIndex as integer, direction as integer)
-      m.log.verbose(" GRID onDidExit SRI ", subRowIndex)
-      m.viewManager.notifyExitEvent(subRowIndex, subRowIndex)
+    private function onDidExit(event as ml.ListEvent)
+      m.log.verbose(" GRID onDidExit SRI ", event.subRowIndex)
+      m.viewManager.notifyExitEvent(event.subRowIndex, event.subRowIndex)
     end function
 
-    ' private function onScrollingChange(rowIndex as integer, subRowIndex as integer, direction as integer)
+    ' private function onScrollingChange(event as ml.ListEvent)
     '   ? " onScrollingChange "
     ' end function
 
-    private function onDidGainFocus(subRowIndex as integer, direction as integer)
+    private function onDidGainFocus(event as ml.ListEvent)
       ' ? " GRID onDidGainFocus " m.index subRowIndex direction
     end function
 
-    private function onDidLoseFocus(subRowIndex as integer, direction as integer)
+    private function onDidLoseFocus(event as ml.ListEvent)
       ' ? " GRID onDidLoseFocus " m.index subRowIndex direction
     end function
 
-    private function onGainingFocus(subRowIndex as integer, direction as integer, fraction as float)
+    private function onGainingFocus(event as ml.ListEvent)
       ' ? " GRID onGainingFocus " m.index subRowIndex direction fraction
     end function
 
-    private function onLosingFocus(subRowIndex as integer, direction as integer, fraction as float)
+    private function onLosingFocus(event as ml.ListEvent)
       ' ? " GRID onLosingFocus " m.index subRowIndex direction fraction
     end function
 

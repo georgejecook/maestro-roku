@@ -1,0 +1,21 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/ml/ViewPortEventNotifier.bs"
+
+namespace tests
+
+  @writetests
+  @suite("ViewPortEventNotifier tests")
+  class ViewPortEventNotifierManagerTests extends tests.BaseTestSuite
+
+    private notifier as ml.ViewPortEventNotifier
+    private viewManager
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.viewManager = { "id": "viewManager" }
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.notifier = new ml.ViewPortEventNotifier(m.viewManager)
+    end function
+
+  end class
+end namespace
