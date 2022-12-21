@@ -158,6 +158,8 @@ namespace ml
       m.log.decreaseIndent()
 
       m.log.increaseIndent("MOVE")
+      'TODO Improve the efficiency of this.. this is really not ideal
+      m.itemScroller.viewPortEventNotifier.isAllRendered = false
       m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
       m.log.decreaseIndent()
 
@@ -184,15 +186,14 @@ namespace ml
       m.log.verbose("applyRowContentUpdate isChanged:", isChanged)
       if isChanged
         if notifyRow
+          m.log.verbose("notifying row")
           m.applyRowContentUpdate(row, content, result)
         else
           m.log.verbose("not notifying row", isChanged, notifyRow)
         end if
 
-        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
-          m.log.verbose("informing changed row that it has to re-render")
-          row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
-        end if
+        'we have to reset the viewPortEventNotifier to ensure that the row is re-rendered, in case of "all" strategy
+        m.itemScroller.viewPortEventNotifier.isAllRendered = false
       end if
     end function
 
@@ -213,10 +214,8 @@ namespace ml
       m.applyRowContentChange(row, content, result)
 
       if isChanged
-        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
-          m.log.verbose("informing new row that it has to re-render")
-          row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
-        end if
+        'we have to reset the viewPortEventNotifier to ensure that the row is re-rendered, in case of "all" strategy
+        m.itemScroller.viewPortEventNotifier.isAllRendered = false
       end if
     end function
 

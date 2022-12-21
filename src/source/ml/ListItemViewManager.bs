@@ -194,7 +194,8 @@ namespace ml
         renderState: isRendered ? "rendered" : m.componentBufferMode
         owner: m.owner
         width: m.owner.width
-        isInViewport: isRendered
+        isInViewport: false
+        ' isInViewport: isRendered
       }
 
       row.setFields(state)
@@ -202,29 +203,27 @@ namespace ml
       m.log.info("appending row to container")
 
       if row.isInitialized
-        m.log.info("RECYCLE EXISTING ROW")
+        m.log.info("RECYCLE EXISTING ROW", rowContent.title)
 
         m.contentManager.setContentOnRow(row, rowContent, true)
         'note - the content has to be set at this point, or it can't track its own changes
         row.content = rowContent
-        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
-          row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
-        end if
+        m.log.verbose(">>>>>> isInViewPort", row.isInViewPort)
+
 
         m.log.verbose("row content is now", mc.dv(row.content))
       else
-        m.log.info("CREATE NEW ROW")
+        m.log.info("CREATE NEW ROW", rowContent.title)
         'note - the content has to be set at this point, or it can't track its own changes
         row.content = rowContent
         row@._initialize(invalid)
         m.contentManager.setContentOnRow(row, rowContent, false)
-        if m.itemScroller.viewPortEventNotifier.renderStrategy = "all"
-          row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
-        end if
-
-        m.log.verbose("row content is now", mc.dv(row.content))
       end if
 
+      ' if isRendered
+      '   m.log.info("row is rendered, so calling onDidEnter", rowContent.title)
+      '   row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
+      ' end if
       m.log.decreaseIndent()
       return row
     end function

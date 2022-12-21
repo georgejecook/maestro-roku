@@ -169,25 +169,19 @@ namespace ml
     end function
 
     protected function onDidEnter(event as ml.ListEvent)
-      ? " ON ENTER CELL "; m.index
+      ' ? " ON ENTER CELL "; m.index ; " " ; m.isContentDisplayed ; " " ; m.isViewCreated ; " " ; m.content <> invalid
       if not m.isContentDisplayed
-        ' if not m.isViewCreated
-        '   ? " CREATING VIEW"
-        '   m.createViews()
-        '   m.isViewCreated = true
-        ' end if
-        ? " ON ENTER CELL 111 " m.index
         if m.content <> invalid
-          ? " ON ENTER CELL 2222 " m.index
           if m.isViewCreated
-            ? " ON ENTER CELL 333 " m.index
+            ' ? " ON ENTER CELL - CALLING"
             m.onShowWithContent(m.content)
             m.isContentDisplayed = true
+          else
+            ' ? " ON ENTER CELL - NOT SHOWING"
           end if
-          ? " ON ENTER CELL 444 " m.index
         else
-          ? " content was invalid !!! " mc.dv(m.top)
           m.onDidExit(event)
+          ' ? " ON ENTER CELL - NO CONTENT "
         end if
       end if
     end function

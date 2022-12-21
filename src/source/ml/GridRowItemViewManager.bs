@@ -428,11 +428,14 @@ namespace ml
         m.renderedRows[i.toStr()] = true
         for each comp in rowRenderers
           if comp <> invalid
-            m.log.verbose("notifying enter on row", i, "cell", comp.index, comp.content.title)
 
-            if not comp.isInViewPort
+            if not comp.isInViewPort or forceCellUpdate
+              m.log.verbose("notifying enter on row", i, "cell", comp.index, comp.content.title)
               comp.isInViewPort = true
+              ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!2222222"
               comp@._apply("onDidEnter", [{ direction: 1 }], false)
+            else
+              m.log.verbose("SKIPPING notify enter on row", i, "cell", comp.index, comp.content.title)
             end if
           end if
         end for

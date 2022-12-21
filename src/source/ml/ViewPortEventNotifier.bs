@@ -195,29 +195,33 @@ namespace ml
           toIndex = endIndex
         end if
 
-        ' ? " NVL F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
+        ? " NVL F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
+
         lastContentIndex = -1
         didEnter = false
         for i = fromIndex to toIndex - 1
           compInfo = m.viewManager.cellInfos[i]
           comp = compInfo.component
-          ' ? " VPN " ; i " LCI " lastContentIndex " " compInfo.contentIndex
+          ? " VPN " ; i " LCI " lastContentIndex " " compInfo.contentIndex
           if compInfo.contentIndex <> lastContentIndex
             lastContentIndex = compInfo.contentIndex
-            ' ? " ITS A NEW COMPONENT " compInfo.contentIndex
+            ? " ITS A NEW COMPONENT " compInfo.contentIndex
             newInViewportComponentsById[comp.id] = comp
             m.inViewportComponentsById.delete(comp.id)
             didEnter = false
             if startIndex <= index and index <= endIndex
               comp.isInViewPort = true
-              ' ? " IT DID ENTER"
+              ? " IT DID ENTER"
               didEnter = true
             end if
           end if
 
           if didEnter
-            ' ? " SENDING DID ENTER "; mc.dv(comp)
+            ? " SENDING DID ENTER "; mc.dv(comp)
+            ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!33333"
             comp@._apply("onDidEnter", [{ subRowIndex: compInfo.componentIndex, direction: direction, forceCellUpdate: forceAll }], false)
+          else
+            ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!NO33333"
           end if
 
           subIndexKey = compInfo.index.toStr()

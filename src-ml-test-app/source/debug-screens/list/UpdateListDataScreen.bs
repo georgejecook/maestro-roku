@@ -130,6 +130,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
     listSettings.renderStrategy = "all"
+    ' listSettings.renderStrategy = "all"
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
@@ -315,27 +316,27 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   private function setRowOpacity(rowIndex as integer, opacity as float, direction as integer, applyToAll = false as boolean)
-    row = m.list@.getRowRenderer(rowIndex)
-    if rowIndex = 0
-      row.opacity = 1
-    else if row.subType() <> "ml_GridRow"
-      row.opacity = opacity
-    else
-      if applyToAll
-        startIndex = 0
-        endIndex = row.content.length - 1
-      else
-        'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-        startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
-        endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
-      end if
-      for i = startIndex to endIndex
-        cell = m.list@.getCellRenderer(rowIndex, i)
-        if cell <> invalid
-          cell.opacity = opacity
-        end if
-      end for
-    end if
+    ' row = m.list@.getRowRenderer(rowIndex)
+    ' if rowIndex = 0
+    '   row.opacity = 1
+    ' else if row.subType() <> "ml_GridRow"
+    '   row.opacity = opacity
+    ' else
+    '   if applyToAll
+    '     startIndex = 0
+    '     endIndex = row.content.length - 1
+    '   else
+    '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
+    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
+    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
+    '   end if
+    '   for i = startIndex to endIndex
+    '     cell = m.list@.getCellRenderer(rowIndex, i)
+    '     if cell <> invalid
+    '       cell.opacity = opacity
+    '     end if
+    '   end for
+    ' end if
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

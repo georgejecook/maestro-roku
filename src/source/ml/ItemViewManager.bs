@@ -430,8 +430,6 @@ namespace ml
         if cellInfo <> invalid
           m.log.verbose("releasing cell at index ", cell.index)
           m.rendereredCellInfosByIndex.delete(cellInfo.index.toStr())
-          cell.isInViewPort = false
-
           m.log.verbose("releasing cell at index ", cell.index, " with id ", cellInfo.id)
           m.componentPool@.releaseComponent(cell)
           m.renderersByContentId[cellInfo.id] = m.placeHolderCell
@@ -472,6 +470,7 @@ namespace ml
 
           if not comp.isInViewPort
             comp.isInViewPort = true
+            ? "!!!!!!!!!!!!!!!!!!!!!!1111111"
             comp@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1 }], false)
           end if
         end if
