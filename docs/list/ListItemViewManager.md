@@ -1,7 +1,6 @@
 # ListItemViewManager
 
 ## Class Summary
--------------
 ListItemViewManager is a class that manages the creation, rendering, and recycling of rows or cells in a list component. It maintains a pool of reusable row components to optimize performance when the list has a large number of items. It also handles user interactions, such as scrolling and focusing on list items, and updating the list layout when the content of the list changes.
 
 
@@ -22,10 +21,11 @@ The List Item View Manager is typically used in conjunction with a List Mixin, w
 
 
 
-Methods
-=======
+## Methods
 
-### `createRenderers()`
+<br />
+
+## `createRenderers`
 Creates renderers for the specified `content` and updates the `visibleComponents` and `visibleItems` arrays.
 
 ### Arguments
@@ -37,13 +37,12 @@ Creates renderers for the specified `content` and updates the `visibleComponents
 | `forceSync` | boolean | `false` | A flag indicating whether to create renderers synchronously (`true`) or asynchronously (`false`). |
 
 ### Returns
-
 *   A boolean value indicating whether the renderers were created successfully (`true`) or not (`false`).
 
 
 <br />
-### `getRenderer()`
 
+## `getRenderer`
 Retrieves the renderer at the specified index in the `visibleComponents` array.
 
 ### Arguments
@@ -56,7 +55,7 @@ Retrieves the renderer at the specified index in the `visibleComponents` array.
 
 <br />
 
-### `createRow()`
+## `createRow`
 Creates a row component for the specified `rowContent` and adds it to the `container`. The component is initialized with the provided `settings` and `rect` values.
 
 ### Arguments
@@ -76,9 +75,8 @@ Creates a row component for the specified `rowContent` and adds it to the `conta
 
 <br />
 
-### `updateLayout()`
+## `updateLayout`
 Updates the layout of the rows in the list.
-
 ### Arguments
 ---------
 
@@ -88,11 +86,7 @@ Updates the layout of the rows in the list.
 
 
 
----
-
-### `updateRects()`
--------------
-
+## `updateRects`
 Updates the `rects` array and the `visibleComponents` and `visibleItems` arrays based on the current content of the list.
 
 ### Returns
@@ -101,7 +95,7 @@ Updates the `rects` array and the `visibleComponents` and `visibleItems` arrays 
 
 
 
-### `onContentItemsChange()`
+## `onContentItemsChange`
 ----------------------
 
 Updates the list's row renderers and processes changes in the item scroller when the list's content items change.
@@ -117,7 +111,7 @@ Updates the list's row renderers and processes changes in the item scroller when
 
 <br />
 
-### `isFlowFocusPossible()`
+## `isFlowFocusPossible`
 ---------------------
 
 Determines whether flow focus is possible for a given cell info, direction, and active screen position.
@@ -134,7 +128,7 @@ Determines whether flow focus is possible for a given cell info, direction, and 
 
 <br/>
 
-### `getItemInfoForIndex()`
+## `getItemInfoForIndex`
 ---------------------
 
 Gets the item info for a given row index and cell index.
@@ -150,7 +144,7 @@ Gets the item info for a given row index and cell index.
 
 <br/>
 
-### `getIndexAtPosition()`
+## `getIndexAtPosition`
 
 Gets the index of the item at a given position and direction.
 
@@ -165,7 +159,7 @@ Gets the index of the item at a given position and direction.
 
 <br />
 
-### `recalculateCellInfos()`
+## `recalculateCellInfos`
 Recalculates the list's cell info.
 
 ### Arguments

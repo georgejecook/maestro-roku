@@ -3,11 +3,11 @@
 Class summary
 -------------
 
-  
+
 
 `BaseScreen` is a class that serves as the base class for screens in an application. It is a subclass of `BaseView`, which is a class that serves as the base class for views in an application.
 
-  
+
 
 `BaseScreen` has a `state` field that is used to track the state of a view, and an `originSelection` field that is used to track the selection object that led to this view being created.
 
@@ -17,7 +17,7 @@ Class summary
 
 `BaseScreen` has an `initialize()` method that is called when the screen is created and sets the `originSelection` field to the `originSelection` field of the top-level scope.
 
-  
+
 
 Methods
 -------
@@ -33,9 +33,8 @@ This is the constructor of the `BaseScreen` class, which takes in a `name` argum
 | ---| ---| --- |
 | `name` | string | The name of the `BaseScreen` instance being created. |
 
-  
 
-===
+<br/>
 
 `initialize`
 ------------
@@ -50,7 +49,7 @@ None.
 
 None.
 
-  
+<br/>
 
 `push`
 ------
@@ -64,9 +63,8 @@ This method pushes a view onto the navigation stack, making it the current view.
 | view | mc.types.node | n/a | The view to push onto the navigation stack. |
 | animated | boolean | true | Whether or not to animate the transition when pushing the view. |
 
-  
+<br/>
 
----
 
 `pop`
 -----
@@ -79,9 +77,7 @@ This method removes the current view from the navigation stack and returns it.
 | ---| ---| ---| --- |
 | animated | boolean | true | Whether or not to animate the transition when removing the view. |
 
-  
-
-===
+<br/>
 
 `resetNavControllerToRoot`
 --------------------------
@@ -94,14 +90,16 @@ This method resets the navigation stack to only contain the root view.
 | ---| ---| ---| --- |
 | animated | boolean | true | Whether or not to animate the transition when resetting the navigation stack. |
 
-  
 
-===
+
+<br/>
 
 `getNavController`
 ------------------
 
 This method returns the navigation controller that is managing the navigation stack.
+
+<br/>
 
 `resetNavController`
 --------------------
@@ -115,7 +113,7 @@ This method resets the navigation stack to only contain a specified set of views
 | newFirstScreen | mc.types.node | invalid | The view to set as the first view in the navigation stack. If not provided, the current first view will be used. |
 | endIndex | integer |  |
 
-  
+<br/>
 
 `dismiss`
 ---------
@@ -129,6 +127,8 @@ Dismisses the current view and updates the state of the top level scope.
 | state | `string` |  | The state to set on the top level scope. |
 | animated | `boolean` | `true` | Whether to animate the transition when dismissing the view. |
 
+<br />
+
 `replaceNavControllerScreen`
 ----------------------------
 
@@ -141,6 +141,7 @@ Replaces the current screen in the navigation controller with the target screen.
 | targetScreen | `mc.types.node` |  | The screen to replace the current screen with in the navigation controller. |
 | animated | `boolean` | `false` | Whether to animate the transition when replacing the screen in the navigation controller. |
 
+<br/>
 `onKeyPressBack`
 ----------------
 

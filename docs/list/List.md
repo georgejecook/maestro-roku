@@ -1,7 +1,6 @@
 # List
 
 ## Class Summary
--------------
 The `List` component is a container component that allows users to display and interact with a scrollable list of items.
 The `setContent` is a method of the `List` component that sets the `content` property of the `List` to the given `content` `node`. The `content` `node` must be a subnode of `RowContent`, which has the following structure:
 

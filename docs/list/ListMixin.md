@@ -1,7 +1,6 @@
 # ListMixin
 
 ## Class Summary
--------------
 The `ml.listMixin` namespace contains functions for creating and configuring a `ListContent` object to be used in a list component.
 
 To create a `ListContent` object using the `ml.listMixin` namespace, you can follow these steps:
