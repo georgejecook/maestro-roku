@@ -284,19 +284,12 @@ namespace ml
             m.log.error("could not find cell to release")
           end if
         else if change.type = "clear" or change.type = "sort" or change.type = "updated"
-          ? ">>>>>>>>>>>>>>>>>"
-          ? ">>>>>>>>>>>>>>>>>"
-          ? ">>>>>>>>>>>>>>>>>"
-          ? ">>>>>>>>>>>>>>>>>"
-          ? " WE HAVE DONE A CLEAR"
           'we've reset the list - all renderers are going now
           ' m.renderersByContentId = {}
           for each key in m.rendereredCellInfosByIndex
             cellInfo = m.rendereredCellInfosByIndex[key]
-            ? " RELEASING " key
             m.releaseCellAtIndex(cellInfo.index)
           end for
-          ? " >>>>>>>>>>>> CLEAR FINISHED"
         end if
       end for
       m.tidyUpUnusedRenderers()
@@ -465,7 +458,6 @@ namespace ml
 
           if not comp.isInViewPort
             comp.isInViewPort = true
-            ? "!!!!!!!!!!!!!!!!!!!!!!1111111"
             comp@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1 }], false)
           end if
         end if
@@ -729,16 +721,13 @@ namespace ml
 
     @warning("potentially unsafe probably don't want this")
     protected function synchronizeRenderers() as boolean
-      ? " SYNC RENDERERERS"
       isChanged = false
 
       for each key in m.rendereredCellInfosByIndex
         info = m.rendereredCellInfosByIndex[key]
         renderer = m.renderersByContentId[info.id]
-        ? " SYNCING CELL " key " CIDX " m.content@.getChild(info.contentIndex).title " IDX " info.index
         if renderer <> invalid
           if info.component <> invalid and info.component.id <> renderer.id
-            ? " CELL HAS CHANGED"
             m.updateCell(renderer, info.index, m.content@.getChild(info.contentIndex))
             isChanged = true
           end if
