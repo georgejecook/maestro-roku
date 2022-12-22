@@ -40,8 +40,6 @@ namespace ml
 
     protected override function onContentChange(content as mc.types.node)
       m.log.info("onContentChange")
-      ? ">>>>>>>>>>>>>>>>>>" mc.dv(m.top)
-      ? " ROW ON CONTENT CHANGE"
       m.configureHeader()
 
       changeResult = {
@@ -92,7 +90,7 @@ namespace ml
 
     override function moveToIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
       if m._content <> invalid and index <> -1
-        ? " DO A MOVE TO INDEX "; index, animated
+        ' ? " DO A MOVE TO INDEX "; index, animated
         m.itemScroller.moveToIndex(index, animated, animSpeedIndex)
       end if
     end function
@@ -117,9 +115,6 @@ namespace ml
       if settings = invalid or settings.allowLongPress = false
         return false
       end if
-      ? ">>> canMoveInDirection row"
-      ? "I " ; m.itemScroller.index
-      ? "direction" ; direction
       return (m._content <> invalid and m._content.length > 0) and ((direction = -1 and m.itemScroller.index > 0) or (direction = 1 and m.itemScroller.index < m._content.length - 1))
     end function
 

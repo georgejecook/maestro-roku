@@ -28,12 +28,9 @@ namespace ml
     end function
 
     protected override function updateScreenRect()
-      ? " aaaaa"
       'bs:disable-next-line
       bounds = m.owner.sceneBoundingRect()
-      ? " bbb"
       m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.maxRowPos] }
-      ? " ccc"
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -432,7 +429,6 @@ namespace ml
             if not comp.isInViewPort or forceCellUpdate
               m.log.verbose("notifying enter on row", i, "cell", comp.index, comp.content.title)
               comp.isInViewPort = true
-              ? "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!2222222"
               comp@._apply("onDidEnter", [{ direction: 1 }], false)
             else
               m.log.verbose("SKIPPING notify enter on row", i, "cell", comp.index, comp.content.title)
