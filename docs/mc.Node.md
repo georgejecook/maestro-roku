@@ -344,7 +344,59 @@ Inserts an array of objects into the `children` field of the `mc_Node` object at
 
 None
 
+<br/>
 
+`createChild`
+-----------
+
+This method creates a new child node in the current node with the specified nodeType and id. If no id is provided, a random id is generated. The method appends the new child node to the current node if it is successfully created.
+
+### Arguments
+
+| argument name | type | defaultValue | description |
+| ---| ---| ---| --- |
+| nodeType | string |  | The type of the node to be created |
+| id | string | "" | The id of the node to be created. If not provided, a random id is generated. |
+
+### Returns
+
+The created child node, or invalid if the creation failed.
+
+<br/>
+
+`createChildren`
+--------------
+
+This method creates a specified number of child nodes with the given subtype in the current node.
+
+### Arguments
+
+| argument name | type | defaultValue | description |
+| ---| ---| ---| --- |
+| numChildren | integer |  | The number of child nodes to be created |
+| subtype | string |  | The subtype of the child nodes to be created |
+
+### Returns
+
+An array of the created child nodes.
+
+<br/>
+
+
+`getChildCount`
+-------------
+
+This method returns the number of child nodes in the current node.
+
+### Arguments
+
+None.
+
+### Returns
+
+The number of child nodes in the current node.
+
+</br>
 
 `notifyUpdate`
 --------------
@@ -411,6 +463,7 @@ Enables or disables notifications and sends an update notification if requested.
 
 None
 
+<br/>
 
 
 `serialize`
@@ -428,9 +481,9 @@ An associative array representing the serialized `mc_Node` object.
 
 
 
----
+<br />
 
-`` deserialize` ``
+`deserialize`
 ------------------
 
 Deserializes the `mc_Node` object using the provided data. If the `deserialize` field is set, calls that function with the provided data.
@@ -444,17 +497,3 @@ Deserializes the `mc_Node` object using the provided data. If the `deserialize` 
 ### Returns
 
 None
-
-
-
-
-
-
-
----
-
-
-
-
-
----
