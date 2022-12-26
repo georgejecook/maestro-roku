@@ -169,7 +169,6 @@ namespace ml
       m.log.info("resetState")
 
       m.wasFocused = m.top.isFocused or m.top.isChildFocused
-      m.top.visible = false
       if m.contentManager.content <> invalid
         m.log.info("new content is present")
         m.viewManager.setContent(m.contentManager.content)
@@ -189,12 +188,10 @@ namespace ml
     private function onListRenderState(state as string)
       m.log.info("onListRenderState", state)
       if state = "rendered"
-        'FIXME: WHAT IS THIS?!
         if m.top.isFocused or m.top.isChildFocused
           m.top.focusIndicatorManager.isHidden = false
         end if
         m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
-        m.top.visible = true
       end if
     end function
 
@@ -546,7 +543,7 @@ namespace ml
     end function
 
     private function onKeyPressUp() as boolean
-      if not m.top.visible
+      if m.state <> "rendered"
         return false
       end if
       m.log.verbose("onKeyPressUp")
@@ -574,7 +571,7 @@ namespace ml
     end function
 
     private function onKeyPressOk() as boolean
-      if not m.top.visible
+      if not m.state = "rendered"
         return false
       end if
       'FIXME - add ability to change of direction, mid-animation
@@ -598,7 +595,7 @@ namespace ml
     end function
 
     private function onKeyPressDown() as boolean
-      if not m.top.visible
+      if m.state <> "rendered"
         return false
       end if
       m.log.verbose("onKeyPressDown")
@@ -629,7 +626,7 @@ namespace ml
 
     private function getLongPressIntervalForKey(key as string) as float
       m.log.resetIndent()
-      if not m.top.visible
+      if m.state <> "rendered"
         return 0
       end if
       if key = "OK" or m.canMoveFromKeyPress(key, true)

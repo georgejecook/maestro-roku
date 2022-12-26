@@ -262,6 +262,7 @@ namespace ml
       end if
 
       m.log.verbose(" SET CONFIG TO ", m.nextconfig.rowIndex, " ", m.nextConfig.cellIndex)
+      m.log.verbose(" SET CONFIG TO ", m.nextconfig.rowIndex, " ", m.nextConfig.cellIndex)
 
       m.setActiveFocusSettings(m.nextConfig.settings)
 
@@ -269,17 +270,13 @@ namespace ml
       m.log.verbose(">>> NEXT HIDDEN ", mc.getPath(m.nextConfig, "isHidden"))
       if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
         m.log.verbose(">>> HIDE INDICATOR")
-        m.log.verbose("AA")
         m.rowHasIndicator = false
         m.focusIndicator.visible = false
       else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.nextFocusSettings.feedbackStyle))
-        m.log.verbose("BB")
         m.focusIndicator.visible = false
       else if m.isHidden
-        m.log.verbose("CC")
         m.focusIndicator.visible = false
       else
-        m.log.verbose("DD")
         m.rowHasIndicator = true
       end if
 
@@ -375,8 +372,11 @@ namespace ml
       end if
 
       if not m.manualMode
+        m.log.verbose("was in position", formatJson(m.previousTranslation), "moving to ", formatJson(m.nextConfig.indicatorTranslation))
         m.focusIndicator.translation = translation
         m.focusIndicator.size = size
+      else
+        m.log.verbose("not animating. focus indicator in manual mode")
       end if
       m.log.verbose("moveFocusIndicatorToTargetPosition ", fraction, " ", m.nextConfig.indicatorTranslation[1])
     end function
