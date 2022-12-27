@@ -38,10 +38,14 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function recycle()
+      ? " RECYCLE " m.index
       if not m.isViewCreated
+        ? " RECYCLE 111 " m.index
         m._createViews()
       end if
+      m.contentVersion = -1
       if m.isRecyclePending
+        ? " RECYCLE 222" m.index
         m._onContentChange(m.content)
       end if
     end function
@@ -68,19 +72,23 @@ namespace ml
     end function
 
     private function _onContentChange(content as mc.types.node) as void
-      ' ? " ON CONTENT CHANGE " m.top.index
+      ? " ON CONTENT CHANGE " m.top.index
       isChanged = false
       if content = invalid
+        ? " CONTENT INVALID"
         m.contentVersion = -1
         isChanged = true
       else if m.contentVersion = -1 or content.version <> invalid
+        ? " CONTENT CHANGE"
         m.contentVersion = content.version
         isChanged = true
       end if
 
       if isChanged
+        ? " CONTENT CHANGED"
         m.onContentChange(content)
         if m.top.isInViewPort
+          ? " CONTENT IN VIEW PORT"
           ' ? " IN VIEW PORT SHOWING "; m.index
           m.onShowWithContent(content)
         end if
