@@ -618,7 +618,8 @@ namespace ml
     end function
 
     function toggleScrolling(active as boolean)
-      ' ? "+>+>+>+> toggleScrolling " ; active ; " IS " ; m.viewManager.isScrolling ; " " ; m.__classname
+      m.log.verbose("toggleScrolling ", active, " IS ", m.viewManager.isScrolling, " ", m.__classname)
+
       if m.viewManager.isScrolling <> active
         if active
           m.scrollStartIndex = m.index
@@ -821,6 +822,9 @@ namespace ml
       end if
 
       m.setNextCellInfo(m.viewManager.cellInfos[index])
+
+      m.index = index
+
       if notifyFocusManager
         ' ? "list notifying focus manager"
         m.log.verbose("==== FROM forceFocusOnIndex ")
