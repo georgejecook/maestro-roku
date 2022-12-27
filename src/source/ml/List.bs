@@ -315,23 +315,23 @@ namespace ml
           animated = false
         end if
       end if
-      m.moveToRow(rowIndex, animated, animSpeedIndex)
+      m.moveToRow(rowIndex, animated, animSpeedIndex, direction)
     end function
 
-    function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer)
+    function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer)
       if m.contentManager.content <> invalid
-        m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex)
+        m.itemScroller.moveToContentIndex(index, animated = true, animSpeedIndex, direction)
       end if
     end function
 
     function moveToRowItemIndex(rowIndex as integer, index as integer, animated as boolean, animSpeedIndex = 0 as integer) as void
-      m.log.verbose(" MTRI  ", rowIndex, index, animated)
+      ' m.log.verbose(" MTRI  ", rowIndex, index, animated)
       m.log.increaseIndent()
       if m.contentManager.content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
-        m.log.verbose(" MTR A")
+        ' m.log.verbose(" MTR A")
         if row <> invalid
-          m.log.verbose(" MTR B")
+          ' m.log.verbose(" MTR B")
           rowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
           if rowInfo <> invalid
             rect = row@.getRect(index)
@@ -343,6 +343,9 @@ namespace ml
           end if
           row@.moveToIndex(index, false)
         end if
+      end if
+      if not animated
+        m.viewManager.setIsScrolling(false, false, 0)
       end if
       m.log.decreaseIndent()
     end function
@@ -464,7 +467,7 @@ namespace ml
       else if m.rowKeys[key] = true
         row = m.getFocusedRow()
         if row <> invalid
-          return row@.canMoveInDirection(direction)
+          return row@.canMoveInDirection(direction, isLongPress)
         else
           m.log.verbose("FOCUSED ROW INVALID")
         end if
