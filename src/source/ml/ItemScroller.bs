@@ -787,6 +787,11 @@ namespace ml
         m.setNextCellInfo(m.viewManager.cellInfos[index])
       end if
 
+      if m.cellInfo = invalid
+        m.log.error("setFocusIndex - invalid cellInfo")
+        return
+      end if
+
       m.focusedItem = m.viewManager.visibleItems[m.cellInfo.contentIndex]
 
       if sendViewportEvent
