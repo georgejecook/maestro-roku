@@ -79,7 +79,7 @@ namespace ml
     end function
 
     public function reset()
-      m.log.info ("resetting base.itemViewManager", m.__classname)
+      m.log.info ("resetting itemViewManager", m.__classname)
 
       m.content = invalid
       m.rects = []
@@ -104,7 +104,7 @@ namespace ml
     end function
 
     function setContent(content as mc.types.node)
-      m.log.info("setContent")
+      m.log.verbose("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
       m.listSettings = m.owner.content.listSettings
@@ -114,8 +114,10 @@ namespace ml
       else
         if m._createRenderers(content) = false
           m.isRendering = true
-          m.log.info("This viewManager is doing async rendering")
+          m.log.verbose("This viewManager is doing async rendering")
         else
+          m.log.verbose("This viewManager is doing synchronous rendering")
+
           m.onRenderersCreated()
         end if
       end if
@@ -128,6 +130,8 @@ namespace ml
     end function
 
     protected function onRenderersCreated()
+      m.log.verbose("onRenderersCreated", m.__classname)
+
       m.isRendering = false
       m._updateLayout()
     end function
@@ -278,7 +282,7 @@ namespace ml
       for each change in changes
         if change.type = "remove"
           if change.child <> invalid
-            m.log.info("removing cell with id", change.child.id)
+            m.log.verbose("removing cell with id", change.child.id)
             m.releasecell(m.renderersByContentId[change.child.id])
           else
             m.log.error("could not find cell to release")
