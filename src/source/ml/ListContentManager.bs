@@ -57,14 +57,12 @@ namespace ml
         'TODO - observe something here
         m.list.resetState()
         m.updateListFocus()
-
       else if content <> invalid
         m.log.info("current content has changed in some untracked way!")
         m.synchronizeContent(true)
       else
         m.log.warn("unknown content change")
       end if
-      ' m.synchronizeContent(true)
     end function
 
     function setUpdatesEnabled(enabled as boolean)
@@ -161,25 +159,31 @@ namespace ml
       m.focusIndicatorManager@.reset()
       m.log.decreaseIndent()
 
+      m.focusOnItem(rowIndex, cellIndex)
+
+      m.log.decreaseIndent()
+    end function
+
+    private function focusOnItem(rowIndex as integer, cellIndex as integer)
+      m.log.verbose("focusing on item", rowIndex, cellIndex)
+
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
+
       m.log.increaseIndent("MOVE")
       'TODO Improve the efficiency of this.. this is really not ideal
       m.itemScroller.viewPortEventNotifier.isAllRendered = false
       m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
       m.log.decreaseIndent()
 
-
       m.log.increaseIndent("COMPLETE")
       m.itemScroller.setFocusManagerInfo(m.itemScroller.cellInfo, m.itemScroller.nextCellInfo, m.itemScroller.direction, false)
       m.focusIndicatorManager@.completeFocusNow(true)
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
       m.log.decreaseIndent()
+
       if m.list.top.isChildFocused or m.list.top.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
-      ' m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
-
-      m.log.decreaseIndent()
     end function
 
     private function updateContentOnRow(row as mc.types.node, content as mc.types.node, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
