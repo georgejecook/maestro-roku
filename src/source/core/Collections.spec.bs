@@ -454,6 +454,25 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("map")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("maps with value predicate")
+    function _()
+      codes = ["US", "DE", "FR", "UK"]
+      expected = ["_US", "_DE", "_FR", "_UK"]
+      m.assertEqual(mc.collections.map(codes, function(item): return "_" + item: end function), expected)
+    end function
+
+    @it("maps associative array")
+    function _()
+      codes = { "US": "United States", "DE": "Germany", "FR": "France", "UK": "United Kingdom" }
+      expected = ["_UK_United Kingdom", "_FR_France", "_DE_Germany", "_US_United States"]
+
+      m.assertEqual(mc.collections.map(codes, function(key, value): return "_" + key + "_" + value: end function), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("filter")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 

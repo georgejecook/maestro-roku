@@ -37,19 +37,36 @@ namespace mc.collections
     end if
     if array <> invalid
       isClass = mc.isClass(mapper)
-      for each item in array
-        if isClass
-          transformed = mapper.transform(item)
-          if transformed <> invalid
-            items.push(transformed)
+      if mc.isArray(array) or type(array) = "roSGNode"
+        for each item in array
+          if isClass
+            transformed = mapper.transform(item)
+            if transformed <> invalid
+              items.push(transformed)
+            end if
+          else
+            transformed = mc.apply(mapper, [item], mTarget)
+            if transformed <> invalid
+              items.push(transformed)
+            end if
           end if
-        else
-          transformed = mc.apply(mapper, [item], mTarget)
-          if transformed <> invalid
-            items.push(transformed)
+        end for
+      else
+        'is an aa
+        for each key in array
+          if isClass
+            transformed = mapper.transform(key, array[key])
+            if transformed <> invalid
+              items.push(transformed)
+            end if
+          else
+            transformed = mc.apply(mapper, [key, array[key]], mTarget)
+            if transformed <> invalid
+              items.push(transformed)
+            end if
           end if
-        end if
-      end for
+        end for
+      end if
     end if
     return items
   end function
