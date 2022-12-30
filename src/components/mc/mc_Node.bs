@@ -227,6 +227,30 @@ function insertItems(index as integer, value as dynamic) as void
   addChanges([{ type: "insert", items: value, index: index }])
 end function
 
+function createChild(nodeType as string, id = "" as string)
+  id = id = "" ? rnd(2147483647).toStr() : id
+  child = mc.createSGNode(nodeType, invalid, id)
+  if child <> invalid
+    appendChild(child)
+  end if
+  return child
+end function
+
+function createChildren(numChildren as integer, subtype as string)
+  children = []
+  for i = 0 to numChildren - 1
+    child = createChild(subtype)
+    if child <> invalid
+      children.push(child)
+    end if
+  end for
+  return children
+end function
+
+function getChildCount() as integer
+  return m.top.length
+end function
+
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 '++ Changes
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
