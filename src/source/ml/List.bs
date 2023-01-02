@@ -630,8 +630,16 @@ namespace ml
     private function getLongPressIntervalForKey(key as string) as float
       m.log.resetIndent()
       if m.state <> "rendered"
+        m.log.verbose("list is not ready yet, so _no_ long press processing: m.state is '<", m.state, "'")
+
         return 0
       end if
+
+      if m.viewManager.listSettings = invalid or m.viewManager.listSettings.allowLongPress = false
+        m.log.verbose("invalid settings; allowLongPress is <false>")
+        return 0
+      end if
+
       if key = "OK" or m.canMoveFromKeyPress(key, true)
         m.log.verbose("valid long press with key", key)
         return 0.2
