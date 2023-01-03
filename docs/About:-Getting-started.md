@@ -4,7 +4,8 @@ If you want a quick look at maestro-roku, you can start with the maestro sample 
 
  - `git clone git@github.com:georgejecook/maestro-roku.git`
  - `npm install`
- - Update `.env` file with your roku ip and password
+ - `cp .vscode/.env.sample .vscode/.env`
+ - Update `.vscode/.env` file with your roku ip and password
  - run the run target `Sample App`
  - Launch the app from the main menu
 
