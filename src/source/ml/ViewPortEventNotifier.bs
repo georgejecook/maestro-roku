@@ -83,7 +83,7 @@ namespace ml
         return
       end if
 
-      m.log.increaseIndent()
+      'm.log.increaseIndent()
 
       oldRendereredCellInfosByIndex = {}
 
@@ -115,8 +115,10 @@ namespace ml
           isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
           comp = m.viewManager.getRenderer(index, isInViewPort, forceAll)
           if comp <> invalid
-            m.log.verbose("valid comp", index, mc.dv(comp), comp.index, comp.content.title)
-
+            m.log.verbose("valid comp", index, mc_dv(comp), comp.index)
+            if comp.content <> invalid
+              m.log.verbose("valid content", comp.content.title)
+            end if
           else
             m.log.error("invalid comp", index)
           end if
@@ -146,7 +148,7 @@ namespace ml
         end if
       end if
 
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
     end function
 
     private inViewportComponentsById = {}
