@@ -15,7 +15,7 @@ class ListScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 20
+  private numberOfRows = 3
   private defaultCellType = "ml_SimpleCell"
 
   'state
@@ -24,6 +24,7 @@ class ListScreen extends mv.BaseScreen
   private rowSettings
   private focusSettings
   private cellSettings
+  private originalChildren
   private loadingIndicator
   private scrollSpeed = 2
 
@@ -60,11 +61,12 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function onResetChange()
-    m.list.content = invalid
+    m.list@.setContent(invalid)
     m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 130], 30)
 
     timer = new mc.utils.DebugTimer("list")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, invalid, 30)
+
 
     m.focusSettings = ml.listMixin.createFocusSettings("fixed", [-50, -50, 50, 50])
     ' listSettings = ml.listMixin.createListSettings(3000, 3000)
@@ -79,13 +81,16 @@ class ListScreen extends mv.BaseScreen
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
-    m.list.content = content
     timer.log("set content")
+    m.originalChildren = content@.getChild(1)@.getChildren()
+    m.list@.setContent(content)
+    m.list.delegate = m.top
+
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
       m.loadingIndicator.isActive = false
     else
-      m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
+      m.observe(m.list.state, m.onListRenderState, "value", true)
     end if
   end function
 
@@ -105,6 +110,7 @@ class ListScreen extends mv.BaseScreen
     rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     showHero = true
 
+    useComplexRow = false
     useGrids = false
 
     'TODO - add normal rows around this
@@ -124,7 +130,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.contentOffset = [400, -30]
         prefix = "HERO"
         row.settings.screenPos = -1
-      else if i = 3 or i = 8 or i = 14
+      else if useComplexRow and (i = 3 or i = 8 or i = 14)
         complexFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed)
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
 
@@ -163,7 +169,14 @@ class ListScreen extends mv.BaseScreen
         else if i = 13
           row.settings.screenPos = 50
         end if
-        numItems = 5
+
+        if i = 1
+          row.settings.renderStrategy = "all"
+          row.settings.numberItemsToRenderAfter = 4
+          row.settings.numberItemsToRenderBefore = 4
+
+          numItems = 10
+        end if
       end if
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
@@ -240,7 +253,7 @@ class ListScreen extends mv.BaseScreen
   private contentIndex = 0
 
   private function changeContent()
-    m.list.content = invalid
+    m.list@.setContent(invalid)
     ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [480, 50], 30)
     ' m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 250], 30)
     m.cellSettings = ml.listMixin.createCellSettings("ml_SimpleCell", [320, 130], 30)
@@ -255,6 +268,10 @@ class ListScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
+    listSettings.renderStrategy = "dynamic"
+    ' listSettings.renderStrategy = "all"
+    listSettings.numberItemsToRenderAfter = 4
+    listSettings.numberItemsToRenderBefore = 4
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
 
@@ -271,14 +288,15 @@ class ListScreen extends mv.BaseScreen
     timer.log("makeData")
     content@.appendChildren(items)
     ' m.list.visible = false
-    ' m.list.content = invalid
-    m.list.content = content
+    ' m.list@.setContent(invalid)
+    m.originalChildren = content@.getChild(1)@.getChildren()
+    m.list@.setContent(content)
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
       m.loadingIndicator.isActive = false
     else
-      m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
+      m.observe(m.list.state, m.onListRenderState, "value", true)
     end if
   end function
 
@@ -286,14 +304,35 @@ class ListScreen extends mv.BaseScreen
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private function onKeyPressRewind() as boolean
-    m.removeCell()
+  private function onKeyPressPlay() as boolean
+    m.log.info("removing renderers")
+
+    row = m.list.content@.getChild(1)
+    row@.setNotificationsEnabled(false)
+    row@.clear()
+    newItems = [m.originalChildren[0], m.originalChildren[1], m.originalChildren[3], m.originalChildren[2]]
+
+    row@.appendChildren(newItems)
+
+    row@.setNotificationsEnabled(true)
+    ' row@.notifyUpdate()
+    m.list@.synchronizeContent()
     return true
   end function
 
   private function onKeyPressFastForward() as boolean
     ' m.addRow(1)
-    m.addCell()
+    row = m.list.content@.getChild(1)
+    row@.setNotificationsEnabled(false)
+    row@.clear()
+    newItems = [m.originalChildren[0], m.originalChildren[1], m.originalChildren[3], m.originalChildren[2]]
+
+    row@.appendChildren(newItems)
+
+    row@.setNotificationsEnabled(true)
+    ' row@.notifyUpdate()
+    m.list@.synchronizeContent()
+
     return true
   end function
 

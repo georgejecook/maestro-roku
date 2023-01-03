@@ -137,10 +137,10 @@ namespace ml
     end function
 
     function _updateLayout(fullUpdate = false as boolean)
-      m.log.increaseIndent("updateLayout " + m.__classname)
+      'm.log.increaseIndent("updateLayout " + m.__classname)
       m.updateScreenRect()
       m.updateLayout(fullUpdate)
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
     end function
 
     function onFocusIndexChange(direction as integer, index as integer)
@@ -280,6 +280,7 @@ namespace ml
     protected function processRemovedCells(changes as mc.types.array)
       m.log.info("processing removed cells")
       for each change in changes
+
         if change.type = "remove"
           if change.child <> invalid
             m.log.verbose("removing cell with id", change.child.id)
@@ -289,10 +290,9 @@ namespace ml
           end if
         else if change.type = "clear" or change.type = "sort" or change.type = "updated"
           'we've reset the list - all renderers are going now
-          ' m.renderersByContentId = {}
           for each key in m.rendereredCellInfosByIndex
             cellInfo = m.rendereredCellInfosByIndex[key]
-            m.releaseCellAtIndex(cellInfo.index)
+            m.releaseCell(cellInfo.component)
           end for
         end if
       end for
@@ -406,14 +406,6 @@ namespace ml
       end if
     end function
 
-    protected override function releaseCellAtIndex(index as integer)
-      item = m.content@.getChild(index)
-      if item <> invalid
-        ' ? " RELEASE CELL " index
-        m.releasecell(m.renderersByContentId[item.id])
-      end if
-    end function
-
     protected override function releaseCell(cell as mc.types.node)
       m.log.verbose("releasing cell")
 
@@ -445,7 +437,7 @@ namespace ml
           m.log.verbose("notifying exit on ", comp.id)
           if comp.id <> "#_#phc"
             if comp.isInViewPort
-              m.releaseCellAtIndex(comp.index)
+              m.releaseCell(comp)
             end if
           end if
         end if
