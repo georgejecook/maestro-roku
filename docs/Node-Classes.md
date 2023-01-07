@@ -1,5 +1,7 @@
 # Overview
 
+> You **must** set `autoImportComponentScript` to `true` in your `bsconfig.json` file for this feature to work properly.
+
 Maestro exists to save you writing error prone boilerplate code.
 For this reason it allows the creation of node classes, which are annotations you can add to a class, which will automatically generate xml and brs code for you, allowing:
 
