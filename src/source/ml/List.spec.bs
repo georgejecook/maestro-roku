@@ -989,6 +989,251 @@ namespace ListTests
       m.assertTrue(m.list.onKeyPressDown())
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getLongPressIntervalForKey")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns 0 if state is not rendered")
+    function _()
+      m.list.state = "rendering"
+
+      m.assertEqual(m.list.getLongPressIntervalForKey("OK"), 0)
+    end function
+
+    @it("returns 0 if list settings is invalid or list settings allowLongPress is false")
+    @params(invalid)
+    @params({ "allowLongPress": false })
+    function _(listSettings)
+      m.list.state = "rendered"
+      viewManager = { "id": "viewManager", "lisSettings": listSettings }
+
+      m.list.viewManager = viewManager
+      m.assertEqual(m.list.getLongPressIntervalForKey("OK"), 0)
+    end function
+
+    @it("returns 0.2 if canMoveFromKeyPress is true, 0 otherwise")
+    @params("up", true, 0.2)
+    @params("options", true, 0.2)
+    @params("up", false, 0)
+    @params("options", false, 0)
+    function _(key, canMove, expectedValue)
+      m.list.state = "rendered"
+      viewManager = { "id": "viewManager", "listSettings": { "allowLongPress": true } }
+
+      m.list.viewManager = viewManager
+      m.expectCalled(m.list.canMoveFromKeyPress(key, true), canMove)
+      m.assertEqual(m.list.getLongPressIntervalForKey(key), expectedValue)
+    end function
+
+    @it("returns 0.2 if key OK")
+    function _()
+      m.list.state = "rendered"
+      viewManager = { "id": "viewManager", "listSettings": { "allowLongPress": true } }
+
+      m.list.viewManager = viewManager
+      m.expectNotCalled(m.list.canMoveFromKeyPress)
+      m.assertEqual(m.list.getLongPressIntervalForKey("OK"), 0.2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onLongPressStart")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if key is OK and delegate is invalid")
+    function _()
+      m.list.delegate = invalid
+      m.assertFalse(m.list.onLongPressStart("OK"))
+    end function
+
+    @it("returns false if key is OK and apply onItemLongSelected on delegate")
+    function _()
+      delegate = { "id": "delegate" }
+      m.list.delegate = delegate
+      m.expectCalled(m.list.delegate@._apply("onItemLongSelected", [{
+          rowIndex: m.list.focusedRowIndex
+        cellIndex: m.list.focusedCellIndex }
+      ], false))
+
+      m.assertFalse(m.list.onLongPressStart("OK"))
+    end function
+
+    @it("returns false if can't move from key press")
+    function _()
+      m.expectCalled(m.list.canMoveFromKeyPress("up", true), false)
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectNotCalled(m.list.itemScroller.moveToEnd)
+
+      m.assertFalse(m.list.onLongPressStart("up"))
+    end function
+
+    @it("returns true/false if can move from key press and item scroller can move in direction")
+    @params(true, true, true)
+    @params(true, false, false)
+    function _(canMoveInDirection, moveToEnd, expected)
+      direction = m.list.keyDirections["up"]
+
+      m.expectCalled(m.list.canMoveFromKeyPress("up", true), true)
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(direction), canMoveInDirection)
+      m.expectCalled(m.list.itemScroller.moveToEnd(direction), moveToEnd)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertEqual(m.list.onLongPressStart("up"), expected)
+    end function
+
+    @it("moves to end of list if can move from key press and item scroller can't move in direction")
+    function _()
+      direction = m.list.keyDirections["up"]
+
+      m.expectCalled(m.list.canMoveFromKeyPress("up", true), true)
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(direction), false)
+      m.expectCalled(m.list.itemScroller.moveToEnd(1), true)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertTrue(m.list.onLongPressStart("up"))
+    end function
+
+    @it("returns true/false if can move from key press and key is for row")
+    @params("rewind", true, true)
+    @params("fastforward", true, false)
+    @params("left", false, true)
+    @params("right", false, false)
+    function _(key, isPage, moveFromPress)
+      direction = m.list.keyDirections[key]
+      row = { "id": "row" }
+
+      m.expectCalled(m.list.canMoveFromKeyPress(key, true), true)
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+
+      m.expectCalled(m.list.getFocusedRow(), row)
+      m.expectCalled(row@.moveFromPress(direction, true, isPage), moveFromPress)
+      m.assertEqual(m.list.onLongPressStart(key), moveFromPress)
+    end function
+
+    @it("returns false if can move from key press and key is not for the list or for the row")
+    @params("play")
+    @params("options")
+    @params("back")
+    function _(key)
+      m.expectCalled(m.list.canMoveFromKeyPress(key, true), true)
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectNotCalled(m.list.getFocusedRow)
+      m.expectNotCalled(m.list.itemScroller.moveToEnd)
+
+      m.assertFalse(m.list.onLongPressStart(key))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onLongPressFinish")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if key is OK")
+    function _()
+      m.assertFalse(m.list.onLongPressFinish("OK"))
+    end function
+
+    @it("returns true and cancels list scrolling if key is for list")
+    @params("up")
+    @params("down")
+    function _(key)
+      m.expectCalled(m.list.itemScroller.cancelScrolling())
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertTrue(m.list.onLongPressFinish(key))
+    end function
+
+    @it("returns true and cancels row move if key is for row")
+    @params("rewind")
+    @params("fastforward")
+    @params("left")
+    @params("right")
+    function _(key)
+      row = { "id": "row" }
+
+      m.expectNotCalled(m.list.itemScroller.cancelScrolling)
+      m.expectCalled(m.list.getFocusedRow(), row)
+      m.expectCalled(row@.cancelMove(false))
+
+      m.assertTrue(m.list.onLongPressFinish(key))
+    end function
+
+    @it("returns false if key is not for the list or for the row")
+    @params("play")
+    @params("options")
+    @params("back")
+    function _(key)
+      m.expectNotCalled(m.list.itemScroller.cancelScrolling)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertFalse(m.list.onLongPressFinish(key))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onGainedFocus")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets called when list gains focus")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
+      m.list.onGainedFocus(true)
+      m.assertFalse(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onLostFocus")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if isChildFocused is true")
+    function _()
+      m.list.top.isChildFocused = true
+      m.expectNotCalled(m.list.focusIndicatorManager@.setFocusedOnRow())
+      m.list.onLostFocus()
+    end function
+
+    @it("removes focus from the row")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isChildFocused = false
+
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(false))
+
+      m.list.onLostFocus()
+
+      m.assertTrue(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onChildLostFocus")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets focus on row if isChildFocused is true")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isChildFocused = true
+
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
+
+      m.list.onChildLostFocus()
+
+      m.assertFalse(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    @it("removes focus from row if isChildFocused is false")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isChildFocused = false
+
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(false))
+
+      m.list.onChildLostFocus()
+
+      m.assertTrue(m.list.focusIndicatorManager.isHidden)
+    end function
+
   end class
 end namespace
 
