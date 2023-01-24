@@ -76,6 +76,14 @@ namespace ml
 
     function onContentItemsChange() as ml.ListChangeResult
       m.log.verbose(" ROW ", mc.dv(m.top), " CHANGES: ")
+      if m.content = invalid
+        m.log.error("content was invalid on row, during onContentItemsChange: investigate this case", mc.dv(m.top))
+        return {
+          isLayoutRequired: false
+          isFocusChangeRequired: false
+        }
+      end if
+
       m.log.info("This content has changed in some way")
       changes = m.content.changes
       if changes <> invalid and changes.count() > 0
