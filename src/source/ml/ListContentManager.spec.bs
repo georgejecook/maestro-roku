@@ -3,8 +3,6 @@ import "pkg:/source/ml/ListContentManager.bs"
 
 namespace tests
 
-  @fixme
-  @aiGenerated
   @suite("ListContentManager tests")
   class ListContentManagerTests extends tests.BaseTestSuite
 
@@ -26,129 +24,318 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("onListContentItemsChange")
+    @describe("updateRowContentInfo")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("updates content and returns true")
+    @it("does nothing if row is invalid")
     function _()
-      row = { id: "row" }
-      content = { id: "content" }
+
+      row = invalid
+      content = { "id": "content" }
       result = {
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
-      m.manager.updateRowContentInfo(row, content, result)
-      m.assertTrue(result.isLayoutRequired, "should set isLayoutRequired to true")
-      m.assertEqual(row.content, content, "should set row's content to new content")
-      m.assertEqual(m.manager.rowContentInfoByContentId[content.id], {
-        id: content.id
-        version: content.version
-        isHidden: content.isHidden
-        isFocusEnabled: content.isFocusEnabled
+      m.assertFalse(m.manager.updateRowContentInfo(row, content, result))
+    end function
+
+    @it("does nothing if row is invalid, and there is no result")
+    function _()
+      row = invalid
+      content = { "id": "content" }
+
+      m.assertFalse(m.manager.updateRowContentInfo(row, content, invalid))
+    end function
+
+    @it("returns isChanged value returned from processRowContentChanges")
+    @params(false)
+    @params(true)
+    function _(isChanged)
+      content = { "id": "content" }
+      row = { id: "row" }
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+
+      oldRowContentInfo = { "id": "oldRowContentInfo" }
+      newRowContentInfo = { "id": "newRowContentInfo" }
+
+      m.expectCalled(m.manager.getRowContentInfoForRow(row), oldRowContentInfo)
+      m.expectCalled(m.manager.removeRowContentInfo(oldRowContentInfo))
+      m.expectCalled(m.manager.getNewRowContentInfo(row, content), newRowContentInfo)
+      m.expectCalled(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result), isChanged)
+
+      m.assertEqual(m.manager.updateRowContentInfo(row, content, result), isChanged)
+
+    end function
+
+
+    @it("returns isChanged value returned from processRowContentChanges, does not crash if there is no result")
+    @params(false)
+    @params(true)
+    function _(isChanged)
+      content = { "id": "content" }
+      row = { id: "row" }
+
+      oldRowContentInfo = { "id": "oldRowContentInfo" }
+      newRowContentInfo = { "id": "newRowContentInfo" }
+
+      m.expectCalled(m.manager.getRowContentInfoForRow(row), oldRowContentInfo)
+      m.expectCalled(m.manager.removeRowContentInfo(oldRowContentInfo))
+      m.expectCalled(m.manager.getNewRowContentInfo(row, content), newRowContentInfo)
+
+      m.expectCalled(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid), isChanged)
+
+
+      m.assertEqual(m.manager.updateRowContentInfo(row, content, invalid), isChanged)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("removeRowContentInfo")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if content is invalid")
+    function _()
+
+      m.manager.rowContentInfoByContentId = {}
+      m.manager.removeRowContentInfo(invalid)
+    end function
+
+    @it("does nothing if content is not found in rowContentInfoByContentId dictionary")
+    function _()
+
+      m.manager.rowContentInfoByContentId = {
+        "other": { id: "otherContentInfo" }
+      }
+      m.manager.removeRowContentInfo({ id: "contentInfo" })
+
+      m.assertNotInvalid(m.manager.rowContentInfoByContentId["other"])
+    end function
+
+    @it("removes content info by content from rowContentInfoByContentId")
+    function _()
+      contentInfo = { id: "contentInfo" }
+      m.manager.rowContentInfoByContentId = {
+        "different": { id: "otherContentInfo" }
+        "contentInfo": contentInfo
+      }
+      m.manager.removeRowContentInfo(contentInfo)
+
+      m.assertInvalid(m.manager.rowContentInfoByContentId["contentInfo"])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getNewRowContentInfo")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if new content is invalid")
+    function _()
+      row = { "id": "row" }
+      content = invalid
+      m.manager.rowContentInfoByContentId = {}
+
+      m.manager.getNewRowContentInfo(row, content)
+
+      m.assertEmpty(m.manager.rowContentInfoByContentId)
+    end function
+
+
+    @it("returns info if content is not invalid, and stores it in rowContentInfoByContentId dictionary")
+    function _()
+      row = { "id": "row" }
+      content = {
+        id: "content"
+        version: 5
+        isHidden: false
+        isFocusEnabled: false
+      }
+      m.manager.rowContentInfoByContentId = {}
+
+      contentInfo = m.manager.getNewRowContentInfo(row, content)
+
+      m.assertEqual(m.manager.rowContentInfoByContentId["content"], contentInfo)
+
+      m.assertEqual(contentInfo, {
+        id: "content"
+        version: 5
+        isHidden: false
+        isFocusEnabled: false
         row: row
-      }, "should add new content info to rowContentInfoByContentId dictionary")
+      })
+
     end function
 
-    @it("removes content and returns true")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("processRowContentChanges")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns true if new content is not invalid, and old content is invalid")
     function _()
-      row = { id: "row" }
-      oldContent = { id: "content" }
-      row.content = oldContent
-      result = {
-        isLayoutRequired: false
-        isFocusChangeRequired: false
-      }
-      m.manager.updateRowContentInfo(row, invalid, result)
-      m.assertTrue(result.isLayoutRequired, "should set isLayoutRequired to true")
-      m.assertEqual(row.content, invalid, "should set row's content to invalid")
-      m.assertEqual(m.manager.rowContentInfoByContentId[oldContent.id], invalid, "should remove old content info from rowContentInfoByContentId dictionary")
+      oldRowContentInfo = invalid
+      newRowContentInfo = { id: "newContentInfo" }
+      result = { "id": "result" }
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result))
+
+      m.assertTrue(result.isLayoutRequired)
     end function
 
-    @it("updates content version and returns true")
+    @it("returns true if new content is not invalid, and old content is invalid, does not crash if no result is passed")
     function _()
-      row = { id: "row" }
-      oldContent = { id: "content" }
-      row.content = oldContent
-      oldContent.version = 1
-      newContent = { id: "content" }
-      newContent.version = 2
-      result = {
-        isLayoutRequired: false
-        isFocusChangeRequired: false
-      }
-      m.manager.updateRowContentInfo(row, newContent, result)
-      m.assertFalse(result.isLayoutRequired, "should not set isLayoutRequired to true")
-      m.assertEqual(row.content, newContent, "should set row's content to new content")
-      m.assertEqual(m.manager.rowContentInfoByContentId[newContent.id], {
-        id: newContent.id
-        version: newContent.version
-        isHidden: newContent.isHidden
-        isFocusEnabled: newContent.isFocusEnabled
-        row: row
-      }, "should update content info in rowContentInfoByContentId dictionary")
+      oldRowContentInfo = invalid
+      newRowContentInfo = { id: "newContentInfo" }
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid))
     end function
 
-    @it("updates hidden status and returns true")
+    @it("returns true if new content is invalid, and old content is not invalid")
     function _()
-      row = { id: "row" }
-      oldContent = { id: "oldContent" }
-      oldContent.isHidden = false
-      row.content = oldContent
-      newContent = { id: "newContent" }
-      newContent.isHidden = true
+      oldRowContentInfo = { id: "oldContentInfo" }
+      newRowContentInfo = invalid
+
       result = {
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
 
-      m.manager.updateRowContentInfo(row, newContent, result)
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result))
 
-      m.assertTrue(result.isLayoutRequired, "should set isLayoutRequired to true")
-      m.assertEqual(row.content, newContent, "should set row's content to new content")
-      m.assertEqual(m.manager.rowContentInfoByContentId[newContent.id], {
-        id: newContent.id
-        version: newContent.version
-        isHidden: newContent.isHidden
-        isFocusEnabled: newContent.isFocusEnabled
-        row: row
-      }, "should update content info in rowContentInfoByContentId dictionary")
+      m.assertTrue(result.isLayoutRequired)
     end function
 
-    @it("updates focus enabled status and returns true")
+    @it("returns true if the new content is invalid, and the old is not invalid, does not crash if no result is passed")
     function _()
-      row = { id: "row" }
-      oldContent = { id: "oldContent" }
-      oldContent.isFocusEnabled = false
-      row.content = oldContent
-      newContent = { id: "newContent" }
-      newContent.isFocusEnabled = true
+      oldRowContentInfo = { id: "oldContentInfo" }
+      newRowContentInfo = invalid
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid))
+    end function
+
+    @it("returns true old and new content 'focusEnabled' state is different")
+    @params(false, true)
+    @params(true, false)
+    function _(oldFocusEnabled, newFocusEnabled)
+      oldRowContentInfo = {
+        id: "oldContentInfo"
+        isFocusEnabled: oldFocusEnabled
+      }
+
+      newRowContentInfo = {
+        id: "newContentInfo"
+        isFocusEnabled: newFocusEnabled
+      }
+
       result = {
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
 
-      m.manager.updateRowContentInfo(row, newContent, result)
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result))
 
-      m.assertTrue(result.isFocusChangeRequired, "should set isFocusChangeRequired to true")
-      m.assertEqual(row.content, newContent, "should set row's content to new content")
-      m.assertEqual(m.manager.rowContentInfoByContentId[newContent.id], {
-        id: newContent.id
-        version: newContent.version
-        isHidden: newContent.isHidden
-        isFocusEnabled: newContent.isFocusEnabled
-        row: row
-      }, "should update content info in rowContentInfoByContentId dictionary")
+      m.assertTrue(result.isFocusChangeRequired)
     end function
 
-    @it("handles invalid row and returns false")
-    function _()
+    @it("returns true if old and new content 'focusEnabled' states are different, does not crash if no result is passed")
+    @params(false, true)
+    @params(true, false)
+    function _(oldFocusEnabled, newFocusEnabled)
+      oldRowContentInfo = {
+        id: "oldContentInfo"
+        isFocusEnabled: oldFocusEnabled
+      }
+
+      newRowContentInfo = {
+        id: "newContentInfo"
+        isFocusEnabled: newFocusEnabled
+      }
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid))
+    end function
+
+    @it("returns true if old and new content 'hidden' states are different")
+    @params(false, true)
+    @params(true, false)
+    function _(oldIsHidden, newIsHidden)
+      oldRowContentInfo = {
+        id: "oldContentInfo"
+        isHidden: oldIsHidden
+      }
+
+      newRowContentInfo = {
+        id: "newContentInfo"
+        isHidden: newIsHidden
+      }
+
       result = {
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
-      m.assertFalse(
-      m.manager.updateRowContentInfo(invalid, { id: "row" },
-      result), "should return false")
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result))
+
+      m.assertTrue(result.isLayoutRequired)
+    end function
+
+    @it("returns true if old and new content 'hidden' states are different, does not crash if no result is passed")
+    @params(false, true)
+    @params(true, false)
+    function _(oldIsHidden, newIsHidden)
+      oldRowContentInfo = {
+        id: "oldContentInfo"
+        isHidden: oldIsHidden
+      }
+
+      newRowContentInfo = {
+        id: "newContentInfo"
+        isHidden: newIsHidden
+      }
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid))
+    end function
+
+    @it("returns true old and new 'isHidden' state is equal, but their versions and ids are different")
+    @params(0, 1)
+    @params(1, 2)
+    function _(oldVersion, newVersion)
+      oldRowContentInfo = {
+        id: "oldContentInfo"
+        isHidden: false
+        version: oldVersion
+      }
+      newRowContentInfo = {
+        id: "newContentInfo"
+        isHidden: false
+        version: newVersion
+      }
+
+      result = {
+        isLayoutRequired: false
+        isFocusChangeRequired: false
+      }
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result))
+
+      m.assertFalse(result.isFocusChangeRequired)
+      m.assertFalse(result.isLayoutRequired)
+    end function
+
+    @it("returns true if old and new id and 'isHidden' state are equal, but their versions are different, does not crash if no result is passed")
+    @params(0, 1)
+    @params(1, 2)
+    function _(oldVersion, newVersion)
+      oldRowContentInfo = {
+        id: "oldContentInfo"
+        isHidden: false
+        version: oldVersion
+      }
+      newRowContentInfo = {
+        id: "newContentInfo"
+        isHidden: false
+        version: newVersion
+      }
+
+      m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid))
+
     end function
   end class
 end namespace

@@ -268,24 +268,32 @@ namespace ml
       end if
 
       isChanged = false
-      newContentInfo = invalid
-      oldRowContentInfo = invalid
+      oldRowContentInfo = m.getRowContentInfoForRow(row)
+      m.removeRowContentInfo(oldRowContentInfo)
+      newRowContentInfo = m.getNewRowContentInfo(row, content)
 
-      oldContent = row.content
-      if oldContent <> invalid
-        oldRowContentInfo = m.rowContentInfoByContentId[oldContent.id]
-        if content = invalid
-          if oldRowContentInfo <> invalid
-            m.log.verbose("updateRowContentInfo - removing old content")
-            result.isLayoutRequired = true
-            isChanged = true
-          end if
-          m.rowContentInfoByContentId.delete(oldContent.id)
-        end if
-      end if
+      isChanged = m.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result)
+      return isChanged
+    end function
 
+    private function getRowContentInfoForRow(row as mc.types.node) as ml.RowContentInfo
+      content = row.content
       if content <> invalid
-        newContentInfo = {
+        return m.rowContentInfoByContentId[content.id]
+      end if
+      return invalid
+    end function
+
+    private function removeRowContentInfo(rowContentInfo as ml.RowContentInfo)
+      if rowContentInfo <> invalid
+        m.rowContentInfoByContentId.delete(rowContentInfo.id)
+      end if
+    end function
+
+    private function getNewRowContentInfo(row as mc.types.node, content as mc.types.node) as ml.RowContentInfo
+      if content <> invalid
+        ' store pertinent info about the content a given row
+        newRowContentInfo = {
           id: content.id
           version: content.version
           isHidden: content.isHidden
@@ -293,19 +301,50 @@ namespace ml
           row: row
         }
 
-        m.rowContentInfoByContentId[content.id] = newContentInfo
+        m.rowContentInfoByContentId[content.id] = newRowContentInfo
+        return newRowContentInfo
       end if
+      return invalid
+    end function
 
-      if oldRowContentInfo <> invalid and newContentInfo <> invalid
-        isChanged = oldRowContentInfo.version <> newContentInfo.version
-        if oldRowContentInfo.isHidden <> newContentInfo.isHidden
-          m.log.verbose("updateRowContentInfo - isHidden changed")
+    private function processRowContentChanges(oldRowContentInfo as ml.ListRowContentInfo, newRowContentInfo as ml.ListRowContentInfo, result as ml.ListChangeResult) as boolean
+      isChanged = false
+      if oldRowContentInfo <> invalid and newRowContentInfo = invalid
+        m.log.verbose("updateRowContentInfo - removing old content")
+
+        isChanged = true
+        if result <> invalid
           result.isLayoutRequired = true
         end if
-        if oldRowContentInfo.isFocusEnabled <> newContentInfo.isFocusEnabled
-          m.log.verbose("updateRowContentInfo - isFocusEnabled changed")
-          result.isFocusChangeRequired = true
+      else if oldRowContentInfo = invalid and newRowContentInfo <> invalid
+        m.log.verbose("updateRowContentInfo - adding new content")
+
+        isChanged = true
+        if result <> invalid
+          result.isLayoutRequired = true
         end if
+      else if oldRowContentInfo <> invalid and newRowContentInfo <> invalid
+        m.log.verbose("updateRowContentInfo - old & newContent info not invalid. lets compare")
+
+        ' If the row is still using some Content, and we are also passing a Content. check for differences in version, which indicates changes.
+        isChanged = oldRowContentInfo.version <> newRowContentInfo.version
+        ' Check if there is a difference in the focus or hidden state
+        if oldRowContentInfo.isHidden <> newRowContentInfo.isHidden
+          ' Hidden state has changed, so the list needs laying out again.
+          m.log.verbose("updateRowContentInfo - isHidden changed")
+          if result <> invalid
+            result.isLayoutRequired = true
+          end if
+          isChanged = true
+        end if
+        ' the row has changed whether it is focusable or not
+        m.log.verbose("updateRowContentInfo - isFocusEnabled changed")
+        if oldRowContentInfo.isFocusEnabled <> newRowContentInfo.isFocusEnabled
+          if result <> invalid
+            result.isFocusChangeRequired = true
+          end if
+        end if
+        isChanged = true
       end if
 
       return isChanged

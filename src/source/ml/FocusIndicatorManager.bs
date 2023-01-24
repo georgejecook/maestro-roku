@@ -202,7 +202,6 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onIsHiddenChange(isHidden as boolean)
-      m.isHidden = isHidden
       m.log.verbose("on isHidden change ", m.isHidden, " should show ", m.shouldShowIndicator)
       if not m.manualMode
         m.focusIndicator.visible = m.shouldShowIndicator and not m.isHidden
@@ -271,11 +270,14 @@ namespace ml
       if m.nextFocusSettings = invalid or m.nextFocusSettings.feedbackStyle = "none" or m.nextConfig.isHidden
         m.log.verbose(">>> HIDE INDICATOR")
         m.rowHasIndicator = false
+        m.shouldShowIndicator = false
         m.focusIndicator.visible = false
       else if m.previousFocusSettings <> invalid and (m.previousFocusSettings.feedbackStyle = "none" or (m.previousFocusSettings.feedbackStyle <> "none" and m.previousFocusSettings.feedbackStyle <> m.nextFocusSettings.feedbackStyle))
         m.focusIndicator.visible = false
+        m.shouldShowIndicator = false
       else if m.isHidden
         m.focusIndicator.visible = false
+        m.shouldShowIndicator = false
       else
         m.rowHasIndicator = true
       end if
