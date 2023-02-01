@@ -344,7 +344,6 @@ namespace ml
         offset = 1200 'm.itemViewManager.getPositionOffsetForCellInfo(targetCellInfo, screenDirection)
         m.setFloatingOffset(offset)
         translation[m.axes] = (-targetCellInfo.getPosition(direction)) + offset
-        ' translation[m.axes] = (-targetCellInfo.getPosition(direction)) + offset
       end if
       ' ? "////// offset is "; translation[m.axes]
 
@@ -464,6 +463,16 @@ namespace ml
     function getCurrentIndexFraction(position as float)
       ' ? "OCPC " ; offset
 
+      'DACI HERE
+      'DACI HERE
+      'DACI HERE
+      'DACI HERE
+      'DACI HERE
+      'DACI HERE
+      'DACI HERE
+      'POSSIBLY NEED TO KNOW m.currentFloatingOffset and whether the offset is from the start or end
+      'DACI HERE
+      'DACI HERE
       distance = abs(m.nextScrollLocation - m.activeScrollLocation)
       currentPos = abs(m.activeScrollLocation - position)
       if distance <> 0
@@ -740,8 +749,17 @@ namespace ml
       ' ? m.__classname ; " SET NEXT COMPONENT INFO " ; info.index ; " IFF "; m.isLastMoveFlowFocus
 
       if info.index <> m.nextIndex
+        'DACI
+        'DACI
+        'DACI
+        'DACI
+        'DACI
+        'DACI
+        'DEBUG HERE TOO - I suspect the scroll location is wrong and it can't correctly calculate what index is focused
+        'when it's doing animation updates..
+        'this cause it to render all the wrong cells.
         m.nextIndex = info.index
-        m.nextScrollLocation = -info.getPosition(m.direction)
+        m.nextScrollLocation = -info.getPosition(m.direction) - m.currentFloatingOffset
         if not m.isLastMoveFlowFocus
           m.nextScreenPos = info.getScreenPosition(m.direction)
         end if
