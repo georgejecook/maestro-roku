@@ -249,8 +249,13 @@ namespace ml
     '++ Movement Machinery
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    ' screenDirection "default" = < make the item position the left position
+    ' screenDirection "start" = < make the item position the left position
+    ' screenDirection "middle" = < make the item position the middle
+    ' screenDirection "end" = < make the item position the right position
+
     ' move to the Virtual Index
-    function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean) as boolean
+    function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean, screenDirection = "default" as integer) as boolean
       'm.log.increaseIndent("MOVE TO INDEX")
 
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
@@ -327,9 +332,20 @@ namespace ml
 
       translation = m.container.translation
 
-      translation[m.axes] = (-targetCellInfo.getPosition(direction))
-      'TODO - need to get a different position if we are in floating focus!
-      ' translation[m.axes] = (-targetCellInfo.getScrollOffset(direction))
+      if m.viewManager.row <> invalid
+        'hack for wrapper
+        screenDirection = direction = 1 ? "end": "start"
+      end if
+
+      if screenDirection = "default" or screenDirection = "start"
+        m.setFloatingOffset(0)
+        translation[m.axes] = (-targetCellInfo.getPosition(direction))
+      else if screenDirection = "middle" or screenDirection = "end"
+        offset = 1200 'm.itemViewManager.getPositionOffsetForCellInfo(targetCellInfo, screenDirection)
+        m.setFloatingOffset(offset)
+        translation[m.axes] = (-targetCellInfo.getPosition(direction)) + offset
+        ' translation[m.axes] = (-targetCellInfo.getPosition(direction)) + offset
+      end if
       ' ? "////// offset is "; translation[m.axes]
 
       ' ? " MTI EE"
@@ -369,6 +385,12 @@ namespace ml
 
       'm.log.decreaseIndent()
       return true
+    end function
+
+    private currentFloatingOffset = 0
+
+    private function setFloatingOffset(offset as float)
+      m.currentFloatingOffset = offset
     end function
 
     private fractionWhenFinishBegan = 0
