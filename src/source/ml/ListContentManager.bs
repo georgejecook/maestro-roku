@@ -337,14 +337,15 @@ namespace ml
           end if
           isChanged = true
         end if
-        ' the row has changed whether it is focusable or not
-        m.log.verbose("updateRowContentInfo - isFocusEnabled changed")
+
         if oldRowContentInfo.isFocusEnabled <> newRowContentInfo.isFocusEnabled
+          ' the row has changed whether it is focusable or not
+          m.log.verbose("updateRowContentInfo - isFocusEnabled changed")
           if result <> invalid
             result.isFocusChangeRequired = true
           end if
+          isChanged = true
         end if
-        isChanged = true
       end if
 
       return isChanged
