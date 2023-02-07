@@ -57,9 +57,11 @@ namespace ml
     protected override function setCellInfo(info as ml.CellInfo)
       isSubRowChanged = m.cellInfo = invalid or info.componentIndex <> m.cellInfo.componentIndex
 
-      m.log.info(">>>>>>>>>> SCI ")
+      m.log.verbose(">>>>>>>>>> SCI ")
       'FIXME check this..
       if isSubRowChanged and m.cellInfo <> invalid and m.cellInfo.component <> invalid
+        m.log.verbose("CANCEL SCROLLING FROM LIST")
+
         m.cellInfo.component@.cancelMove(true)
       end if
 
@@ -154,6 +156,7 @@ namespace ml
 
     override function onViewManagerUpdate()
       super.onViewManagerUpdate()
+      ? ">>>>>>>>>>>> ON VIEW MANAGER UPDATE"
       m.viewManager.recalculateCellInfos()
     end function
   end class

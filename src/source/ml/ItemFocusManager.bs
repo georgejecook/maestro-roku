@@ -259,6 +259,14 @@ namespace ml
         end if
 
         event.isRowEvent = config.isRowEvent
+
+        if event.rowIndex = -1
+          m.log.warn("List event will not send for corrupt row index (-1)")
+
+          event.isSendingCell = false
+          event.isSendingRow = false
+          event.isRowEvent = false
+        end if
       else
         event.index = -1
         event.rowIndex = -1

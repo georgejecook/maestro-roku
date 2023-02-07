@@ -67,7 +67,8 @@ namespace ml
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
 
-      m.log.verbose(">>> LIST CREATE RENDERERS ")
+      m.owner._isRenderingUpdate = true
+      m.log.verbose(">>> LIST CREATE RENDERERS _isRenderingUpdate", mc.dv(m.owner), m.owner._isRenderingUpdate)
       m.visibleComponents = []
       m.visibleItems = []
       m.updateRects()
@@ -85,13 +86,13 @@ namespace ml
           m.batchDelay = m.listSettings.rowCreationBatchDelay
           m.owner.state = "rendering"
           isReady = false
-          m.batchTimer = m.waitAFrame(m.createRendererBatch, 0.15)
+          m.batchTimer = m.setTimeout(m.createRendererBatch, 0.15)
         else
           m.log.verbose("creating renderers in sync mode")
           m.batchSize = m.content.length
           isReady = true
+          m.createRendererBatch()
         end if
-        m.createRendererBatch()
         return isReady
       end if
       return false
@@ -99,7 +100,13 @@ namespace ml
 
     protected override function onRenderersCreated()
       super.onRenderersCreated()
-      m.log.verbose("LIST onRenderersCreated")
+      m.log.info("Renderers created on list")
+
+      if m.content <> invalid
+        m.log.verbose("BATCHING: completed", m.content.length, "rows")
+      else
+        m.log.verbose("BATCHING: completed. no rows")
+      end if
       m.tidyUpUnusedRenderers()
       if not m.isUpdating
         m.owner.state = "rendered"
@@ -109,10 +116,13 @@ namespace ml
         'TODO - update the scrolling position if it was on a removed row
         m.isUpdating = false
       end if
+      m.owner._isRenderingUpdate = false
+
+
       'INVESTIGATE THIS. MIGHT NOT BE NEEDED
-      m.recalculateCellInfos()
-      m.updateChangedItems()
-      m.restorePreviousFocus()
+      ' m.recalculateCellInfos()
+      ' m.updateChangedItems()
+      ' m.restorePreviousFocus()
     end function
 
     protected override function updateChangedItems() as void
@@ -123,21 +133,23 @@ namespace ml
       end for
     end function
 
-    private function restorePreviousFocus()
-      m.log.verbose("restoring the previous focus")
+    ' private function restorePreviousFocus()
+    '   m.log.verbose("restoring the previous focus")
 
-      m.contentManager.updateListFocus()
-    end function
+    '   m.contentManager.updateListFocus()
+    ' end function
 
     override function createRendererBatch() as void
       if m.content <> invalid
         index = 0
+        m.log.verbose("BATCHING: creating", m.creationIndex, "to", m.creationIndex + m.batchSize)
+
         for i = 0 to m.batchSize
           'm.log.increaseIndent("BEGIN CREATE ROW" + i.toStr())
           m.creationIndex++
           index = m.creationIndex
           if m.creationIndex >= m.content.length
-            m.log.verbose("finished creating batch")
+            m.log.verbose("finished creating all renderers")
 
             m.onRenderersCreated()
             'm.log.decreaseIndent()
@@ -173,7 +185,9 @@ namespace ml
           index++
         end for
         if m.creationIndex < m.content.length
-          m.waitAFrame(m.createRendererBatch, 0.15)
+          m.log.verbose("BATCHING: progress: ", m.creationIndex, "of", m.content.length, "rows")
+
+          m.setTimeout(m.createRendererBatch, 0.15)
         end if
       end if
       'm.log.decreaseIndent()
@@ -385,9 +399,9 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-      m.isUpdating = true
-      m.createRenderers(m.content)
-      m.itemScroller.processChanges(changes)
+      ' m.isUpdating = true
+      ' m.createRenderers(m.content, true)
+      ' m.itemScroller.processChanges(changes)
     end function
 
     override function isFlowFocusPossible(info as ml.CellInfo, direction as integer, activeScreenPos as integer)

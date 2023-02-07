@@ -288,7 +288,12 @@ namespace ml
           else
             m.log.error("could not find cell to release")
           end if
-        else if change.type = "clear" or change.type = "sort" or change.type = "updated"
+          'HACK
+          'HACK
+          'HACK
+          'HACK
+          'HACK
+        else if change.type = "clear" 'or change.type = "sort" or change.type = "updated"
           'we've reset the list - all renderers are going now
           for each key in m.rendereredCellInfosByIndex
             cellInfo = m.rendereredCellInfosByIndex[key]
@@ -698,22 +703,31 @@ namespace ml
         return 0
       end if
 
-      cellInfoAtOldIndex = m.getCellInfoForContentIndex(previousInfo.contentIndex)
-      if cellInfoAtOldIndex <> invalid and cellInfoAtOldIndex.id = previousInfo.id
-        newIndex = cellInfoAtOldIndex.contentIndex
-      else
-        m.log.info("the previously focused item has moved after the list changed - trying to restore it")
-        newCellInfo = m.getCellInfoForContentId(previousInfo.id)
-        if newCellInfo <> invalid
-          m.log.verbose("detected move to new list position")
-          newIndex = newCellInfo.contentIndex
+      newIndex = previousInfo.contentIndex
+
+      isFollowingContent = m.listSettings.postUpdateIndexMode = "content"
+      if isFollowingContent
+        m.log.info("Attempting to maintain focus on the same content")
+
+        cellInfoAtOldIndex = m.getCellInfoForContentIndex(previousInfo.contentIndex)
+        if cellInfoAtOldIndex <> invalid and cellInfoAtOldIndex.id = previousInfo.id
+          newIndex = cellInfoAtOldIndex.contentIndex
         else
-          newIndex = previousInfo.contentIndex
+          m.log.verbose("the previously focused item has moved after the list changed - trying to restore it")
+          newCellInfo = m.getCellInfoForContentId(previousInfo.id)
+          if newCellInfo <> invalid
+            m.log.verbose("following content to new list position")
+            newIndex = newCellInfo.contentIndex
+          else
+            m.log.verbose("Falling back to previous index")
+          end if
         end if
+      else
+        m.log.info("attempting to maintain focus on the same index")
+
       end if
 
       m.log.info("the newIndex wants to be", newIndex, "numberOfItems", m.numberOfItems)
-
       return mc.clamp(newIndex, 0, m.numberOfItems - 1)
     end function
 

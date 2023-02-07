@@ -303,18 +303,6 @@ namespace ml
       return true
     end function
 
-    function focusOnContentsNow()
-      m.log.verbose(" FOCUS  ON CONTENTS NOW ", mc.dv(m.top))
-      'bs:disable-next-line
-      if m.itemScroller <> invalid
-        'bs:disable-next-line
-        config = m.itemScroller.getFocusIndicatorConfig(m.itemScroller.cellInfo, m.itemScroller.direction, false, false)
-        'bs:disable-next-line
-        m.owner.focusIndicatorManager@.setNextFocusIndicatorConfig(config)
-        m.owner.focusIndicatorManager@.setFocusComplete(config)
-      end if
-    end function
-
     'sends a row data event back to the owning list
     protected function sendRowData(data as mc.types.assocarray)
       if m.owner <> invalid and m.owner.delegate <> invalid
