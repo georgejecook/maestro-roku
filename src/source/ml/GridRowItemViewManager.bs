@@ -153,7 +153,7 @@ namespace ml
 
     override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
-      m.previousRendereredByContentId = m.renderersByContentId
+      m.previousRendereredByContentId.append(m.renderersByContentId)
       m.renderersByContentId = {}
       return true
     end function
@@ -321,6 +321,8 @@ namespace ml
       ' ? "((((((((())))))))) GRID IS UPDATING CONTENT ITEMS"
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
       previousNumRows = m.numRows
+
+      m.printTrackingArrays()
       m.processRemovedCells(changes)
       m.forceUpdateLayout(true)
 
@@ -335,7 +337,7 @@ namespace ml
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
       end if
 
-      m.previousRendereredByContentId = m.renderersByContentId
+      m.previousRendereredByContentId.append(m.renderersByContentId)
 
       m.itemScroller.processChanges(changes)
       nextIndex = m.getIndexAfterItemUpdate(previousInfo)
@@ -462,6 +464,21 @@ namespace ml
     '     end for
     '   end for
     ' end function
+
+    private function printTrackingArrays()
+      ? "CELL INFOS"
+      mc.collections.forEach(m.cellInfos, function(c as object): print c: end function)
+      ? "==============="
+      ? "RENDERERS BY CELL INFO"
+      ? m.rendereredCellInfosByIndex
+      ? "==============="
+      ? "RENDERERS BY CONTENT ID"
+      ? m.renderersByContentId
+      ? "==============="
+      ?"PREVIOUS RENDERERS BY CONTENT ID"
+      ?m.previousRendereredByContentId
+
+    end function
 
   end class
 end namespace

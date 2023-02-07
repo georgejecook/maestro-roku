@@ -284,6 +284,21 @@ namespace ml
         if change.type = "remove"
           if change.child <> invalid
             m.log.verbose("removing cell with id", change.child.id)
+            ' if change.child.id = "12"
+            '   ' cellInfo = m.rendereredCellInfosByIndex["15"]
+            '   ' m.releaseCell(cellInfo.component)
+            '   ' cellInfo = m.rendereredCellInfosByIndex["16"]
+            '   ' m.releaseCell(cellInfo.component)
+            '   ' cellInfo = m.rendereredCellInfosByIndex["17"]
+            '   ' m.releaseCell(cellInfo.component)
+            '   ' cellInfo = m.rendereredCellInfosByIndex["18"]
+            '   ' m.releaseCell(cellInfo.component)
+            '   ' cellInfo = m.rendereredCellInfosByIndex["19"]
+            '   ' m.releaseCell(cellInfo.component)
+            '   ' cellInfo = m.rendereredCellInfosByIndex["20"]
+            '   ' m.releaseCell(cellInfo.component)
+
+            ' end if
             m.releasecell(m.renderersByContentId[change.child.id])
           else
             m.log.error("could not find cell to release")
@@ -303,17 +318,31 @@ namespace ml
       removedRenderers = []
       m.log.verbose("cleaning unused renderers")
 
-      for i = 1 to m.container.getChildCount() - 1
-        renderer = m.container.getChild(i)
+      for each id in m.renderersByContentId.keys()
+        renderer = m.renderersByContentId[id]
+        ? "PUSHING FOR REMOVAL"; id
+        ? renderer.content
         if renderer.content = invalid
           removedRenderers.push(renderer)
-        else if m.renderersByContentId[renderer.content.id] = invalid
-          removedRenderers.push(renderer)
-          renderer.content = invalid
         end if
       end for
-      m.log.verbose("Releasing", removedRenderers.count(), " renderers")
       m.componentPool@.releaseComponents(removedRenderers)
+
+
+      ' for i = 1 to m.container.getChildCount() - 1
+      '   renderer = m.container.getChild(i)
+      '   ? "RENDERER TO BE CLEANED UP"
+      '   ? renderer
+      '   ? renderer.content
+      '   if renderer.content = invalid
+      '     removedRenderers.push(renderer)
+      '   else if m.renderersByContentId[renderer.content.id] = invalid
+      '     removedRenderers.push(renderer)
+      '     renderer.content = invalid
+      '   end if
+      ' end for
+      ' m.log.verbose("Releasing", removedRenderers.count(), " renderers")
+      ' m.componentPool@.releaseComponents(removedRenderers)
     end function
 
     protected override function getCell(index as integer)
