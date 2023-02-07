@@ -1,7 +1,7 @@
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/ml/ItemViewManager.bs"
 import "pkg:/source/ml/ItemScroller.bs"
-
+import "pkg:/source/core/DebugTimer.bs"
 namespace ml
   class ViewPortEventNotifier extends mc.BaseClass
     'rendered component maps
@@ -65,7 +65,22 @@ namespace ml
 
     protected renderedIndexes = []
 
+    private pendingDirection
+    private pendingIsRowInViewport
+    private pendingForceAll
+
     function notifyViewportEvents(direction as integer, isRowInViewport as boolean, forceAll = false as boolean) as void
+      m.pendingDirection = direction
+      m.pendingIsRowInViewport = isRowInViewport
+      m.pendingForceAll = forceAll
+      m.waitAFrame(m._notifyViewportEvents)
+    end function
+    function _notifyViewportEvents() as void
+
+      direction = m.pendingDirection
+      isRowInViewport = m.pendingIsRowInViewport
+      forceAll = m.pendingForceAll
+
       m.log.verbose("notifyViewportEvents, forced?", forceAll)
 
       'for non-lists
@@ -110,6 +125,7 @@ namespace ml
           fromIndex = startIndex
           toIndex = endIndex
         end if
+        ' timer = new mc.utils.DebugTimer("NotifyViewPortEvents")
         ' ? " NVE F "; startIndex ; " TO " ; endIndex " from " fromIndex " to " toIndex
         for index = fromIndex to toIndex - 1
           isInViewPort = isRowInViewport and (startIndex <= index and index <= endIndex)
@@ -135,6 +151,7 @@ namespace ml
           cellInfo = oldRendereredCellInfosByIndex[key]
           exitEventIndexes.push(cellInfo.index)
         end for
+        ' timer.log("process")
         ' ? " NVE G"
         ' ? " >>>>>>>>>>>>>>>>>>>>> "
         ' ? "NEW"; formatJson(m.viewManager.rendereredCellInfosByIndex.keys())
@@ -143,6 +160,7 @@ namespace ml
         ' ? " >>>>>>>>>>>>>>>>>>>>>"
         m.viewManager.notifyExitEvent(exitEventIndexes)
         m.viewManager.notifyEnterEvent(enterIndexes)
+        ' timer.log("RUN CALLS")
         if m.renderStrategy = "all"
           m.isAllRendered = true
         end if

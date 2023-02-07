@@ -7,6 +7,7 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/ml/CellInfo.bs"
 import "pkg:/source/ml/ViewPortEventNotifier.bs"
 import "pkg:/source/ml/FocusIndicatorConfig.bs"
+import "pkg:/source/core/DebugTimer.bs"
 
 namespace ml
   class ItemScroller extends mc.BaseClass
@@ -470,7 +471,9 @@ namespace ml
       return fraction
     end function
 
+    private animFrequency = 0
     function onAnimationFractionChange(fraction as float) as void
+      ' debugTimer = new mc.utils.DebugTimer("onAnimationFractionChange")
       ' ? ">>>+>>>+ OAFC "; fraction ; " imm "; m.isMovingMultiple ; " TCI " ; mc.getPath(m.targetCellInfo, "index") ; " NCI " ;m.cellInfo.index
       if fraction = 1 and not m.isMovingMultiple
         ' ? ">>>+>>>+ FINISHED REGULAR ANIM AT NEXT INDEX " ; m.nextIndex
@@ -478,6 +481,7 @@ namespace ml
 
         ' m.updateSrollOffsetFraction(1)
         m.finishMovingToIndex()
+        ' debugTimer.log("finishMovingToIndex")
       else if m.isMovingMultiple
 
         if fraction = 1
@@ -487,10 +491,17 @@ namespace ml
           m.finishMovingToIndex()
         else
 
+          ' m.animFrequency++
+          ' if m.animFrequency < 2
+          '   ? " SKIP ANIM UPDATE"
+          '   return
+          ' end if
+          ' m.animFrequency = 0
           f = mc.clamp(m.getCurrentIndexFraction(m.container.translation[m.axes]), 0, 1)
 
           ' ? "+>>>+>>>>+ DDDDD " ; f ; " I "; m.index ; " ni "; m.nextIndex ; " NSL " ; m.nextScrollLocation ; "ASL" ; m.activeScrollLocation
           m.updateSrollOffsetFraction(f)
+          ' debugTimer.log("updateSrollOffsetFraction")
           if f >= 1
             ' ? ">>>>>>>>>>>>>>>>>>>>>>>>>>"
             ' ? " SET NEXT FOCUS INDEX "; m.nextIndex ; " " ; m.isScrollCancelled
@@ -505,6 +516,7 @@ namespace ml
             m.focusManager@.onFocusAnimationUpdate(f)
           end if
         end if
+        ' debugTimer.log("finish updating")
       else
         'simple one keypress case
         m.updateSrollOffsetFraction(fraction)
@@ -514,6 +526,7 @@ namespace ml
         m.focusManager@.onFocusAnimationUpdate(fraction)
       end if
 
+      ' debugTimer.log("finish")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -800,10 +813,24 @@ namespace ml
 
       if notifyFocusManager
         m.log.verbose("==== FROM setFocusIndex ")
-        m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
+        ' m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
+        m._setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
       end if
     end function
 
+    private pendingCellInfo
+    private pendingNextCellInfo
+    private pendingDirection
+    private pendingIsFloatingFocus
+    private function _setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
+      m.pendingCellInfo = cellInfo
+      m.pendingNextCellInfo = nextCellInfo
+      m.pendingDirection = direction
+      m.pendingIsFloatingFocus = isFloatingFocus
+      m.waitAFrame(function()
+        m.setFocusManagerInfo(m.pendingCellInfo, m.pendingNextCellInfo, m.pendingDirection, m.pendingIsFloatingFocus)
+      end function)
+    end function
     protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       'bs:disable-next-line
       isInViewPort = m.viewManager.row = invalid or m.viewManager.row.isInViewPort
