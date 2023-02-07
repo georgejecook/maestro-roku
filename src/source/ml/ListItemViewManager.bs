@@ -109,12 +109,14 @@ namespace ml
         'TODO - update the scrolling position if it was on a removed row
         m.isUpdating = false
       end if
+      'INVESTIGATE THIS. MIGHT NOT BE NEEDED
       m.recalculateCellInfos()
       m.updateChangedItems()
       m.restorePreviousFocus()
     end function
 
-    protected override function updateChangedItems()
+    protected override function updateChangedItems() as void
+      'INVESTIGATE THIS. MIGHT NOT BE NEEDED
       for each component in m.reusedRenderers
         'TODO - could consider optimizing further here by allowing rows to indicate they need updating
         component@.updateChangedItems()

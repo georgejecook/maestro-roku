@@ -110,8 +110,8 @@ class ListScreen extends mv.BaseScreen
     rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     showHero = true
 
-    useComplexRow = false
-    useGrids = false
+    useComplexRow = true
+    useGrids = true
 
     'TODO - add normal rows around this
     ' for i = 0 to 1
@@ -124,7 +124,7 @@ class ListScreen extends mv.BaseScreen
         if i <> 10
           row0FocusSettings.feedbackStyle = "none"
         end if
-        cellSettings = ml.listMixin.createCellSettings("HeroCell", [1100, 700], 30)
+        cellSettings = ml.listMixin.createCellSettings("HeroCellEfficient", [1100, 700], 30)
         row.settings = ml.listMixin.createRowSettings(cellSettings, row0FocusSettings)
         row.settings.headerSettings.position = "none"
         row.settings.contentOffset = [400, -30]
@@ -132,7 +132,7 @@ class ListScreen extends mv.BaseScreen
         row.settings.screenPos = -1
       else if useComplexRow and (i = 3 or i = 8 or i = 14)
         complexFocusSettings = ml.listMixin.createFocusSettings(m.scrollSpeed)
-        row.settings = ml.listMixin.createCustomRowSettings("ComplexRow", 700)
+        row.settings = ml.listMixin.createCustomRowSettings("ComplexRowEfficient", 700)
 
       else if useGrids and (i = 2 or i = 3 or i = 4 or i = 6 or i = 9)
         gridFocusSettings = ml.listMixin.createFocusSettings("floating", [0, 0, 0, 0])

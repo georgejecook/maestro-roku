@@ -1,0 +1,49 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/RowItemScroller.bs"
+import "pkg:/source/ml/RowItemViewManager.bs"
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/ml/cells/BaseCell.bs"
+
+namespace cells
+  @node("RowListCellForMaestroList", "ml_BaseCell")
+  class RowListCellForMaestroList extends ml.BaseCell
+    public trackingId = ""
+
+    'view elements
+    private poster
+    private label
+    private bgRect
+    private rectangle
+    private posterSize = [480.0, 320.0]
+    private lastContent = invalid
+    function new()
+      super()
+    end function
+
+    protected override function onShowWithContent(content as mc.types.node)
+      m.poster.uri = content.HDGRIDPOSTERURL
+      ' m.label.text = content.title
+    end function
+
+    protected override function createViews() as void
+      ' scaleRotateCenter: [0, m.posterSize[1]]
+      m.bgRect = mc.createSGNode("mv_Rectangle", m.top, "bgRect", {
+        size: m.posterSize
+        color: "#2222aa"
+      })
+      m.poster = mc.createSGNode("mv_Poster", m.top, "poster", {
+        translation: [0, 0]
+        scaleRotateCenter: [0, 0]
+        loadingBitmapUri: "http://via.placeholder.com/370x300"
+        failedBitmapUri: "http://via.placeholder.com/370x300"
+        uri: "http://via.placeholder.com/370x300"
+        loadWidth: m.posterSize[0]
+        loadHeight: m.posterSize[1]
+        size: m.posterSize
+        loadDisplayMode: "scaleToFit"
+      })
+    end function
+
+  end class
+end namespace
