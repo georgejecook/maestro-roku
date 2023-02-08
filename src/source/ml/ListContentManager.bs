@@ -47,7 +47,7 @@ namespace ml
         m.content = content
         m.listNode.content = content
         m.list.cleanup()
-        ? " LCM RENDERING SET CONTENT INVALID"
+        ' ? " LCM RENDERING SET CONTENT INVALID"
         m.setListRendering(false)
         return
       end if
@@ -82,7 +82,7 @@ namespace ml
         return
       end if
 
-      ? " LCM RENDERING SYNC CONTENT"
+      ' ? " LCM RENDERING SYNC CONTENT"
       m.setListRendering(true)
 
       m.focusIndicatorManager@.setEnabled(false)
@@ -343,6 +343,7 @@ namespace ml
       m.log.decreaseIndent()
 
       m.log.increaseIndent("COMPLETE")
+      ' ? " EXECUTE LIST FOCUS"
       m.itemScroller.setFocusManagerInfo(m.itemScroller.cellInfo, m.itemScroller.nextCellInfo, m.itemScroller.direction, false)
 
       m.focusIndicatorManager@.completeFocusNow(true)
@@ -569,6 +570,7 @@ namespace ml
 
     private function setListRendering(rendering as boolean)
       m.log.info("setting listRendering to", rendering)
+      ' ? " SETTING CONTENT RENDERING!!!! " rendering
       m.focusIndicatorManager._isContentUpdating = rendering
       if not rendering and not m.list.contentGroup.visible
         m.list.contentGroup.visible = true

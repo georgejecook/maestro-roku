@@ -4,6 +4,7 @@ namespace ml
 
   class ListDelegateManager extends mc.BaseClass
     public listDelegate as mc.types.node
+    public isActive = true
     public isNotifyingListDelegate = true
 
     private list as mc.types.node
@@ -40,6 +41,11 @@ namespace ml
     end function
 
     function callCellDelegateMethod(eventName as string, event as mc.types.assocarray) as void
+      if not m.isActive
+        m.log.info(" ****** DELEGATE MANAGER NOT ACTIVE ********")
+        ' ? " *********************** DELEGATE MANAGER NOT ACTIVE"
+        return
+      end if
       delegateFunctionName = m.cellDelegateFunctionMap[eventName]
       cellFunctionName = m.componentFunctionMap[eventName]
       if delegateFunctionName = invalid
@@ -76,6 +82,12 @@ namespace ml
     end function
 
     function callRowDelegateMethod(eventName as string, event as mc.types.assocarray) as void
+      if not m.isActive
+        m.log.info(" ****** DELEGATE MANAGER NOT ACTIVE ********")
+        ' ? " *********************** DELEGATE MANAGER NOT ACTIVE"
+        return
+      end if
+
       delegateFunctionName = m.rowDelegateFunctionMap[eventName]
       rowFunctionName = m.componentFunctionMap[eventName]
       if delegateFunctionName = invalid
@@ -116,6 +128,10 @@ namespace ml
 
     function callCellDelegateMethodOnList(eventName as string, event as mc.types.assocarray) as void
       delegateFunctionName = m.cellDelegateFunctionMap[eventName]
+      if m.listDelegate = invalid
+        return
+      end if
+
       if delegateFunctionName = invalid
         m.log.error("Unknown cell event ", eventName)
         return
@@ -134,6 +150,10 @@ namespace ml
 
     function callRowDelegateMethodOnList(eventName as string, event as mc.types.assocarray) as void
       delegateFunctionName = m.rowDelegateFunctionMap[eventName]
+      if m.listDelegate = invalid
+        return
+      end if
+
       if delegateFunctionName = invalid
         m.log.error("Unknown row event ", eventName)
         return

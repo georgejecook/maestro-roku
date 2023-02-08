@@ -208,6 +208,7 @@ namespace ml.sample
 
       ? "un-follow ", team.title " ID " team.id
 
+
       m.teamsModule@.setNotificationsEnabled(false)
       m.followingModule@.setNotificationsEnabled(false)
 
@@ -218,6 +219,9 @@ namespace ml.sample
       m.teamsModule@.setNotificationsEnabled(true)
       m.followingModule@.setNotificationsEnabled(true)
       m.list@.synchronizeContent()
+      if m.followingModule.length = 0
+        m.list@.moveToRowItemIndex(2, 0)
+      end if
     end function
 
     private function selectFavorite()
@@ -256,12 +260,9 @@ namespace ml.sample
       m.list@.synchronizeContent()
       ? "followingModule : ", m.followingModule.length
       ? "teamsModule : ", m.teamsModule.length
-      ' if m.teamsModule.isHidden
-      '   ? " TEAMS IS HIDDEN"
-      '   m.list@.moveToIndex([1, 0])
-      ' end if
-      ' m.list@.moveToIndex([2, index])
-
+      if m.teamsModule.length = 0
+        m.list@.moveToRowItemIndex(1, 0)
+      end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -373,6 +374,16 @@ namespace ml.sample
       '   row = m.list@.getRowRenderer(event.rowIndex)
       '   row.opacity = 1 - event.fraction
       ' end if
+    end function
+
+    private nextIndex = 0
+    private function onKeyPressPlay() as boolean
+
+      m.nextIndex = m.nextIndex = 0 ? 1 : 0
+      m.log.info("move to INDEX", m.nextIndex)
+
+      m.list@.moveToRowItemIndex(2, m.nextIndex, false)
+      return true
     end function
 
   end class
