@@ -169,12 +169,12 @@ namespace ml
       m.log.info("list is now focused on", formatJson(newIndices))
 
 
-      m.notifyFocusChangesAfterUpdate()
+      m.notifyDelegatesIfRequired()
       m.log.decreaseIndent()
     end function
 
 
-    private function notifyFocusChangesAfterUpdate()
+    private function notifyDelegatesIfRequired()
       'FIXME - Im' sure the ItemFocusManager could be used here..
       focusedRowIndex = m.listNode.focusedRowIndex
       focusedCellIndex = m.listNode.focusedCellIndex
@@ -278,6 +278,15 @@ namespace ml
         rowIndex = m.viewManager.getIndexAfterItemUpdate(m.previousFocusedRowInfo)
         newRowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
         if newRowInfo <> invalid
+          content = m.content@.getChild(rowIndex)
+          if content.isHidden or not content.isFocusEnabled
+            m.log.verbose("chosen content is no longer focusable")
+            rowIndex = m.getValidRowIndexAfter(rowIndex)
+            m.log.verbose("next which is focusable, is at index", rowIndex)
+            newRowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
+          end if
+        end if
+        if newRowInfo <> invalid
           row = newRowInfo.component
           rowIndex = newRowInfo.contentIndex
           if m.previousFocusedRowInfo.id <> newRowInfo.id
@@ -301,6 +310,26 @@ namespace ml
       end if
 
       return [rowIndex, cellIndex]
+    end function
+
+    private function getValidRowIndexAfter(rowIndex as integer) as integer
+      'first go forwards
+      for i = rowIndex + 1 to m.content.length - 1
+        row = m.content@.getChild(i)
+        if not row.isHidden and row.isFocusEnabled
+          m.log.verbose("valid row index after", rowIndex, i)
+          return rowIndex
+        end if
+      end for
+
+      for i = rowIndex - 1 to 0 step -1
+        row = m.content@.getChild(i)
+        if not row.isHidden and row.isFocusEnabled
+          m.log.verbose("valid row index after", rowIndex, i)
+          return rowIndex
+        end if
+      end for
+      return -1
     end function
 
     private function executeListFocus(rowIndex as integer, cellIndex as integer)
