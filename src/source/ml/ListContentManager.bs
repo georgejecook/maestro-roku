@@ -38,9 +38,6 @@ namespace ml
 
     public function setContent(content as mc.types.node) as void
 
-      ? " LCM RENDERING SET CONTENT "
-
-
       if content = invalid
         m.log.info("listContent set to invalid. Resetting list")
         content = ml.listMixin.createListContent()
@@ -52,6 +49,8 @@ namespace ml
         m.setListRendering(false)
         return
       end if
+
+      m.list.contentGroup.visible = false
 
       m.setListRendering(true)
       previousContent = m.content
@@ -111,23 +110,33 @@ namespace ml
       end for
 
       'm.log.increaseIndent("list changes are")
-      mc.collections.forEach(m.content.changes, function(item as object): m.log.verbose(item): end function)
+      ' mc.collections.forEach(m.content.changes, function(item as object): m.log.verbose(item): end function)
       'm.log.decreaseIndent()
 
-      if m.content.changes.count() > 0
-        'm.log.increaseIndent("listHasChanges")
-        m.log.verbose("LIST CONTENT IS CHANGED ")
-        m.onListContentItemsChange(m.content.changes)
-        listResult.isFocusChangeRequired = true
-        'm.log.decreaseIndent()
-      end if
+      ' if m.content.changes.count() > 0
+      '   'm.log.increaseIndent("listHasChanges")
+      '   m.log.verbose("LIST CONTENT IS CHANGED ")
+      '   m.onListContentItemsChange(m.content.changes)
+      '   listResult.isFocusChangeRequired = true
+      '   'm.log.decreaseIndent()
+      ' end if
 
+      listResult.isLayoutRequired = m.isListLayoutRequired(m.content.changes)
+      if listResult.isLayoutRequired
+        listResult.isFocusChangeRequired = true
+      end if
       m.updateListContentIfRequired(listResult)
 
       m.updateListFocus()
 
       'm.log.decreaseIndent()
       m.log.resetIndent()
+    end function
+
+    private function isListLayoutRequired(changes as mc.types.node) as boolean
+      m.log.info("ascertaining if layout updates are required")
+
+      return true
     end function
 
     private function updateListFocus() as void
@@ -409,13 +418,21 @@ namespace ml
       if currentFocusSettings <> invalid
         m.log.verbose(" current focus settings ", currentFocusSettings.rowIndex, " ICI ", currentFocusSettings.cellIndex)
       end if
+
       m.log.verbose(" RI ", m.listNode.focusedRowIndex, " CI ", m.listNode.focusedCellIndex)
       if result.isLayoutRequired
+        m.focusIndicatorManager@.cancelFlowFocus()
+        m.viewManager.isScrolling = false
+        m.itemScroller.isDoingFlowFocus = false
+
         m.log.info("the list needs to update it's layout as a result of these changes")
         'm.log.increaseIndent()
+        m.viewManager.isUpdating = true
+        m.viewManager.createRenderers(m.content, true)
         m.viewManager.forceUpdateLayout(false)
+        m.itemScroller.reset(false)
 
-        m.itemScroller.processChanges([])
+        ' m.itemScroller.processChanges([])
 
         'this move allows us to render anything, and clean up renderers
         m.list.moveToRowItemIndex(m.listNode.focusedRowIndex, m.listNode.focusedCellIndex, false)
@@ -428,6 +445,9 @@ namespace ml
     private function setListRendering(rendering as boolean)
       m.log.info("setting listRendering to", rendering)
       m.focusIndicatorManager._isContentUpdating = rendering
+      if not rendering and not m.list.contentGroup.visible
+        m.list.contentGroup.visible = true
+      end if
     end function
 
   end class

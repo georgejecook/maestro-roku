@@ -125,13 +125,13 @@ namespace ml
       ' m.restorePreviousFocus()
     end function
 
-    protected override function updateChangedItems() as void
-      'INVESTIGATE THIS. MIGHT NOT BE NEEDED
-      for each component in m.reusedRenderers
-        'TODO - could consider optimizing further here by allowing rows to indicate they need updating
-        component@.updateChangedItems()
-      end for
-    end function
+    ' protected override function updateChangedItems() as void
+    '   'INVESTIGATE THIS. MIGHT NOT BE NEEDED
+    '   for each component in m.reusedRenderers
+    '     'TODO - could consider optimizing further here by allowing rows to indicate they need updating
+    '     component@.updateChangedItems()
+    '   end for
+    ' end function
 
     ' private function restorePreviousFocus()
     '   m.log.verbose("restoring the previous focus")
@@ -399,8 +399,8 @@ namespace ml
 
     protected override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
-      ' m.isUpdating = true
-      ' m.createRenderers(m.content, true)
+      m.isUpdating = true
+      m.createRenderers(m.content, true)
       ' m.itemScroller.processChanges(changes)
     end function
 

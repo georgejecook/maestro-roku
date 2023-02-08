@@ -419,31 +419,6 @@ namespace ml
       end if
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Internal api
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function _onContentItemChange(changes as mc.types.array)
-      ' ? "______________________________ _onContentItemChange" ; m.__classname
-      ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
-      '   return c.type
-      ' end function))
-      m.log.verbose(" LIVM _onContentItemChange")
-      m.viewManager.forceUpdateLayout()
-
-      'TODO - need to ensure that the current focus and scroll position is valid after an update!
-      m.itemScroller.processChanges(changes)
-      '// cspell:disable-next-line
-      ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
-      ' m.moveToRow(m.itemScroller.index, false)
-      ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
-      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
-
-      if m.top.isChildFocused or m.top.isFocused
-        m.focusIndicatorManager@.setFocusedOnRow(true)
-      end if
-    end function
-
     function _setIndices(focusedRowIndex as integer, focusedCellIndex as integer)
       m.log.info("setting list indices", focusedRowIndex, ",", focusedCellIndex)
       m.focusedRowIndex = focusedRowIndex

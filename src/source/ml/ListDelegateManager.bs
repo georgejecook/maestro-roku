@@ -6,6 +6,7 @@ namespace ml
     public listDelegate as mc.types.node
     public isNotifyingListDelegate = true
 
+    private list as mc.types.node
     private cellDelegateFunctionMap = {
       "willGainFocus": "onCellWillGainFocus"
       "willLoseFocus": "onCellWillLoseFocus"
@@ -33,8 +34,9 @@ namespace ml
     }
 
 
-    function new()
+    function new(list as mc.types.node)
       super("ListDelegateManager")
+      m.list = list
     end function
 
     function callCellDelegateMethod(eventName as string, event as mc.types.assocarray) as void
