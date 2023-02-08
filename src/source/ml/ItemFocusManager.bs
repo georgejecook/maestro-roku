@@ -46,8 +46,14 @@ namespace ml
       super("ItemFocusManager")
       m.name = name
       m.focusIndicatorManager = focusIndicatorManager
-      m.fromEvent = {}
-      m.toEvent = {}
+      m.fromEvent = {
+        isSendingCell: false
+        isSendingRow: false
+      }
+      m.toEvent = {
+        isSendingRow: false
+        isSendingCell: false
+      }
     end function
 
 
@@ -67,12 +73,15 @@ namespace ml
 
       m.lastSentFraction = -1
       m.direction = 0
+      ' ? " RESET H ERE HERE HE"
       m.didStart = false
       m.didFinish = false
       m.configureDelegateEvent(m.fromEvent, m.previousFocusIndicatorConfig)
       m.configureDelegateEvent(m.toEvent, m.focusIndicatorConfig)
       m.configureSentEventTypes()
 
+      ' ? "+++ FROM EVENT " m.fromEvent.index
+      ' ? "+++ TO EVENT " m.toEvent.index
       if m.fromEvent.cell <> invalid
         m.delegateManager.callCellDelegateMethod("didLoseFocus", m.fromEvent)
       end if
@@ -86,6 +95,7 @@ namespace ml
 
     function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
 
+      ' ? " SET NEXT INDICATOR CONFIG"
       if focusIndicatorConfig = invalid
         m.log.error("received invalid config")
         return
@@ -100,7 +110,6 @@ namespace ml
       m._setNextFocusIndicatorConfig(focusIndicatorConfig)
       m.onFocusUpdate(0)
     end function
-
 
     function completeFocusNow()
       m.onFocusAnimationUpdate(1)
@@ -122,6 +131,7 @@ namespace ml
       m.lastSentFraction = -1
       m.focusIndicatorConfig = focusIndicatorConfig
       m.direction = m.focusIndicatorConfig.direction
+      ' ? "_setNextFocusIndicatorConfig HERE HER HERE"
       m.didStart = false
       m.didFinish = false
 
@@ -164,12 +174,15 @@ namespace ml
 
     private function isSameConfig(newConfig as ml.FocusIndicatorConfig)
       if m.focusIndicatorConfig = invalid or newConfig = invalid
+        ' ? " >>>>>>>>>> INVALID CONFIG m.focusIndicatorConfig " m.focusIndicatorConfig " NEw " newConfig
         return false
       end if
       return m.focusIndicatorConfig.rowIndex = newConfig.rowIndex and m.focusIndicatorConfig.cellIndex = newConfig.cellIndex and m.focusIndicatorConfig.direction = newConfig.direction
     end function
 
     private function onFocusUpdate(fraction as float) as void
+      ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifyingListDelegate " ; m.isNotifyingListDelegate ; fraction
+
       if fraction = 1 or fraction = 0
         ' ? "+++ onFocusUpdate(" ; m.name ; ") didStart "; m.didStart ; " isNotifyingListDelegate " ; m.isNotifyingListDelegate ; fraction
       end if
@@ -177,11 +190,12 @@ namespace ml
         return
       end if
       if m.focusIndicatorConfig = invalid
-        ? " no focus config"
+        ' ? " no focus config"
         return
       end if
 
       if not m.didStart
+        ' ? " >>>> SENDING WILL LOSE WILL GAIN"
         name = "willLoseFocus"
         nextName = "willGainFocus"
         m.didStart = true

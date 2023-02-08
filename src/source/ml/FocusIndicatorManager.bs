@@ -132,24 +132,29 @@ namespace ml
 
     public function setNextFocusIndicatorConfig(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
 
+      ' ? " SNIC 111"
       if not m.isActive()
         return
       end if
 
       m.log.verbose("setNextFocusIndicatorConfig ")
+      ' ? " SNIC 222"
       if focusIndicatorConfig <> invalid
         m.log.verbose("[[ Next FIC is: R:", focusIndicatorConfig.rowIndex, " C:", focusIndicatorConfig.cellIndex, " ROW:", mc.dv(focusIndicatorConfig.row), " CELL:", mc.dv(focusIndicatorConfig.cell))
       else
         m.log.verbose(" next config INVALID ")
       end if
+      ' ? " SNIC 333"
 
       if m.isSameConfig(focusIndicatorConfig)
         m.log.verbose(" is same")
+        ' ? " SNIC 444"
         return
       end if
       m.log.verbose(" SETTING LAST MOVE FRACTION 0 SET NEXT ")
       m.lastMoveFraction = 0
       m.preprareNextFocusConfig(focusIndicatorConfig)
+      ' ? " SNIC 555"
       m.itemFocusManager.setNextFocusIndicatorConfig(focusIndicatorConfig)
     end function
 
@@ -195,9 +200,22 @@ namespace ml
       m.itemFocusManager.isNotifyingListDelegate = listDelegateEnabled
     end function
 
+    function setDelegateManagerEnabled(enabled as boolean)
+      m.log.info("setting delegateManager notifier enabled to", enabled)
+      m.itemFocusManager.delegateManager.isActive = enabled
+    end function
+
     function reset()
       m.log.info("resetting item focus manager, so that it can get all it's delegates in the right state")
       m.itemFocusManager.reset()
+    end function
+
+    function sendManualDelegateRowMessage(method as string, event as mc.types.assocarray)
+      m.itemFocusManager.delegateManager.callRowDelegateMethodOnList(method, event)
+    end function
+
+    function sendManualDelegateCellMessage(method as string, event as mc.types.assocarray)
+      m.itemFocusManager.delegateManager.callCellDelegateMethodOnList(method, event)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

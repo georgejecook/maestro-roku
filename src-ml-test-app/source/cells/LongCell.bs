@@ -43,6 +43,7 @@ class LongCell extends ml.BaseCell
   end function
 
   protected override function onShowWithContent(content as mc.types.node)
+    ? " ON SHOW WITH CONTENT " m.index
     m.poster.uri = content.HDGRIDPOSTERURL
     m.label.text = `${m.index} ${content.title}`
     m.label.fontKey = "medium,30"
@@ -50,6 +51,7 @@ class LongCell extends ml.BaseCell
   end function
 
   protected override function onHide()
+    ? " ON HIDE " m.index
     m.label.fontKey = "medium,30"
     m.label.color = "#aaaaaa"
   end function
@@ -72,35 +74,36 @@ class LongCell extends ml.BaseCell
 
 
   private function onWillGainFocus(event as ml.ListEvent)
-    if m.index = 3
-    end if
-    ' ? "SC: onCellWillGainFocus " ; m.index ; " " ; direction
-
+    ? "LC: onCellWillGainFocus " m.index " " event.direction
   end function
 
   private function onWillLoseFocus(event as ml.ListEvent)
-    ' ? "SC: onCellWillLoseFocus " ; m.index ; " " ; direction
+    ? "LC: onCellWillLoseFocus " m.index " " event.direction
+
     m.label.fontKey = "medium,30"
     m.label.color = "#aaaaaa"
 
   end function
 
   private function onDidGainFocus(event as ml.ListEvent)
-    ' ? "SC: onCellDidGainFocus " ; m.index ; " " ; direction
+    ? "LC: onCellDidGainFocus " m.index " " event.direction
+
     m.setScale(1, true)
     m.label.fontKey = "mediumBold,40"
     m.label.color = "#ffffff"
   end function
 
   private function onDidLoseFocus(event as ml.ListEvent)
-    ' ? "SC: onCellDidLoseFocus " ; m.index ; " " ; direction
+    ? "LC: onCellDidLoseFocus " m.index " " event.direction
+
     m.label.fontKey = "medium,30"
     m.label.color = "#aaaaaa"
     m.setScale(1, false)
   end function
 
   private function onGainingFocus(event as ml.ListEvent)
-    ' ? "SC: onGainingFocus " ; m.index ; " " ; direction ; " " ; event.fraction
+    ? "LC: onGainingFocus " m.index " " event.direction " " event.fraction
+
     m.setScale(event.fraction, true)
     if event.fraction > 0.8
       m.label.fontKey = "mediumBold,40"
@@ -109,7 +112,8 @@ class LongCell extends ml.BaseCell
   end function
 
   private function onLosingFocus(event as ml.ListEvent)
-    ' ? "SC: onLosingFocus " ; m.index ; " " ; direction ; " " ; event.fraction
+    ? "LC: onLosingFocus " m.index " " event.direction " " event.fraction
+
     m.setScale(event.fraction, false)
     if event.fraction > 0.8
       m.label.fontKey = "mediumBold,30"
