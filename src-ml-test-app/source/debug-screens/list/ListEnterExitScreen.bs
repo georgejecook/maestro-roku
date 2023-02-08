@@ -350,15 +350,15 @@ class ListEnterExitScreen extends mv.BaseScreen
   private function onKeyPressOptions() as boolean
     m.log.info("remove next")
 
-    ' m.removeCell(0, 1)
-    m.removeRow(1)
+    m.removeCell(0, 1)
+    ' m.removeRow(1)
     return true
   end function
 
   private function onKeyPressReplay() as boolean
     m.log.info("remove previous")
-    ' m.removeCell(0, -1)
-    m.removeRow(-1)
+    m.removeCell(0, -1)
+    ' m.removeRow(-1)
     return true
   end function
 
@@ -429,7 +429,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowDidGainFocus(event as ml.ListEvent)
-    '? "+SCREEN onRowDidGainFocus : R: "; event.rowIndex ; "SR: "; event.subRowIndex ; " D:" ; event.direction
+    ? "+SCREEN onRowDidGainFocus : R: "; event.rowIndex ; "SR: "; event.subRowIndex ; " D:" ; event.direction
 
     row = m.list@.getRowRenderer(event.rowIndex)
     if row <> invalid
@@ -470,7 +470,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRowLosingFocus(event as ml.ListEvent)
-    ' ? "+ onRowLosingFocus : R: "; event.rowIndex ; "SR: "; event.subRowIndex ; " D:" ; event.direction ; " F: " ; event.fraction
+    ? "+SCREEN onRowLosingFocus : R: "; event.rowIndex ; "SR: "; event.subRowIndex ; " D:" ; event.direction ; " F: " ; event.fraction
     ' if event.direction = 1
     '   row = m.list@.getRowRenderer(event.rowIndex)
     '   row.opacity = 1 - event.fraction
@@ -511,7 +511,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onCellLosingFocus(event as ml.ListEvent)
-    ' ? "+ onCellLosingFocus : R: "; event.rowIndex ; " D:" ; " C " ; event.cellIndex; event.direction ; " F: " ; event.fraction
+    ? "+SCREEN onCellLosingFocus : R: "; event.rowIndex ; " D:" ; " C " ; event.cellIndex; event.direction ; " F: " ; event.fraction
     ' if event.direction = 1
     '   row = m.list@.getRowRenderer(event.rowIndex)
     '   row.opacity = 1 - event.fraction

@@ -126,15 +126,14 @@ namespace ml
       m.log.verbose("ascertaining previous focus info")
 
       m.previousFocusedRowInfo = m.itemScroller.cellInfo
-      m.previousRowContent = invalid
       m.previousCellContent = invalid
-      'TODO - look up the previous row and cell content by their ids..
+      m.previousRowContent = invalid
       if m.previousFocusedRowInfo <> invalid
-        ' m.previousRowContent = m.content@.getChild(m.previousFocusedRowInfo.index)
+        m.previousRowContent = m.list.focusedRowContent
         if m.previousFocusedRowInfo.component <> invalid
           m.previousFocusedCellInfo = m.previousFocusedRowInfo.component@.getFocusedCellInfo()
           if m.previousFocusedCellInfo <> invalid
-            ' m.previousCellContent = m.previousRowContent@.getChild(m.previousFocusedCellInfo.index)
+            m.previousCellContent = m.list.focusedCellContent
           end if
         end if
       end if
@@ -165,10 +164,54 @@ namespace ml
       m.focusIndicatorManager@.setEnabled(true)
 
       m.executeListFocus(newIndices[0], newIndices[1])
+      m.list._setIndices(newIndices[0], newIndices[1])
       ? " LCM RENDERING UPDATE LIST FOCUS"
       m.setListRendering(false)
 
+      m.notifyFocusChangesAfterUpdate()
       m.log.decreaseIndent()
+    end function
+
+
+    private function notifyFocusChangesAfterUpdate()
+      if m.didFocusChangeInWayThatNeedsNotifying()
+        m.log.verbose("Have to notify update about the focus change")
+      end if
+    end function
+
+    private function didFocusChangeInWayThatNeedsNotifying() as boolean
+      previousRowIndex = asInteger(m.previousFocusedRowInfo.index, -1)
+      previousCellIndex = asInteger(m.previousFocusedCellInfo.index, -1)
+      m.log.info("checking if the changes to focus after update, require an update in list focus state previousRowIndex", previousRowIndex, "previousCellIndex", previousCellIndex, mc.dv(m.previousRowContent), mc.dv(m.previousCellContent))
+
+      if previousRowIndex = -1
+        m.log.verbose("list never had content")
+        return true
+      end if
+
+      if (m.list.focusedRowContent = invalid) <> (m.previousRowContent = invalid)
+        m.log.verbose("list has focused row content when it did not")
+        return true
+      end if
+
+      if (m.list.focusedCellContent = invalid) <> (m.previousCellContent = invalid)
+        m.log.verbose("list has focused row content when it did not")
+        return true
+      end if
+
+      if m.list.focusedRowContent <> invalid and m.list.focusedRowContent.id <> m.previousRowContent.id
+        m.log.verbose("list is focused on a different row now")
+        return true
+      end if
+
+      if m.list.focusedCellContent <> invalid and m.list.focusedCellContent.id <> m.previousCellContent.id
+        m.log.verbose("list is focused on a different Cell")
+        return true
+      end if
+
+      m.log.info("after the updates, we're still focused on the same thing")
+
+      return false
     end function
 
     private function getIndicesAfterApplyingChanges() as mc.types.array

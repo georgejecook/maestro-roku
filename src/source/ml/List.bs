@@ -93,6 +93,9 @@ namespace ml
     private isInitialized = false
     private isDoingFlowFocus = false
 
+    private focusedRowContent as mc.types.node
+    private focusedCellContent as mc.types.node
+
     private preHiddenContent as mc.types.node
 
 
@@ -413,7 +416,7 @@ namespace ml
     function getFocusedCellContent()
       rowContent = m.getFocusedRowContent()
       if rowContent <> invalid
-        return rowContent@.getChild(m.focusedRowIndex)
+        return rowContent@.getChild(m.focusedCellIndex)
       else
         return invalid
       end if
@@ -423,6 +426,8 @@ namespace ml
       m.log.info("setting list indices", focusedRowIndex, ",", focusedCellIndex)
       m.focusedRowIndex = focusedRowIndex
       m.focusedCellIndex = focusedCellIndex
+      m.focusedRowContent = m.getFocusedRowContent()
+      m.focusedCellContent = m.getFocusedCellContent()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
