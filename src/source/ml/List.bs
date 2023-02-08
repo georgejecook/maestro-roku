@@ -327,7 +327,7 @@ namespace ml
 
     function moveToRowItemIndex(rowIndex as integer, index as integer, animated = false as boolean, animSpeedIndex = 0 as integer) as void
       ' m.log.verbose(" MTRI  ", rowIndex, index, animated)
-      'm.log.increaseIndent()
+      m.log.increaseIndent()
       if m.contentManager.content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
         ' m.log.verbose(" MTR A")
@@ -349,7 +349,7 @@ namespace ml
       if animated <> true
         m.viewManager.setIsScrolling(false, false, 0)
       end if
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
     end function
 
     function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
@@ -484,6 +484,34 @@ namespace ml
       return false
     end function
 
+    private function isOkPressAllowedNow() as boolean
+      if m.delegate = invalid
+        m.log.verbose("no delegate for long press - ignoring ok press")
+        return false
+      end if
+
+      if not m.state = "rendered"
+        m.log.info("list is not rendered - ignoring ok press")
+        return false
+      end if
+
+      if m._isRenderingUpdate
+        m.log.info("cannot interact with keys while rendering")
+        return false
+      end if
+
+      'FIXME - add ability to change of direction, mid-animation
+      isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus or m.isScrolling
+      if isScrolling
+        m.log.info("Cannot select while scrolling")
+        ' ? " CANNOT select while view is scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
+        'TODO - improve this
+        return false
+      end if
+
+      return true
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -563,20 +591,8 @@ namespace ml
     end function
 
     private function onKeyPressOk() as boolean
-      if not m.state = "rendered"
-        return false
-      end if
-      'FIXME - add ability to change of direction, mid-animation
-      isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus or m.isScrolling
-      if isScrolling
-        m.log.info("Cannot select while scrolling")
-        ' ? " CANNOT select while view is scrolling "; m.viewManager.isScrolling ; " FF " ; m.focusIndicatorManager.isDoingFlowFocus
-        'TODO - improve this
-        return true
-      end if
-
       m.log.verbose("onKeyPressOk")
-      if m.delegate <> invalid
+      if m.isOkPressAllowedNow()
         m.delegate@._apply("onItemSelected", [{
           rowIndex: m.focusedRowIndex
           cellIndex: m.focusedCellIndex
@@ -629,7 +645,7 @@ namespace ml
         return 0
       end if
 
-      if key = "OK" or m.canMoveFromKeyPress(key, true)
+      if (key = "OK" and m.isOkPressAllowedNow()) or m.canMoveFromKeyPress(key, true)
         m.log.verbose("valid long press with key", key)
         return 0.2
       else
@@ -643,12 +659,13 @@ namespace ml
       m.log.resetIndent()
 
       if key = "OK"
-        if m.delegate <> invalid
+        if m.isOkPressAllowedNow()
           m.delegate@._apply("onItemLongSelected", [{
               rowIndex: m.focusedRowIndex
             cellIndex: m.focusedCellIndex }
           ], false)
         end if
+        return false
       else if m.canMoveFromKeyPress(key, true)
         direction = m.keyDirections[key]
 
@@ -663,7 +680,8 @@ namespace ml
         else if m.rowKeys[key] = true
           m.log.verbose(" FROM LONG PRESS ", key)
           isPage = key = "rewind" or key = "fastforward"
-          return m.getFocusedRow()@.moveFromPress(direction, true, isPage)
+          'note - a paged move does not support longpress
+          return m.getFocusedRow()@.moveFromPress(direction, not isPage, isPage)
         end if
       end if
 

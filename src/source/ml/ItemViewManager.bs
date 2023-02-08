@@ -137,10 +137,10 @@ namespace ml
     end function
 
     function _updateLayout(fullUpdate = false as boolean)
-      'm.log.increaseIndent("updateLayout " + m.__classname)
+      m.log.increaseIndent("updateLayout " + m.__classname)
       m.updateScreenRect()
       m.updateLayout(fullUpdate)
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
     end function
 
     function onFocusIndexChange(direction as integer, index as integer)
@@ -259,11 +259,11 @@ namespace ml
       return invalid
     end function
 
-    protected function getRenderedIds()
+    function getRenderedIds()
       return m.renderersByContentId.keys()
     end function
 
-    protected function getRenderedIndexes()
+    function getRenderedIndexes()
       indexes = []
       for each index in m.rendereredCellInfosByIndex
         cellInfo = m.rendereredCellInfosByIndex[index]
@@ -276,40 +276,15 @@ namespace ml
     '++ visibility state management
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-
-    protected function processRemovedCells(changes as mc.types.array)
-      m.log.info("processing removed cells")
-      for each change in changes
-
-        if change.type = "remove"
-          if change.child <> invalid
-            m.log.verbose("removing cell with id", change.child.id)
-            m.releasecell(m.renderersByContentId[change.child.id])
-          else
-            m.log.error("could not find cell to release")
-          end if
-          'HACK
-          'HACK
-          'HACK
-          'HACK
-          'HACK
-        else if change.type = "clear" 'or change.type = "sort" or change.type = "updated"
-          'we've reset the list - all renderers are going now
-          for each key in m.rendereredCellInfosByIndex
-            cellInfo = m.rendereredCellInfosByIndex[key]
-            m.releaseCell(cellInfo.component)
-          end for
-        end if
-      end for
-      m.tidyUpUnusedRenderers()
-    end function
-
     protected function tidyUpUnusedRenderers() as void
       removedRenderers = []
       m.log.verbose("cleaning unused renderers")
 
+      'note: CHILD ZERO is the row's animation.
       for i = 1 to m.container.getChildCount() - 1
         renderer = m.container.getChild(i)
+        m.log.info("considering", mc.dv(renderer))
+
         if renderer.content = invalid
           removedRenderers.push(renderer)
         else if m.renderersByContentId[renderer.content.id] = invalid
@@ -318,10 +293,14 @@ namespace ml
         end if
       end for
       m.log.verbose("Releasing", removedRenderers.count(), " renderers")
-      m.componentPool@.releaseComponents(removedRenderers)
+      for each renderer in removedRenderers
+        m.log.info("releasing", mc.dv(renderer))
+
+        m.releaseCell(renderer)
+      end for
     end function
 
-    protected override function getCell(index as integer)
+    function getCell(index as integer)
       cell = invalid
       item = m.content@.getChild(index)
 
@@ -339,7 +318,7 @@ namespace ml
       return cell
     end function
 
-    private function updateCell(cell as mc.types.node, index as integer, item as mc.types.node)
+    protected function updateCell(cell as mc.types.node, index as integer, item as mc.types.node)
       if cell <> invalid
         ' ? " updating rendered cell IDX" cell.index " CT " asString(item.title) " index " index " ID " asString(item.id)
         m.previousRendereredByContentId.delete(item.id)
@@ -377,7 +356,7 @@ namespace ml
       end if
     end function
 
-    protected override function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
+    protected function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
       ' ? " GETTING CELL FOR CREATION "; index; " isRendered "; isRendered
       ' if not isRendered and not force'index > 10 and not force
       ' if false and not isRendered and not force'index > 10 and not force
@@ -411,7 +390,7 @@ namespace ml
       end if
     end function
 
-    protected override function releaseCell(cell as mc.types.node)
+    function releaseCell(cell as mc.types.node)
       m.log.verbose("releasing cell")
 
       if cell <> invalid and cell.id <> "#_#phc"
@@ -430,6 +409,17 @@ namespace ml
           m.log.verbose("No cellInfo for index ", cell.index)
         end if
       else
+      end if
+    end function
+
+    function cleanupCell(cell as mc.types.node)
+      if cell <> invalid and cell.id <> "#_#phc"
+        m.log.verbose("releasing cell at index ", cell.index)
+        m.componentPool@.releaseComponent(cell)
+        ' m.previousRendereredByContentId.delete(cellInfo.id)
+        cell.isInViewPort = false
+        cell@._apply("didExit", [1], false)
+        cell.initialState = {}
       end if
     end function
 
@@ -624,7 +614,7 @@ namespace ml
       m.log.error("You must override this method")
     end function
 
-    override function getRenderer(index as integer, createIfNotReady = false as boolean, forceCellUpdate = false as boolean)
+    function getRenderer(index as integer, createIfNotReady = false as boolean, forceCellUpdate = false as boolean)
       ' ? " GR ";
       if m.content <> invalid and m.cellInfos <> invalid
         item = m.content@.getChild(index)
@@ -656,14 +646,14 @@ namespace ml
       end if
     end function
 
-    protected function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
+    function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
       return {
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
     end function
 
-    protected function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as mc.types.array
+    function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as mc.types.array
       if forceRecalculate
         m.rowInfos = invalid
       end if
@@ -731,24 +721,5 @@ namespace ml
       return mc.clamp(newIndex, 0, m.numberOfItems - 1)
     end function
 
-    @warning("potentially unsafe probably don't want this")
-    protected function synchronizeRenderers() as boolean
-      isChanged = false
-
-      for each key in m.rendereredCellInfosByIndex
-        info = m.rendereredCellInfosByIndex[key]
-        renderer = m.renderersByContentId[info.id]
-        if renderer <> invalid
-          if info.component <> invalid and info.component.id <> renderer.id
-            m.updateCell(renderer, info.index, m.content@.getChild(info.contentIndex))
-            isChanged = true
-          end if
-        else
-          ? " COULD NOT FIND RENDERER FOR KEY " key
-        end if
-      end for
-
-      return isChanged
-    end function
   end class
 end namespace

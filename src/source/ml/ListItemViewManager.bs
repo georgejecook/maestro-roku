@@ -145,14 +145,14 @@ namespace ml
         m.log.verbose("BATCHING: creating", m.creationIndex, "to", m.creationIndex + m.batchSize)
 
         for i = 0 to m.batchSize
-          'm.log.increaseIndent("BEGIN CREATE ROW" + i.toStr())
+          m.log.increaseIndent("BEGIN CREATE ROW" + i.toStr())
           m.creationIndex++
           index = m.creationIndex
           if m.creationIndex >= m.content.length
             m.log.verbose("finished creating all renderers")
 
             m.onRenderersCreated()
-            'm.log.decreaseIndent()
+            m.log.decreaseIndent()
             return
           end if
           rowContent = m.content@.getChild(index)
@@ -190,12 +190,12 @@ namespace ml
           m.setTimeout(m.createRendererBatch, 0.15)
         end if
       end if
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
     end function
 
     function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, rect as mc.types.assocarray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
-      'm.log.increaseIndent("CREATE ROW " + index.toStr() + " " + compName)
+      m.log.increaseIndent("CREATE ROW " + index.toStr() + " " + compName)
       'TODO - measure height to ascertain how many
       isRendered = index < 4
       ' isRendered = true
@@ -240,12 +240,12 @@ namespace ml
       '   m.log.info("row is rendered, so calling onDidEnter", rowContent.title)
       '   row@._apply("onDidEnter", [{ subRowIndex: 0, direction: 1, forceCellUpdate: true }], false)
       ' end if
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
       return row
     end function
 
     override function updateLayout(fullUpdate = false as boolean)
-      'm.log.increaseIndent("UPDATE LAYOUT")
+      m.log.increaseIndent("UPDATE LAYOUT")
 
       if fullUpdate
         m.log.verbose("full update - checking for changed types")
@@ -282,7 +282,7 @@ namespace ml
         end if
       end for
 
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
     end function
 
     override function updateRects() as void
@@ -299,7 +299,7 @@ namespace ml
         return
       end if
 
-      'm.log.increaseIndent()
+      m.log.increaseIndent()
       for i = 0 to m.content.length - 1
         item = m.content@.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
@@ -353,7 +353,7 @@ namespace ml
           m.visibleComponents.push(comp)
         end if
       end for
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
 
       m.numberOfItems = m.visibleItems.count()
       m.numberOfVisibleItems = m.visibleComponents.count()
@@ -397,7 +397,7 @@ namespace ml
       return height
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       m.isUpdating = true
       m.createRenderers(m.content, true)
@@ -454,7 +454,7 @@ namespace ml
       m.log.verbose(" LIST recalculateCellInfos!! ")
       m.cellInfos = []
       virtualIndex = 0
-      'm.log.increaseIndent("recalculateCellInfos")
+      m.log.increaseIndent("recalculateCellInfos")
       for i = 0 to m.visibleItems.count() - 1
         item = m.visibleItems[i]
         settings = ml.listMixin.getRowSettings(m.content, item)
@@ -485,7 +485,7 @@ namespace ml
           m.log.verbose("skipping item", mc.dv(item))
         end if
       end for
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
       m.numberOfItems = m.cellInfos.count()
     end function
 

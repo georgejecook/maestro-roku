@@ -46,6 +46,8 @@ namespace ml
         return
       end if
 
+      oldRenderersByContentId = m.renderersByContentId
+      m.renderersByContentId = {}
       index = 0
       ' m.contentGroup.translation = [0, 0]
       focusSettings = m.settings.focusSettings
@@ -78,19 +80,29 @@ namespace ml
         'TODO - for now, no vis options for rows children..
         m.visibleItems.push(item)
 
+        if oldRenderersByContentId.doesExist(item.id)
+          m.renderersByContentId[item.id] = oldRenderersByContentId[item.id]
+          oldRenderersByContentId.delete(item.id)
+        end if
         x += settings.size[m.axes] + xSpace
         index++
       end for
 
       m.numberOfItems = m.visibleItems.count()
       ' ? " U C NUM ITEMS NOW "; m.numberOfItems
+      m.log.info("AFTER ROW UPDATE THESE RENDERERS ARE LEFT OVER", formatJson(oldRenderersByContentId.keys()))
+
+      for each id in oldRenderersByContentId
+        renderer = oldRenderersByContentId[id]
+        m.log.info("cleanupCell OLD renderer", id, mc.dv(renderer))
+        m.cleanupCell(renderer)
+      end for
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array)
+    override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       oldNumComponents = m.numberOfItems
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
-      m.processRemovedCells(changes)
       m.forceUpdateLayout()
 
       result = {
@@ -102,12 +114,9 @@ namespace ml
         m.itemScroller.index = mc.clamp(m.itemScroller.index, 0, m.content.length - 1)
       end if
 
-      ' m.itemScroller.processChanges(changes)
       m.rowInfos = invalid
 
       if (m.numberOfItems = 0 and oldNumComponents > 0) or (oldNumComponents = 0 and m.numberOfItems > 0)
-        'tell list in any case - it's best suited to knowing what should happen now.
-        ' m.owner@.forceUpdate()
         result.isLayoutRequired = true
       else
         m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
@@ -116,7 +125,7 @@ namespace ml
       nextIndex = m.getIndexAfterItemUpdate(previousInfo)
       result.isFocusChangeRequired = nextIndex <> previousInfo.index
       m.itemScroller.moveToIndex(nextIndex, false)
-
+      m.tidyUpUnusedRenderers()
       return result
     end function
 

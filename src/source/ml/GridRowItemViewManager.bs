@@ -93,7 +93,7 @@ namespace ml
     '++ Overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
+    override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
       if m.content = invalid
         m.log.info("gridrow has invalid")
         return []
@@ -189,7 +189,9 @@ namespace ml
 
       ' ? "LAYING OUT+++++++++++++++++++++++++++++++++" ; m.numCols ; " perRowHeight "; m.perRowHeight
 
-      previousCount = m.visibleItems.count()
+      oldRenderersByContentId = m.renderersByContentId
+      m.renderersByContentId = {}
+
       renderedIds = {}
       while i < numItems
         m.rowOffsets.push(y)
@@ -222,6 +224,11 @@ namespace ml
           'TODO - for now, no vis options for rows children..
           m.visibleItems.push(item)
 
+          if oldRenderersByContentId.doesExist(item.id)
+            m.renderersByContentId[item.id] = oldRenderersByContentId[item.id]
+            oldRenderersByContentId.delete(item.id)
+          end if
+
           x += settings.size[m.axes] + xSpace
           i++
         end for
@@ -231,19 +238,12 @@ namespace ml
         rowIndex++
       end while
 
-      'TODO - write a function to handle removing dangling renderers
+      for each id in oldRenderersByContentId
+        renderer = oldRenderersByContentId[id]
+        m.log.info("cleanupCell OLD renderer", id, mc.dv(renderer))
+        m.cleanupCell(renderer)
+      end for
 
-      ' ? "::>: OLD COUNT" ; previousCount, "NEW COUNT" ; m.visibleItems.count()
-      if previousCount > m.visibleItems.count()
-        ' ? " dangling renderers detected"
-        m.log.warn("had dangling renderers - needs fixing")
-        for each id in m.renderersByContentId
-          if renderedIds[id] = invalid
-            ' ? "::: it was removed"
-            m.processRemovedItem(id)
-          end if
-        end for
-      end if
       m.numRows = mc.clamp(m.rowOffsets.count(), 0, m.rowOffsets.count())
       m.numberOfItems = m.visibleItems.count()
       ' ? " UPDATE LAYOUT MADE " m.numRows " rows from " m.numberOfItems " items"
@@ -316,12 +316,11 @@ namespace ml
       end if
     end function
 
-    protected override function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
+    override function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
       m.log.info("updating row renderers due to contents change")
       ' ? "((((((((())))))))) GRID IS UPDATING CONTENT ITEMS"
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)
       previousNumRows = m.numRows
-      m.processRemovedCells(changes)
       m.forceUpdateLayout(true)
 
       ' ? " GRID UPDATED HAD " previousNumRows " ROWS. Now has " m.numRows
@@ -337,7 +336,6 @@ namespace ml
 
       m.previousRendereredByContentId = m.renderersByContentId
 
-      ' m.itemScroller.processChanges(changes)
       nextIndex = m.getIndexAfterItemUpdate(previousInfo)
       ' ? " ACCORDING TO GRID NEXT INDEX WILL BE " nextIndex
       result.isFocusChangeRequired = nextIndex <> previousInfo.index
@@ -386,11 +384,6 @@ namespace ml
     end function
 
 
-    private function processRemovedItem(id as string)
-      ' ? " REMOVING CELL FOR ITEM ID "; id
-      m.releaseCell(m.renderersByContentId[id])
-    end function
-
     override function notifyExitEvent(notifyStart as integer, notifyEnd as integer) as void
       if notifyStart = -1
         ' ? " clearing all " m.numRows
@@ -421,7 +414,7 @@ namespace ml
     override function notifyEnterEvent(notifyStart as integer, notifyEnd as integer, forceCellUpdate = false as boolean) as void
       m.log.verbose("notifyEnterEvent", notifyStart, notifyEnd, forceCellUpdate)
 
-      'm.log.increaseIndent()
+      m.log.increaseIndent()
 
       for i = notifyStart to notifyEnd
         rowRenderers = m.getRenderersInRow(i, true, forceCellUpdate)
@@ -440,7 +433,7 @@ namespace ml
         end for
       end for
 
-      'm.log.decreaseIndent()
+      m.log.decreaseIndent()
     end function
 
 
