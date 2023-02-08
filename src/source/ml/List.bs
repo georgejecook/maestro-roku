@@ -15,12 +15,13 @@ namespace ml
     '++ Content
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    'must gbe of type ListContent
-    ' @observer("onContentChange")
+    'must be of type ListContent
     public content as mc.types.node
 
     'view that will respond to events
     public delegate as mc.types.node
+
+    public _isRenderingUpdate = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ View State
@@ -178,21 +179,21 @@ namespace ml
         m.viewManager.reset()
       end if
       ' m.focusIndicatorManager.isHidden = not m.top.isFocused and not m.top.isChildFocused
-      if m.top.state = "rendered"
-        m.onListRenderState("rendered")
-      else
-        m.observeNodeField(m.top, "state", m.onListRenderState, "value", true)
-      end if
+      ' if m.top.state = "rendered"
+      '   m.onListRenderState("rendered")
+      ' else
+      '   m.observeNodeField(m.top, "state", m.onListRenderState, "value", true)
+      ' end if
     end function
 
     private function onListRenderState(state as string)
       m.log.info("onListRenderState", state)
-      if state = "rendered"
-        if m.top.isFocused or m.top.isChildFocused
-          m.top.focusIndicatorManager.isHidden = false
-        end if
-        m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
-      end if
+      ' if state = "rendered"
+      '   if m.top.isFocused or m.top.isChildFocused
+      '     m.top.focusIndicatorManager.isHidden = false
+      '   end if
+      '   m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
+      ' end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -341,6 +342,7 @@ namespace ml
             end if
             m.moveToSubRowIndex(subIndex, animated = true, animSpeedIndex, false, false)
           end if
+          ? " MTCI 555 " m.__classname " CELL INDEX " index
           row@.moveToIndex(index, false)
         end if
       end if
@@ -353,6 +355,7 @@ namespace ml
     function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
       if m.contentManager.content <> invalid and index <> -1 'and index <> m.focusedRowIndex
         m.itemScroller.disableNonAnimatedFocusUpdates = useGridHack
+        ? " MTCI 666 " m.__classname
         m.itemScroller.moveToIndex(index, animated = true, animSpeedIndex)
         m.itemScroller.disableNonAnimatedFocusUpdates = false
         ' ? " MOVING TO SUB ROW INDEX " ; index
@@ -416,29 +419,10 @@ namespace ml
       end if
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Internal api
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    function _onContentItemChange(changes as mc.types.array)
-      ' ? "______________________________ _onContentItemChange" ; m.__classname
-      ' ? "GOT CHANGES" ; formatJson(mc.collections.map(changes, function(c as mc.types.assocarray)
-      '   return c.type
-      ' end function))
-      m.log.verbose(" LIVM _onContentItemChange")
-      m.viewManager.forceUpdateLayout()
-
-      'TODO - need to ensure that the current focus and scroll position is valid after an update!
-      m.itemScroller.processChanges(changes)
-      '// cspell:disable-next-line
-      ' ? "OCIC: INDEX " ; m.itemScroller.index ; "RI"; m.focusedRowIndex
-      ' m.moveToRow(m.itemScroller.index, false)
-      ' ? " contents changed - moving to row " ; m.focusedRowIndex ; " " ; m.focusedCellIndex
-      ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
-
-      if m.top.isChildFocused or m.top.isFocused
-        m.focusIndicatorManager@.setFocusedOnRow(true)
-      end if
+    function _setIndices(focusedRowIndex as integer, focusedCellIndex as integer)
+      m.log.info("setting list indices", focusedRowIndex, ",", focusedCellIndex)
+      m.focusedRowIndex = focusedRowIndex
+      m.focusedCellIndex = focusedCellIndex
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -455,6 +439,11 @@ namespace ml
 
     private function canMoveFromKeyPress(key as string, isLongPress as boolean) as boolean
       direction = m.keyDirections[key]
+
+      if m._isRenderingUpdate
+        m.log.info("cannot interact with keys while rendering")
+        return false
+      end if
 
       if m.focusIndicatorManager.isFocusing
         'TODO - improve this
@@ -555,7 +544,7 @@ namespace ml
       ' isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
       ' if isScrolling
       '   m.log.info("was already scrolling - ignoring")
-      m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
+      ' m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
       '   'TODO - improve this
       '   ' if m.focusIndicatorManager.isDoingFlowFocus
       '   '   return true
@@ -608,7 +597,7 @@ namespace ml
       ' ' if m.itemScroller.direction = 1 and isScrolling
       ' if isScrolling
       '   ' if false and isScrolling
-      m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
+      ' m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
       '   m.log.info("was already scrolling - ignoring")
       '   if m.focusIndicatorManager.isDoingFlowFocus
       '     return true
@@ -644,12 +633,13 @@ namespace ml
         m.log.verbose("valid long press with key", key)
         return 0.2
       else
+        m.log.verbose("cannot do long press", key)
         return 0
       end if
     end function
 
     private function onLongPressStart(key as string) as boolean
-      ' m.log.info(">>>>onLongPressStart", key)
+      m.log.info(">>>>onLongPressStart", key)
       m.log.resetIndent()
 
       if key = "OK"

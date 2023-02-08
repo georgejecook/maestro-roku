@@ -73,8 +73,15 @@ namespace ml
       m.pendingDirection = direction
       m.pendingIsRowInViewport = isRowInViewport
       m.pendingForceAll = forceAll
-      m.waitAFrame(m._notifyViewportEvents)
+
+      if m.viewManager.itemScroller.focusManager._isContentUpdating
+        m._notifyViewportEvents()
+      else
+        ? "MTCI TIMEOUT NOTIFIER"
+        m.setTimeout(m._notifyViewportEvents)
+      end if
     end function
+
     function _notifyViewportEvents() as void
 
       direction = m.pendingDirection

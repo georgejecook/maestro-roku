@@ -16,6 +16,7 @@ namespace ml
     public content as mc.types.node
 
     private list as ml.List
+    private listNode as mc.types.node
     private isUpdateEnabled = true
 
     private viewManager as ml.ListItemViewManager
@@ -28,6 +29,7 @@ namespace ml
     function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as mc.types.node)
       super("ListContentManager")
       m.list = list
+      m.listNode = list.top
       m.viewManager = viewManager
       viewManager.contentManager = m
       m.itemScroller = itemScroller
@@ -41,20 +43,23 @@ namespace ml
         content = ml.listMixin.createListContent()
         content.id = "invalidContent"
         m.content = content
-        m.list.top.content = content
+        m.listNode.content = content
         m.list.cleanup()
+        ? " LCM RENDERING SET CONTENT INVALID"
+        m.setListRendering(false)
         return
       end if
 
+      m.list.contentGroup.visible = false
+
+      m.setListRendering(true)
       previousContent = m.content
 
       m.content = content
-      m.list.top.content = content
+      m.listNode.content = content
 
       if previousContent = invalid or not previousContent.isSameNode(content)
         m.log.info("Setting new content on list")
-
-        'TODO - observe something here
         m.list.resetState()
         m.updateListFocus()
       else if content <> invalid
@@ -74,6 +79,11 @@ namespace ml
         m.log.verbose(" no content")
         return
       end if
+
+      ? " LCM RENDERING SYNC CONTENT"
+      m.setListRendering(true)
+
+      m.focusIndicatorManager@.setEnabled(false)
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
       listResult = {
         isLayoutRequired: false
@@ -100,17 +110,21 @@ namespace ml
       end for
 
       'm.log.increaseIndent("list changes are")
-      mc.collections.forEach(m.content.changes, function(item as object): m.log.verbose(item): end function)
+      ' mc.collections.forEach(m.content.changes, function(item as object): m.log.verbose(item): end function)
       'm.log.decreaseIndent()
 
-      if m.content.changes.count() > 0
-        'm.log.increaseIndent("listHasChanges")
-        m.log.verbose("LIST CONTENT IS CHANGED ")
-        m.onListContentItemsChange(m.content.changes)
-        listResult.isFocusChangeRequired = true
-        'm.log.decreaseIndent()
-      end if
+      ' if m.content.changes.count() > 0
+      '   'm.log.increaseIndent("listHasChanges")
+      '   m.log.verbose("LIST CONTENT IS CHANGED ")
+      '   m.onListContentItemsChange(m.content.changes)
+      '   listResult.isFocusChangeRequired = true
+      '   'm.log.decreaseIndent()
+      ' end if
 
+      listResult.isLayoutRequired = m.isListLayoutRequired(m.content.changes)
+      if listResult.isLayoutRequired
+        listResult.isFocusChangeRequired = true
+      end if
       m.updateListContentIfRequired(listResult)
 
       m.updateListFocus()
@@ -119,16 +133,40 @@ namespace ml
       m.log.resetIndent()
     end function
 
-    private function updateListFocus()
-      m.log.verbose(" list has to update focus after this change")
+    private function isListLayoutRequired(changes as mc.types.node) as boolean
+      m.log.info("ascertaining if layout updates are required")
+
+      return true
+    end function
+
+    private function updateListFocus() as void
+      m.log.verbose("list", mc.dv(m.listNode), "has to update focus after this change")
       m.log.info("restoring focus to", m.previousFocusedRowInfo, m.previousFocusedCellInfo)
+
+      m.log.info("is list rendering", mc.dv(m.listNode), m.listNode._isRenderingUpdate)
+
+      if m.listNode._isRenderingUpdate
+        m.log.warn("cannot update the list focus while the list is rendering - listItemViewManager will call back when ready")
+        m.observe(m.listNode._isRenderingUpdate, m.updateListFocus, "none", true)
+        return
+      end if
 
       rowIndex = 0
       cellIndex = 0
       newRowInfo = invalid
       'm.log.increaseIndent("updateListFocus")
 
+      if m.previousFocusedRowInfo = invalid
+        m.log.info("there was no focused Row Info. Ascertaining now")
+
+        m.previousFocusedRowInfo = m.itemScroller.cellInfo
+        if m.previousFocusedRowInfo <> invalid and m.previousFocusedRowInfo.component <> invalid
+          m.previousFocusedCellInfo = m.previousFocusedRowInfo.component@.getFocusedCellInfo()
+        end if
+      end if
+
       if m.previousFocusedRowInfo <> invalid
+        m.log.verbose("updating list focus")
         rowIndex = m.viewManager.getIndexAfterItemUpdate(m.previousFocusedRowInfo)
         newRowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
         if newRowInfo <> invalid
@@ -155,11 +193,17 @@ namespace ml
         cellIndex = 0
       end if
 
+      m.log.info("setting the focus indicator manager enabled again")
+
+      m.focusIndicatorManager@.setEnabled(true)
       'm.log.increaseIndent("RESET")
       m.focusIndicatorManager@.reset()
       'm.log.decreaseIndent()
 
+
       m.focusOnItem(rowIndex, cellIndex)
+      ? " LCM RENDERING UPDATE LIST FOCUS"
+      m.setListRendering(false)
 
       'm.log.decreaseIndent()
     end function
@@ -168,7 +212,6 @@ namespace ml
       m.log.verbose("focusing on item", rowIndex, cellIndex)
 
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
-
       'm.log.increaseIndent("MOVE")
       'TODO Improve the efficiency of this.. this is really not ideal
       m.itemScroller.viewPortEventNotifier.isAllRendered = false
@@ -181,7 +224,7 @@ namespace ml
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
       'm.log.decreaseIndent()
 
-      if m.list.top.isChildFocused or m.list.top.isFocused
+      if m.listNode.isChildFocused or m.listNode.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
@@ -375,25 +418,36 @@ namespace ml
       if currentFocusSettings <> invalid
         m.log.verbose(" current focus settings ", currentFocusSettings.rowIndex, " ICI ", currentFocusSettings.cellIndex)
       end if
-      m.log.verbose(" RI ", m.list.focusedRowIndex, " CI ", m.list.focusedCellIndex)
+
+      m.log.verbose(" RI ", m.listNode.focusedRowIndex, " CI ", m.listNode.focusedCellIndex)
       if result.isLayoutRequired
+        m.focusIndicatorManager@.cancelFlowFocus()
+        m.viewManager.isScrolling = false
+        m.itemScroller.isDoingFlowFocus = false
+
         m.log.info("the list needs to update it's layout as a result of these changes")
         'm.log.increaseIndent()
+        m.viewManager.isUpdating = true
+        m.viewManager.createRenderers(m.content, true)
         m.viewManager.forceUpdateLayout(false)
+        m.itemScroller.reset(false)
 
-        m.itemScroller.processChanges([])
+        ' m.itemScroller.processChanges([])
 
         'this move allows us to render anything, and clean up renderers
-        m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false)
+        m.list.moveToRowItemIndex(m.listNode.focusedRowIndex, m.listNode.focusedCellIndex, false)
         'm.log.decreaseIndent()
         m.log.verbose(" LCM PROCESSING END<<<<<<<<<<<<<<<<<<<<<<<<")
       end if
       'm.log.decreaseIndent()
     end function
 
-    override function forceUpdateLayout(fullUpdate = false as boolean)
-      super.forceUpdateLayout(fullUpdate)
-      m.viewManager.recalculateCellInfos()
+    private function setListRendering(rendering as boolean)
+      m.log.info("setting listRendering to", rendering)
+      m.focusIndicatorManager._isContentUpdating = rendering
+      if not rendering and not m.list.contentGroup.visible
+        m.list.contentGroup.visible = true
+      end if
     end function
 
   end class

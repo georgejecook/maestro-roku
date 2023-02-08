@@ -167,6 +167,7 @@ namespace ml
       ' m.viewManager.recalculateCellInfos(false)
       info = m.viewManager.getCellInfoForContentIndex(index)
       if info <> invalid
+        ? " MTCI 111 " m.__classname
         ' ? " INFO INDEX IS "; info.index
         return m.moveToIndex(info.index, animated, animSpeedIndex, direction, forceSequential)
       else
@@ -218,6 +219,7 @@ namespace ml
         return false
       end if
 
+      ? " MTCI 222 " m.__classname
       return m.moveToIndex(index, animated, animSpeedIndex, direction, forceSequential)
 
       ' return false
@@ -242,6 +244,7 @@ namespace ml
 
       ' ? ">>>moveToEnd  " ; m.__classname ; " I " ; m.index; " D "; direction
 
+      ? " MTCI 333 " m.__classname
       m.moveToIndex(index, animated, animSpeedIndex)
       return true
     end function
@@ -321,6 +324,8 @@ namespace ml
       m.log.verbose(" MTI DD")
       if isFlowPossible
         ' ? "///// 2.b flow IS POSSIBLE I " ; index
+        ? " CELLINFO " m.cellInfo
+        ? " nextCellInfo " nextCellInfo
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
         'm.log.decreaseIndent()
         return true
@@ -621,6 +626,7 @@ namespace ml
         m.updateSrollOffsetFraction(1)
       end if
       ' ? "VVVVV Need to move to index " ; m.targetCellInfo.index ; " at " ; cellInfo.index
+      ? " MTCI 444 " m.__classname
       isMoving = m.moveToIndex(m.targetCellInfo.index, true, m.animSpeedIndex, m.direction, true, true)
       ' ? " isMoving "; isMoving
       if not isMoving
@@ -654,7 +660,7 @@ namespace ml
       else
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, false)
       end if
-      ' ? " FROM " m.__classname " set focus ManagerInfo to " cellInfo.index cellInfo.componentIndex
+      m.log.info("Set focus ManagerInfo to ", cellInfo.index, cellInfo.componentIndex)
       m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
 
@@ -663,7 +669,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function moveUsingFlowAnim(fromInfo as ml.CellInfo, toInfo as ml.CellInfo, direction as integer)
-      ' ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
+      ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
 
       m.isLastMoveFlowFocus = true
       m.toggleScrolling(true)
@@ -812,7 +818,7 @@ namespace ml
       end if
 
       if notifyFocusManager
-        m.log.verbose("==== FROM setFocusIndex ")
+        m.log.verbose("==== FROM setFocusIndex ", m.__classname)
         ' m.setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
         m._setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
       end if
@@ -827,9 +833,15 @@ namespace ml
       m.pendingNextCellInfo = nextCellInfo
       m.pendingDirection = direction
       m.pendingIsFloatingFocus = isFloatingFocus
-      m.waitAFrame(function()
+
+      if m.focusManager._isContentUpdating
         m.setFocusManagerInfo(m.pendingCellInfo, m.pendingNextCellInfo, m.pendingDirection, m.pendingIsFloatingFocus)
-      end function)
+      else
+        ? "MTCI TIMEOUT ITEM SCROLLER"
+        m.setTimeout(function()
+          m.setFocusManagerInfo(m.pendingCellInfo, m.pendingNextCellInfo, m.pendingDirection, m.pendingIsFloatingFocus)
+        end function)
+      end if
     end function
     protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       'bs:disable-next-line
@@ -869,44 +881,44 @@ namespace ml
     '++ Managing Content Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function processChanges(changes as mc.types.array) as void
-      isIndexUpdateRequired = false
-      if m.viewManager.numberOfItems = 0
-        return
-      end if
+    ' protected function processChanges(changes as mc.types.array) as void
+    '   isIndexUpdateRequired = false
+    '   if m.viewManager.numberOfItems = 0
+    '     return
+    '   end if
 
-      ' ? m.__classname ; " processing changes NUM ITEMS " ; m.viewManager.numberOfItems ; " I " ; m.index
-      if m.index < 0
-        index = m.viewManager.numberOfItems - 1
-        m.index = index
-        isIndexUpdateRequired = true
-      end if
+    '   ' ? m.__classname ; " processing changes NUM ITEMS " ; m.viewManager.numberOfItems ; " I " ; m.index
+    '   if m.index < 0
+    '     index = m.viewManager.numberOfItems - 1
+    '     m.index = index
+    '     isIndexUpdateRequired = true
+    '   end if
 
-      if m.index >= m.viewManager.numberOfItems
-        index = m.viewManager.numberOfItems - 1
-        m.index = index
-        isIndexUpdateRequired = true
-      end if
+    '   if m.index >= m.viewManager.numberOfItems
+    '     index = m.viewManager.numberOfItems - 1
+    '     m.index = index
+    '     isIndexUpdateRequired = true
+    '   end if
 
-      if not isIndexUpdateRequired
-        ' isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-        ' return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
-        ' end function)
-      end if
+    '   if not isIndexUpdateRequired
+    '     ' isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
+    '     ' return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
+    '     ' end function)
+    '   end if
 
-      'FIXME - this needs revisiting
+    '   'FIXME - this needs revisiting
 
-      'all changes result in downward movements
-      ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
-      ' if isIndexUpdateRequired
-      '   wasNotifying = m.focusManager.isNotifying
-      '   m.focusManager.isNotifying = true
-      '   m.reset(true)
-      '   m.focusManager.isNotifying = wasNotifying
-      ' else
-      ' m.reset(true)
-      ' end if
-    end function
+    '   'all changes result in downward movements
+    '   ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
+    '   ' if isIndexUpdateRequired
+    '   '   wasNotifying = m.focusManager.isNotifying
+    '   '   m.focusManager.isNotifying = true
+    '   '   m.reset(true)
+    '   '   m.focusManager.isNotifying = wasNotifying
+    '   ' else
+    '   ' m.reset(true)
+    '   ' end if
+    ' end function
 
     public function chooseCellInfoForScrollingIntoRow(cellInfo as ml.CellInfo)
       cellInfo = m.getCellInfo(cellInfo, true)
