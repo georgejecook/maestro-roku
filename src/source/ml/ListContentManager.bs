@@ -142,7 +142,7 @@ namespace ml
 
     private function isListLayoutRequired(changes as mc.types.node) as boolean
       m.log.info("ascertaining if layout updates are required")
-
+      'TODO..
       return true
     end function
 
@@ -151,15 +151,6 @@ namespace ml
       m.log.info("restoring focus to", m.previousFocusedRowInfo, m.previousFocusedCellInfo)
 
       m.log.info("is list rendering", mc.dv(m.listNode), m.listNode._isRenderingUpdate)
-
-      ' if m.previousFocusedRowInfo = invalid
-      '   m.log.info("there was no focused Row Info. Ascertaining now")
-
-      '   m.previousFocusedRowInfo = m.itemScroller.cellInfo
-      '   if m.previousFocusedRowInfo <> invalid and m.previousFocusedRowInfo.component <> invalid
-      '     m.previousFocusedCellInfo = m.previousFocusedRowInfo.component@.getFocusedCellInfo()
-      '   end if
-      ' end if
 
       if m.listNode._isRenderingUpdate
         m.log.warn("cannot update the list focus while the list is rendering - listItemViewManager will call back when ready")
@@ -172,10 +163,6 @@ namespace ml
       m.log.info("setting the focus indicator manager enabled again")
 
       m.focusIndicatorManager@.setEnabled(true)
-      ' m.log.increaseIndent("RESET")
-      ' m.focusIndicatorManager@.reset()
-      ' m.log.decreaseIndent()
-
 
       m.executeListFocus(newIndices[0], newIndices[1])
       ? " LCM RENDERING UPDATE LIST FOCUS"
@@ -237,14 +224,6 @@ namespace ml
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
       m.log.increaseIndent("MOVE TO NEW POS")
 
-      m.log.info("NEW ROW/CELL info IS", rowIndex, cellIndex)
-
-      '1. identify the new item index to focus on.. perhaps with a delegate callback?
-      '2. set the previous focus info on the focus manager
-      '2.a enable if we have a different focused row/cell than before
-      '3. do the move..
-
-      'TODO Improve the efficiency of this.. this is really not ideal
       m.itemScroller.viewPortEventNotifier.isAllRendered = false
       m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
       m.log.decreaseIndent()

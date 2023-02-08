@@ -877,49 +877,6 @@ namespace ml
       end if
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Managing Content Changes
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    ' protected function processChanges(changes as mc.types.array) as void
-    '   isIndexUpdateRequired = false
-    '   if m.viewManager.numberOfItems = 0
-    '     return
-    '   end if
-
-    '   ' ? m.__classname ; " processing changes NUM ITEMS " ; m.viewManager.numberOfItems ; " I " ; m.index
-    '   if m.index < 0
-    '     index = m.viewManager.numberOfItems - 1
-    '     m.index = index
-    '     isIndexUpdateRequired = true
-    '   end if
-
-    '   if m.index >= m.viewManager.numberOfItems
-    '     index = m.viewManager.numberOfItems - 1
-    '     m.index = index
-    '     isIndexUpdateRequired = true
-    '   end if
-
-    '   if not isIndexUpdateRequired
-    '     ' isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-    '     ' return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
-    '     ' end function)
-    '   end if
-
-    '   'FIXME - this needs revisiting
-
-    '   'all changes result in downward movements
-    '   ' ? "INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems
-    '   ' if isIndexUpdateRequired
-    '   '   wasNotifying = m.focusManager.isNotifying
-    '   '   m.focusManager.isNotifying = true
-    '   '   m.reset(true)
-    '   '   m.focusManager.isNotifying = wasNotifying
-    '   ' else
-    '   ' m.reset(true)
-    '   ' end if
-    ' end function
-
     public function chooseCellInfoForScrollingIntoRow(cellInfo as ml.CellInfo)
       cellInfo = m.getCellInfo(cellInfo, true)
       if cellInfo <> invalid

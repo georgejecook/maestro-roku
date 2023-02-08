@@ -106,50 +106,6 @@ namespace ml
       end if
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Managing Content Changes
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    ' protected override function processChanges(changes as mc.types.array) as void
-    '   isIndexUpdateRequired = false
-    '   ' ? " NC "; m.viewManager.numberOfItems ; " I " ; m.index
-    '   if m.viewManager.numberOfItems = 0
-    '     ' ? "THERE ARE NO MORE ITEMS!"
-    '     return
-    '   end if
-
-    '   if m.index >= m.viewManager.numberOfItems
-    '     index = m.viewManager.numberOfItems - 1
-    '     ' ? "index is changing " ; m.index ; " > " ; index
-    '     m.index = index
-    '     isIndexUpdateRequired = true
-    '   end if
-
-    '   if not isIndexUpdateRequired
-    '     isIndexUpdateRequired = mc.collections.contains(changes, function(c as mc.types.assocarray)
-    '       return c.index <> invalid and c.index <> m.index or (c.type = "sort" or c.type = "change" or c.type = "updated" or c.type = "isHidden" or c.type = "isFocusEnabled")
-    '     end function)
-    '   end if
-
-    '   'FIXME - this needs revisiting
-
-    '   m.log.increaseIndent()
-    '   'all changes result in downward movements
-    '   m.log.info("LIST PROCESS INDEX CHANGES", isIndexUpdateRequired, m.index, m.viewManager.numberOfItems)
-    '   if isIndexUpdateRequired
-    '     m.log.info(" NOTIFYING FOCUS")
-    '     ' ? ">>>>>>>>>> ITEM SCROLLER INDEX IS NOW" ; m.index
-    '     ' wasNotifying = m.focusManager.isNotifying
-    '     ' m.focusManager.isNotifying = true
-    '     m.reset(true)
-    '     ' m.focusManager.isNotifying = wasNotifying
-    '   else
-    '     m.log.info(" not notifying focus")
-    '     m.reset(true)
-    '   end if
-    '   m.log.decreaseIndent()
-    ' end function
-
     protected override function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       m.viewPortEventNotifier.notifyListViewportEvents(m.cellInfo, m.nextCellInfo, m.direction, forceAll)
     end function
