@@ -165,8 +165,9 @@ namespace ml
 
       m.executeListFocus(newIndices[0], newIndices[1])
       m.list._setIndices(newIndices[0], newIndices[1])
-      ? " LCM RENDERING UPDATE LIST FOCUS"
       m.setListRendering(false)
+      m.log.info("list is now focused on", formatJson(newIndices))
+
 
       m.notifyFocusChangesAfterUpdate()
       m.log.decreaseIndent()
@@ -174,15 +175,56 @@ namespace ml
 
 
     private function notifyFocusChangesAfterUpdate()
+      'FIXME - Im' sure the ItemFocusManager could be used here..
+      focusedRowIndex = m.listNode.focusedRowIndex
+      focusedCellIndex = m.listNode.focusedCellIndex
+      previousRowIndex = asInteger(m.previousFocusedRowInfo.index, -1)
+      previousCellIndex = asInteger(m.previousFocusedCellInfo.index, -1)
+
       if m.didFocusChangeInWayThatNeedsNotifying()
         m.log.verbose("Have to notify update about the focus change")
+        isLostFoundTheSame = previousRowIndex = focusedRowIndex and previousCellIndex = focusedCellIndex
+        if not isLostFoundTheSame and previousRowIndex <> -1
+          m.focusIndicatorManager@.sendManualDelegateRowMessage("didLoseFocus", {
+            rowIndex: previousRowIndex
+            subRowIndex: 0'm.previousFocusedRowInfo.subRowIndex
+            index: previousCellIndex
+            direction: 1
+          })
+
+          if previousCellIndex <> -1
+            m.focusIndicatorManager@.sendManualDelegateCellMessage("didGainFocus", {
+              rowIndex: previousRowIndex
+              subRowIndex: 0'm.previousFocusedRowInfo.subRowIndex
+              index: previousCellIndex
+              direction: 1
+            })
+          end if
+        end if
+
+        toEvent = {
+          rowIndex: focusedRowIndex
+          subRowIndex: m.listNode.focusedSubRowIndex
+          index: focusedCellIndex
+          direction: 1
+        }
+
+        if toEvent.rowIndex <> -1 and asString(m.previousRowContent.id) <> asString(m.list.focusedRowContent.id)
+          m.focusIndicatorManager@.sendManualDelegateRowMessage("didGainFocus", toEvent)
+        end if
+
+        if toEvent.cellIndex <> -1
+          m.focusIndicatorManager@.sendManualDelegateCellMessage("didGainFocus", toEvent)
+        end if
       end if
     end function
 
     private function didFocusChangeInWayThatNeedsNotifying() as boolean
       previousRowIndex = asInteger(m.previousFocusedRowInfo.index, -1)
       previousCellIndex = asInteger(m.previousFocusedCellInfo.index, -1)
-      m.log.info("checking if the changes to focus after update, require an update in list focus state previousRowIndex", previousRowIndex, "previousCellIndex", previousCellIndex, mc.dv(m.previousRowContent), mc.dv(m.previousCellContent))
+      m.log.info("checking if the changes to focus after update, require an update in list focus state")
+      m.log.info("previously RI:", previousRowIndex, "CI:", previousCellIndex, mc.dv(m.previousRowContent), mc.dv(m.previousCellContent))
+      m.log.info("now RI:", mc.dv(m.list.focusedRowContent), mc.dv(m.list.focusedCellContent))
 
       if previousRowIndex = -1
         m.log.verbose("list never had content")
@@ -190,12 +232,12 @@ namespace ml
       end if
 
       if (m.list.focusedRowContent = invalid) <> (m.previousRowContent = invalid)
-        m.log.verbose("list has focused row content when it did not")
+        m.log.verbose("list has changed if it had a focused row:", m.list.focusedRowContent <> invalid)
         return true
       end if
 
       if (m.list.focusedCellContent = invalid) <> (m.previousCellContent = invalid)
-        m.log.verbose("list has focused row content when it did not")
+        m.log.verbose("list has changed whether it had a focused cell:", m.list.focusedCellContent <> invalid)
         return true
       end if
 

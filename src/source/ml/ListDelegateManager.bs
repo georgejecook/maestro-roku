@@ -113,6 +113,42 @@ namespace ml
       end if
 
     end function
+
+    function callCellDelegateMethodOnList(eventName as string, event as mc.types.assocarray) as void
+      delegateFunctionName = m.cellDelegateFunctionMap[eventName]
+      if delegateFunctionName = invalid
+        m.log.error("Unknown cell event ", eventName)
+        return
+      end if
+
+      if delegateFunctionName = "onCellGainingFocus" or delegateFunctionName = "onCellLosingFocus"
+        m.log.error("unsupported method", delegateFunctionName)
+      else
+        m.listDelegate@._apply(delegateFunctionName, [{
+          rowIndex: event.rowIndex
+          cellIndex: event.index
+          direction: event.direction
+        }], false)
+      end if
+    end function
+
+    function callRowDelegateMethodOnList(eventName as string, event as mc.types.assocarray) as void
+      delegateFunctionName = m.rowDelegateFunctionMap[eventName]
+      if delegateFunctionName = invalid
+        m.log.error("Unknown row event ", eventName)
+        return
+      end if
+      if delegateFunctionName = "onRowGainingFocus" or delegateFunctionName = "onRowLosingFocus"
+
+        m.log.error("unsupported method", delegateFunctionName)
+      else
+        m.listDelegate@._apply(delegateFunctionName, [{
+          rowIndex: event.rowIndex
+          subRowIndex: event.subRowIndex
+          direction: event.direction
+        }], false)
+      end if
+    end function
   end class
 
 end namespace

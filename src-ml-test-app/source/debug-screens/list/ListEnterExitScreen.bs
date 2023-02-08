@@ -10,6 +10,10 @@ class ListEnterExitScreen extends mv.BaseScreen
   @alwaysnotify
   public removeItems = 0
 
+  private modifyActions = ["removeCell", "removeRow", "toggleHide", "toggleFocus", "addCell", "addRow"]
+  'removeCell|removeRow|toggleHide|toggleFocus|addCell|addRow
+  public modifyAction = "removeCell"
+
   @observer("onUpdateNow")
   @alwaysnotify
   public _updateNow = false
@@ -43,7 +47,8 @@ class ListEnterExitScreen extends mv.BaseScreen
   private label as mc.types.node
   private updateInfoTimeout as mc.types.node
   private isListLoaded = false
-
+  private listContent as mc.types.node
+  private currentRowIndex = 0
 
   function new()
     super("ListEnterExitScreen")
@@ -128,8 +133,6 @@ class ListEnterExitScreen extends mv.BaseScreen
 
     m.listContent = content
   end function
-
-  private listContent as mc.types.node
 
   private function onShowList()
     m.listContent@.setNotificationsEnabled(false)
@@ -275,8 +278,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.list@.synchronizeContent()
   end function
 
-  private currentRowIndex = 0
-  private function addRow(index as integer)
+  private function addRow(rowOffset as integer)
+    index = m.list.focusedRowIndex + rowOffset
     rowFocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
     row = createObject("roSGNode", "ml_RowContent")
     rowFocusSettings.feedbackColor = "#F4D42A"
@@ -292,6 +295,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.contentId++
     row@.appendChildren(m.makeItems(m.defaultCellType, 5))
     m.list.content@.insertChild(row, index)
+    m.list@.synchronizeContent()
   end function
 
   private function removeRow(rowOffset as integer)
@@ -300,10 +304,31 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.list@.synchronizeContent()
   end function
 
-  private function addCell()
-    rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    rowContent@.appendChildren(m.makeItems(m.defaultCellType, 1))
-    rowContent@.insertChild(m.makeItems(m.defaultCellType, 1), m.list.focusedCellIndex)
+  private function toggleRowFocus(rowOffset as integer)
+    rowIndex = m.list.focusedRowIndex + rowOffset
+    row = m.list.content@.getChild(rowIndex)
+    if row <> invalid
+      row.isFocusEnabled = not row.isFocusEnabled
+    end if
+    m.list@.synchronizeContent()
+  end function
+
+  private function toggleRowHidden(rowOffset as integer)
+    rowIndex = m.list.focusedRowIndex + rowOffset
+    row = m.list.content@.getChild(rowIndex)
+    if row <> invalid
+      row.isHidden = not row.isHidden
+    end if
+    m.list@.synchronizeContent()
+  end function
+
+  private function addCell(rowOffset = 0 as integer, cellOffset = 0 as integer)
+    rowIndex = m.list.focusedRowIndex + rowOffset
+    cellIndex = m.list.focusedCellIndex + cellOffset
+
+    rowContent = m.list.content@.getChild(rowIndex)
+    rowContent@.insertChild(m.makeItems(m.defaultCellType, 1)[0], cellIndex)
+    m.list@.synchronizeContent()
   end function
 
   private function removeCell(rowOffset = 0 as integer, cellOffset = 0 as integer)
@@ -336,9 +361,28 @@ class ListEnterExitScreen extends mv.BaseScreen
   '++ Key Presses
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+  private function doAction(offset as integer)
+    m.log.info("doing action", m.modifyAction)
+
+    if m.modifyAction = "removeCell"
+      m.removeCell(0, offset)
+    else if m.modifyAction = "removeRow"
+      m.removeRow(offset)
+    else if m.modifyAction = "addCell"
+      m.addCell(0, offset)
+    else if m.modifyAction = "addRow"
+      m.addRow(offset)
+    else if m.modifyAction = "toggleFocus"
+      m.toggleRowFocus(offset)
+    else if m.modifyAction = "toggleHide"
+      m.toggleRowHidden(offset)
+    end if
+  end function
+
   private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
     return key <> "back"
   end function
+
 
   protected override function onKeyPressBack() as boolean
     m.log.info("resetting list content")
@@ -349,41 +393,22 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function onKeyPressOptions() as boolean
     m.log.info("remove next")
-
-    m.removeCell(0, 1)
-    ' m.removeRow(1)
+    m.doAction(1)
     return true
   end function
 
   private function onKeyPressReplay() as boolean
     m.log.info("remove previous")
-    m.removeCell(0, -1)
-    ' m.removeRow(-1)
-    return true
-  end function
-
-
-  private sortAscending = true
-  private function _onKeyPressPlay() as boolean
-    m.sortAscending = not m.sortAscending
-
-    ' m.list.content@.sortByKey("index", m.sortAscending)
-
-    m.list@.synchronizeContent()
+    m.doAction(-1)
     return true
   end function
 
   private function onKeyPressPlay() as boolean
-    ? " APPLYING"
-    m.onUpdateNow()
-    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    ' rowContent@.setNotificationsEnabled(true)
-    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 1)
-    ' rowContent@.setNotificationsEnabled(true)
-    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 2)
-    ' rowContent@.setNotificationsEnabled(true)
+    m.modifyAction = mc.collections.getItemAtOffset(m.modifyActions, m.modifyAction, 1, invalid, true)
+    m.log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    m.log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    m.log.info("m.modifyAction ", m.modifyAction)
 
-    ' m.list@.synchronizeContent()
     return true
   end function
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -521,32 +546,7 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function onItemSelected(event as ml.ListEvent)
     ? " SELECTED ITEM " event.rowIndex event.cellIndex
-    m.removeCell(0)
-    ' ? " REMOVING ROW "event.rowIndex
-    ' m.list.content@.setNotificationsEnabled(false)
-    ' m.list.content@.removeChildIndex(event.rowIndex)
-
-    ' rowContent = m.list.content@.getChild(event.rowIndex)
-    ' rowContent@.setNotificationsEnabled(false)
-    ' title = `NEW Item ${m.contentId}`
-    ' child = m.makeItem(m.defaultCellType, title)
-    ' rowContent@.insertChild(child, event.cellIndex)
-    ' m.list@.synchronizeContent()
-    ' child = m.makeItem("PosterCellEfficient", title)
-    ' rowContent@.insertChild(child, event.cellIndex + 2)
-
-    ' child = m.makeItem("PosterCellEfficient", title)
-    ' rowContent@.insertChild(child, event.cellIndex + 4)
-
-
-    ' rowContent = m.list.content@.getChild(event.rowIndex + 1)
-    ' ? " CLEDARING ROW"
-    ' rowContent@.clear()
-
-    ' rowContent@.setNotificationsEnabled(true)
-    ' rowContent@.removeChild(child)
-    ' row = m.list@.getRowRenderer(event.rowIndex)
-    ' row@.forceUpdate()
+    m.doAction(0)
   end function
 
 end class
