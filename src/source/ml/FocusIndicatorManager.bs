@@ -342,8 +342,7 @@ namespace ml
       m.nextFocusSettings = newSettings
       m.previousSize = m.focusIndicator.size
       m.previousTranslation = m.focusIndicator.translation
-      ' bounds = m.focusIndicator.sceneBoundingRect()
-      ' indicatorTranslation = [bounds.x, bounds.y]
+      m.focusScreenPosition = m.nextConfig.indicatorTranslation
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -353,7 +352,7 @@ namespace ml
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(isFinal as boolean) as void
-      m.setIsFocusing(false)
+      m.setIsFocusing(not isFinal)
 
       m.shouldShowIndicator = false
 
@@ -414,7 +413,7 @@ namespace ml
       if fraction = 1
         translation = m.nextConfig.indicatorTranslation
         size = m.nextConfig.indicatorSize
-        m.focusScreenPosition = m.nextConfig.indicatorTranslation
+        ' m.focusScreenPosition = m.nextConfig.indicatorTranslation
         m.log.verbose("ACTIVE FOCUS POS IS NOW ", formatJson(m.nextConfig.indicatorTranslation))
       else
         translation = mc.interpolateArray(m.previousTranslation, m.nextConfig.indicatorTranslation, fraction)
@@ -450,7 +449,7 @@ namespace ml
       m.log.verbose(" SETTING LAST MOVE FRACTION 0 START FLOW")
       m.lastMoveFraction = 0
       m.setActiveFocusSettings(m.nextConfig.settings)
-      m.focusScreenPosition = m.nextConfig.indicatorTranslation
+      ' m.focusScreenPosition = m.nextConfig.indicatorTranslation
 
       'TODO - finish animation if existing delegate
       'HACK! TODO - get the correct offset for the list's location
@@ -471,6 +470,7 @@ namespace ml
         return
       end if
 
+      m.setIsFocusing(false)
       m.flowFocusDelegate = invalid
       m.isDoingFlowFocus = false
       m.log.verbose(" SETTING LAST MOVE FRACTION 0 CANCEL FLOW")

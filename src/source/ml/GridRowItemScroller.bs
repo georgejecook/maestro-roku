@@ -73,20 +73,18 @@ namespace ml
 
     private function chooseAppropriateCellToScrollTo(cellInfo as ml.CellInfo) as ml.CellInfo
       ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;cellInfo.componentIndex ; " is List scroll? "; isFromListScroll
-      focusX = m.focusManager.focusScreenPosition[0] - m.viewManager.settings.contentOffset[0]
-
+      focusX = m.focusManager.focusScreenPosition[0] + m.viewManager.settings.contentOffset[0]
       cellInfosInRow = m.viewManager.getCellInfosInRow(cellInfo.componentIndex)
       nextInfo = invalid
-
-      for each info in cellInfosInRow
+      for i = cellInfosInRow.count() - 1 to 0 step -1
+        info = cellInfosInRow[i]
         ' ? " RI " ; cellInfo.componentIndex ; " CI " ; info.index ; " P " ; info.getScreenPosition(1) ; " FP " ; focusX
         if info <> invalid and info.getScreenPosition(1) <= focusX
           nextInfo = info
+          exit for
         end if
       end for
-      ' cellIndex = m.index mod m.viewManager.numCols
-      ' cellIndex = mc.clamp((cellInfo.componentIndex * m.viewManager.numCols) + cellIndex, 0, m.viewManager.numberOfItems - 1)
-      ' ? " GRID CHOSE " ; cellIndex ; " M " ; m.viewManager.numberOfItems - 1
+
       if nextInfo = invalid
         ' ? "no item found for indicator position - using first item in row"
         nextInfo = cellInfosInRow[0]
