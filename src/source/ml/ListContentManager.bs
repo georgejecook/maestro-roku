@@ -92,10 +92,10 @@ namespace ml
         isFocusChangeRequired: false
       }
 
-      m.log.resetIndent()
+      'm.log.resetIndent()
 
       m.log.verbose(" SYNC content")
-      m.log.increaseIndent("synchronizeContent")
+      'm.log.increaseIndent()Indent("synchronizeContent")
 
       m.ascertainPreviousFocusInfo()
 
@@ -108,7 +108,7 @@ namespace ml
         end if
       end for
 
-      m.log.increaseIndent("list changes are")
+      'm.log.increaseIndent()Indent("list changes are")
 
       listResult.isLayoutRequired = m.isListLayoutRequired(m.content.changes)
       if listResult.isLayoutRequired
@@ -118,8 +118,8 @@ namespace ml
 
       m.updateListFocusAfterApplyingChanges()
 
-      m.log.decreaseIndent()
-      m.log.resetIndent()
+      'm.log.decreaseIndent()
+      'm.log.resetIndent()
     end function
 
     private function ascertainPreviousFocusInfo()
@@ -170,7 +170,7 @@ namespace ml
 
 
       m.notifyDelegatesIfRequired()
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
     end function
 
 
@@ -258,7 +258,7 @@ namespace ml
 
     private function getIndicesAfterApplyingChanges() as mc.types.array
 
-      m.log.increaseIndent("updateListFocusAfterApplyingChanges")
+      'm.log.increaseIndent()Indent("updateListFocusAfterApplyingChanges")
       indices = []
       if indices = invalid or indices.count() <> 2
         m.log.info("using standard heuristics for restoring focus indices")
@@ -336,19 +336,19 @@ namespace ml
       m.log.verbose("focusing on item", rowIndex, cellIndex)
 
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(false)
-      m.log.increaseIndent("MOVE TO NEW POS")
+      'm.log.increaseIndent()Indent("MOVE TO NEW POS")
 
       m.itemScroller.viewPortEventNotifier.isAllRendered = false
       m.list.moveToRowItemIndex(rowIndex, cellIndex, false)
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
 
-      m.log.increaseIndent("COMPLETE")
+      'm.log.increaseIndent()Indent("COMPLETE")
       ' ? " EXECUTE LIST FOCUS"
       m.itemScroller.setFocusManagerInfo(m.itemScroller.cellInfo, m.itemScroller.nextCellInfo, m.itemScroller.direction, false)
 
       m.focusIndicatorManager@.completeFocusNow(true)
       m.focusIndicatorManager@.setDelegateCallbacksEnabled(true)
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
 
       if m.listNode.isChildFocused or m.listNode.isFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
@@ -538,7 +538,7 @@ namespace ml
     private function updateListContentIfRequired(result as ml.ListChangeResult)
       m.log.info("processing list changes")
 
-      m.log.increaseIndent()
+      'm.log.increaseIndent()Indent()
       currentFocusSettings = m.focusIndicatorManager@.getCurrentFocusSettings()
       m.log.verbose("LCM processing list changes>>>>>>>>>>>>>>>")
       if currentFocusSettings <> invalid
@@ -552,7 +552,7 @@ namespace ml
         m.itemScroller.isDoingFlowFocus = false
 
         m.log.info("the list needs to update it's layout as a result of these changes")
-        m.log.increaseIndent()
+        'm.log.increaseIndent()Indent()
         m.viewManager.isUpdating = true
         m.viewManager.createRenderers(m.content, true)
         m.viewManager.forceUpdateLayout(false)
@@ -562,10 +562,10 @@ namespace ml
 
         'this move allows us to render anything, and clean up renderers
         m.list.moveToRowItemIndex(m.listNode.focusedRowIndex, m.listNode.focusedCellIndex, false)
-        m.log.decreaseIndent()
+        'm.log.decreaseIndent()
         m.log.verbose(" LCM PROCESSING END<<<<<<<<<<<<<<<<<<<<<<<<")
       end if
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
     end function
 
     private function setListRendering(rendering as boolean)

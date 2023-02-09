@@ -155,7 +155,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveInDirection(direction as integer) as boolean
-      m.log.resetIndent()
+      'm.log.resetIndent()
       ' m.viewManager.recalculateCellInfos(false)
       return m.canMoveToIndex(m.index + direction, direction)
     end function
@@ -184,23 +184,36 @@ namespace ml
     function moveFromPress(offset as integer, forceSequential = true as boolean, isPage = false as boolean) as boolean
       m.isScrollCancelled = false
       speedIndex = 1
-      ' ? " MOVE FROM PRESS " m.viewManager.owner._repeatKeyPressCount
+      ' ? " MOVE FROM PRESS " m.viewManager.owner._repeatKeyPressCount " IScrolling? " m.viewManager.isScrolling
       ' if m.viewManager.isScrolling
       if m.direction = offset
         if m.viewManager.owner._repeatKeyPressCount > 1
           ' ? " GOING SAME WAY!!!"
           ' speedIndex = 2
           ' ? " m.direction " m.direction " INDEX " m.index " NITEMS " m.viewManager.numberOfItems
+          ' ? "111PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
+          ' if m.previousScreenPos <> m.nextScreenPos
+          '   ? " CANNOT DO DBL MOVES WHEN SCREEN POS DOES NOT MATCH"
+          '   return true
+          ' end if
+          if m.offsetContainer <> invalid
+            m.previousScreenPos = m.offsetContainer.translation[1]
+          end if
+          ' ? "222PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
           if not m.canMoveToIndex(m.index, m.direction)
-            ' ? " AT END"
+            ' ? "USER IS SPAMMING KEYS AT END"
             m.finishMovingToIndex()
             'return true, coz the user is spamming the keys
             return true
           end if
+          ' ? " USER IS MOVING FASTER NOW"
+          if m.offsetContainer <> invalid
+            m.previousScreenPos = m.offsetContainer.translation[1]
+          end if
+          ' ? "333PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
           ' m.finishMovingToIndex(false, false)
         end if
       else if m.viewManager.isScrolling
-        ' ? "111PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
         'only allowed if screenPositions are the same!
         if m.previousScreenPos = m.nextScreenPos
           previousScreenPos = m.previousScreenPos
@@ -224,6 +237,7 @@ namespace ml
         offset = m.getPageOffset(offset)
         speedIndex = 2
       end if
+      ? "MOVING TO " offset " with keyPressIndex" m.keyPressIndex
       return m.move(offset, true, speedIndex, not isPage and forceSequential)
     end function
 
@@ -290,7 +304,7 @@ namespace ml
 
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean) as boolean
-      m.log.increaseIndent("MOVE TO INDEX")
+      'm.log.increaseIndent()Indent("MOVE TO INDEX")
 
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
       m.log.verbose(">?>?>?>?>?////////////////////////////////////////////////////.v///")
@@ -302,7 +316,7 @@ namespace ml
 
       if m.viewManager.numberOfItems = 0
         ' ? " NO ITEMS"
-        m.log.decreaseIndent()
+        'm.log.decreaseIndent()
         return false
       end if
 
@@ -362,7 +376,7 @@ namespace ml
         ' ? " CELLINFO " m.cellInfo
         ' ? " nextCellInfo " nextCellInfo
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
-        m.log.decreaseIndent()
+        'm.log.decreaseIndent()
         return true
       end if
 
@@ -408,7 +422,7 @@ namespace ml
         m.setCellInfo(targetCellInfo)
       end if
 
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
       return true
     end function
 
