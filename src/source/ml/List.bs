@@ -22,6 +22,9 @@ namespace ml
     public delegate as mc.types.node
 
     public _isRenderingUpdate = false
+    public _timeSinceLastKeypress = 0
+    public _repeatKeyPressCount = 0
+    private _lastKeyPress = ""
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ View State
@@ -98,6 +101,7 @@ namespace ml
 
     private preHiddenContent as mc.types.node
 
+    private keyTimer = createObject("roTimespan")
 
     private keyDirections = {
       "rewind": -1
@@ -217,7 +221,7 @@ namespace ml
         m.content@.resetChanges()
       end if
       'reset the content's notifications
-      m.log.resetIndent()
+      'm.log.resetIndent()
     end function
 
     private function cleanup()
@@ -348,7 +352,7 @@ namespace ml
 
     function moveToRowItemIndex(rowIndex as integer, index as integer, animated = false as boolean, animSpeedIndex = 0 as integer) as void
       ' m.log.verbose(" MTRI  ", rowIndex, index, animated)
-      m.log.increaseIndent()
+      'm.log.increaseIndent()Indent()
       animated = animated = true
       isDisablingFocus = not animated and not m.focusIndicatorManager._isContentUpdating
       if m.contentManager.content <> invalid and rowIndex <> -1 and index <> -1
@@ -388,7 +392,7 @@ namespace ml
       if animated <> true
         m.viewManager.setIsScrolling(false, false, 0)
       end if
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
     end function
 
     function moveToSubRowIndex(index as integer, animated as boolean, animSpeedIndex = 0 as integer, setFocusIndex = false as boolean, useGridHack = false as boolean)
@@ -481,6 +485,7 @@ namespace ml
     private function canMoveFromKeyPress(key as string, isLongPress as boolean) as boolean
       direction = m.keyDirections[key]
 
+      ' ? " >>>>>>>>>>>>>>>>>>> CAN MOVE FROM " key " isFocusing " m.focusIndicatorManager.isFocusing
       if m._isRenderingUpdate
         m.log.info("cannot interact with keys while rendering")
         return false
@@ -489,7 +494,8 @@ namespace ml
       if m.focusIndicatorManager.isFocusing
         'TODO - improve this
         m.log.info("ignoring press", key, "because the focus indiciator is moving")
-        return false
+        'Allow to keep moving in same direction
+        return (key <> "up" and key <> "down")
       end if
 
       if m.listKeys[key] = true
@@ -556,6 +562,22 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ KeyPress
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function isAnyKeyPressLocked(key as string) as boolean
+      m._timeSinceLastKeypress = m.keyTimer.totalmilliseconds()
+      m.keyTimer.mark()
+
+      if m._lastKeyPress = key and m._timeSinceLastKeypress < 800
+        if m._timeSinceLastKeypress < 300
+          m._repeatKeyPressCount++
+        end if
+      else
+        m._repeatKeyPressCount = 0
+      end if
+      m._lastKeyPress = key
+      ' ? "TIME SINCE LAST KEYPRESS:: " m._timeSinceLastKeypress " count " m._repeatKeyPressCount
+      return false
+    end function
 
     private function onKeyPressFastForward() as boolean
       return m.onRowKeyPress("fastforward")
@@ -674,7 +696,7 @@ namespace ml
     end function
 
     private function getLongPressIntervalForKey(key as string) as float
-      m.log.resetIndent()
+      'm.log.resetIndent()
       if m.state <> "rendered"
         m.log.verbose("list is not ready yet, so _no_ long press processing: m.state is '<", m.state, "'")
 
@@ -686,7 +708,14 @@ namespace ml
         return 0
       end if
 
-      if (key = "OK" and m.isOkPressAllowedNow()) or m.canMoveFromKeyPress(key, true)
+      if key = "OK" and m.isOkPressAllowedNow()
+        m.log.verbose("valid long press with ok key", key)
+        return 0.2
+      else if m.canMoveFromKeyPress(key, true)
+        ' if m._repeatKeyPressCount > 2
+        '   m.log.verbose("likely a tap tap tap, ignoring")
+        '   return 0
+        ' end if
         m.log.verbose("valid long press with key", key)
         return 0.2
       else
@@ -697,8 +726,7 @@ namespace ml
 
     private function onLongPressStart(key as string) as boolean
       m.log.info(">>>>onLongPressStart", key)
-      m.log.resetIndent()
-
+      'm.log.resetIndent()
       if key = "OK"
         if m.isOkPressAllowedNow()
           m.delegate@._apply("onItemLongSelected", [{

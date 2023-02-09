@@ -56,6 +56,7 @@ namespace ml
     private nextScrollLocation = 0
     private postHopIndex = 0
     private isScrollCancelled = false
+    private keyPressIndex = 0
 
     protected previousScreenPos = 0
 
@@ -144,6 +145,8 @@ namespace ml
         speed = settings.animSpeeds[mc.clamp(animSpeedIndex, 0, settings.animSpeeds.count() - 1)]
       end if
 
+      ' ? " >>>> USING SPEED INDEX " m.keyPressIndex
+      speed = mc.clamp(speed - m.keyPressIndex, 0.02, speed)
       return speed
     end function
 
@@ -152,7 +155,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function canMoveInDirection(direction as integer) as boolean
-      m.log.resetIndent()
+      'm.log.resetIndent()
       ' m.viewManager.recalculateCellInfos(false)
       return m.canMoveToIndex(m.index + direction, direction)
     end function
@@ -176,17 +179,65 @@ namespace ml
       return false
     end function
 
+    private disableScrollOffsetAnim = false
+
     function moveFromPress(offset as integer, forceSequential = true as boolean, isPage = false as boolean) as boolean
       m.isScrollCancelled = false
       speedIndex = 1
-      if m.viewManager.isScrolling and m.direction = offset
-        ' ? " was scrolling, moving to next!"
-        m.cancelScrolling()
+      ' ? " MOVE FROM PRESS " m.viewManager.owner._repeatKeyPressCount " IScrolling? " m.viewManager.isScrolling
+      ' if m.viewManager.isScrolling
+      if m.direction = offset
+        if m.viewManager.owner._repeatKeyPressCount > 1
+          ' ? " GOING SAME WAY!!!"
+          ' speedIndex = 2
+          ' ? " m.direction " m.direction " INDEX " m.index " NITEMS " m.viewManager.numberOfItems
+          ' ? "111PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
+          ' if m.previousScreenPos <> m.nextScreenPos
+          '   ? " CANNOT DO DBL MOVES WHEN SCREEN POS DOES NOT MATCH"
+          '   return true
+          ' end if
+          if m.offsetContainer <> invalid
+            m.previousScreenPos = m.offsetContainer.translation[1]
+          end if
+          ' ? "222PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
+          if not m.canMoveToIndex(m.index, m.direction)
+            ' ? "USER IS SPAMMING KEYS AT END"
+            m.finishMovingToIndex()
+            'return true, coz the user is spamming the keys
+            return true
+          end if
+          ' ? " USER IS MOVING FASTER NOW"
+          if m.offsetContainer <> invalid
+            m.previousScreenPos = m.offsetContainer.translation[1]
+          end if
+          ' ? "333PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
+          ' m.finishMovingToIndex(false, false)
+        end if
+      else if m.viewManager.isScrolling
+        'only allowed if screenPositions are the same!
+        if m.previousScreenPos = m.nextScreenPos
+          previousScreenPos = m.previousScreenPos
+          m.disableScrollOffsetAnim = true
+          m.finishMovingToIndex(false, false)
+          ' ? "333PSP " m.previousScreenPos "NSP " m.nextScreenPos " lastScrollOffsetFraction " m.lastScrollOffsetFraction
+          m.moveToIndex(m.index + offset, true, 2)
+          m.previousScreenPos = previousScreenPos
+          m.updateSrollOffsetFraction(1)
+          m.disableScrollOffsetAnim = false
+        else
+          ' ? "CANNOT DO THIS DUE TO DIFFERENT SCREEN POS's.. too riksy: can add jeriking view animation"
+        end if
+        return true
+        ' end if
       end if
+
+      m.keyPressIndex = mc.clamp(cInt(m.viewManager.owner._repeatKeyPressCount / 3) * 0.02, 0.01, 0.2)
+
       if isPage
         offset = m.getPageOffset(offset)
         speedIndex = 2
       end if
+      ? "MOVING TO " offset " with keyPressIndex" m.keyPressIndex
       return m.move(offset, true, speedIndex, not isPage and forceSequential)
     end function
 
@@ -242,9 +293,7 @@ namespace ml
         return false
       end if
 
-      ' ? ">>>moveToEnd  " ; m.__classname ; " I " ; m.index; " D "; direction
-
-      ' ? " MTCI 333 " m.__classname
+      ' ? " MTCI 333 " m.__classname " index " index " numberOfItems " m.viewManager.numberOfItems
       m.moveToIndex(index, animated, animSpeedIndex)
       return true
     end function
@@ -255,7 +304,7 @@ namespace ml
 
     ' move to the Virtual Index
     function moveToIndex(index as integer, animated = true as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer, forceSequential = true as boolean, isContinuing = false as boolean, notifyFocusManager = true as boolean) as boolean
-      m.log.increaseIndent("MOVE TO INDEX")
+      'm.log.increaseIndent()Indent("MOVE TO INDEX")
 
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
       m.log.verbose(">?>?>?>?>?////////////////////////////////////////////////////.v///")
@@ -267,7 +316,7 @@ namespace ml
 
       if m.viewManager.numberOfItems = 0
         ' ? " NO ITEMS"
-        m.log.decreaseIndent()
+        'm.log.decreaseIndent()
         return false
       end if
 
@@ -327,7 +376,7 @@ namespace ml
         ' ? " CELLINFO " m.cellInfo
         ' ? " nextCellInfo " nextCellInfo
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
-        m.log.decreaseIndent()
+        'm.log.decreaseIndent()
         return true
       end if
 
@@ -373,7 +422,7 @@ namespace ml
         m.setCellInfo(targetCellInfo)
       end if
 
-      m.log.decreaseIndent()
+      'm.log.decreaseIndent()
       return true
     end function
 
@@ -433,7 +482,7 @@ namespace ml
         m.toggleScrolling(false)
         m.container.translation = translation
         m.nextScreenPos = m.nextCellInfo.getScreenPosition(m.direction)
-        index = m.nextCellInfo.index
+        ' index = m.nextCellInfo.index
         ' ? " NI " ; index
         m.updateSrollOffsetFraction(1)
 
@@ -542,14 +591,14 @@ namespace ml
       m.finishMovingToIndex()
     end function
 
-    function finishMovingToIndex(isFromFlow = false as boolean) as boolean
+    function finishMovingToIndex(isFromFlow = false as boolean, animated = true as boolean) as boolean
 
       ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetCellInfo, "index") ; " IS " ; m.viewManager.isScrolling
       ' ? m.__classname ; " " ; m.isScrollCancelled
-
+      m.keyPressIndex = 0
       if m.isScrollCancelled
         ' ? "VVVVV SCROLL CANCELLED " ; m.nextScrollLocation ; " " ; m.container.translation[m.axes]
-        if m.container.translation[m.axes] = m.nextScrollLocation or isFromFlow
+        if m.container.translation[m.axes] = m.nextScrollLocation or isFromFlow or not animated
           ' ? " is in position"
           m.toggleScrolling(false)
           if isFromFlow
@@ -558,6 +607,9 @@ namespace ml
             ' m.setFocusIndex(m.index, false, false)
           else
             m.setFocusIndex(m.nextIndex, false, false)
+            if not animated
+              m.updateSrollOffsetFraction(1)
+            end if
           end if
 
           return false
@@ -660,7 +712,7 @@ namespace ml
       else
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, false)
       end if
-      m.log.info("Set focus ManagerInfo to ", cellInfo.index, cellInfo.componentIndex)
+      ' m.log.info("Set focus ManagerInfo to ", cellInfo.index, cellInfo.componentIndex)
       ' ? " SNIC 666 " cellInfo.index " " cellInfo.componentIndex
       m.focusManager@.setNextFocusIndicatorConfig(m.nextFocusIndicatorConfig)
     end function
