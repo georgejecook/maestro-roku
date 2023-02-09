@@ -1,6 +1,7 @@
 import "pkg:/source/tests/BaseTestSuite.spec.bs"
 
 namespace tests
+  @only
   @suite("mc_Node tests")
   class mc_Node extends tests.BaseTestSuite
 
@@ -424,6 +425,23 @@ namespace tests
       m.assertEqual(m.node.callFunc("getChildCount"), 3)
       m.node@.removeChildIndex(0)
       m.assertEqual(m.node.callFunc("getChildCount"), 2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("findNode")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if node is not found")
+    function _()
+      m.assertInvalid(m.node@.findNode("other"))
+    end function
+
+    @it("returns node if found")
+    function _()
+      node = mc.createSGNode("Rectangle", invalid, "bgrect")
+
+      m.node@.appendChild(node)
+      m.assertTrue(m.node@.findNode("bgrect").isSameNode(node))
     end function
   end class
 end namespace

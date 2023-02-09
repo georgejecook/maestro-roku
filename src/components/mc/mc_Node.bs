@@ -24,6 +24,7 @@ function init()
   m.notifyChanges = true
   m.pendingChanges = []
   m.children = []
+  m.findNodeById = ""
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -249,6 +250,12 @@ end function
 
 function getChildCount(args = invalid as dynamic) as integer
   return m.top.length
+end function
+
+function findNode(id as string)
+  m.findNodeById = id
+  'bs:disable-next-line
+  return mc.collections.find(m.children, function(child): return child.id = m.findNodeById: end function)
 end function
 
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
