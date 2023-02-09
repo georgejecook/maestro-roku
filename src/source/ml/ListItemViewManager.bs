@@ -98,6 +98,12 @@ namespace ml
       return false
     end function
 
+    override function setIsScrolling(isScrolling as boolean, isLong as boolean, startIndex as integer) as void
+      super.setIsScrolling(isScrolling, isLong, startIndex)
+      ' ? " IS SCROLLING ON LIST?" isScrolling
+      m.itemScroller.focusManager.listIsMoving = isScrolling
+    end function
+
     protected override function onRenderersCreated()
       super.onRenderersCreated()
       m.log.info("Renderers created on list")

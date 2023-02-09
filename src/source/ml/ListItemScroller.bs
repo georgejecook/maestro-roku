@@ -85,26 +85,32 @@ namespace ml
     end function
 
     protected override function updateSrollOffsetFraction(fraction as float) as void
+      if m.disableScrollOffsetAnim
+        ' ? "+++ disableScrollOffsetAnim! not updating offset"
+        return
+      end if
+
+      ' ? "++ update scrolloffset fraction " fraction
       if m.isLastMoveFlowFocus
-        ' ? "Ignoring scrolloffset fraction while doing floating focus"
+        ' ? "++++Ignoring scrolloffset fraction while doing floating focus"
         return
       end if
       fraction = mc.clamp(fraction, 0, 1)
 
       if fraction < m.lastScrollOffsetFraction
-        ' ? "Fixing offset position, to prevent 'jumping' after cancelling a scroll"
+        ' ? "+++++Fixing offset position, to prevent 'jumping' after cancelling a scroll"
         m.previousScreenPos = m.offsetContainer.translation[1]
       end if
 
       m.lastScrollOffsetFraction = fraction
       newTranslation = mc.interpolateArray([0, m.previousScreenPos], [0, m.nextScreenPos], fraction)
-      ' ? " MNSP "; m.previousScreenPos ; " > " fraction ; " > " ; m.nextScreenPos ; " > " ; newTranslation[1]
+      ' ? "+++++ MNSP " m.previousScreenPos " > " m.nextScreenPos " @ " fraction " = " newTranslation[1]
 
       m.offsetContainer.translation = newTranslation
       m.viewManager.owner.screenOffset = newTranslation[1]
       if fraction >= 1
-        ' ? "CHANGE CHANGE CHANGE"
-        ' ? " FINISHED UPDATE PSP >> " ; m.offsetContainer.translation[1]
+        ' ? "+++++CHANGE CHANGE CHANGE"
+        ' ? "+++++ FINISHED UPDATE PSP >> " ; m.offsetContainer.translation[1]
         m.previousScreenPos = m.offsetContainer.translation[1]
       end if
     end function
