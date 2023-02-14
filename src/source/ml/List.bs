@@ -185,22 +185,6 @@ namespace ml
         m.log.info("content is being set to invalid - resetting view manager")
         m.viewManager.reset()
       end if
-      ' m.focusIndicatorManager.isHidden = not m.top.isFocused and not m.top.isChildFocused
-      ' if m.top.state = "rendered"
-      '   m.onListRenderState("rendered")
-      ' else
-      '   m.observeNodeField(m.top, "state", m.onListRenderState, "value", true)
-      ' end if
-    end function
-
-    private function onListRenderState(state as string)
-      m.log.info("onListRenderState", state)
-      ' if state = "rendered"
-      '   if m.top.isFocused or m.top.isChildFocused
-      '     m.top.focusIndicatorManager.isHidden = false
-      '   end if
-      '   m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
-      ' end if
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -233,8 +217,14 @@ namespace ml
 
     private function onIsHiddenChange()
       m.log.info("hiding the list")
-
+      m.setFocusIndicatorManagerHidden(true)
       m.itemScroller.notifyViewportEvents(m.itemScroller.direction, true)
+    end function
+
+    private function setFocusIndicatorManagerHidden(isHidden as boolean)
+      m.log.info("setting indicator hidden to", isHidden, "isListHidden", m.isHidden)
+
+      m.focusIndicatorManager.isHidden = isHidden
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -261,7 +251,8 @@ namespace ml
 
       ' ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
       if m.viewManager.numberOfItems > 0
-        m.focusIndicatorManager.isHidden = true
+        ? " HIDING FOCUS IN LIST FORCE UPDATE AAA"
+        m.setFocusIndicatorManagerHidden(true)
         m.log.verbose("LIST HAS COMPONENTS ", m.focusedRowIndex, " ", m.focusedCellIndex)
         ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
         ' m.moveToRowItemIndex(0, 0, true)
@@ -279,10 +270,12 @@ namespace ml
         ' m.moveToRow(m.itemScroller.index, false)
         '   ' m.focusIndicatorManager@.setFocusComplete()
         ' end if
-        m.focusIndicatorManager.isHidden = m.top.isChildFocused or m.top.isFocused
+        ? " SETTING FOCUS IN LIST BBB FORCE UPDATE" m.top.isChildFocused m.top.isFocused
+        m.setFocusIndicatorManagerHidden(not (m.top.isChildFocused and m.top.isFocused))
       else
         m.log.verbose("LIST HAS NO COMPONENTS ")
-        m.focusIndicatorManager.isHidden = true
+        ? " SETTING FOCUS HIDDEN CCC"
+        m.setFocusIndicatorManagerHidden(true)
       end if
 
       ' ? "FORCE UPDATE " ; m.focusedRowIndex ; " CELL " ; m.focusedCellIndex
@@ -463,6 +456,7 @@ namespace ml
     end function
 
     function _setIndices(focusedRowIndex as integer, focusedCellIndex as integer)
+      ? " SET INDICES " focusedRowIndex "," focusedCellIndex
       m.log.info("setting list indices", focusedRowIndex, ",", focusedCellIndex)
       m.focusedRowIndex = focusedRowIndex
       m.focusedCellIndex = focusedCellIndex
@@ -671,23 +665,7 @@ namespace ml
       end if
       m.log.verbose("onKeyPressDown")
 
-      'FIXME - add ability to change of direction, mid-animation
-      ' isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus
-      ' ' if m.itemScroller.direction = 1 and isScrolling
-      ' if isScrolling
-      '   ' if false and isScrolling
-      ' m.log.verbose(" CANNOT SCROLL is already scrolling ", m.viewManager.isScrolling, " FF ", m.focusIndicatorManager.isDoingFlowFocus)
-      '   m.log.info("was already scrolling - ignoring")
-      '   if m.focusIndicatorManager.isDoingFlowFocus
-      '     return true
-      '   end if
-      ' end if
-
       if m.itemScroller.canMoveInDirection(1)
-        ' if false and isScrolling
-        '   m.itemScroller.cancelScrollingDuringPress()
-        ' end if
-
         return m.itemScroller.moveFromPress(1, false)
       else
         m.log.verbose(" SKIPPING DOWN")
@@ -779,17 +757,20 @@ namespace ml
 
     protected override function onGainedFocus(isSelfFocused as boolean)
       super.onGainedFocus(isSelfFocused)
-      m.focusIndicatorManager.isHidden = false
+      ? "LIST GAINED FOCUS DDD"
+      m.setFocusIndicatorManagerHidden(false)
       if isSelfFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
       end if
     end function
 
     protected override function onLostFocus()
+      ? "LIST LOST FOCUS EEE"
       super.onLostFocus()
       'bs:disable-next-line
       if not m.top.isChildFocused
-        m.focusIndicatorManager.isHidden = true
+        ? "SETTING FOCUS  FFF"
+        m.setFocusIndicatorManagerHidden(true)
         m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
@@ -797,10 +778,12 @@ namespace ml
     protected override function onChildLostFocus()
       'bs:disable-next-line
       if m.top.isChildFocused
-        m.focusIndicatorManager.isHidden = false
+        ? "LIST CHILD GAINED FOCUS GGG"
+        m.setFocusIndicatorManagerHidden(false)
         m.focusIndicatorManager@.setFocusedOnRow(true)
       else
-        m.focusIndicatorManager.isHidden = true
+        ? "LIST LOST FOCUS HHH"
+        m.setFocusIndicatorManagerHidden(true)
         m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
     end function
