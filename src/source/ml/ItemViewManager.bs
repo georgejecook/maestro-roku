@@ -697,7 +697,7 @@ namespace ml
 
       isFollowingContent = m.listSettings.postUpdateIndexMode = "content"
       if isFollowingContent
-        m.log.info("Attempting to maintain focus on the same content")
+        m.log.info("Attempting to maintain focus on the same content", m.__classname)
 
         cellInfoAtOldIndex = m.getCellInfoForContentIndex(previousInfo.contentIndex)
         if cellInfoAtOldIndex <> invalid and cellInfoAtOldIndex.id = previousInfo.id
@@ -713,11 +713,11 @@ namespace ml
           end if
         end if
       else
-        m.log.info("attempting to maintain focus on the same index")
+        m.log.info("Attempting to maintain focus on the same index", newIndex, m.__classname)
       end if
 
-      m.log.info("the newIndex wants to be", newIndex, "numberOfItems", m.numberOfItems)
-      return mc.clamp(newIndex, 0, m.numberOfItems - 1)
+      m.log.info("the newIndex wants to be", newIndex, "numberOfVisibleItems", m.numberOfVisibleItems)
+      return mc.clamp(newIndex, 0, m.numberOfVisibleItems - 1)
     end function
 
   end class
