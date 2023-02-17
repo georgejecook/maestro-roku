@@ -52,7 +52,7 @@ namespace mioc
     mioc.clearClassInstances()
   end function
 
-  function getInstance(name as string, path = invalid as string) as dynamic
+  function getInstance(name as string, path = invalid as string, defaultValue = invalid as dynamic) as dynamic
     if m.__mioc = invalid
       mioc.initialize()
     end if
@@ -63,11 +63,16 @@ namespace mioc
     ' end if
 
     if path = invalid
-      return instance
+      value = instance
     else
-      return mc.getPath(instance, path)
+      value = mc.getPath(instance, path)
     end if
 
+    if value = invalid
+      return defaultValue
+    else
+      return value
+    end if
   end function
 
   function setInstances(instances as mc.types.assocarray)
