@@ -9,12 +9,6 @@ namespace mc.net
 
   class Request
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Public Fields
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    public isLoggingAsCurl = false
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -73,20 +67,20 @@ namespace mc.net
 
     function logAsCurl(method as string, url as string, headers as mc.types.assocarray, data as string)
       globalObject = mc.getGlobal()
-      method = ucase(method)
-      m.isLoggingAsCurl = asBoolean(globalObject.isRequestLoggingAsCurl) = true
-      headers = m.getHeadersAsCurl(headers)
+      if asBoolean(globalObject.isRequestLoggingAsCurl) = true
+        method = uCase(method)
+        headers = m.getHeadersAsCurl(headers)
 
-      curlString = `curl -X ${method} ${headers}`
+        curlString = `curl -X ${method} ${headers}`
 
-      if data <> invalid and data <> ""
-        curlString += `-d ${data} ${url}`
-      else
-        curlString += `${url}`
+        if data <> invalid and data <> ""
+          curlString += `-d ${data} ${url}`
+        else
+          curlString += `${url}`
+        end if
+
+        m.log.info(curlString)
       end if
-
-      m.log.info(curlString)
-      return curlString
     end function
 
 
@@ -158,9 +152,7 @@ namespace mc.net
       m.log.info("Timeout= ", timeout)
       m.log.info("Headers: ", headers)
 
-      if m.isLoggingAsCurl
-        m.logAsCurl(method, url, headers, data)
-      end if
+      m.logAsCurl(method, url, headers, data)
       responseEvent = invalid
       requestDetails = {
         timesTried: 0
