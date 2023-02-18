@@ -464,6 +464,30 @@ namespace tests
       m.assertEqual(mc.collections.map(codes, function(item): return "_" + item: end function), expected)
     end function
 
+    @it("maps node children")
+    function _()
+      codes = ["US", "DE", "FR", "UK"]
+      parent = mc.createSGNode("Node", invalid, "parent")
+      for each code in codes
+        mc.createSGNode("Node", parent, code)
+      end for
+
+      expected = ["_US", "_DE", "_FR", "_UK"]
+      m.assertEqual(mc.collections.map(parent, function(item): return "_" + item.id: end function), expected)
+    end function
+
+    @it("maps mc_Node children")
+    function _()
+      codes = ["US", "DE", "FR", "UK"]
+      parent = mc.createSGNode("mc_Node", invalid, "parent")
+      for each code in codes
+        mc.createSGNode("Node", parent, code)
+      end for
+
+      expected = ["_US", "_DE", "_FR", "_UK"]
+      m.assertEqual(mc.collections.map(parent, function(item): return "_" + item.id: end function), expected)
+    end function
+
     @it("maps associative array")
     function _()
       codes = { "US": "United States", "DE": "Germany", "FR": "France", "UK": "United Kingdom" }
