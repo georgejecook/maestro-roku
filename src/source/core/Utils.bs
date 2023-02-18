@@ -227,7 +227,11 @@ namespace mc
           else if type(part) = "roAssociativeArray"
             part = part[parts[i]]
           else if type(part) = "roSGNode"
-            part = part.getChild(parts[i].toInt())
+            if part.isSubtype("mc_Node") or part.subType() = "mc_Node"
+              part = part.callFunc("getChild", parts[i].toInt())
+            else
+              part = part.getChild(parts[i].toInt())
+            end if
           else
             part = invalid
           end if
