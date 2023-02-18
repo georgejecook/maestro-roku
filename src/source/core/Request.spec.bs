@@ -7,8 +7,6 @@ namespace tests
 
     private request
 
-    private nodeGlobal as mc.types.node
-
     protected override function beforeEach()
       super.beforeEach()
       m.request = new mc.net.Request()
@@ -444,7 +442,8 @@ namespace tests
     @params("put", "url4", { h1: "h1", h2: "h2" }, "{d1:1,d2:2}", "curl -X PUT -H'h1:h1' -H'h2:h2' -d {d1:1,d2:2} url4")
 
     function _(method, url, headers, data, expected)
-      m.nodeGlobal = new rooibos.utils.MockNode("global")
+      m.request.isLogAsCurlEnabled = true
+
       m.expectCalled(m.request.log.info(expected))
 
       m.request.logAsCurl(method, url, headers, data)

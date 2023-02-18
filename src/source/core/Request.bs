@@ -13,6 +13,7 @@ namespace mc.net
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private log
+    private isLogAsCurlEnabled = mc.getGlobal().isRequestLoggingAsCurl = true
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -66,8 +67,7 @@ namespace mc.net
     end function
 
     function logAsCurl(method as string, url as string, headers as mc.types.assocarray, data as string)
-      globalObject = mc.getGlobal()
-      if asBoolean(globalObject.isRequestLoggingAsCurl) = true
+      if m.isLogAsCurlEnabled
         method = uCase(method)
         headers = m.getHeadersAsCurl(headers)
 
