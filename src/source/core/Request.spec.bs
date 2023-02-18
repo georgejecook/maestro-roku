@@ -445,8 +445,9 @@ namespace tests
 
     function _(method, url, headers, data, expected)
       m.nodeGlobal = new rooibos.utils.MockNode("global")
-      result = m.request.logAsCurl(method, url, headers, data)
-      m.assertEqual(result, expected)
+      m.expectCalled(m.request.log.info(expected))
+
+      m.request.logAsCurl(method, url, headers, data)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
