@@ -57,6 +57,9 @@ namespace mv.controls
 
     public validatorType = ""
 
+    @alwaysnotify
+    public selected as boolean
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -134,15 +137,15 @@ namespace mv.controls
       m.subTextLabel.wrap = true
 
       m.errorLabel.text = m.errorText
-      m.errorLabel.translation = [m.inputImage.translation[0] + m.inputImage.size[0] * 2,  m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
+      m.errorLabel.translation = [m.inputImage.translation[0] + m.inputImage.size[0] * 2, m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
       m.errorLabel.visible = m.errorText <> invalid and m.errorText.trim() <> "" and m.hasError
 
       if m.backgroundColor.size[0] > 0:
         m.divider.visible = false
         m.label.translation = [m.backgroundColor.translation[0] + 10, m.backgroundColor.translation[1] + 10]
         m.subTextLabel.translation = [m.label.translation[0], m.backgroundColor.translation[1] + m.backgroundColor.size[1] + 10]
-        m.inputImage.translation = [m.backgroundColor.translation[0] + m.backgroundColor.size[0] + 10, m.backgroundColor.translation[1] + m.backgroundColor.size[1] / 2 - m.inputImage.size[1] / 2 ]
-        m.errorLabel.translation =  [m.inputImage.translation[0] + m.inputImage.size[0] + 10, m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
+        m.inputImage.translation = [m.backgroundColor.translation[0] + m.backgroundColor.size[0] + 10, m.backgroundColor.translation[1] + m.backgroundColor.size[1] / 2 - m.inputImage.size[1] / 2]
+        m.errorLabel.translation = [m.inputImage.translation[0] + m.inputImage.size[0] + 10, m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
       end if
     end function
 
@@ -178,6 +181,16 @@ namespace mv.controls
       super.onLostFocus()
       m.redraw()
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onKeyPressOK() as boolean
+      m.selected = true
+      return true
+    end function
+
 
   end class
 end namespace
