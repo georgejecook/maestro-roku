@@ -25,14 +25,14 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
-  ' m.log.method("setFocusOn", node)
+  m.log.verbose("setFocusOn", node)
 
   if m.top.enabled = false
     m.log.error("DISABLED: cannot set focus on", mc.dv(node))
     return
   end if
 
-  if m.top.isLocked
+  if m.top.isLocked and not isChildOfLockedNode(node)
     if isForced
       m.log.warn("overriding setting m.locked focus (locked reason:", m.top.lockReason, ")")
     else
@@ -62,6 +62,16 @@ function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
     end if
   end if
 
+end function
+
+function isChildOfLockedNode(node as mc.types.node) as boolean
+  parents = getParents(node)
+  for each parent in parents
+    if node.isSameNode(m.lockedNode)
+      return true
+    end if
+  end for
+  return false
 end function
 
 function _unsetFocusOn(node as mc.types.node)
@@ -169,6 +179,9 @@ function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as vo
 end function
 
 function getParents(node as mc.types.node)
+  if node = invalid
+    return []
+  end if
   parent = node.getParent()
   parents = []
   '// cspell:disable-next-line
