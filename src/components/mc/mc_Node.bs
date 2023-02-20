@@ -131,6 +131,19 @@ function removeChildIndex(index as integer)
   removeChildrenIndex(1, index)
 end function
 
+function findNode(name as string) as mc.types.node
+  if not mc.isString(name)
+    return invalid
+  end if
+
+  for each item in m.children
+    if item.id = name
+      return item
+    end if
+  end for
+  return invalid
+end function
+
 function appendChildren(children as mc.types.array) as void
   if type(children) = "roSGNode"
     children = [children]

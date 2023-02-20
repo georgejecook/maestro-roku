@@ -28,8 +28,11 @@ namespace mv.debug
     private pageIndex = 0
     private numberOfPages = 0
     private registry = new mc.Registry()
-    private pages = []
-    private activePage = {}
+    private pageBuilderFunctions = []
+    private activeButtons = {}
+    private previousMenuIndex = 0
+    private subMenuButtonFunction = invalid
+
 
     @inject("manifest", "version_number")
     private applicationVersionNumber
@@ -110,8 +113,8 @@ namespace mv.debug
         font: "font:SmallBoldSystemFont"
       })
       m.navController = m.createSGNode("mv_navController", m.top)
-      m.pages = m.createMenuPages()
-      m.numberOfPages = m.pages.count()
+      m.pageBuilderFunctions = m.getMenuPageBuilderFunctions()
+      m.numberOfPages = m.pageBuilderFunctions.count()
       m.updateButtons()
     end function
 
@@ -119,11 +122,11 @@ namespace mv.debug
     '++ Protected Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createMenuPages() as mc.types.array
+    protected function getMenuPageBuilderFunctions() as mc.types.array
       'override, and return your DeveloperMenuPage instances here
       return [
-        m.getDefaultPage()
-        m.getDefaultPage2()
+        m.getDefaultPage
+        m.getDefaultPage2
       ]
     end function
 
@@ -136,14 +139,40 @@ namespace mv.debug
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+
+    private function showSubMenu(buttonFunction as mc.types.array)
+      m.previousMenuIndex = m.buttonGroup.buttonSelected
+      m.subMenuButtonFunction = buttonFunction
+      m.updateButtons()
+      m.buttonGroup.buttonFocused = 0
+      m.buttonGroup.focusButton = 0
+    end function
+
+    private function onBackToMainMenu()
+      m.subMenuButtonFunction = invalid
+      m.updateButtons()
+      m.buttonGroup.buttonFocused = m.previousMenuIndex
+      m.buttonGroup.focusButton = m.previousMenuIndex
+    end function
+
+    'TODO add sub-pageBuilderFunctions
+    'TODO update so that it uses function pointers to make pageBuilderFunctions
     private function updateButtons()
-      m.infoLabel.text = `Page ${m.pageIndex + 1}/${m.pages.count()}`
+      m.infoLabel.text = `Page ${m.pageIndex + 1}/${m.pageBuilderFunctions.count()}`
       lastButtonFocused = m.buttonGroup.buttonFocused
       m.updateStatusText()
 
-      m.activePage = m.pages[m.pageIndex]
-      m.setButtonFunctions(m.buttonGroup, m.activePage)
+      if m.subMenuButtonFunction <> invalid
+        buttons = [[`BACK`, m.onBackToMainMenu]]
+        'bs:disable-next-line
+        buttons.append(m.subMenuButtonFunction())
 
+        m.setButtonFunctions(m.buttonGroup, buttons)
+      else
+        buttons = mc.apply(m.pageBuilderFunctions[m.pageIndex], [], m)
+      end if
+
+      m.setButtonFunctions(m.buttonGroup, buttons)
       m.buttonGroup.buttonFocused = mc.clamp(lastButtonFocused, 0, m.buttonGroup.buttons.count() - 1)
       m.buttonGroup.focusButton = mc.clamp(lastButtonFocused, 0, m.buttonGroup.buttons.count() - 1)
       m.setFocus(m.buttonGroup)
@@ -153,9 +182,15 @@ namespace mv.debug
     protected function getDefaultPage()
       return [
         ["Launch", m.onLaunch]
+        [`DEVICE`, function(): m.showSubMenu(m.getDefaultPageSubMenuItems): end function]
+      ]
+    end function
+
+    protected function getDefaultPageSubMenuItems()
+      return [
         ["Show registry", m.onShowRegistry]
         ["Clear registry", m.onClearRegistry]
-        ["Change app major version", m.onChangeAppMajorVersion]
+        ["Change app major version: " + m.applicationVersionNumber, m.onChangeAppMajorVersion]
         ["Change app minor version", m.onChangeAppMinorVersion]
       ]
     end function
@@ -171,7 +206,7 @@ namespace mv.debug
         return item[0]
       end function)
 
-      m.activePage = m.pages[m.pageIndex]
+      m.activeButtons = buttons
       m.observeNodeField(control, "buttonSelected", m.onButtonGroupSelectedChange, "both")
     end function
 
@@ -180,7 +215,7 @@ namespace mv.debug
         m.log.info("ignoring - screen is still busy")
         return
       end if
-      m.activePage[index][1]()
+      m.activeButtons[index][1]()
     end function
 
     private function showScreen(screen as mc.types.node)
@@ -268,6 +303,9 @@ namespace mv.debug
     protected override function onKeyPressBack() as boolean
       if m.subScreen <> invalid
         m.hideSubScreen()
+        return true
+      else if m.subMenuButtonFunction <> invalid
+        m.onBackToMainMenu()
         return true
       else
         return false
