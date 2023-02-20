@@ -151,14 +151,14 @@ namespace mv.controls
 
     function setFocusedControl(control as mc.types.node)
       if type(control) = "roSGNode"
-        for i = 0 to m.originalChildren.count() - 1
-          if m.originalChildren[i].id = control.id
+        for i = 0 to m.visibleChildren.count() - 1
+          if m.visibleChildren[i].id = control.id
             m.focusedIndex = i
             m.focusedControl = control
             m.redraw()
             exit for
           else
-            m.log.error(`Could not find control with id ${control.id} in ${m.originalChildren}`)
+            m.log.error(`Could not find control with id ${control.id} in ${m.visibleChildren}`)
           end if
         end for
       else

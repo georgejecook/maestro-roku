@@ -203,10 +203,10 @@ namespace tests
 
     @it("doesn't set focused control if control is not found in original children")
     function _()
-      control = mc.createSGNode("Node", invalid, "button")
+      control = mc.createSGNode("Node", invalid, "node")
 
-      originalChildren = [{ "id": "originalChildren" }]
-      m.control.originalChildren = originalChildren
+      visibleChildren = [{ "id": "visibleChildren" }]
+      m.control.visibleChildren = visibleChildren
 
       m.expectNotCalled(m.control.redraw)
 
@@ -219,11 +219,10 @@ namespace tests
     @it("sets focused control if control is found in original children")
 
     function _()
-      m.global.focusManager = { isLogging: true }
-      control = mc.createSGNode("Node", invalid, "button")
+      control = mc.createSGNode("Node", invalid, "node")
 
-      originalChildren = [{ "id": "button" }]
-      m.control.originalChildren = originalChildren
+      visibleChildren = [{ "id": "node" }]
+      m.control.visibleChildren = visibleChildren
 
       m.expectCalled(m.control.redraw())
 
