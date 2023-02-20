@@ -162,6 +162,20 @@ namespace tests
       m.assertEqual(mc.getPath(a, path), value)
     end function
 
+    @it("sets values on a node")
+    @params("v", 1)
+    @params("b.v", 2)
+    @params("b.c.v", 3)
+    function _(path, value)
+      a = mc.createSGNode("Node", invalid, "node")
+      mc.setOrAddNodeField(a, "b", {
+        c: {
+        }
+      })
+      mc.setPath(a, path, value)
+      m.assertEqual(mc.getPath(a, path), value)
+    end function
+
     @it("does not crash or set value when using bad values")
     @params("b.a")
     @params("b.c.0")

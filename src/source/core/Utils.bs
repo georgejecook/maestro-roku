@@ -352,13 +352,22 @@ namespace mc
   '  */
   function setPath(content as dynamic, path as string, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as void
     part = invalid
-
     if path <> invalid
       parts = path.split(".")
       numParts = parts.count() - 1
       i = 0
 
-      part = content
+      if type(content) = "roSGNode" and numParts + 1 > 0
+        nodeValue = content[parts[0]]
+        data = {}
+        data[parts[0]] = nodeValue
+        mc.setPath(data, path, value)
+        mc.setOrAddNodeField(content, parts[0], data[parts[0]])
+        return
+      else
+        part = content
+      end if
+
       while i < numParts and part <> invalid
         isIndexNumber = parts[i] = "0" or (parts[i].toInt() <> 0 and parts[i].toInt().toStr() = parts[i])
         if isIndexNumber
