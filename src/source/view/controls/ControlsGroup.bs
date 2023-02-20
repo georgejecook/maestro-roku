@@ -149,6 +149,27 @@ namespace mv.controls
       return m.visibleChildren[m.selectedIndex]
     end function
 
+    function setFocusedControl(control as mc.types.node)
+      if type(control) = "roSGNode"
+        for i = 0 to m.originalChildren.count() - 1
+          if m.originalChildren[i].id = control.id
+            m.focusedIndex = i
+            m.focusedControl = control
+            m.redraw()
+            exit for
+          else
+            m.log.error(`Could not find control with id ${control.id} in ${m.originalChildren}`)
+          end if
+        end for
+      else
+        m.log.error("Cannot set focused control to ", type(control))
+      end if
+    end function
+
+    function getIsFocusedControl(control as mc.types.node) as boolean
+      return m.isControlFocused(control)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
