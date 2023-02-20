@@ -53,10 +53,10 @@ function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
       _setFocusOnImpl(node, parents)
     else
       if m.top.invalidFocusSetsFocusOnMain
-        m.log.error("set focus to an off scene node! - setting focus to MainScene")
+        m.log.error("set focus to an off scene node! - setting focus to MainScene. Node was", mc.dv(node))
         _setFocusOnImpl(m.top.getScene(), [])
       else
-        m.log.error("set focus to an off scene node! - in future this will set the focus to a backup-context node, to stop illegal focus scenarios")
+        m.log.error("set focus to an off scene node!", mc.dv(node))
         _setFocusOnImpl(node, parents)
       end if
     end if
