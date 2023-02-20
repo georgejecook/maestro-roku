@@ -413,7 +413,7 @@ namespace tests
     @params("en")
     @params("fr")
     function _(locale)
-      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], invalid)
+      m.stubCall(m.manager.loadJson("pkg:/screen.bundle/screen.json"), invalid)
 
       bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
 
@@ -425,7 +425,7 @@ namespace tests
     @params("en", "pkg:/screen.bundle_en")
     @params("fr", "pkg:/screen.bundle_fr")
     function _(locale, key)
-      m.expectNone(m.manager, "loadJson")
+      m.expectNotCalled(m.manager.loadJson)
       cachedBundle = { "id": "cachedBundle" }
 
       m.manager.cachedStyles[key] = cachedBundle
@@ -439,7 +439,7 @@ namespace tests
     @params("en", "pkg:/screen.bundle_en")
     function _(locale, key)
       loadedBundle = { "id": "bundle" }
-      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], loadedBundle)
+      m.expectCalled(m.manager.loadJson("pkg:/screen.bundle/screen.json"), loadedBundle)
 
       bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
 
@@ -452,9 +452,9 @@ namespace tests
     @params("de", "pkg:/screen.bundle_de", "pkg:/screen.bundle/screen.de.json")
     function _(locale, key, localeFilename)
       loadedBundle = { "id": "bundle" }
-      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], loadedBundle)
+      m.expectCalled(m.manager.loadJson("pkg:/screen.bundle/screen.json"), loadedBundle)
 
-      m.expectOnce(m.manager, "loadJson", [localeFilename], invalid)
+      m.expectCalled(m.manager.loadJson(localeFilename), invalid)
 
       bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
 
@@ -468,10 +468,10 @@ namespace tests
     @params("de", "pkg:/screen.bundle_de", "pkg:/screen.bundle/screen.de.json")
     function _(locale, key, localeFilename)
       loadedBundle = { "id": "bundle" }
-      m.expectOnce(m.manager, "loadJson", ["pkg:/screen.bundle/screen.json"], loadedBundle)
+      m.expectCalled(m.manager.loadJson("pkg:/screen.bundle/screen.json"), loadedBundle)
 
       localeBundle = { "id2": "localeBundle" }
-      m.expectOnce(m.manager, "loadJson", [localeFilename], localeBundle)
+      m.expectCalled(m.manager.loadJson(localeFilename), localeBundle)
 
       bundle = m.manager.loadBundle("pkg:/screen.bundle", locale)
 

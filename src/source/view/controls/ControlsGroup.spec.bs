@@ -184,6 +184,62 @@ namespace tests
 
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setFocusedControl")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't crash if control is not a roSGNode")
+    @params([])
+    @params({})
+    @params(invalid)
+    function _(control)
+      m.control.setFocusedControl(control)
+
+      m.assertEqual(m.control.focusedIndex, -1)
+      m.assertInvalid(m.control.focusedControl)
+    end function
+
+    @it("doesn't set focused control if control is not found in original children")
+    function _()
+      control = mc.createSGNode("Node", invalid, "node")
+
+      visibleChildren = [{ "id": "visibleChildren" }]
+      m.control.visibleChildren = visibleChildren
+
+      m.control.setFocusedControl(control)
+
+      m.assertEqual(m.control.focusedIndex, -1)
+      m.assertInvalid(m.control.focusedControl)
+    end function
+
+    @it("sets focused control if control is found in original children")
+
+    function _()
+      control = mc.createSGNode("Node", invalid, "node")
+
+      visibleChildren = [{ "id": "node" }]
+      m.control.visibleChildren = visibleChildren
+
+
+      m.control.setFocusedControl(control)
+
+      m.assertEqual(m.control.focusedIndex, 0)
+      m.assertTrue(m.control.focusedControl.isSameNode(control))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getIsFocusedControl")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns true if control is focused or not")
+    @params(true)
+    @params(false)
+    function _(isControlFocused)
+      control = { "id": "control" }
+
+      m.expectCalled(m.control.isControlFocused(control), isControlFocused)
+      m.assertEqual(m.control.getIsFocusedControl(control), isControlFocused)
+    end function
 
   end class
 end namespace

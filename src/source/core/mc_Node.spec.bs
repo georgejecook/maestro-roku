@@ -425,5 +425,41 @@ namespace tests
       m.node@.removeChildIndex(0)
       m.assertEqual(m.node.callFunc("getChildCount"), 2)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("find")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if name is invalid")
+    @params(invalid)
+    @params({})
+    @params([])
+    @params(1)
+    @params(false)
+    function _(name)
+      m.assertInvalid(m.node@.findNode(name))
+    end function
+
+    @it("returns invalid if there are no children")
+    function _()
+      m.assertInvalid(m.node@.findNode("first"))
+    end function
+
+    @it("returns invalid if id does not match")
+    function _()
+      mc.createSGNode("Node", m.node, "first")
+
+      m.assertInvalid(m.node@.findNode("notThere"))
+    end function
+
+    @it("returns matching node if found")
+    function _()
+      first = mc.createSGNode("Node", m.node, "first")
+      second = mc.createSGNode("Node", m.node, "second")
+
+      m.assertEqual(m.node@.findNode("first"), first)
+      m.assertEqual(m.node@.findNode("second"), second)
+    end function
+
   end class
 end namespace

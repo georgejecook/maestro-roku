@@ -38,6 +38,13 @@ namespace mc.collections
     if array <> invalid
       isClass = mc.isClass(mapper)
       if mc.isArray(array) or type(array) = "roSGNode"
+        if type(array) = "roSGNode"
+          if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+            array = array@.getChildren()
+          else
+            array = array.getChildren(-1, 0)
+          end if
+        end if
         for each item in array
           if isClass
             transformed = mapper.transform(item)
@@ -72,16 +79,23 @@ namespace mc.collections
   end function
 
   ' sorts array of items, with unique value at keyPath
-  ' @params{array} arr - array to sort
+  ' @params{array} array - array to sort
   ' @params{keyPath} string - path to value to sort on
   ' @params{boolean} ascending
-  function getSortedArrayByKey(arr as mc.types.array, keyPath as string, ascending = true as boolean) as mc.types.array
+  function getSortedArrayByKey(array as mc.types.array, keyPath as string, ascending = true as boolean) as mc.types.array
     result = []
-    if mc.isArray(arr) and mc.isString(keyPath) and keyPath <> ""
+    if type(array) = "roSGNode"
+      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+        array = array@.getChildren()
+      else
+        array = array.getChildren(-1, 0)
+      end if
+    end if
+    if mc.isArray(array) and mc.isString(keyPath) and keyPath <> ""
       dict = {}
       i = 0
-      for i = 0 to arr.count() - 1
-        item = arr[i]
+      for i = 0 to array.count() - 1
+        item = array[i]
         key = mc.getPath(item, keyPath, "")
         if mc.isString(key)
           dict[key] = i
@@ -92,21 +106,28 @@ namespace mc.collections
         keys.reverse()
       end if
       for each key in keys
-        result.push(arr[dict[key]])
+        result.push(array[dict[key]])
       end for
     end if
     return result
   end function
 
   @injectLocalM
-  function getSortedArrayByFunction(arr as mc.types.array, func as function, ascending = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.array
+  function getSortedArrayByFunction(array as mc.types.array, func as function, ascending = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.array
     if mTarget = invalid
       mTarget = m
     end if
     result = []
-    if mc.isArray(arr) and mc.isFunction(func)
+    if type(array) = "roSGNode"
+      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+        array = array@.getChildren()
+      else
+        array = array.getChildren(-1, 0)
+      end if
+    end if
+    if mc.isArray(array) and mc.isFunction(func)
       dict = {}
-      for each item in arr
+      for each item in array
         key = mc.apply(func, [item], mTarget)
         if mc.isString(key)
           dict[key] = item
@@ -123,11 +144,18 @@ namespace mc.collections
     return result
   end function
 
-  function getSortedArrayByCallFunc(arr as mc.types.array, funcName as string, ascending = true as boolean) as mc.types.array
+  function getSortedArrayByCallFunc(array as mc.types.array, funcName as string, ascending = true as boolean) as mc.types.array
     result = []
-    if mc.isArray(arr) and mc.isString(funcName)
+    if type(array) = "roSGNode"
+      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+        array = array@.getChildren()
+      else
+        array = array.getChildren(-1, 0)
+      end if
+    end if
+    if mc.isArray(array) and mc.isString(funcName)
       dict = {}
-      for each item in arr
+      for each item in array
         key = item.callFunc(funcName)
         if mc.isString(key)
           dict[key] = item
@@ -157,6 +185,7 @@ namespace mc.collections
       return -1
     end if
 
+
     itemKey = invalid
     isNode = false
     if key <> invalid
@@ -171,6 +200,14 @@ namespace mc.collections
       itemKey = item[key]
     else if type(item) = "roSGNode"
       isNode = true
+    end if
+
+    if type(array) = "roSGNode"
+      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+        array = array@.getChildren()
+      else
+        array = array.getChildren(-1, 0)
+      end if
     end if
 
     for i = 0 to array.count() - 1
@@ -264,6 +301,13 @@ namespace mc.collections
     end if
     try
       if array <> invalid
+        if type(array) = "roSGNode"
+          if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+            array = array@.getChildren()
+          else
+            array = array.getChildren(-1, 0)
+          end if
+        end if
         if mc.isAACompatible(predicate)
           for each item in array
             if predicate.isMatch(item)
