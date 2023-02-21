@@ -153,8 +153,8 @@ namespace mv.controls
       if type(control) = "roSGNode"
         for i = 0 to m.visibleChildren.count() - 1
           if m.visibleChildren[i].id = control.id
-            m.focusedIndex = i
             m.focusedControl = control
+            m.focusedIndex = i
             exit for
           else
             m.log.error(`Could not find control with id ${control.id} in ${m.visibleChildren}`)
@@ -167,6 +167,10 @@ namespace mv.controls
 
     function getIsFocusedControl(control as mc.types.node) as boolean
       return m.isControlFocused(control)
+    end function
+
+    function getFocusedControl() as mc.types.node
+      return m.focusedControl
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -207,7 +211,6 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function updateIndex(index as integer) as boolean
-
       if index <> m.focusedIndex
         control = m.visibleChildren[index]
         if control <> invalid
@@ -220,6 +223,8 @@ namespace mv.controls
               return false
             end if
           end if
+
+          m.focusedControl = m.visibleChildren[index]
           m.focusedIndex = index
           if m.selectOnFocus
             m.selectedIndex = index
@@ -259,6 +264,7 @@ namespace mv.controls
     end function
 
     private function onKeyPressDown() as boolean
+
       if m.keyDirection = "vert"
         return m.updateIndex(mc.clamp(m.focusedIndex + 1, 0, m.visibleChildren.count() - 1))
       else

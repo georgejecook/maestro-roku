@@ -63,8 +63,13 @@ function onGainedFocus(isSelfFocused as boolean)
 
   if isSelfFocused
     if m.top.currentView <> invalid
-      ' m.log.debug("setting focus to view ", m.top.currentView.id)
-      mv.setFocus(m.top.currentView)
+      if m.top.transition = invalid or m.top.transition.state <> "started"
+        ' m.log.debug("setting focus to view ", m.top.currentView.id)
+        mv.setFocus(m.top.currentView)
+      else
+        m.log.info("cannot set focus to child view while doing transition, setting focus to a placeholder")
+        mv.setFocus(m.top.findNode("focusTrap"))
+      end if
     else
       m.log.debug("no current view when gaining focus")
     end if

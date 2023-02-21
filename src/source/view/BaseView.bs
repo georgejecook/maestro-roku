@@ -54,12 +54,17 @@ namespace mv
       mv.setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as mc.types.node, message as string)
+    protected function setFocusLocked(target as mc.types.node, message = "" as string)
       if target <> invalid
         m.focusedControl = target
       end if
       'bs:disable-next-line
       mv.setFocusLocked(target, message)
+    end function
+
+    protected function setFocusUnlocked(reason = "" as string)
+      'bs:disable-next-line
+      mv.setFocusUnlocked(reason)
     end function
 
     protected function isControlFocused(control as mc.types.node)
