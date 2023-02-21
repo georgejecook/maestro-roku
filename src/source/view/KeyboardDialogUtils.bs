@@ -20,7 +20,6 @@ namespace mv
 
     private delegate
     private callback
-    private text as mc.types.assocarray
 
     @inject("styleManager")
     private styleManager as mc.types.node
@@ -31,16 +30,6 @@ namespace mv
 
     function new(delegate as dynamic)
       super("KeyboardDialogUtil")
-      bundle = {
-        text: {
-          onKeyboardDialogButtonSelected: {
-            continue: "Continue"
-            clear: "Clear"
-            back: "Back"
-          }
-        }
-      }
-      m.text = bundle.text
       m.delegate = delegate
     end function
 
@@ -51,8 +40,7 @@ namespace mv
     ' @param {string} callback - function to call with updated text
     ' @param {boolean} isSecure - true if it's a password
     ' @param {array} buttons - buttons to show
-    ' @param {string} autoPopulate - (none|login|register)
-    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as mc.types.array, autoPopulate = "none" as string) as mc.types.node
+    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as mc.types.array, buttonRoles = { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" } as mc.types.assocarray) as mc.types.node
       m.dialog = createObject("roSGNode", "StandardKeyboardDialog")
       if isSecure
         m.dialog.textEditBox.secureMode = true
@@ -61,6 +49,7 @@ namespace mv
 
       m.dialog.addFields({
         "isSecure": isSecure
+        "buttonRoles": buttonRoles
       })
 
       m.callback = callback
@@ -89,18 +78,18 @@ namespace mv
       m.log.info("keyboard button selected: ", selectedButtonText, ", text ", dialog.text)
       isClosing = false
 
-      buttons = m.text.onKeyboardDialogButtonSelected
+      buttonRoles = asAA(dialog.buttonRoles, { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" })
 
-      if selectedButtonText = buttons.password
+      if selectedButtonText = buttonRoles.showHide
         dialog.textEditBox.secureMode = not dialog.textEditBox.secureMode
-      else if selectedButtonText = buttons.continue
+      else if selectedButtonText = buttonRoles.continue
         isClosing = true
         m.delegate.__cb = m.callback
         'bs:disable-next-line
         m.delegate.__cb(dialog.text)
-      else if selectedButtonText = buttons.back
+      else if selectedButtonText = buttonRoles.back
         isClosing = true
-      else if selectedButtonText = buttons.clear
+      else if selectedButtonText = buttonRoles.clear
         dialog.text = ""
       end if
 
