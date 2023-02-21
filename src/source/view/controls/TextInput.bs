@@ -43,6 +43,11 @@ namespace mv.controls
     @debounce
     @alwaysnotify
     @observer("redraw")
+    public isSecure = false
+
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
     public isDisabled = false
 
     @debounce
@@ -123,7 +128,7 @@ namespace mv.controls
       m.applyState(m.isFocused, m.isDisabled, m.hasError)
 
       if m.text <> invalid and m.text.trim() <> ""
-        m.label.text = m.text
+        m.label.text = m.isSecure ? string(len(m.text), "*") : m.text
       else
         m.label.text = m.hintText
       end if
