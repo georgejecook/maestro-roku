@@ -12,6 +12,7 @@ namespace mv.controls
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     @alwaysnotify
+    @observer("redraw")
     public selectedIndex = -1
 
     @alwaysnotify
@@ -51,12 +52,15 @@ namespace mv.controls
     @observer("updateChildren")
     public _layoutNow = false
 
+    public setIsSelectedOnChildren = false
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private originalChildren = []
     private visibleChildren = []
+    private _focusedControl as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -153,7 +157,7 @@ namespace mv.controls
       if type(control) = "roSGNode"
         for i = 0 to m.visibleChildren.count() - 1
           if m.visibleChildren[i].id = control.id
-            m.focusedControl = control
+            m._focusedControl = control
             m.focusedIndex = i
             exit for
           else
@@ -170,7 +174,7 @@ namespace mv.controls
     end function
 
     function getFocusedControl() as mc.types.node
-      return m.focusedControl
+      return m._focusedControl
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -224,7 +228,7 @@ namespace mv.controls
             end if
           end if
 
-          m.focusedControl = m.visibleChildren[index]
+          m._focusedControl = m.visibleChildren[index]
           m.focusedIndex = index
           if m.selectOnFocus
             m.selectedIndex = index
@@ -323,14 +327,19 @@ namespace mv.controls
     end function
 
     private function onKeyPressOK() as boolean
-      control = m.visibleChildren[m.focusedIndex]
+      m.log.info("pressed ok in controls group")
+      focusedIndex = m.focusedIndex
+      setIsSelectedOnChildren = m.setIsSelectedOnChildren
+      control = m.visibleChildren[focusedIndex]
       if control <> invalid and control.isDisabled <> true
-        control.selected = true
         for i = 0 to m.visibleChildren.count() - 1
           child = m.visibleChildren[i]
-          child.isSelected = m.focusedIndex = i
+          child.isSelected = i = focusedIndex and setIsSelectedOnChildren
         end for
-        m.selectedIndex = m.focusedIndex
+        if setIsSelectedOnChildren
+          control.selected = true
+        end if
+        m.selectedIndex = focusedIndex
       end if
       return true
     end function
