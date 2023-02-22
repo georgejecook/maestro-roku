@@ -26,6 +26,7 @@ namespace mc
     private completedCommands = {}
     private runningCommandsCount = 0
     private commands = {}
+    private taskCommands = {}
 
     protected firstCommand = new mc.Command("start", m.runAll)
 
@@ -75,18 +76,43 @@ namespace mc
       end if
       m.log.info("starting command", command.name)
       m.completedCommands[funcName] = false
+      m.taskCommands[command.name] = command
 
       try
-        'bs:disable-next-line
-        m.__cb = command.func
-        'bs:disable-next-line
-        m.__cb(command)
+        if command.isTask = true
+          task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")
+          mc.setOrAddNodeField(task, "__commandName", command.name)
+        else
+          'bs:disable-next-line
+          m.__cb = command.func
+          'bs:disable-next-line
+          m.__cb(command)
+        end if
       catch error
         'bs:disable-next-line
         message = `Error executing command ${command.name} error was: ${error}`
         m.log.error(message)
         m.failCommand(command, message)
       end try
+    end function
+
+    private function onTaskCommandCallback(value as mc.Result, task as mc.types.node)
+      ? " TASK COMMAND CALLBACK 11"
+      command = m.taskCommands[task.__commandName]
+      if command <> invalid
+        ? " TASK COMMAND CALLBACK 22"
+        m.taskCommands.delete(task.__commandName)
+        if asBoolean(value.isOk)
+          ? " TASK COMMAND CALLBACK 33"
+          m.finishCommand(command)
+        else
+          ? " TASK COMMAND CALLBACK 44"
+          m.failCommand(command, `commandTask failed with error ${value.message}`)
+        end if
+      else
+        ? " TASK COMMAND CALLBACK 55"
+        m.log.error("Missing command on task completion call back", task.__commandName)
+      end if
     end function
 
     protected function finishCommand(command as mc.Command)
