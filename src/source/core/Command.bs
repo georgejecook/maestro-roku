@@ -10,4 +10,16 @@ namespace mc
       m.nextCommands = nextCommands
     end function
   end class
+  class TaskCommand extends mc.Command
+    isTask = true
+    taskArgs as mc.types.assocarray
+    taskName as string
+
+    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, nextCommands = [] as mc.types.array)
+      super(name, invalid, nextCommands)
+      m.isTask = true
+      m.taskName = taskName
+      m.taskArgs = { args: taskArgs }
+    end function
+  end class
 end namespace
