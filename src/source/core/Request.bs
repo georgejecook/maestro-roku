@@ -43,6 +43,15 @@ namespace mc.net
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
+    function formPost(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+      if mc.isAACompatible(otherArgs) and mc.isAACompatible(params)
+        json = asAA(otherArgs.json)
+        json.append(params)
+        otherArgs.json = json
+      end if
+      return m.executeRequest("POST", url, params, headers, otherArgs)
+    end function
+
     function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
 
       if mc.isAACompatible(otherArgs)
