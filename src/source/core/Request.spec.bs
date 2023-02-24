@@ -2,6 +2,7 @@ import "pkg:/source/tests/BaseTestSuite.spec.bs"
 import "pkg:/source/core/Request.bs"
 
 namespace tests
+  @only
   @suite("Request tests")
   class RequestTests extends tests.BaseTestSuite
 
@@ -50,6 +51,34 @@ namespace tests
       m.expectOnce(m.request, "delete", ["url", "params", "headers", "otherArgs"], result)
 
       m.assertEqual(m.request.delete("url", "params", "headers", "otherArgs"), result)
+    end function
+
+    @it("it posts using json in request body")
+    function _()
+      url = "url"
+      params = invalid
+      headers = { "id": "headers" }
+      otherArgs = { "id": "otherArgs" }
+      result = { "id": "result" }
+
+      m.expectCalled(m.request.executeRequest("POST", url, params, headers, otherArgs), result)
+
+      m.assertEqual(m.request.formPost(url, params, headers, otherArgs), result)
+    end function
+
+    @it("it posts by appending params to request body if params are set")
+    function _()
+
+      url = "url"
+      params = { "id": "params" }
+      headers = { "id": "headers" }
+      otherArgs = { "id": "otherArgs" }
+      result = { "id": "result" }
+
+      m.expectCalled(m.request.executeRequest("POST", url, params, headers, otherArgs), result)
+
+      m.assertEqual(m.request.formPost(url, params, headers, otherArgs), result)
+      m.assertEqual(otherArgs.json, params)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
