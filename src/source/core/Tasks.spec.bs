@@ -2,7 +2,6 @@ import "pkg:/source/tests/BaseTestSuite.spec.bs"
 import "pkg:/source/core/Tasks.bs"
 
 namespace tests
-
   @suite("Tasks tests")
   class TasksTests extends tests.BaseTestSuite
 
@@ -41,10 +40,26 @@ namespace tests
 
       t = mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, false, "none", m)
       m.assertSubType(t, "mc_RequestTask")
-      m.assertEqual(t.fv1, "a")
-      m.assertEqual(t.fv2, "b")
+      m.assertEqual(t.args.fv1, "a")
+      m.assertEqual(t.args.fv2, "b")
       m.assertEqual(t.control, "init")
 
+    end function
+
+    @it("creates a task with the passed args")
+    function _()
+      fields = {
+        args: {
+          "fv1": "d"
+          "fv2": "e"
+        }
+      }
+
+      t = mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, false, "none", m)
+      m.assertSubType(t, "mc_RequestTask")
+      m.assertEqual(t.args.fv1, "d")
+      m.assertEqual(t.args.fv2, "e")
+      m.assertEqual(t.control, "init")
     end function
 
     @it("starts a task")
@@ -56,8 +71,8 @@ namespace tests
 
       t = mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, true, "none", m)
       m.assertSubType(t, "mc_RequestTask")
-      m.assertEqual(t.fv1, "a")
-      m.assertEqual(t.fv2, "b")
+      m.assertEqual(t.args.fv1, "a")
+      m.assertEqual(t.args.fv2, "b")
       m.assertEqual(t.control, "run")
     end function
 
