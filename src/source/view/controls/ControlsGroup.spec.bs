@@ -163,7 +163,7 @@ namespace tests
 
     end function
 
-    @it("sets controls isSelected to true, if the control is not disabled")
+    @it("sets controls isSelected to true, if the control is not disabled and setIsSelectedOnChildren is true")
     @params(false, true)
     @params(true, invalid)
     @params(invalid, true)
@@ -172,6 +172,7 @@ namespace tests
         "id": "c1"
         isDisabled: disabled
       }
+      m.control.setIsSelectedOnChildren = true
 
       m.control.selectedIndex = -1
       m.control.focusedIndex = 0
@@ -182,7 +183,30 @@ namespace tests
 
       m.assertEqual(c1.selected, expectedIsSelected)
       m.assertEqual(selectedControl.isSelected, expectedIsSelected)
+    end function
 
+    @it("doesn't set controls isSelected to true, if setIsSelectedOnChildren is false")
+    @params(false)
+    @params(true)
+    @params(invalid)
+    function _(disabled)
+      c1 = {
+        "id": "c1"
+        isDisabled: disabled
+        selected: false
+        isSelected: false
+      }
+      m.control.setIsSelectedOnChildren = false
+
+      m.control.selectedIndex = -1
+      m.control.focusedIndex = 0
+      m.control.visibleChildren = [c1]
+
+      m.assertTrue(m.control.onKeyPressOK())
+      selectedControl = m.control.visibleChildren[0]
+
+      m.assertFalse(c1.selected)
+      m.assertFalse(selectedControl.isSelected)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -210,7 +234,7 @@ namespace tests
       m.control.setFocusedControl(control)
 
       m.assertEqual(m.control.focusedIndex, -1)
-      m.assertInvalid(m.control.focusedControl)
+      m.assertInvalid(m.control._focusedControl)
     end function
 
     @it("sets focused control if control is found in original children")
@@ -225,7 +249,7 @@ namespace tests
       m.control.setFocusedControl(control)
 
       m.assertEqual(m.control.focusedIndex, 0)
-      m.assertTrue(m.control.focusedControl.isSameNode(control))
+      m.assertEqual(m.control._focusedControl, control)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -235,11 +259,12 @@ namespace tests
     @it("returns true if control is focused or not")
     @params(true)
     @params(false)
-    function _(isControlFocused)
+    function _(isSameNode)
       control = { "id": "control" }
+      m.control._focusedControl = control
 
-      m.expectCalled(m.control.isControlFocused(control), isControlFocused)
-      m.assertEqual(m.control.getIsFocusedControl(control), isControlFocused)
+      m.expectCalled(m.control._focusedControl.isSameNode(control), isSameNode)
+      m.assertEqual(m.control.getIsFocusedControl(control), isSameNode)
     end function
 
   end class
