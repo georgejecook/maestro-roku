@@ -6,6 +6,10 @@ namespace tests
   class ValidationUtilsTests extends mv.tests.BaseTestSuite
 
     private validator
+    protected override function beforeEach()
+      super.beforeEach()
+      m.validator = new mv.input.validators.InputValidator()
+    end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("tests constructor")
@@ -13,25 +17,161 @@ namespace tests
 
     @it("initializes")
     function _()
-      m.validator = new mv.controls.InputValidator()
-      m.assertEqual(m.validator.validationData, { hasError: false, errorMessage: "" })
+      m.assertEqual(m.validator.__className, "mv.input.validators.InputValidator")
+
+      m.validator = new mv.input.validators.InputValidator()
+
+      m.assertTrue(mc.isFunction(m.validator.validatorTypeMap[mv.input.validators.Type.alphaNumeric]))
+      m.assertTrue(mc.isFunction(m.validator.validatorTypeMap[mv.input.validators.Type.numeric]))
+      m.assertTrue(mc.isFunction(m.validator.validatorTypeMap[mv.input.validators.Type.zipcode]))
+      m.assertTrue(mc.isFunction(m.validator.validatorTypeMap[mv.input.validators.Type.email]))
+      m.assertTrue(mc.isFunction(m.validator.validatorTypeMap[mv.input.validators.Type.required]))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("tests validate")
+    @describe("validate")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("checks returned data")
-    @params("numeric", "12345", { hasError: false, errorMessage: "" })
-    @params("numeric", "1234567", { hasError: true, errorMessage: "Invalid.Must contain 5 digits." })
-    @params("numeric", "1111L", { hasError: true, errorMessage: "Invalid.Must contain 5 digits." })
-    @params("email", "invalidemail.com", { hasError: true, errorMessage: "Invalid email address." })
-    @params("email", "test@gmail.com", { hasError: false, errorMessage: "" })
-    @params("", "12345", { hasError: false, errorMessage: "" })
-    @params("", "abc", { hasError: false, errorMessage: "" })
-    function _(validatorType, value, expected)
+    @it("returns default validation data when no validator is found, or validator type is not valid")
+    @params(invalid)
+    @params([])
+    @params(123)
+    @params("other")
+    function _(validatorType)
+      m.validator.validate(validatorType, "abc")
+      m.assertEqual(m.validator.validate(validatorType, "abc"), { hasError: false, errorMessage: "" })
+    end function
+
+    @it("it uses the correct validator")
+    @params("alphaNumeric")
+    @params("numeric")
+    @params("required")
+    @params("email")
+    @params("zipcode")
+    function _(validatorType)
+      value = "abc"
+      message = ""
+
+      m.expectCalled(m.validator.validateByType(validatorType, value, message))
+
       m.validator.validate(validatorType, value)
-      m.assertEqual(m.validator.validationData, expected)
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("validateByType")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("validates the value using the correct validator")
+    @params("email", "test@emailcom", "Invalid email address.")
+    @params("numeric", "abc", "Must contain only numbers.")
+    @params("required", "", "Required.")
+    function _(validatorType, value, expectedMessage)
+      result = m.validator.validateByType(validatorType, value)
+
+      m.assertEqual(result.errorMessage, expectedMessage)
+      m.assertEqual(result.hasError, true)
+    end function
+
+    @it("validates the value using the correct validator and replaces default message with custom message")
+    @params("numeric", "abc", "Only numbers.")
+    @params("email", "test@emailcom", "Invalid email")
+    @params("required", "", "Field is required.")
+    function _(validatorType, value, customMessage)
+      result = m.validator.validateByType(validatorType, value, customMessage)
+
+      m.assertEqual(result.errorMessage, customMessage)
+      m.assertEqual(result.hasError, true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("validateAlphaNumeric")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns object with hasError set to false when value is alpha numeric, true otherwise")
+    @params("abc123", false, "")
+    @params("abc", false, "")
+    @params("123", false, "")
+    @params("abc123!", true, "Must contain only alpha numeric characters.")
+    @params("a&$%b", true, "Must contain only alpha numeric characters.")
+    function _(value, expected, message)
+      result = m.validator.validateAlphaNumeric(value)
+
+      m.assertEqual(result.hasError, expected)
+      m.assertEqual(result.errorMessage, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("validateNumeric")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns object with hasError set to false when value is numeric, true otherwise")
+    @params("abc123", true, "Must contain only numbers.")
+    @params("abc", true, "Must contain only numbers.")
+    @params("123", false, "")
+    @params("a&$%b", true, "Must contain only numbers.")
+    function _(value, expected, message)
+      result = m.validator.validateNumeric(value)
+
+      m.assertEqual(result.hasError, expected)
+      m.assertEqual(result.errorMessage, message)
+    end function
+
+    @it("returns object with hasError set to false when value is numeric and value length is equal to exactLength, true otherwise")
+    @params("123", 3, false, "")
+    @params("123", 2, true, "Must be 2 digits long.")
+    function _(value, exactLength, expected, message)
+      result = m.validator.validateNumeric(value, exactLength)
+
+      m.assertEqual(result.hasError, expected)
+      m.assertEqual(result.errorMessage, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("validateZipCode")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns object with hasError set to false if valid zipcode, true otherwise")
+    @params("12345", false, "")
+    @params("123", true, "Must be 5 digits long.")
+    @params("123456", true, "Must be 5 digits long.")
+    @params("a&$%b", true, "Must be 5 digits long.")
+    @params("abcde", true, "Must be 5 digits long.")
+    function _(value, expected, message)
+      result = m.validator.validateZipCode(value)
+
+      m.assertEqual(result.hasError, expected)
+      m.assertEqual(result.errorMessage, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("validateRequired")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns object with hasError set to false if value is not empty, true otherwise")
+    @params("abc", false, "")
+    @params("", true, "Required.")
+    function _(value, expected, message)
+      result = m.validator.validateRequired(value)
+
+      m.assertEqual(result.hasError, expected)
+      m.assertEqual(result.errorMessage, message)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("validateEmail")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns object with hasError set to false if value is valid email address, true otherwise")
+    @params("aaa", true, "Invalid email address.")
+    @params("aaa@bbb", true, "Invalid email address.")
+    @params("aaa@bbb.", true, "Invalid email address.")
+    @params("test@test.com", false, "")
+    function _(value, expected, message)
+      result = m.validator.validateEmail(value)
+
+      m.assertEqual(result.hasError, expected)
+      m.assertEqual(result.errorMessage, message)
+    end function
+
   end class
 end namespace
