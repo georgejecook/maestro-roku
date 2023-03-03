@@ -12,27 +12,33 @@ let sourceDir = path.join(distDir, 'components/maestro/generated');
 
 try {
 
-  fs.readdirSync(sourceDir).forEach(file => {
-    let filePath = path.join(sourceDir, file);
-    let text = fs.readFileSync(filePath, 'utf8');
-    let r = /\/components\/maestro\/generated/gim;
-    text = text.replace(r, '/components')
-    fs.writeFileSync(path.join(distDir, 'components', file), text);
-  });
+    fs.readdirSync(sourceDir).forEach(file => {
+        let filePath = path.join(sourceDir, file);
+        let text = fs.readFileSync(filePath, 'utf8');
+        let r = /\/components\/maestro\/generated/gim;
+        text = text.replace(r, '/components')
+        fs.writeFileSync(path.join(distDir, 'components', file), text);
+    });
 
-  fs.rmSync('dist/components/maestro', { recursive: true, force: true });
+    fs.rmSync('dist/components/maestro', { recursive: true, force: true });
 } catch (e) {
-
 }
+
 try {
 
-  fs.rmSync('dist/source/maestro', { recursive: true, force: true });
+    fs.rmSync('dist/source/maestro', { recursive: true, force: true });
 } catch (e) {
-
 }
+
 try {
 
-  fs.rmSync('dist/source/bslib.brs');
+    fs.rmSync('dist/source/_maestro', { recursive: true, force: true });
+} catch (e) {
+}
+
+try {
+
+    fs.rmSync('dist/source/bslib.brs');
 } catch (e) {
 
 }
