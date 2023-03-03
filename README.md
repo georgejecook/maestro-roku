@@ -24,12 +24,47 @@ Maestro is built to:
 
 ## Quick start
 
-COMING SOON: Separate sample project.
+  - Clone the [sample project](https://github.com/georgejecook/maestro-roku-sample) and follow the instructions there
 
-  - Clone this repo
-  - `npm install`
 
-NOTE: To debug with RALE, you need to use a specific version, as the RALETracker task in my project is locked at 2.1.7 - I have downloads of those versions [here](https://drive.google.com/drive/folders/1gZZcndEpSO6zDVkx09UpYJtPb7OTf6Nq?usp=sharing).
 
 ## Docs
 Maestro-roku docs can be found [here](./docs/index.md)
+
+
+## IMPORTANT!! ropm hook!
+
+Because of the way that maestro plugin generates certain files, ropm ~can~ *will* cause errors when you install maestro. You will have to include a script to fix any of these broken files, and run it after you ropm hook.
+
+### files
+#### scripts/maestro-ropm-hook.js
+```
+/* eslint-disable github/array-foreach */
+/* eslint-disable @typescript-eslint/no-var-requires */
+/* eslint-disable @typescript-eslint/no-require-imports */
+const fs = require('fs-extra');
+const path = require('path');
+
+let sourceDir = path.join(__dirname, '..', 'src', 'components', 'roku_modules', 'maestro');
+
+try {
+    fs.readdirSync(sourceDir).forEach(file => {
+        let filePath = path.join(sourceDir, file);
+        if (filePath.endsWith('Task.xml')) {
+
+            let text = fs.readFileSync(filePath, 'utf8');
+            let r = /\/roku_modules\/undefined/gim;
+            text = text.replace(r, '/roku_modules/maestro');
+            fs.writeFileSync(filePath, text);
+        }
+    });
+} catch (e) {
+}
+
+```
+
+#### package.json
+change your ropm task, as follows. in package.json, scripts:
+```
+"ropm": "node scripts/maestro-ropm-hook.js ropm copy",
+```
