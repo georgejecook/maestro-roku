@@ -195,12 +195,12 @@ namespace ml
       m.contentManager.setContent(content)
     end function
 
-    function synchronizeContent(updateListContent = true as boolean)
+    function synchronizeContent(updateListContent = true as boolean, forceUpdateAll = false as boolean)
       'TODO add check that notifications are present, and if so use those
       if updateListContent = true and m.content <> invalid
         m.content@.notifyUpdate()
       end if
-      m.contentManager.synchronizeContent()
+      m.contentManager.synchronizeContent(true, forceUpdateAll)
       if m.content <> invalid
         m.content@.resetChanges()
       end if

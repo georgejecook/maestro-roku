@@ -27,6 +27,7 @@ namespace ml
     private previousFocusedCellInfo as ml.CellInfo
     private previousRowContent as mc.types.node
     private previousCellContent as mc.types.node
+    private isForcingUpdateAll = false
 
     function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as mc.types.node)
       super("ListContentManager")
@@ -76,11 +77,13 @@ namespace ml
       m.isUpdateEnabled = enabled
     end function
 
-    function synchronizeContent(notifyRows = true as boolean) as void
+    function synchronizeContent(notifyRows = true as boolean, forceUpdateAll = false as boolean) as void
       if m.content = invalid
         m.log.verbose(" no content")
         return
       end if
+
+      m.isForcingUpdateAll = forceUpdateAll
 
       ' ? " LCM RENDERING SYNC CONTENT"
       m.setListRendering(true)
@@ -361,7 +364,7 @@ namespace ml
         return
       end if
 
-      isChanged = m.updateRowContentInfo(row, content, result)
+      isChanged = m.isForcingUpdateAll or m.updateRowContentInfo(row, content, result)
       m.log.verbose("applyRowContentUpdate isChanged:", isChanged)
       if isChanged
         if notifyRow
@@ -496,7 +499,7 @@ namespace ml
         m.log.verbose("updateRowContentInfo - old & newContent info not invalid. lets compare", oldRowContentInfo.index, oldRowContentInfo.version, newRowContentInfo.version)
 
         ' If the row is still using some Content, and we are also passing a Content. check for differences in version, which indicates changes.
-        isChanged = oldRowContentInfo.version <> newRowContentInfo.version
+        isChanged = m.isForcingUpdateAll or oldRowContentInfo.version <> newRowContentInfo.version
         ' Check if there is a difference in the focus or hidden state
         if oldRowContentInfo.isHidden <> newRowContentInfo.isHidden
           ' Hidden state has changed, so the list needs laying out again.
