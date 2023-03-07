@@ -39,7 +39,7 @@ namespace ml
       m.focusIndicatorManager = focusIndicatorManager
     end function
 
-    public function setContent(content as mc.types.node) as void
+    public function setContent(content as mc.types.node, forceUpdate = false as boolean) as void
 
       if content = invalid
         m.log.info("listContent set to invalid. Resetting list")
@@ -67,7 +67,7 @@ namespace ml
         m.updateListFocusAfterApplyingChanges()
       else if content <> invalid
         m.log.info("current content has changed in some untracked way!")
-        m.synchronizeContent(true)
+        m.synchronizeContent(true, forceUpdate)
       else
         m.log.warn("unknown content change")
       end if
