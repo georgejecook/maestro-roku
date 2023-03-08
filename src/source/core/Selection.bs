@@ -1,4 +1,5 @@
 import "pkg:/source/core/Types-Polyfill.bs"
+import "pkg:/source/core/Collections.bs"
 
 namespace mc
   @node("mc_Selection", "ContentNode")
@@ -6,7 +7,7 @@ namespace mc
     'item that started the selection
     initialItem as mc.types.node
 
-    'collection where this item came from
+    'parentCollection where this item came from
     parentCollection as mc.types.node
 
     'current item, if changed since initial Item
@@ -36,5 +37,50 @@ namespace mc
     ' info pertaining to state changes
     result = {}
 
+    function getNextItem(args = invalid as dynamic) as mc.types.node
+      return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, 1, invalid, false, false)
+    end function
+
+    function getPreviousItem(args = invalid as dynamic) as mc.types.node
+      return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, -1, invalid, false, false)
+    end function
+
+    function moveToNextItem(args = invalid as dynamic)
+      m.currentItem = m.getNextItem()
+    end function
+
+    function moveToPreviousItem(args = invalid as dynamic)
+      m.currentItem = m.getPreviousItem()
+    end function
+
+    function getItemIndex(item as mc.types.node) as integer
+      return mc.collections.getArrayIndex(m.parentCollection, item)
+    end function
+
+    function clone(resetState = true as boolean)
+      if resetState = true
+        result = {}
+        state = "pending"
+        itemCompletionState = "pending"
+      else
+        result = m.result
+        state = m.state
+        itemCompletionState = m.itemCompletionState
+      end if
+
+      return mc.createSGNode(m.top.subType(), invalid, m.top.id, {
+        initialItem: m.initialItem
+        parentCollection: m.parentCollection
+        currentItem: m.currentItem
+        action: m.action
+        actionInfo: m.actionInfo
+        originScreen: m.originScreen
+        targetScreen: m.targetScreen
+        context: m.context
+        state: state
+        itemCompletionState: itemCompletionState
+        result: result
+      })
+    end function
   end class
 end namespace
