@@ -509,10 +509,15 @@ namespace mc
   ' @param {assocarray|array of assocarray} args - if assocarray, fields that are applied to the node on creation, if array of assoarray, will iterate over the fields applying them all
   function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, isCallingInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
     if parent <> invalid
-      if parent.isSubType("mc_Node") or parent.subType() = "mc_Node"
-        node = parent@.createChild(nodeType)
+      if type(parent) = "roSGNode"
+        if parent.isSubType("mc_Node") or parent.subType() = "mc_Node"
+          node = parent@.createChild(nodeType)
+        else
+          node = parent.createChild(nodeType)
+        end if
       else
-        node = parent.createChild(nodeType)
+        mc.private.logError("Illegal parent received when calling mc.createSGNode")
+        node = createObject("roSGNode", nodeType)
       end if
     else
       node = createObject("roSGNode", nodeType)
