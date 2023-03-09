@@ -1,0 +1,265 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/source/core/Selection.bs"
+
+namespace tests
+  @nocatch
+  @only
+  @suite("Selection tests")
+  class SelectionTests extends rooibos.BaseTestSuite
+
+    private selection
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.selection = m.createNodeClass(mc.Selection)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getNextItem")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no parentCollection")
+    function _()
+      m.selection.parentCollection = invalid
+      item1 = mc.createSGNode("mc_Node", "item1")
+
+      m.selection.currentItem = item1
+      m.assertInvalid(m.selection.getNextItem())
+    end function
+
+    @it("get's the next item in the selections parentCollection")
+    function _()
+      m.selection.parentCollection = mc.createSGNode("mc_Node")
+      item1 = m.selection.parentCollection@.createChild("mc_Node", "item1")
+      item2 = m.selection.parentCollection@.createChild("mc_Node", "item2")
+      item3 = m.selection.parentCollection@.createChild("mc_Node", "item3")
+
+      m.selection.currentItem = item1
+      m.assertEqual(m.selection.getNextItem(), item2)
+
+      m.selection.currentItem = item2
+      m.assertEqual(m.selection.getNextItem(), item3)
+
+      m.selection.currentItem = item3
+      m.assertInvalid(m.selection.getNextItem())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getPreviousItem")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no parentCollection")
+    function _()
+      m.selection.parentCollection = invalid
+      item1 = mc.createSGNode("mc_Node", "item1")
+
+      m.selection.currentItem = item1
+      m.assertInvalid(m.selection.getPreviousItem())
+    end function
+
+    @it("get's the previous item in the selections parentCollection")
+    function _()
+      m.selection.parentCollection = mc.createSGNode("mc_Node")
+      item1 = m.selection.parentCollection@.createChild("mc_Node", "item1")
+      item2 = m.selection.parentCollection@.createChild("mc_Node", "item2")
+      item3 = m.selection.parentCollection@.createChild("mc_Node", "item3")
+
+      m.selection.currentItem = item3
+      m.assertEqual(m.selection.getPreviousItem(), item2)
+
+      m.selection.currentItem = item2
+      m.assertEqual(m.selection.getPreviousItem(), item1)
+
+      m.selection.currentItem = item1
+      m.assertInvalid(m.selection.getPreviousItem())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("moveToNextItem")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no parentCollection")
+    function _()
+      m.selection.parentCollection = invalid
+      item1 = mc.createSGNode("mc_Node", "item1")
+
+      m.selection.currentItem = item1
+      m.assertInvalid(m.selection.moveToNextItem())
+    end function
+
+    @it("get's the next item in the selections parentCollection")
+    function _()
+      m.selection.parentCollection = mc.createSGNode("mc_Node")
+      item1 = m.selection.parentCollection@.createChild("mc_Node", "item1")
+      item2 = m.selection.parentCollection@.createChild("mc_Node", "item2")
+      item3 = m.selection.parentCollection@.createChild("mc_Node", "item3")
+
+      m.selection.currentItem = item1
+      m.selection.moveToNextItem()
+      m.assertEqual(m.selection.currentItem, item2)
+
+      m.selection.currentItem = item2
+      m.selection.moveToNextItem()
+      m.assertEqual(m.selection.currentItem, item3)
+
+      m.selection.currentItem = item3
+      m.selection.moveToNextItem()
+      m.assertInvalid(m.selection.currentItem)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("moveToPreviousItem")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no parentCollection")
+    function _()
+      m.selection.parentCollection = invalid
+      item1 = mc.createSGNode("mc_Node", "item1")
+
+      m.selection.currentItem = item1
+      m.assertInvalid(m.selection.getPreviousItem())
+    end function
+
+    @it("get's the previous item in the selections parentCollection")
+    function _()
+      m.selection.parentCollection = mc.createSGNode("mc_Node")
+      item1 = m.selection.parentCollection@.createChild("mc_Node", "item1")
+      item2 = m.selection.parentCollection@.createChild("mc_Node", "item2")
+      item3 = m.selection.parentCollection@.createChild("mc_Node", "item3")
+
+      m.selection.currentItem = item3
+      m.selection.moveToPreviousItem()
+      m.assertEqual(m.selection.currentItem, item2)
+
+      m.selection.currentItem = item2
+      m.selection.moveToPreviousItem()
+      m.assertEqual(m.selection.currentItem, item1)
+
+      m.selection.currentItem = item1
+      m.selection.moveToPreviousItem()
+      m.assertInvalid(m.selection.currentItem)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getItemIndex")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns -1 if there is no parentCollection")
+    function _()
+      m.selection.parentCollection = invalid
+      item1 = mc.createSGNode("mc_Node", invalid, "item1")
+
+      m.selection.currentItem = item1
+      m.assertEqual(m.selection.getItemIndex(item1), -1)
+    end function
+
+    @it("get's index of the item, or -1")
+    function _()
+      m.selection.parentCollection = mc.createSGNode("mc_Node")
+      item1 = m.selection.parentCollection@.createChild("mc_Node", "item1")
+      item2 = m.selection.parentCollection@.createChild("mc_Node", "item2")
+      item3 = m.selection.parentCollection@.createChild("mc_Node", "item3")
+      otherItem = mc.createSGNode("mc_Node", invalid, "otherItem")
+
+      m.assertEqual(m.selection.getItemIndex(otherItem), -1)
+
+      m.assertEqual(m.selection.getItemIndex(item1), 0)
+      m.assertEqual(m.selection.getItemIndex(item2), 1)
+      m.assertEqual(m.selection.getItemIndex(item3), 2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("clone")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns a new node with the same info")
+    function _()
+      initialItem = mc.createSGNode("Node", invalid, "initialItem")
+      parentCollection = mc.createSGNode("Node", invalid, "parentCollection")
+      currentItem = mc.createSGNode("Node", invalid, "currentItem")
+      originScreen = mc.createSGNode("Node", invalid, "originScreen")
+      context = { "id": "context" }
+      action = "play"
+      actionInfo = { "id": "actionInfo" }
+      result = { "id": "result" }
+
+
+      node = mc.createSGNode("mc_Selection", invalid, "sourceNode",
+      {
+        initialItem: initialItem
+        parentCollection: parentCollection
+        currentItem: currentItem
+        action: action
+        actionInfo: actionInfo
+        originScreen: originScreen
+        targetScreen: "targetScreen"
+        context: context
+        state: "success"
+        itemCompletionState: "success"
+        result: result
+      })
+
+      clone = node@.clone(false)
+
+      m.assertEqual(clone.id, "sourceNode")
+      m.assertEqual(clone.subType(), "mc_Selection")
+      m.assertEqual(clone.initialItem, initialItem)
+      m.assertEqual(clone.parentCollection, parentCollection)
+      m.assertEqual(clone.currentItem, currentItem)
+      m.assertEqual(clone.action, action)
+      m.assertEqual(clone.actionInfo, actionInfo)
+      m.assertEqual(clone.originScreen, originScreen)
+      m.assertEqual(clone.targetScreen, "targetScreen")
+      m.assertEqual(clone.context, context)
+      m.assertEqual(clone.state, "success")
+      m.assertEqual(clone.itemCompletionState, "success")
+      m.assertEqual(clone.result, result)
+    end function
+
+    @it("resets state, result and itemCompletionState if resetState is true")
+    function _()
+      initialItem = mc.createSGNode("Node", invalid, "initialItem")
+      parentCollection = mc.createSGNode("Node", invalid, "parentCollection")
+      currentItem = mc.createSGNode("Node", invalid, "currentItem")
+      originScreen = mc.createSGNode("Node", invalid, "originScreen")
+      context = { "id": "context" }
+      action = "play"
+      actionInfo = { "id": "actionInfo" }
+      result = { "id": "result" }
+
+
+      node = mc.createSGNode("mc_Selection", invalid, "sourceNode",
+      {
+        initialItem: initialItem
+        parentCollection: parentCollection
+        currentItem: currentItem
+        action: action
+        actionInfo: actionInfo
+        originScreen: originScreen
+        targetScreen: "targetScreen"
+        context: context
+        state: "success"
+        itemCompletionState: "success"
+        result: result
+      })
+
+      clone = node@.clone(true)
+
+      m.assertEqual(clone.id, "sourceNode")
+      m.assertEqual(clone.subType(), "mc_Selection")
+      m.assertEqual(clone.initialItem, initialItem)
+      m.assertEqual(clone.parentCollection, parentCollection)
+      m.assertEqual(clone.currentItem, currentItem)
+      m.assertEqual(clone.action, action)
+      m.assertEqual(clone.actionInfo, actionInfo)
+      m.assertEqual(clone.originScreen, originScreen)
+      m.assertEqual(clone.targetScreen, "targetScreen")
+      m.assertEqual(clone.context, context)
+      m.assertEqual(clone.state, "pending")
+      m.assertEqual(clone.itemCompletionState, "pending")
+      m.assertEqual(clone.result, {})
+    end function
+
+
+  end class
+end namespace

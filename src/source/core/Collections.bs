@@ -172,19 +172,38 @@ namespace mc.collections
     return result
   end function
 
-  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer, key = invalid as string, wrap = false as boolean)
+  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer, key = invalid as string, wrap = false as boolean, limitBounds = true as boolean)
     if array = invalid or array.count() = 0
       return invalid
     end if
     index = mc.collections.getArrayIndex(array, item, key)
-    return array[mc.clamp(index + offset, 0, array.count() - 1, wrap)]
+    if type(array) = "roSGNode"
+      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+        array = array@.getChildren()
+      else
+        array = array.getChildren(-1, 0)
+      end if
+    end if
+    if limitBounds
+      return array[mc.clamp(index + offset, 0, array.count() - 1, wrap)]
+    else
+      return array[index + offset]
+    end if
   end function
 
   function getArrayIndex(array as mc.types.array, item as dynamic, key = invalid as string)
+
+    if type(array) = "roSGNode"
+      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+        array = array@.getChildren()
+      else
+        array = array.getChildren(-1, 0)
+      end if
+    end if
+
     if array = invalid or array.count() = 0
       return -1
     end if
-
 
     itemKey = invalid
     isNode = false
@@ -200,14 +219,6 @@ namespace mc.collections
       itemKey = item[key]
     else if type(item) = "roSGNode"
       isNode = true
-    end if
-
-    if type(array) = "roSGNode"
-      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-        array = array@.getChildren()
-      else
-        array = array.getChildren(-1, 0)
-      end if
     end if
 
     for i = 0 to array.count() - 1

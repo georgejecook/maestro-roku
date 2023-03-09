@@ -191,16 +191,16 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function setContent(content as mc.types.node) as void
-      m.contentManager.setContent(content)
+    function setContent(content as mc.types.node, forceUpdate = false as boolean) as void
+      m.contentManager.setContent(content, forceUpdate)
     end function
 
-    function synchronizeContent(updateListContent = true as boolean)
+    function synchronizeContent(updateListContent = true as boolean, forceUpdateAll = false as boolean)
       'TODO add check that notifications are present, and if so use those
       if updateListContent = true and m.content <> invalid
         m.content@.notifyUpdate()
       end if
-      m.contentManager.synchronizeContent()
+      m.contentManager.synchronizeContent(true, forceUpdateAll)
       if m.content <> invalid
         m.content@.resetChanges()
       end if
