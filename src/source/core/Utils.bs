@@ -510,7 +510,7 @@ namespace mc
   function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, isCallingInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
     if parent <> invalid
       if type(parent) = "roSGNode"
-        if parent.isSubType("mc_Node") or parent.subType() = "mc_Node"
+        if parent.isSubType("mc_Node") or parent.subType() = "mc_Node" or parent.createChild <> invalid 'allows for mock nodes
           node = parent@.createChild(nodeType)
         else
           node = parent.createChild(nodeType)
