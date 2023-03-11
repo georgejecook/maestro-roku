@@ -39,16 +39,21 @@
       "stopOnEntry": false,
       "retainDeploymentArchive": true,
       "retainStagingFolder": true,
-    //   "autoRunSgDebugCommands": ["chanperf", "fpsdisplay", "logrendezvous"],
+      //   "autoRunSgDebugCommands": ["chanperf", "fpsdisplay", "logrendezvous"],
       "autoRunSgDebugCommands": [],
-      "files": [
-        "manifest",
-        "*.*",
-        "**/*.*",
-        "!*.zip",
-        "!**/*.zip"
-      ]
+      "files": ["manifest", "*.*", "**/*.*", "!*.zip", "!**/*.zip"]
+    },
+    {
+      "type": "brightscript",
+      "request": "launch",
+      "name": "OPEN TEST FILES",
+      "stopOnEntry": false,
+      "preLaunchTask": "build-tdd",
+      "envFile": "${workspaceFolder}/.vscode/.env",
+      "host": "${env:ROKU_DEV_TARGET}",
+      "password": "${env:ROKU_DEVPASSWORD}",
+      "rootDir": "${workspaceFolder}/build",
+      "files": ["*", "*.*", "**/*.*"]
     }
-
   ]
 }
