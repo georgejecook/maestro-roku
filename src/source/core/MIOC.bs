@@ -52,20 +52,28 @@ namespace mioc
     mioc.clearClassInstances()
   end function
 
-  function getInstance(name as string, path = invalid as string, defaultValue = invalid as dynamic) as dynamic
+  function getInstance(nameOrNameAndPath as string, pathOrDefaultValue = invalid as dynamic, defaultValue = invalid as dynamic) as dynamic
     if m.__mioc = invalid
       mioc.initialize()
     end if
 
-    instance = m.__mioc[name]
+    if nameOrNameAndPath.instr(".") <> -1
+      defaultValue = pathOrDefaultValue
+      parts = nameOrNameAndPath.split(".")
+      nameOrNameAndPath = parts[0]
+      parts.delete(0)
+      pathOrDefaultValue = parts.join(".")
+    end if
+
+    instance = m.__mioc[nameOrNameAndPath]
     ' if instance = invalid
-    ' mc.private.logWarn("value", name, "was not found in IOC")
+    ' mc.private.logWarn("value", nameOrNameAndPath, "was not found in IOC")
     ' end if
 
-    if path = invalid
+    if pathOrDefaultValue = invalid
       value = instance
     else
-      value = mc.getPath(instance, path)
+      value = mc.getPath(instance, pathOrDefaultValue)
     end if
 
     if value = invalid
@@ -73,6 +81,7 @@ namespace mioc
     else
       return value
     end if
+
   end function
 
   function setInstances(instances as mc.types.assocarray)
@@ -114,10 +123,22 @@ namespace mioc
     end if
   end function
 
-  function updateInstance(instanceName as string, path as string, value as dynamic)
-    instance = mioc.getInstance(instanceName)
-    mc.setPath(instance, path, value)
-    mioc.setInstance(instanceName, instance)
+  function updateInstance(nameOrNameAndPath as string, pathOrValue as dynamic, value = invalid as dynamic)
+    if nameOrNameAndPath.instr(".") <> -1
+      value = pathOrValue
+      parts = nameOrNameAndPath.split(".")
+      nameOrNameAndPath = parts[0]
+      parts.delete(0)
+      pathOrValue = parts.join(".")
+    end if
+
+    instance = mioc.getInstance(nameOrNameAndPath)
+    if pathOrValue <> invalid and pathOrValue <> ""
+      mc.setPath(instance, pathOrValue, value)
+    else
+      instance = value
+    end if
+    mioc.setInstance(nameOrNameAndPath, instance)
   end function
 
   function setInstanceField(field as string, instanceField as string, value as dynamic)
