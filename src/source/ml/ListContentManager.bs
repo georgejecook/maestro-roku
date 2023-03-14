@@ -61,8 +61,11 @@ namespace ml
       m.content = content
       m.listNode.content = content
 
-      if previousContent = invalid or (not previousContent.isSameNode(content) and not forceUpdate)
+      if previousContent = invalid or not previousContent.isSameNode(content) or forceUpdate
         m.log.info("Setting new content on list")
+        if forceUpdate
+          m.ascertainPreviousFocusInfo()
+        end if
         m.list.resetState()
         m.updateListFocusAfterApplyingChanges()
       else if content <> invalid
@@ -113,7 +116,7 @@ namespace ml
 
       'm.log.increaseIndent()Indent("list changes are")
 
-      listResult.isLayoutRequired = m.isListLayoutRequired(m.content.changes)
+      listResult.isLayoutRequired = m.isForcingUpdateAll or m.isListLayoutRequired(m.content.changes)
       if listResult.isLayoutRequired
         listResult.isFocusChangeRequired = true
       end if
@@ -445,6 +448,7 @@ namespace ml
       newRowContentInfo = m.getNewRowContentInfo(row, content)
 
       isChanged = m.processRowContentChanges(oldRowContentInfo, newRowContentInfo, result)
+      ' ? " PROCESS ROW CONTENT CHANGES isChanged " isChanged " isForcingUpdateAll " m.isForcingUpdateAll
       return isChanged
     end function
 
