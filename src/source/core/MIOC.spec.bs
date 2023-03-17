@@ -1,0 +1,196 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/MIOC.bs"
+
+namespace tests
+  @suite("MIOC Tests")
+  class MIOCTests extends tests.BaseTestSuite
+
+    protected override function beforeEach()
+      super.beforeEach()
+      mioc.createContainer()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createContainer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    @it("creates new ioc container")
+    function _()
+      mioc.reset()
+      mioc.createContainer()
+
+      oldIOC = mc.getMField("__mioc")
+      m.assertSubType(oldIOC, "Node")
+
+      mioc.createContainer()
+      newIOC = mc.getMField("__mioc")
+      m.assertSubType(newIOC, "Node")
+
+      m.assertNotEqual(oldIOC, newIOC)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("initialize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes IOC on local m")
+    function _()
+      mioc.reset()
+      mioc.createContainer()
+      mioc.initialize()
+      ioc = mc.getMField("__mioc")
+
+      m.assertEqual(mc.getMField("__mioc"), ioc)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setInstance")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if uninitialized variable is passed")
+    function _()
+      'bs:disable-next-line
+      m.assertFalse(mioc.setInstance("badReference", badreference))
+      m.assertInvalid(mioc.getInstance("badReference"))
+    end function
+
+    @it("will initialize mioc if not already initialized")
+    function _()
+      mc.getTopM().__mioc = invalid
+
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      m.assertEqual(mioc.getInstance("v1"), "a")
+    end function
+
+    @it("will add new value")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      m.assertEqual(mioc.getInstance("v1"), "a")
+    end function
+
+    @it("will update existing value")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      m.assertTrue(mioc.setInstance("v1", "b"))
+
+      m.assertEqual(mioc.getInstance("v1"), "b")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getInstance")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no value")
+    function _()
+      m.assertInvalid(mioc.getInstance("not there"))
+    end function
+
+    @it("returns stored value")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+
+      m.assertEqual(mioc.getInstance("v1", invalid, "a"), "a")
+    end function
+
+    @it("returns stored value, when multiple ones are stored")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      m.assertTrue(mioc.setInstance("v2", "b"))
+
+      m.assertEqual(mioc.getInstance("v1", invalid, "a"), "a")
+      m.assertEqual(mioc.getInstance("v2", invalid, "b"), "b")
+    end function
+
+    @it("returns default value")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      m.assertTrue(mioc.setInstance("v2", "g"))
+
+      m.assertEqual(mioc.getInstance("v3", invalid, "c"), "c")
+      m.assertEqual(mioc.getInstance("v4", invalid, "d"), "d")
+    end function
+
+    @it("returns stored value, with path, when multiple ones are stored")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", { "sub": { "sub2": "a" } }))
+      m.assertTrue(mioc.setInstance("v2", { "sub": { "sub2": "b" } }))
+
+      m.assertEqual(mioc.getInstance("v1", "sub.sub2", "a"), "a")
+      m.assertEqual(mioc.getInstance("v2", "sub.sub2", "b"), "b")
+    end function
+
+    @it("returns default value, with path")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", { "sub": { "sub2": "a" } }))
+      m.assertTrue(mioc.setInstance("v2", { "sub": { "sub2": "b" } }))
+
+      m.assertEqual(mioc.getInstance("v1", "sub.sub2.sub3", "c"), "c")
+      m.assertEqual(mioc.getInstance("v2", "sub.sub2.sub3", "d"), "d")
+      m.assertEqual(mioc.getInstance("v3", "sub.sub2", "e"), "e")
+    end function
+
+    @it("supports unified path syntax")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", { "sub": { "sub2": "a" } }))
+      m.assertTrue(mioc.setInstance("v2", { "sub": { "sub2": "b" } }))
+
+      m.assertEqual(mioc.getInstance("v1.sub.sub2", "a"), "a")
+      m.assertEqual(mioc.getInstance("v2.sub.sub2", "b"), "b")
+    end function
+
+    @it("supports unified path syntax, with defaults")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", { "sub": { "sub2": "a" } }))
+      m.assertTrue(mioc.setInstance("v2", { "sub": { "sub2": "b" } }))
+
+      m.assertEqual(mioc.getInstance("v1.sub.sub2.sub3", "c"), "c")
+      m.assertEqual(mioc.getInstance("v2.sub.sub2.sub3", "d"), "d")
+      m.assertEqual(mioc.getInstance("v3.sub.sub2", "e"), "e")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("updateInstance")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("updates simple value")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      mioc.updateInstance("v1", invalid, "a2")
+
+      m.assertEqual(mioc.getInstance("v1", invalid, "a"), "a2")
+    end function
+
+    @it("updates value, when multiple ones are stored")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "a"))
+      m.assertTrue(mioc.setInstance("v2", "b"))
+      mioc.updateInstance("v1", invalid, "a2")
+
+      m.assertEqual(mioc.getInstance("v1", invalid, "a"), "a2")
+      m.assertEqual(mioc.getInstance("v2", invalid, "b"), "b")
+    end function
+
+    @it("updates with path value")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", { "sub": { "sub2": "a" } }))
+      m.assertTrue(mioc.setInstance("v2", { "sub": { "sub2": "b" } }))
+      mioc.updateInstance("v1", "sub.sub2", "a2")
+
+      m.assertEqual(mioc.getInstance("v1", "sub.sub2", "a"), "a2")
+      m.assertEqual(mioc.getInstance("v2", "sub.sub2", "b"), "b")
+    end function
+
+    @it("supports unified path syntax")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", { "sub": { "sub2": "a" } }))
+      m.assertTrue(mioc.setInstance("v2", { "sub": { "sub2": "b" } }))
+      mioc.updateInstance("v1.sub.sub2", "a2")
+
+      m.assertEqual(mioc.getInstance("v1.sub.sub2", "a"), "a2")
+      m.assertEqual(mioc.getInstance("v2.sub.sub2", "b"), "b")
+    end function
+
+  end class
+
+end namespace

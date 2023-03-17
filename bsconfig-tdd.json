@@ -1,0 +1,43 @@
+{
+  "extends": "bsconfig.json",
+  "files": [
+    "manifest",
+    "source/**/*.*",
+    "meta/**/*.*",
+    "components/**/*.*",
+    "!**/images/**/*.*",
+    { "src": "../src-dev/source/**/*.*", "dest": "source" },
+    "!**/*.spec.bs",
+    "**/BaseTest*.spec.bs",
+    "**/START",
+"source/core/MIOC.spec.bs",
+    "**/END"
+  ],
+  "plugins": ["maestro-roku-bsc-plugin", "rooibos-roku"],
+  "rooibos": {
+    "isRecordingCodeCoverage": false,
+    "testsFilePattern": null,
+    "tags": ["!integration", "!deprecated", "!fixme", "!tbd"],
+    "showOnlyFailures": true,
+    "catchCrashes": true,
+    "lineWidth": 70,
+    "sendHomeOnFinish": false,
+    "failFast": false
+  },
+  "rokuLog": {
+    "strip": false,
+    "insertPkgPath": true
+  },
+  "maestro": {
+    "excludeFilters": ["**/roku_modules/**/*", "**/rooibos-roku/**/*"],
+    "nodeClasses": {
+      "buildForIDE": false,
+      "generateTestUtils": true
+    },
+    "extraValidation": {
+      "doExtraValidation": false,
+      "excludeFilters": [],
+      "doExtraImportValidation": false
+    }
+  }
+}
