@@ -1,12 +1,19 @@
 import "pkg:/source/core/Types-Polyfill.bs"
+import "pkg:/source/core/Utils.bs"
 
 function init()
   m.originalChildren = []
   m.top.observeFieldScoped("style", "onStyleChange")
+  m.top.observeFieldScoped("__debugM", "onDebugMChange")
+
+end function
+
+function onDebugMChange()
+  mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
 end function
 
 function _initialize(args = invalid as mc.types.assocarray)
-  m.originalChildren = m.top.getChildren( - 1, 0)
+  m.originalChildren = m.top.getChildren(-1, 0)
   i = 0
   for each child in m.originalChildren
     child.observeFieldScoped("visible", "onChildVisibleChange")
@@ -18,16 +25,31 @@ function _initialize(args = invalid as mc.types.assocarray)
   end for
 end function
 
-function onChildVisibleChange(event as object)
+function onChildVisibleChange(event as object) as void
   node = event.getRoSGNode()
   if not node.visible
     m.top.removeChild(node)
   else
-    m.top.insertChild(node, node.layoutIndex)
+    i = 0
+    for i = m.top.getChildCount() - 1 to 0 step -1
+      child = m.top.getChild(i)
+      if child.layoutIndex < node.layoutIndex
+        i++
+        exit for
+      end if
+    end for
+    if i < 0
+      i = 0
+    end if
+    m.top.insertChild(node, i)
   end if
 end function
 
 function onStyleChange()
   m.top.setFields(m.top.style)
+end function
+
+function getOriginalChildren(args = invalid as dynamic)
+  return m.originalChildren
 end function
 

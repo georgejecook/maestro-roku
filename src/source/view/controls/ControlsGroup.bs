@@ -185,7 +185,18 @@ namespace mv.controls
       if not visible
         m.top.removeChild(node)
       else
-        m.top.insertChild(node, node.layoutIndex)
+        i = 0
+        for i = m.top.getChildCount() - 1 to 0 step -1
+          child = m.top.getChild(i)
+          if child.layoutIndex < node.layoutIndex
+            i++
+            exit for
+          end if
+        end for
+        if i < 0
+          i = 0
+        end if
+        m.top.insertChild(node, i)
       end if
       m.layoutChildren()
       m.redraw()
