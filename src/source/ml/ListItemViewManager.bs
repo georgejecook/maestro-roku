@@ -152,6 +152,14 @@ namespace ml
             comp.index = index
             comp.translation = rect.translation
             comp.owner = m.owner
+
+            if m.contentManager.isForcingUpdateAll
+              ' ? " FORCING UPDATE ON ROW " i
+              m.contentManager.setContentOnRow(comp, rowContent, true)
+              'note - the content has to be set at this point, or it can't track its own changes
+              comp.content = rowContent
+            end if
+
             m.reusedRenderers.push(comp)
             m.previousRendereredByContentId.delete(rowContent.id)
             'TODO do I need to set renderState
