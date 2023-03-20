@@ -61,19 +61,26 @@ namespace ml
       m.content = content
       m.listNode.content = content
 
-      if previousContent = invalid or not previousContent.isSameNode(content) or forceUpdate
+      m.isForcingUpdateAll = forceUpdate
+
+      if previousContent = invalid or not previousContent.isSameNode(content)
         m.log.info("Setting new content on list")
         if forceUpdate
           m.ascertainPreviousFocusInfo()
         end if
         m.list.resetState()
         m.updateListFocusAfterApplyingChanges()
+      else if forceUpdate
+        ' ? " IS DOING FORCED UPDATE ON SAME CONTENT"
+        m.synchronizeContent(true, true)
       else if content <> invalid
         m.log.info("current content has changed in some untracked way!")
         m.synchronizeContent(true, forceUpdate)
       else
         m.log.warn("unknown content change")
       end if
+
+      m.isForcingUpdateAll = false
     end function
 
     function setUpdatesEnabled(enabled as boolean)
@@ -85,8 +92,6 @@ namespace ml
         m.log.verbose(" no content")
         return
       end if
-
-      m.isForcingUpdateAll = forceUpdateAll
 
       ' ? " LCM RENDERING SYNC CONTENT"
       m.setListRendering(true)
@@ -388,11 +393,14 @@ namespace ml
         return
       end if
 
+      ' ? " L>>!>!>>!>!!>!!!> SET CONTENT ON ROW 1 " mc.dv(row) " content " mc.dv(content)
       isChanged = m.updateRowContentInfo(row, content, result)
+      ' ? " L>>!>!>>!>!!>!!!> SET CONTENT ON ROW 2 " mc.dv(row) " content " mc.dv(content) " isChanged " isChanged
 
       m.log.info("setContentOnRow isChanged:", isChanged)
 
       if isRecycled
+        ' ? " L>>!>!>>!>!!>!!!> SET CONTENT ON ROW 3 recycling row  " mc.dv(row) " content " mc.dv(content)
         row@.recycle(content)
       end if
 
@@ -409,7 +417,9 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function applyRowContentChange(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult)
-      rowResult = row@.setContent(content)
+      ' ? " APPLYING ROW " mc.dv(row) " content " mc.dv(content)
+
+      rowResult = row@.setContent(content, m.isForcingUpdateAll)
 
       if result <> invalid
         if not result.isLayoutRequired and rowResult.isLayoutRequired
