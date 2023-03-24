@@ -177,11 +177,11 @@ namespace tests
       m.assertEqual(m.componentPool.numberOfComponentsInUse, 0)
     end function
 
-    @it("releases the given component by it's componentType")
+    @it("releases the given component by it's _mComponentType")
     function _()
       m.componentPool.numberOfComponentsInUse = 1
 
-      cell = { "id": "cell", "componentType": "cell" }
+      cell = { "id": "cell", "_mComponentType": "cell" }
       pool = {
         "id": "pool"
         usedComponentsById: { "cell": cell }
@@ -243,6 +243,7 @@ namespace tests
       component = m.componentPool.createComponent(componentType)
 
       m.assertSubtype(pool.freeComponentsById[component.id], compName)
+      m.assertEqual(component._mComponentType, componentType)
       m.assertSubtype(pool.allComponents[0], compName)
     end function
 
