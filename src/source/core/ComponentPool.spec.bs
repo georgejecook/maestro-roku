@@ -1,0 +1,251 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/ComponentPool.bs"
+namespace tests
+  @suite("ComponentPool tests")
+  class ComponentPoolTest extends tests.BaseTestSuite
+
+    private componentPool
+    protected override function beforeEach()
+      super.beforeEach()
+
+      m.componentPool = m.createNodeClass(mc.ComponentPool)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("initializes variables")
+    function _()
+      componentPool = m.createNodeClass(mc.ComponentPool)
+
+      m.assertEmpty(componentPool.poolsByComponentType)
+      m.assertEqual(componentPool.numberOfComponents, 0)
+      m.assertEqual(componentPool.numberOfComponentsInUse, 0)
+      m.assertEqual(componentPool.numberOfComponentsToCreateWhenDry, 10)
+      m.assertTrue(componentPool.isCreateMoreEnabled)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("reset")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("resets variables")
+    function _()
+      m.componentPool.poolsByComponentType = { "id": "pools " }
+      m.componentPool.numberOfComponents = 10
+      m.componentPool.numberOfComponentsInUse = 5
+
+      m.componentPool.reset()
+
+      m.assertEmpty(m.componentPool.poolsByComponentType)
+      m.assertEqual(m.componentPool.numberOfComponents, 0)
+      m.assertEqual(m.componentPool.numberOfComponentsInUse, 0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getComponentPool")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates a new component pool if one does not exist for the given component type")
+    function _()
+      pool = { usedComponentsById: {}
+        allComponents: []
+        freeComponentsById: {}
+        numberOfComponentsInPool: 0
+      }
+      m.assertEqual(m.componentPool.getComponentPool("pool"), pool)
+      m.assertEqual(m.componentPool.poolsByComponentType["pool"], pool)
+    end function
+
+    @it("returns the component pool for the given component type")
+    function _()
+      component = { "id": "component" }
+      pool = { usedComponentsById: {}
+        allComponents: [component]
+        freeComponentsById: { component: component }
+        numberOfComponentsInPool: 1
+      }
+      m.componentPool.poolsByComponentType = { "pool": pool }
+
+      m.componentPool.poolsByComponentType = { "pool": pool }
+      m.assertEqual(m.componentPool.getComponentPool("pool"), pool)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("prebakeComponents")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't crash if component type cannot be created")
+    function _()
+      pool = { usedComponentsById: {}
+        allComponents: []
+        freeComponentsById: {}
+        numberOfComponentsInPool: 0
+      }
+      m.expectCalled(m.componentPool.getComponentPool("cell"), pool)
+
+      m.componentPool.prebakeComponents(1, "cell")
+
+      m.assertEmpty(m.componentPool.poolsByComponentType)
+      m.assertEqual(m.componentPool.numberOfComponents, 0)
+      m.assertEqual(pool.numberOfComponentsInPool, 0)
+      m.assertEmpty(pool.allComponents)
+      m.assertEmpty(pool.freeComponentsById)
+    end function
+
+    @it("creates the given number of components of the given type")
+    function _()
+      pool = { usedComponentsById: {}
+        allComponents: []
+        freeComponentsById: {}
+        numberOfComponentsInPool: 0
+      }
+      m.expectCalled(m.componentPool.getComponentPool("mv_BaseCell"), pool)
+      m.componentPool.prebakeComponents(1, "mv_BaseCell")
+
+      m.assertEqual(m.componentPool.numberOfComponents, 1)
+      m.assertEqual(pool.numberOfComponentsInPool, 1)
+      m.assertEqual(pool.allComponents.count(), 1)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getComponent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates more components if there are no free components and returns a component of the given type")
+    function _()
+      cell = { "id": "cell" }
+      pool = { usedComponentsById: {}
+        allComponents: []
+        freeComponentsById: {}
+        numberOfComponentsInPool: 0
+      }
+      m.expectCalled(m.componentPool.getComponentPool("cell"), pool)
+      m.expectCalled(m.componentPool.createComponent("cell"), cell)
+
+      m.assertEqual(m.componentPool.getComponent("cell", 1), cell)
+      m.assertEqual(m.componentPool.numberOfComponentsInUse, 1)
+      m.assertEqual(pool.usedComponentsById["cell"], cell)
+    end function
+
+    @it("returns a free component of the given type")
+    function _()
+      cell = { "id": "cell" }
+      pool = { usedComponentsById: {}
+        allComponents: []
+        freeComponentsById: { "cell": cell }
+        numberOfComponentsInPool: 0
+      }
+      m.expectCalled(m.componentPool.getComponentPool("cell"), pool)
+      m.expectNotCalled(m.componentPool.createComponent)
+
+      m.assertEqual(m.componentPool.getComponent("cell", 1), cell)
+      m.assertEqual(m.componentPool.numberOfComponentsInUse, 1)
+      m.assertEqual(pool.usedComponentsById["cell"], cell)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("releaseComponent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't crash if the component is invalid")
+    function _()
+      component = invalid
+      m.expectNotCalled(component.getParent)
+      m.expectNotCalled(m.componentPool.getComponentPool)
+      m.componentPool.releaseComponent(component)
+    end function
+
+    @it("releases the given component by it's sub type")
+    function _()
+      m.componentPool.numberOfComponentsInUse = 1
+      cell = { "id": "cell" }
+      pool = {
+        "id": "pool"
+        usedComponentsById: { "cell": cell }
+        freeComponentsById: {}
+      }
+      m.expectCalled(cell.getParent())
+      m.expectCalled(cell.subType(), "cell")
+      m.expectCalled(m.componentPool.getComponentPool("cell"), pool)
+
+      m.componentPool.releaseComponent(cell)
+
+      m.assertEmpty(pool.usedComponentsById)
+      m.assertEqual(pool.freeComponentsById["cell"], cell)
+      m.assertEqual(m.componentPool.numberOfComponentsInUse, 0)
+    end function
+
+    @it("releases the given component by it's _mComponentType")
+    function _()
+      m.componentPool.numberOfComponentsInUse = 1
+
+      cell = { "id": "cell", "_mComponentType": "cell" }
+      pool = {
+        "id": "pool"
+        usedComponentsById: { "cell": cell }
+        freeComponentsById: {}
+      }
+
+      m.expectCalled(cell.getParent())
+      m.expectNotCalled(cell.subtype)
+      m.expectCalled(m.componentPool.getComponentPool("cell"), pool)
+
+      m.componentPool.releaseComponent(cell)
+
+      m.assertEmpty(pool.usedComponentsById)
+      m.assertEqual(pool.freeComponentsById["cell"], cell)
+      m.assertEqual(m.componentPool.numberOfComponentsInUse, 0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("releaseComponents")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("releases an array of components")
+    function _()
+      component = { "id": "component" }
+      m.expectCalled(m.componentPool.releaseComponent(component))
+      m.componentPool.releaseComponents([component])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createComponent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if component type cannot be created")
+    function _()
+      pool = {
+        "id": "pool"
+        usedComponentsById: {}
+        freeComponentsById: {}
+        allComponents: []
+        numberOfComponentsInPool: 0
+      }
+
+      m.expectCalled(m.componentPool.getComponentPool("cell"), pool)
+      m.assertInvalid(m.componentPool.createComponent("cell"))
+    end function
+
+    @it("creates a component of the given type")
+    @params("mv_BaseCell", "mv_BaseCell")
+    @params("mv_BaseCell.custom", "mv_BaseCell")
+    function _(componentType, compName)
+      pool = {
+        "id": "pool"
+        usedComponentsById: {}
+        freeComponentsById: {}
+        allComponents: []
+      }
+      m.expectCalled(m.componentPool.getComponentPool(componentType), pool)
+
+      component = m.componentPool.createComponent(componentType)
+
+      m.assertSubtype(pool.freeComponentsById[component.id], compName)
+      m.assertEqual(component._mComponentType, componentType)
+      m.assertSubtype(pool.allComponents[0], compName)
+    end function
+
+  end class
+end namespace

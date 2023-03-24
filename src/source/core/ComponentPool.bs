@@ -60,10 +60,11 @@ namespace mc
       compName = parts[0]
       pool = m.getComponentPool(componentType)
 
-      for i = 0 to number
+      for i = 0 to number - 1
         component = createObject("roSGNode", compName)
         if component <> invalid
           component.id = rnd(2147483647).toStr()
+          mc.setOrAddNodeField(component, "_mComponentType", componentType)
           pool.numberOfComponentsInPool++
           pool.freeComponentsById[component.id] = component
           pool.allComponents.push(component)
@@ -88,7 +89,7 @@ namespace mc
           m.log.warn("creating", numToCreateIfDry, "more", componentType, "components")
 
           numberOfComponents = m.numberOfComponents
-          for i = 0 to numToCreateIfDry
+          for i = 0 to numToCreateIfDry - 1
             component = m.createComponent(componentType)
             if component <> invalid
               pool.freeComponentsById[component.id] = component
@@ -128,7 +129,8 @@ namespace mc
         if component.getParent() <> invalid
           component.getParent().removeChild(component)
         end if
-        pool = m.getComponentPool(component.subType())
+        componentType = asString(component._mComponentType) <> "" ? component._mComponentType : component.subType()
+        pool = m.getComponentPool(componentType)
         pool.usedComponentsById.delete(component.id)
         pool.freeComponentsById[component.id] = component
         m.numberOfComponentsInUse--
@@ -151,6 +153,7 @@ namespace mc
       compName = parts[0]
       component = createObject("roSGNode", compName)
       if component <> invalid
+        mc.setOrAddNodeField(component, "_mComponentType", componentType)
         component.id = rnd(2147483647).toStr()
         pool.allComponents.push(component)
         pool.freeComponentsById[component.id] = component
