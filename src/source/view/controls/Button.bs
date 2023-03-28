@@ -68,6 +68,11 @@ namespace mv.controls
     @observer("redraw")
     public autoSize = false
 
+    @debounce
+    @alwaysnotify
+    @observer("redraw")
+    public customLayout as mc.types.assocarray
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -151,6 +156,11 @@ namespace mv.controls
 
       m.label.text = m.text
       m.subTextLabel.text = m.subText
+
+      if m.customLayout <> invalid
+        m.applyCustomLayout()
+        return
+      end if
 
       if m.autoSize
         m.label.size = [m.label.boundingRect().width, m.label.size[1]]
@@ -269,6 +279,16 @@ namespace mv.controls
       m.subTextLabel.translation = subTextLabelTranslation
       m.iconPoster.translation = iconTranslation
 
+    end function
+
+    private function applyCustomLayout()
+      m.backgroundPoster.size = asPoint(m.size)
+      m.label.vertAlign = "top"
+      m.label.horizAlign = "left"
+      m.label.translation = asPoint(m.customLayout.labelTranslation)
+      m.subTextLabel.translation = asPoint(m.customLayout.subTextLabelTranslation)
+      m.iconPoster.size = asPoint(m.customLayout.iconSize)
+      m.iconPoster.translation = asPoint(m.customLayout.iconTranslation)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
