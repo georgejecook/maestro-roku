@@ -251,7 +251,7 @@ namespace ml
 
       ' ? " NC " ; m.viewManager.numberOfItems ; " I " ; m.itemScroller.index
       if m.viewManager.numberOfItems > 0
-        ? " HIDING FOCUS IN LIST FORCE UPDATE AAA"
+        ' ? " HIDING FOCUS IN LIST FORCE UPDATE AAA"
         m.setFocusIndicatorManagerHidden(true)
         m.log.verbose("LIST HAS COMPONENTS ", m.focusedRowIndex, " ", m.focusedCellIndex)
         ' m.moveToRowItemIndex(m.focusedRowIndex, m.focusedCellIndex, false)
@@ -270,11 +270,11 @@ namespace ml
         ' m.moveToRow(m.itemScroller.index, false)
         '   ' m.focusIndicatorManager@.setFocusComplete()
         ' end if
-        ? " SETTING FOCUS IN LIST BBB FORCE UPDATE" m.top.isChildFocused m.top.isFocused
+        ' ? " SETTING FOCUS IN LIST BBB FORCE UPDATE" m.top.isChildFocused m.top.isFocused
         m.setFocusIndicatorManagerHidden(not (m.top.isChildFocused and m.top.isFocused))
       else
         m.log.verbose("LIST HAS NO COMPONENTS ")
-        ? " SETTING FOCUS HIDDEN CCC"
+        ' ? " SETTING FOCUS HIDDEN CCC"
         m.setFocusIndicatorManagerHidden(true)
       end if
 
@@ -456,7 +456,7 @@ namespace ml
     end function
 
     function _setIndices(focusedRowIndex as integer, focusedCellIndex as integer)
-      ? " SET INDICES " focusedRowIndex "," focusedCellIndex
+      ' ? " SET INDICES " focusedRowIndex "," focusedCellIndex
       m.log.info("setting list indices", focusedRowIndex, ",", focusedCellIndex)
       m.focusedRowIndex = focusedRowIndex
       m.focusedCellIndex = focusedCellIndex
@@ -757,7 +757,7 @@ namespace ml
 
     protected override function onGainedFocus(isSelfFocused as boolean)
       super.onGainedFocus(isSelfFocused)
-      ? "LIST GAINED FOCUS DDD"
+      ' ? "LIST GAINED FOCUS DDD"
       m.setFocusIndicatorManagerHidden(false)
       if isSelfFocused
         m.focusIndicatorManager@.setFocusedOnRow(true)
@@ -765,11 +765,11 @@ namespace ml
     end function
 
     protected override function onLostFocus()
-      ? "LIST LOST FOCUS EEE"
+      ' ? "LIST LOST FOCUS EEE"
       super.onLostFocus()
       'bs:disable-next-line
       if not m.top.isChildFocused
-        ? "SETTING FOCUS  FFF"
+        ' ? "SETTING FOCUS  FFF"
         m.setFocusIndicatorManagerHidden(true)
         m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
@@ -782,7 +782,7 @@ namespace ml
         m.setFocusIndicatorManagerHidden(false)
         m.focusIndicatorManager@.setFocusedOnRow(true)
       else
-        ? "LIST LOST FOCUS HHH"
+        ' ? "LIST LOST FOCUS HHH"
         m.setFocusIndicatorManagerHidden(true)
         m.focusIndicatorManager@.setFocusedOnRow(false)
       end if
