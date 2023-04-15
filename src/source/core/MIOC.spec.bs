@@ -191,6 +191,14 @@ namespace tests
       m.assertEqual(mioc.getInstance("v2.sub.sub2", "b"), "b")
     end function
 
+    @it("supports simple values")
+    function _()
+      m.assertTrue(mioc.setInstance("v1", "en"))
+      m.assertEqual(mioc.getInstance("v1"), "en")
+      m.assertEqual(mioc.getInstance("v1", invalid, ""), "en")
+      m.assertEqual(mioc.getInstance("v2", invalid, "b"), "b")
+    end function
+
   end class
 
 end namespace
