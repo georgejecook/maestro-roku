@@ -76,9 +76,9 @@ namespace mv
     ' for a field
     ' Views that create their child views from json, will automatically have a _dataMappedControlIds property, which tells this function which controls to apply the data source to.
     ' Alternately, a _controls_ array can be used to apply the datamap to the passed in array of controls
-    protected function applyDataMapToControls(dataSource = invalid as dynamic, controls = invalid as mc.types.array) as boolean
-      if controls <> invalid
-        for each control in controls
+    protected function applyDataMapToControls(dataSource = invalid as dynamic, targetControls = invalid as mc.types.array) as boolean
+      if targetControls <> invalid
+        for each control in targetControls
           mv.applyDataMap(control, dataSource)
         end for
         return true
@@ -107,7 +107,7 @@ namespace mv
       timeNow = UpTime(0)
       ' ? "key " ; key ; " P " ; press ; " " ; abs(timeNow - m.lastPressTime)
       ' if abs(timeNow - m.lastPressTime) < 0.35 and press
-        ' ? " skipping rapid key"
+      ' ? " skipping rapid key"
       '   m.lastPressTime = timeNow
       '   return true
       ' end if
