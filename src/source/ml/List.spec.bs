@@ -1,0 +1,1239 @@
+import "pkg:/source/tests/ViewBaseTestSuite.spec.bs"
+import "pkg:/source/ml/List.bs"
+
+namespace ListTests
+  @suite("ListTests")
+  class ListTests extends mv.tests.BaseTestSuite
+    private list
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.list = m.createNodeClass(ml.List)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("initialize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates views and initializes managers")
+    function _()
+      m.expectCalled(m.list.createViews())
+      m.expectCalled(m.list.initManagers())
+
+      m.list.initialize()
+      m.assertEqual(m.list.isInitialized, true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createViews")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates views")
+    function _()
+      contentGroup = { "id": "contentGroup" }
+      m.list.contentGroup = contentGroup
+
+      m.expectCalled(m.list.createSGNode("Group", m.list.top, "contentGroup"), contentGroup)
+      m.expectCalled(m.list.createSGNode("Group", m.list.contentGroup, "rowsGroup"))
+      m.expectCalled(m.list.createSGNode("ml_FocusIndicatorManager", m.list.top, "focusIndicator", {
+        list: m.list.top
+      }))
+      m.list.createViews()
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("resetState")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("resets list state and sets new content")
+    function _()
+      contentManager = { "id": "contentManager", "content": { "id": "content" } }
+
+      m.list.top.isFocused = true
+      m.list.width = 800
+      m.list.height = 600
+
+      m.list.top.state = "rendered"
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.viewManager.setContent(m.list.contentManager.content))
+      m.expectCalled(m.list.onListRenderState("rendered"))
+      m.list.resetState()
+
+      m.assertEqual(m.list.top.clippingRect, [0, 0, 800, 600])
+
+    end function
+
+    @it("resets list state when content is invalid")
+    function _()
+      contentManager = { "id": "contentManager" }
+      m.list.top.state = "rendered"
+      m.list.top.isFocused = true
+      m.list.contentManager = contentManager
+
+      m.expectNotCalled(m.list.viewManager.setContent)
+      m.expectCalled(m.list.onListRenderState("rendered"))
+      m.expectCalled(m.list.viewManager.reset())
+
+      m.list.resetState()
+
+      m.assertInvalid(m.list.top.clippingRect)
+
+    end function
+
+    @it("sets observer on list state if list is not rendered")
+    function _()
+      contentManager = { "id": "contentManager" }
+      m.list.top.state = "loading"
+      m.list.top.isFocused = true
+      m.list.contentManager = contentManager
+
+      m.expectNotCalled(m.list.viewManager.setContent)
+      m.expectCalled(m.list.observeNodeField(m.list.top, "state", m.list.onListRenderState, "value", true))
+      m.expectCalled(m.list.viewManager.reset())
+
+      m.list.resetState()
+
+      m.assertInvalid(m.list.top.clippingRect)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onListRenderState")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if list state is not rendered")
+    @params("loading")
+    @params("error")
+    @params("")
+
+    function _(state)
+      m.expectNotCalled(m.list.moveToRowItemIndex)
+      m.list.onListRenderState(state)
+    end function
+
+    @it("it moves to row item index if list state is rendered")
+    @params(0, 2, true, false)
+    @params(1, 3, false, invalid)
+    function _(focusedRowIndex, focusedCellIndex, isFocused, managerIsHidden)
+
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isFocused = isFocused
+      m.list.isChildFocused = false
+
+      m.list.focusedRowIndex = focusedRowIndex
+      m.list.focusedCellIndex = focusedCellIndex
+      m.expectCalled(m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false))
+      m.list.onListRenderState("rendered")
+
+      m.assertEqual(m.list.focusIndicatorManager.isHidden, managerIsHidden)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setContent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls content manager setContent")
+    function _()
+      content = { "id": "content" }
+
+      m.expectCalled(m.list.contentManager.setContent(content))
+
+      m.list.setContent(content)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("synchronizeContent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("synchronizes content, resets changes but doesn't notify updates if content is invalid")
+    function _()
+      m.expectNotCalled(m.list.content@.notifyUpdate())
+      m.expectCalled(m.list.contentManager.synchronizeContent())
+      m.expectCalled(m.list.content@.resetChanges())
+
+      m.list.synchronizeContent(false)
+    end function
+
+    @it("synchronizes content, notify updates and resets changes")
+    function _()
+      content = { "id": "content" }
+      m.list.content = content
+
+      m.expectCalled(m.list.content@.notifyUpdate())
+      m.expectCalled(m.list.contentManager.synchronizeContent())
+      m.expectCalled(m.list.content@.resetChanges())
+
+      m.list.synchronizeContent()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("cleanup")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("resets view manager and focus indicator manager config")
+    function _()
+      m.expectCalled(m.list.viewManager.reset())
+      m.expectCalled(m.list.focusIndicatorManager@.setNextFocusIndicatorConfig(invalid))
+
+      m.list.cleanup()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onIsHiddenChanged")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("notifies view port events if list isHidden flag changed")
+    function _()
+      itemScroller = { "id": "itemScroller", direction: 1 }
+      m.list.itemScroller = itemScroller
+
+      m.expectCalled(m.list.itemScroller.notifyViewportEvents(m.list.itemScroller.direction, true))
+
+      m.list.onIsHiddenChange()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onUpdateNow")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("force list to update")
+    function _()
+      m.expectCalled(m.list.forceUpdate(true))
+
+      m.list.onUpdateNow()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("forceUpdate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if list is rendering")
+    function _()
+      itemScroller = { "id": "itemScroller", direction: 1 }
+      m.list.itemScroller = itemScroller
+      m.list.state = "rendering"
+
+      m.expectNotCalled(m.list.viewManager.forceUpdateLayout)
+      m.expectNotCalled(m.list.itemScroller.notifyViewportEvents)
+      m.expectNotCalled(m.list.moveToRowItemIndex)
+
+      m.list.forceUpdate()
+    end function
+
+    @it("force list layout update and moves to focused row item index if list has components")
+    @params(true, false, true)
+    @params(false, false, false)
+    @params(false, true, true)
+    @params(true, true, true)
+    function _(isFocused, isChildFocused, expectedIsHidden)
+      m.list.top.isFocused = isFocused
+      m.list.top.isChildFocused = isChildFocused
+
+      itemScroller = { "id": "itemScroller", "direction": 1 }
+      viewManager = { "id": "viewManager", "numberOfItems": 5 }
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+
+      m.list.viewManager = viewManager
+      m.list.itemScroller = itemScroller
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+
+      m.expectCalled(m.list.viewManager.forceUpdateLayout(true))
+      m.expectCalled(m.list.itemScroller.notifyViewportEvents(m.list.itemScroller.direction, true))
+      m.expectCalled(m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false))
+
+      m.list.forceUpdate(true)
+
+      m.assertEqual(m.list.focusIndicatorManager.isHidden, expectedIsHidden)
+    end function
+
+    @it("doesn't force list layout update and hides focus indicator manager if list has no components")
+    function _()
+      itemScroller = { "id": "itemScroller", direction: 1 }
+      viewManager = { "id": "viewManager", numberOfItems: 0 }
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+
+      m.list.viewManager = viewManager
+      m.list.itemScroller = itemScroller
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+      m.list.focusedRowIndex = 1
+      m.list.focusedCellIndex = 2
+
+      m.expectCalled(m.list.viewManager.forceUpdateLayout(false))
+      m.expectCalled(m.list.itemScroller.notifyViewportEvents(m.list.itemScroller.direction, true))
+      m.expectNotCalled(m.list.moveToRowItemIndex)
+
+      m.list.forceUpdate(false)
+
+      m.assertTrue(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getRow")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if contentManager doesn't have content")
+    @params(1)
+    @params(0)
+    function _(rowIndex)
+      contentManager = { "id": "contentManager" }
+      m.list.contentManager = contentManager
+      m.assertInvalid(m.list.getRow(rowIndex))
+    end function
+
+    @it("returns row if contentManager has content")
+    @params(1)
+    @params(0)
+    function _(rowIndex)
+      contentManager = { "id": "contentManager", "content": { "id": "content" } }
+      row = { "id": "row" }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.contentManager.content@.getChild(rowIndex), row)
+
+      m.assertEqual(m.list.getRow(rowIndex), row)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getItem")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if contentManager doesn't have content")
+    @params(1, 1)
+    @params(0, 2)
+    function _(rowIndex, cellIndex)
+      contentManager = { "id": "contentManager" }
+      m.list.contentManager = contentManager
+      m.assertInvalid(m.list.getItem(rowIndex, cellIndex))
+    end function
+
+    @it("returns invalid if row doesn't have item")
+    @params(1, 1)
+    @params(0, 2)
+    function _(rowIndex, cellIndex)
+      contentManager = { "id": "contentManager", "content": { "id": "content" } }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.contentManager.content@.getChild(rowIndex))
+
+      m.assertInvalid(m.list.getItem(rowIndex, cellIndex))
+    end function
+
+    @it("returns item if row has item")
+    @params(1, 1)
+    @params(0, 2)
+    function _(rowIndex, cellIndex)
+      contentManager = { "id": "contentManager", "content": { "id": "content" } }
+      row = { "id": "row" }
+      item = { "id": "item" }
+
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.contentManager.content@.getChild(rowIndex), row)
+      m.expectCalled(row@.getChild(cellIndex), item)
+
+      m.assertEqual(m.list.getItem(rowIndex, cellIndex), item)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("moveToEnd")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("moves to end of list without animation speed settings")
+    @params(1, 5, true)
+    @params(-1, 0, false)
+    function _(direction, rowIndex, animated)
+      viewManager = { "id": "viewManager", "numberOfItems": rowIndex }
+      m.list.viewManager = viewManager
+      m.expectCalled(m.list.moveToRow(rowIndex, animated, 0, direction))
+
+      m.list.moveToEnd(direction, animated)
+    end function
+
+    @it("moves to end of list with animation speed settings from list settings")
+    @params(1, 5, true, 1)
+    @params(-1, 0, false, 0)
+    function _(direction, rowIndex, fastAnimate, expectedAnimSpeedIndex)
+      animSpeed = { "id": "animSpeed" }
+
+      listSettings = {
+        "id": "listSettings"
+        "animSpeeds": [animSpeed, animSpeed]
+        "fastAnimateToEndEnabled": fastAnimate
+      }
+      viewManager = { "id": "viewManager", "numberOfItems": rowIndex, "listSettings": listSettings }
+      m.list.viewManager = viewManager
+      m.expectCalled(m.list.moveToRow(rowIndex, fastAnimate, expectedAnimSpeedIndex, direction))
+
+      m.list.moveToEnd(direction, fastAnimate)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("moveToRow")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if there is no content")
+    function _()
+      contentManager = { "id": "contentManager" }
+      m.list.contentManager = contentManager
+
+      m.expectNotCalled(m.list.itemScroller.moveToContentIndex)
+
+      m.list.moveToRow(1, true, 0, 1)
+    end function
+
+    @it("moves list to specific row if there is content")
+    @params(1, 1, 1)
+    @params(3, 2, -1)
+    @params(1, 0, invalid)
+    function _(index, animSpeedIndex, direction)
+      contentManager = { "id": "contentManager", "content": { "id": "content" } }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.itemScroller.moveToContentIndex(index, true, animSpeedIndex, direction))
+
+      m.list.moveToRow(index, true, animSpeedIndex, direction)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("moveToRowItemIndex")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if there is no content or indexes are wrong")
+    @params(-1, 3, { "id": "content" })
+    @params(2, -1, { "id": "content" })
+    @params(-1, -1, { "id": "content" })
+    @params(2, 2, invalid)
+    function _(rowIndex, index, content)
+      contentManager = { "id": "contentManager", "content": content }
+      m.list.contentManager = contentManager
+
+      m.expectNotCalled(m.list.getRowRender)
+      m.expectNotCalled(m.list.viewManager.getCellInfoForContentIndex)
+      m.expectNotCalled(m.list.moveToSubRowIndex)
+
+      m.expectCalled(m.list.viewManager.setIsScrolling(false, false, 0))
+
+      m.list.moveToRowItemIndex(rowIndex, index)
+    end function
+
+    @it("doesn't crash if row index is out of range")
+    @params(100)
+    @params(-10)
+    function _(rowIndex)
+      content = { "id": "content" }
+      row = { "id": "row" }
+      contentManager = { "id": "contentManager", "content": content }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.getRowRenderer(rowIndex))
+      m.expectNotCalled(m.list.viewManager.getCellInfoForContentIndex)
+      m.expectNotCalled(m.list.moveToSubRowIndex)
+      m.expectNotCalled(row@.moveToIndex())
+
+      m.expectCalled(m.list.viewManager.setIsScrolling(false, false, 0))
+
+      m.list.moveToRowItemIndex(rowIndex, 5)
+    end function
+
+    @it("it moves to sub row index if row has sub rows")
+    function _()
+      rowIndex = 5
+      index = 10
+      content = { "id": "content" }
+      row = { "id": "row" }
+      rowInfo = { "id": "rowInfo", "index": 2 }
+      rect = { "id": "rect", "subRowIndex": 3 }
+      animated = false
+
+      contentManager = { "id": "contentManager", "content": content }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.getRowRenderer(rowIndex), row)
+      m.expectCalled(m.list.viewManager.getCellInfoForContentIndex(rowIndex), rowInfo)
+      m.expectCalled(row@.getRect(index), rect)
+      m.expectCalled(m.list.moveToSubRowIndex(5, animated, 0, false, false))
+      m.expectCalled(row@.moveToIndex(index, false))
+
+      m.expectCalled(m.list.viewManager.setIsScrolling(false, false, 0))
+
+      m.list.moveToRowItemIndex(rowIndex, index, animated)
+
+    end function
+
+    @it("it moves row to item")
+    function _()
+      rowIndex = 5
+      index = 10
+      content = { "id": "content" }
+      row = { "id": "row" }
+      animated = false
+
+      contentManager = { "id": "contentManager", "content": content }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.getRowRenderer(rowIndex), row)
+      m.expectCalled(m.list.viewManager.getCellInfoForContentIndex(rowIndex), invalid)
+      m.expectNotCalled(row@.getRect())
+      m.expectNotCalled(m.list.moveToSubRowIndex)
+      m.expectCalled(row@.moveToIndex(index, false))
+
+      m.expectCalled(m.list.viewManager.setIsScrolling(false, false, 0))
+
+      m.list.moveToRowItemIndex(rowIndex, index, animated)
+    end function
+
+    @it("doesn't inform the scrolling manager if animated is true")
+    function _()
+      rowIndex = 5
+      index = 10
+      content = { "id": "content" }
+      row = { "id": "row" }
+      animated = true
+
+      contentManager = { "id": "contentManager", "content": content }
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.getRowRenderer(rowIndex), row)
+      m.expectCalled(m.list.viewManager.getCellInfoForContentIndex(rowIndex), invalid)
+      m.expectNotCalled(row@.getRect())
+      m.expectNotCalled(m.list.moveToSubRowIndex)
+      m.expectCalled(row@.moveToIndex(index, false))
+
+      m.expectNotCalled(m.list.viewManager.setIsScrolling)
+
+      m.list.moveToRowItemIndex(rowIndex, index, animated)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("moveToSubRowIndex")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if there is no content or indexes are wrong")
+    @params(-1, { "id": "content" })
+    @params(-1, invalid)
+    @params(2, invalid)
+    function _(index, content)
+      contentManager = { "id": "contentManager", "content": content }
+      m.list.contentManager = contentManager
+      m.expectNotCalled(m.list.itemScroller.moveToIndex)
+
+      m.list.moveToSubRowIndex(index, false)
+    end function
+
+    @it("it moves to sub row index and sets the focusedCellIndex if setFocusIndex is true")
+    @params(10, true, 1, false, false, 0)
+    @params(5, false, 3, true, true, 0)
+    @params(1, true, 0, true, true, 1)
+    function _(index, animated, animSpeedIndex, setFocusIndex, useGridHack, expectedFocusedCellIndex)
+      content = { "id": "content" }
+      itemScroller = { "id": "itemScroller" }
+      contentManager = { "id": "contentManager", "content": content }
+      viewManager = { "id": "viewManager", "cellInfos": [{ "id": "cellInfo" }, { "id": "cellInfo" }] }
+
+      m.list.contentManager = contentManager
+      m.list.itemScroller = itemScroller
+      m.list.viewManager = viewManager
+
+      m.expectCalled(m.list.itemScroller.moveToIndex(index, animated, animSpeedIndex))
+
+      m.list.moveToSubRowIndex(index, animated, animSpeedIndex, setFocusIndex, useGridHack)
+
+      m.assertEqual(m.list.focusedCellIndex, expectedFocusedCellIndex)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setUpdatesEnabled")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("enables or disables content manager updates")
+    @params(true)
+    @params(false)
+    function _(enabled)
+      m.expectCalled(m.list.contentManager.setUpdatesEnabled(enabled))
+
+      m.list.setUpdatesEnabled(enabled)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getRowRenderer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns the row renderer at the given index")
+    function _()
+      index = 5
+      row = { "id": "row" }
+      m.expectCalled(m.list.viewManager.getRenderer(index), row)
+
+      m.assertEqual(m.list.getRowRenderer(index), row)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getCellRenderer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if row rendered is invalid ")
+    function _()
+      rowIndex = 5
+      cellIndex = 10
+      row = { "id": "row" }
+
+      m.expectCalled(m.list.getRowRenderer(rowIndex))
+      m.expectNotCalled(row@.getRenderer())
+
+      m.assertInvalid(m.list.getCellRenderer(rowIndex, cellIndex))
+
+    end function
+    @it("returns the cell renderer at the given row and cell index")
+    function _()
+      rowIndex = 5
+      cellIndex = 10
+      cell = { "id": "cell" }
+      row = { "id": "row" }
+
+      m.expectCalled(m.list.getRowRenderer(rowIndex), row)
+      m.expectCalled(row@.getRenderer(cellIndex), cell)
+
+      m.assertEqual(m.list.getCellRenderer(rowIndex, cellIndex), cell)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getFocusedRow")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no cell info")
+    function _()
+      itemScroller = { "id": "itemScroller", "cellInfo": invalid }
+
+      m.list.itemScroller = itemScroller
+
+      m.assertInvalid(m.list.getFocusedRow())
+    end function
+
+    @it("returns the focused row")
+    function _()
+      cellInfo = { "id": "cellInfo", "component": { "id": "row" } }
+      itemScroller = { "id": "itemScroller", "cellInfo": cellInfo }
+
+      m.list.itemScroller = itemScroller
+
+      m.assertEqual(m.list.getFocusedRow(), cellInfo.component)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getFocusedCell")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns the focused cell")
+    function _()
+      cell = { "id": "cell" }
+
+      m.expectCalled(m.list.getCellRenderer(m.list.focusedRowIndex, m.list.focusedCellIndex), cell)
+      m.assertEqual(m.list.getFocusedCell(), cell)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getFocusedRowContent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no content")
+    function _()
+      contentManager = { "id": "contentManager" }
+
+      m.list.contentManager = contentManager
+
+      m.assertInvalid(m.list.getFocusedRowContent())
+    end function
+
+    @it("return content at the focused row index")
+    function _()
+      content = { "id": "content" }
+      rowContent = { "id": "rowContent" }
+      contentManager = { "id": "contentManager", content: content }
+
+      m.list.contentManager = contentManager
+
+      m.expectCalled(m.list.contentManager.content@.getChild(m.list.focusedRowIndex), rowContent)
+
+      m.assertEqual(m.list.getFocusedRowContent(), rowContent)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getFocusedCellContent")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns invalid if there is no focused row content")
+    function _()
+      m.expectCalled(m.list.getFocusedRowContent())
+      m.assertInvalid(m.list.getFocusedCellContent())
+    end function
+
+    @it("returns the focused cell content")
+    function _()
+      rowContent = { "id": "rowContent" }
+      cellContent = { "id": "cellContent" }
+
+      m.expectCalled(m.list.getFocusedRowContent(), rowContent)
+      m.expectCalled(rowContent@.getChild(m.list.focusedCellIndex), cellContent)
+
+      m.assertEqual(m.list.getFocusedCellContent(), cellContent)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("_onContentItemChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls the view manager to update the layout and processes changes")
+    function _()
+      changes = { "id": "changes" }
+      m.list.top.isFocused = true
+      m.list.top.isChildFocused = false
+
+      m.expectCalled(m.list.viewManager.forceUpdateLayout())
+      m.expectCalled(m.list.itemScroller.processChanges(changes))
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
+
+      m.list._onContentItemChange(changes)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onFlowFocusFraction")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls the item scroler to update the focus fraction")
+    function _()
+      fraction = 0.5
+      m.expectCalled(m.list.itemScroller.onFlowFocusFraction(fraction))
+
+      m.list.onFlowFocusFraction(fraction)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("canMoveFromKeyPress")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if the focus indicator is focusing")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isFocusing": true }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+
+      m.assertFalse(m.list.canMoveFromKeyPress("up", false))
+    end function
+
+    @it("returns true/false if the item scroller can/cannot move in the given direction")
+    @params("up", true)
+    @params("up", false)
+    @params("down", true)
+    @params("down", false)
+    function _(key, canMove)
+      direction = m.list.keyDirections[key]
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isFocusing": false }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(direction), canMove)
+
+      m.assertEqual(m.list.canMoveFromKeyPress(key, false), canMove)
+    end function
+
+    @it("returns false if the row is invalid")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isFocusing": false }
+
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectCalled(m.list.getFocusedRow())
+
+      m.assertFalse(m.list.canMoveFromKeyPress("left", false))
+    end function
+
+    @it("returns true/false if the row can/cannot move in the given direction")
+    @params("left", true)
+    @params("left", false)
+    @params("right", true)
+    @params("right", false)
+    @params("rewind", true)
+    @params("rewind", false)
+    @params("fastforward", true)
+    @params("fastforward", false)
+    function _(key, canMove)
+      direction = m.list.keyDirections[key]
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isFocusing": false }
+      row = { "id": "row" }
+
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectCalled(m.list.getFocusedRow(), row)
+      m.expectCalled(row@.canMoveInDirection(direction, false), canMove)
+
+      m.assertEqual(m.list.canMoveFromKeyPress(key, false), canMove)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onRowKeyPress")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns true if already scrolling")
+    function _()
+      itemScroller = { "id": "itemScroller" }
+      m.list.itemScroller = itemScroller
+      m.expectCalled(m.list.isAlreadyScrolling(false), true)
+      m.expectNotCalled(m.list.canMoveFromKeyPress)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertTrue(m.list.onRowKeyPress("up"))
+    end function
+
+
+    @it("returns false if not already scrolling and can't move from key press")
+    function _()
+      itemScroller = { "id": "itemScroller" }
+      m.list.itemScroller = itemScroller
+      m.expectCalled(m.list.isAlreadyScrolling(false), false)
+      m.expectCalled(m.list.canMoveFromKeyPress("up", false), false)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertFalse(m.list.onRowKeyPress("up"))
+    end function
+
+    @it("if list is not already scrolling and can move from key press, returns if focused row can move")
+    @params("rewind", true, true)
+    @params("fastforward", true, false)
+    @params("up", false, false)
+    @params("down", false, true)
+    @params("OK", false, false)
+    @params("play", false, false)
+    function _(key, isPage, moveFromPress)
+      itemScroller = { "id": "itemScroller" }
+      row = { "id": "row" }
+      direction = m.list.keyDirections[key]
+      m.list.itemScroller = itemScroller
+
+      m.expectCalled(m.list.isAlreadyScrolling(false), false)
+      m.expectCalled(m.list.canMoveFromKeyPress(key, false), true)
+      m.expectCalled(m.list.getFocusedRow(), row)
+      m.expectCalled(row@.moveFromPress(direction, false, isPage), moveFromPress)
+
+
+      m.assertEqual(m.list.onRowKeyPress(key), moveFromPress)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("isAlreadyScrolling")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("checks if row is already scrolling")
+    @params(false, false, false, false, false)
+    @params(true, false, false, false, true)
+    @params(false, true, false, false, true)
+    @params(false, false, true, true, true)
+    @params(false, false, true, false, false)
+    @params(false, false, false, true, false)
+    function _(isFocusing, isScrolling, isUpDown, doingFlowFocus, expected)
+      m.list.isDoingFlowFocus = doingFlowFocus
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isFocusing": isFocusing }
+      viewManager = { "id": "viewManager", "isScrolling": isScrolling }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.viewManager = viewManager
+
+      m.assertEqual(m.list.isAlreadyScrolling(isUpDown), expected)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onKeyPressOptions")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if _forceReloadListWhenPressingOption is disabled")
+    function _()
+      m.list._forceReloadListWhenPressingOption = false
+      m.expectNotCalled(m.list.forceUpdate)
+
+      m.assertFalse(m.list.onKeyPressOptions())
+    end function
+
+    @it("returns true if _forceReloadListWhenPressingOption is enabled")
+    function _()
+      m.list._forceReloadListWhenPressingOption = true
+      m.expectCalled(m.list.forceUpdate(true))
+
+      m.assertTrue(m.list.onKeyPressOptions())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onKeyPressUp")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if state is not rendered")
+    function _()
+      m.list.state = "rendering"
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectNotCalled(m.list.itemScroller.moveFromPress)
+
+      m.assertFalse(m.list.onKeyPressUp())
+    end function
+
+    @it("returns false if state is rendered but can't move in direction")
+    function _()
+      viewManager = { "id": "viewManager", "isScrolling": false }
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isDoingFlowFocus": false }
+
+      m.list.viewManager = viewManager
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(-1), false)
+      m.expectNotCalled(m.list.itemScroller.moveFromPress)
+
+      m.assertFalse(m.list.onKeyPressUp())
+    end function
+
+    @it("returns true if item scroller can move from press")
+    function _()
+      viewManager = { "id": "viewManager", "isScrolling": false }
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isDoingFlowFocus": false }
+
+      m.list.viewManager = viewManager
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(-1), true)
+      m.expectCalled(m.list.itemScroller.moveFromPress(-1, false), true)
+
+      m.assertTrue(m.list.onKeyPressUp())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onKeyPressOk")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if state is not rendered")
+    function _()
+      m.list.state = "rendering"
+
+      m.assertFalse(m.list.onKeyPressOk())
+    end function
+
+    @it("returns true if list is scrolling")
+    function _()
+      viewManager = { "id": "viewManager", "isScrolling": true }
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isDoingFlowFocus": false }
+      m.list.viewManager = viewManager
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+
+      m.assertTrue(m.list.onKeyPressOk())
+    end function
+
+
+    @it("applies onItemSelected on list delegate if list is not scrolling and delegate is valid")
+    function _()
+      delegate = { "id": "delegate" }
+
+      viewManager = { "id": "viewManager", "isScrolling": false }
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isDoingFlowFocus": false }
+
+      m.list.viewManager = viewManager
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+      m.list.isScrolling = false
+      m.list.delegate = delegate
+
+      m.expectCalled(m.list.delegate@._apply("onItemSelected", [{
+        rowIndex: m.list.focusedRowIndex
+        cellIndex: m.list.focusedCellIndex
+      }], false))
+
+
+      m.assertTrue(m.list.onKeyPressOk())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onKeyPressDown")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @it("returns false if state is not rendered")
+    function _()
+      m.list.state = "rendering"
+
+      m.assertFalse(m.list.onKeyPressDown())
+    end function
+
+    @it("returns false if list is rendered but can't move in direction")
+    function _()
+      viewManager = { "id": "viewManager", "isScrolling": true }
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isDoingFlowFocus": false }
+      m.list.viewManager = viewManager
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(1), false)
+      m.assertFalse(m.list.onKeyPressDown())
+    end function
+
+
+    @it("returns true if item scroller can move from press")
+    function _()
+      viewManager = { "id": "viewManager", "isScrolling": false }
+      focusIndicatorManager = { "id": "focusIndicatorManager", "isDoingFlowFocus": false }
+
+      m.list.viewManager = viewManager
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.state = "rendered"
+
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(1), true)
+      m.expectCalled(m.list.itemScroller.moveFromPress(1, false), true)
+
+      m.assertTrue(m.list.onKeyPressDown())
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("getLongPressIntervalForKey")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns 0 if state is not rendered")
+    function _()
+      m.list.state = "rendering"
+
+      m.assertEqual(m.list.getLongPressIntervalForKey("OK"), 0)
+    end function
+
+    @it("returns 0 if list settings is invalid or list settings allowLongPress is false")
+    @params(invalid)
+    @params({ "allowLongPress": false })
+    function _(listSettings)
+      m.list.state = "rendered"
+      viewManager = { "id": "viewManager", "lisSettings": listSettings }
+
+      m.list.viewManager = viewManager
+      m.assertEqual(m.list.getLongPressIntervalForKey("OK"), 0)
+    end function
+
+    @it("returns 0.2 if canMoveFromKeyPress is true, 0 otherwise")
+    @params("up", true, 0.2)
+    @params("options", true, 0.2)
+    @params("up", false, 0)
+    @params("options", false, 0)
+    function _(key, canMove, expectedValue)
+      m.list.state = "rendered"
+      viewManager = { "id": "viewManager", "listSettings": { "allowLongPress": true } }
+
+      m.list.viewManager = viewManager
+      m.expectCalled(m.list.canMoveFromKeyPress(key, true), canMove)
+      m.assertEqual(m.list.getLongPressIntervalForKey(key), expectedValue)
+    end function
+
+    @it("returns 0.2 if key OK")
+    function _()
+      m.list.state = "rendered"
+      viewManager = { "id": "viewManager", "listSettings": { "allowLongPress": true } }
+
+      m.list.viewManager = viewManager
+      m.expectNotCalled(m.list.canMoveFromKeyPress)
+      m.assertEqual(m.list.getLongPressIntervalForKey("OK"), 0.2)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onLongPressStart")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if key is OK and delegate is invalid")
+    function _()
+      m.list.delegate = invalid
+      m.assertFalse(m.list.onLongPressStart("OK"))
+    end function
+
+    @it("returns false if key is OK and apply onItemLongSelected on delegate")
+    function _()
+      delegate = { "id": "delegate" }
+      m.list.delegate = delegate
+      m.expectCalled(m.list.delegate@._apply("onItemLongSelected", [{
+          rowIndex: m.list.focusedRowIndex
+        cellIndex: m.list.focusedCellIndex }
+      ], false))
+
+      m.assertFalse(m.list.onLongPressStart("OK"))
+    end function
+
+    @it("returns false if can't move from key press")
+    function _()
+      m.expectCalled(m.list.canMoveFromKeyPress("up", true), false)
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectNotCalled(m.list.itemScroller.moveToEnd)
+
+      m.assertFalse(m.list.onLongPressStart("up"))
+    end function
+
+    @it("returns true/false if can move from key press and item scroller can move in direction")
+    @params(true, true, true)
+    @params(true, false, false)
+    function _(canMoveInDirection, moveToEnd, expected)
+      direction = m.list.keyDirections["up"]
+
+      m.expectCalled(m.list.canMoveFromKeyPress("up", true), true)
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(direction), canMoveInDirection)
+      m.expectCalled(m.list.itemScroller.moveToEnd(direction), moveToEnd)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertEqual(m.list.onLongPressStart("up"), expected)
+    end function
+
+    @it("moves to end of list if can move from key press and item scroller can't move in direction")
+    function _()
+      direction = m.list.keyDirections["up"]
+
+      m.expectCalled(m.list.canMoveFromKeyPress("up", true), true)
+      m.expectCalled(m.list.itemScroller.canMoveInDirection(direction), false)
+      m.expectCalled(m.list.itemScroller.moveToEnd(1), true)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertTrue(m.list.onLongPressStart("up"))
+    end function
+
+    @it("returns true/false if can move from key press and key is for row")
+    @params("rewind", true, true)
+    @params("fastforward", true, false)
+    @params("left", false, true)
+    @params("right", false, false)
+    function _(key, isPage, moveFromPress)
+      direction = m.list.keyDirections[key]
+      row = { "id": "row" }
+
+      m.expectCalled(m.list.canMoveFromKeyPress(key, true), true)
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+
+      m.expectCalled(m.list.getFocusedRow(), row)
+      m.expectCalled(row@.moveFromPress(direction, true, isPage), moveFromPress)
+      m.assertEqual(m.list.onLongPressStart(key), moveFromPress)
+    end function
+
+    @it("returns false if can move from key press and key is not for the list or for the row")
+    @params("play")
+    @params("options")
+    @params("back")
+    function _(key)
+      m.expectCalled(m.list.canMoveFromKeyPress(key, true), true)
+      m.expectNotCalled(m.list.itemScroller.canMoveInDirection)
+      m.expectNotCalled(m.list.getFocusedRow)
+      m.expectNotCalled(m.list.itemScroller.moveToEnd)
+
+      m.assertFalse(m.list.onLongPressStart(key))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onLongPressFinish")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("returns false if key is OK")
+    function _()
+      m.assertFalse(m.list.onLongPressFinish("OK"))
+    end function
+
+    @it("returns true and cancels list scrolling if key is for list")
+    @params("up")
+    @params("down")
+    function _(key)
+      m.expectCalled(m.list.itemScroller.cancelScrolling())
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertTrue(m.list.onLongPressFinish(key))
+    end function
+
+    @it("returns true and cancels row move if key is for row")
+    @params("rewind")
+    @params("fastforward")
+    @params("left")
+    @params("right")
+    function _(key)
+      row = { "id": "row" }
+
+      m.expectNotCalled(m.list.itemScroller.cancelScrolling)
+      m.expectCalled(m.list.getFocusedRow(), row)
+      m.expectCalled(row@.cancelMove(false))
+
+      m.assertTrue(m.list.onLongPressFinish(key))
+    end function
+
+    @it("returns false if key is not for the list or for the row")
+    @params("play")
+    @params("options")
+    @params("back")
+    function _(key)
+      m.expectNotCalled(m.list.itemScroller.cancelScrolling)
+      m.expectNotCalled(m.list.getFocusedRow)
+
+      m.assertFalse(m.list.onLongPressFinish(key))
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onGainedFocus")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("gets called when list gains focus")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
+      m.list.onGainedFocus(true)
+      m.assertFalse(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onLostFocus")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if isChildFocused is true")
+    function _()
+      m.list.top.isChildFocused = true
+      m.expectNotCalled(m.list.focusIndicatorManager@.setFocusedOnRow())
+      m.list.onLostFocus()
+    end function
+
+    @it("removes focus from the row")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isChildFocused = false
+
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(false))
+
+      m.list.onLostFocus()
+
+      m.assertTrue(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onChildLostFocus")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets focus on row if isChildFocused is true")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isChildFocused = true
+
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
+
+      m.list.onChildLostFocus()
+
+      m.assertFalse(m.list.focusIndicatorManager.isHidden)
+    end function
+
+    @it("removes focus from row if isChildFocused is false")
+    function _()
+      focusIndicatorManager = { "id": "focusIndicatorManager" }
+      m.list.focusIndicatorManager = focusIndicatorManager
+      m.list.top.isChildFocused = false
+
+      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(false))
+
+      m.list.onChildLostFocus()
+
+      m.assertTrue(m.list.focusIndicatorManager.isHidden)
+    end function
+
+  end class
+end namespace
+
