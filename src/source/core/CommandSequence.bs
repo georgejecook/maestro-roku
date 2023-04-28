@@ -24,6 +24,7 @@ namespace mc
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private completedCommands = {}
+    private runningCommands = {}
     private runningCommandsCount = 0
     private commands = {}
     private taskCommands = {}
@@ -68,20 +69,26 @@ namespace mc
 
     protected function startCommand(command as mc.Command) as void
       m.runningCommandsCount++
-      funcName = command.name
-      if m.completedCommands.doesExist(funcName)
+      m.runningCommands[command.name] = true
+
+      if m.completedCommands.doesExist(command.name)
         m.log.error("duplicate command name. Cannot proceed", command.name)
-        m.failCommand(command, "Duplicate command function")
+        m.failCommand(command, "Duplicate command name")
         return
       end if
       m.log.info("starting command", command.name)
-      m.completedCommands[funcName] = false
+      m.completedCommands[command.name] = false
       m.taskCommands[command.name] = command
 
       try
         if command.isTask = true
           task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")
-          mc.setOrAddNodeField(task, "__commandName", command.name)
+          if task <> invalid
+            mc.setOrAddNodeField(task, "__commandName", command.name)
+          else
+            message = `Error executing command ${command.name} could not create task: ${command.taskName}`
+            m.failCommand(command, message)
+          end if
         else
           'bs:disable-next-line
           m.__cb = command.func
@@ -111,17 +118,17 @@ namespace mc
     end function
 
     protected function finishCommand(command as mc.Command)
-      m.runningCommandsCount--
-      funcName = command.name
 
-      m.completedCommands[funcName] = true
-      m.log.info("Finished command", command.name, ": remaining", m.runningCommandsCount)
+      m.completedCommands[command.name] = true
+      m.runningCommands.delete(command.name)
+      m.log.info("Finished command", command.name, m.runningCommandsCount, "remaining: ", formatJson(m.runningCommands.keys()))
 
       if command.nextCommands.count() > 0
         m.log.info(`command ${command.name} triggers more commands - starting now`)
         m.startNextCommands(command)
       end if
 
+      m.runningCommandsCount--
       if m.runningCommandsCount = 0
         m.log.info("finished sequence")
         m.output = { isOK: true }
