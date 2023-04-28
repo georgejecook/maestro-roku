@@ -100,7 +100,7 @@ namespace mc
       command = m.taskCommands[task.__commandName]
       if command <> invalid
         m.taskCommands.delete(task.__commandName)
-        if asBoolean(value.isOk)
+        if asBoolean(value.isOk) or asBoolean(command.ignoreFailure)
           m.finishCommand(command)
         else
           m.failCommand(command, `commandTask failed with error ${value.message}`)
