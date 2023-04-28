@@ -14,12 +14,14 @@ namespace mc
     isTask = true
     taskArgs as mc.types.assocarray
     taskName as string
+    ignoreFailure = false
 
-    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, nextCommands = [] as mc.types.array)
+    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, nextCommands = [] as mc.types.array, options = {} as mc.types.assocarray)
       super(name, invalid, nextCommands)
       m.isTask = true
       m.taskName = taskName
       m.taskArgs = { args: taskArgs }
+      m.ignoreFailure = asBoolean(options.ignoreFailure)
     end function
   end class
 end namespace
