@@ -1,6 +1,6 @@
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/ViewUtils.bs"
-
+import "pkg:/source/core/Tasks.bs"
 namespace ml
   @node("ml_BaseCell", "Group")
   class BaseCell
@@ -17,18 +17,19 @@ namespace ml
     public isInViewPort = false
 
     public listEvent as mc.types.AssocArray
-    public contentVersion as integer = -1
 
     private isViewCreated = false
     private isRecyclePending = true
 
     public content as mc.types.node
+
     protected list as mc.types.node
     protected row as mc.types.node
     protected size as mc.types.array
     protected isContentDisplayed = false
 
     private isCreatingViewsOnInitialize = true
+    private isObservingContent = true
 
     function new()
     end function
@@ -41,7 +42,6 @@ namespace ml
       if not m.isViewCreated
         m._createViews()
       end if
-      m.contentVersion = -1
       if m.isRecyclePending
         m._onContentChange(m.content)
       end if
@@ -71,10 +71,8 @@ namespace ml
     private function _onContentChange(content as mc.types.node) as void
       isChanged = false
       if content = invalid
-        m.contentVersion = -1
         isChanged = true
-      else if m.contentVersion = -1 or content.version <> invalid
-        m.contentVersion = content.version
+      else if content.isSameNode(m.content) 'this might not be required
         isChanged = true
       end if
 
@@ -90,6 +88,10 @@ namespace ml
 
     protected function onInitialStateChange(state as mc.types.assocarray)
       ' ? " ON INITIAL STATE CHANGE " m.top.index
+      if m.isObservingContent
+        mc.tasks.unobserveNodeField(m.top, "content", m.onContentNodeUpdated)
+      end if
+
       m.list = state.list
       m.row = state.row
       m.size = state.size
@@ -101,6 +103,11 @@ namespace ml
       else
         m.isRecyclePending = true
         m.recycle()
+      end if
+
+      if m.content <> invalid
+        mc.tasks.observeNodeField(m.top, "content", m.onContentNodeUpdated, "value")
+        m.isObservingContent = true
       end if
     end function
 
@@ -123,7 +130,18 @@ namespace ml
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ abstract methods
+    '++ Callback
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onContentNodeUpdated(content as mc.types.node)
+      ? "CONTENT CHANGE DETECTED " m.isContentDisplayed " content " mc.dv(content)
+      if m.isContentDisplayed and content <> invalid
+        m.onShowWithContent(content)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function createViews()
@@ -169,7 +187,7 @@ namespace ml
     end function
 
     protected function onDidEnter(event as ml.ListEvent)
-      ' ? " ON ENTER CELL "; m.index ; " " ; m.isContentDisplayed ; " " ; m.isViewCreated ; " " ; m.content <> invalid
+      ? " ON ENTER CELL "; m.index ; " " ; m.isContentDisplayed ; " " ; m.isViewCreated ; " " ; m.content <> invalid
       if not m.isContentDisplayed
         if m.content <> invalid
           if m.isViewCreated

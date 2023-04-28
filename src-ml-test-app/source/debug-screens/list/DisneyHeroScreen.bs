@@ -15,7 +15,6 @@ class DisneyHeroScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 20
   private defaultCellType = "ml_SimpleCell"
 
   'state
@@ -24,7 +23,6 @@ class DisneyHeroScreen extends mv.BaseScreen
   private rowSettings
   private focusSettings
   private cellSettings
-  private loadingIndicator
   private scrollSpeed = 2
 
   function new()
@@ -50,12 +48,6 @@ class DisneyHeroScreen extends mv.BaseScreen
       height: size[1]
     })
     mioc.setInstance("list", m.list)
-    m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
-      isActive: true
-      width: 1920
-      height: 1080
-      backgroundVisible: false
-    })
     m.onResetChange()
   end function
 
@@ -77,13 +69,11 @@ class DisneyHeroScreen extends mv.BaseScreen
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
     timer.log("makeData")
-    m.setFocus(m.loadingIndicator)
     content@.appendChildren(items)
-    m.list.content = content
+    m.list@.setContent(content)
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
-      m.loadingIndicator.isActive = false
     else
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
@@ -95,7 +85,6 @@ class DisneyHeroScreen extends mv.BaseScreen
       ' m.setFocus(m.list)
       ' m.list@.moveToIndex([0, 0], false)
       ' m.list.visible = true
-      m.loadingIndicator.isActive = false
     end if
   end function
 
@@ -272,7 +261,6 @@ class DisneyHeroScreen extends mv.BaseScreen
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
-      m.loadingIndicator.isActive = false
     else
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
