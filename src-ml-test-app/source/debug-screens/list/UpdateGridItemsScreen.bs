@@ -96,12 +96,12 @@ class UpdateGridItemsScreen extends mv.BaseScreen
           m.log.warn("moving entire row")
           children = []
           for i = m.selectedItemIndex to m.selectedItemIndex + 3
-            children.push(m.selectedRow@.getChild(i))
-            m.selectedRow@.removeChildIndex(i)
+            children.push(m.selectedRow.getChild(i))
+            m.selectedRow.removeChildIndex(i)
           end for
-          nextRow@.appendChildren(children)
+          nextRow.appendChildren(children)
         else
-          nextRow@.appendChild(m.selectedItem)
+          nextRow.appendChild(m.selectedItem)
         end if
 
       else
@@ -173,13 +173,13 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     row.settings.contentOffset = [100, 30]
     numItems = rnd(5) + 6
     row.title = title
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, ""))
+    row.appendChildren(m.makeItems(m.defaultCellType, numItems, ""))
     return row
   end function
 
   private function addItems(cellType as string, number as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    row@.appendChildren(m.makeItems(cellType, number))
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row.appendChildren(m.makeItems(cellType, number))
   end function
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
@@ -216,18 +216,18 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     ]
 
 
-    m.list.content@.insertChildren(m.rows, 1)
-    m.list.content@.notifyUpdate()
+    m.list.content.insertChildren(m.rows, 1)
+
   end function
 
   private function removeNonHeaderRows(update = true as boolean)
-    header = m.list.content@.getChild(0)
-    m.list.content@.setNotificationsEnabled(false)
-    m.list.content@.clear()
-    m.list.content@.appendChild(header)
+    header = m.list.content.getChild(0)
+
+    m.list.content.removeChildren(m.list.content.getChildren(-1, 0))
+    m.list.content.appendChild(header)
 
     if update
-      m.list.content@.notifyUpdate()
+
     end if
   end function
 
@@ -242,11 +242,11 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     ' else
     '   if applyToAll
     '     startIndex = 0
-    '     endIndex = row.content.length - 1
+    '     endIndex = row.content.count() - 1
     '   else
     '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
-    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
+    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.count() - 1)
+    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.count() - 1)
     '   end if
     '   for i = startIndex to endIndex
     '     cell = m.list@.getCellRenderer(event.rowIndex, i)
@@ -264,7 +264,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
   private function onItemSelected(event as ml.ListEvent)
     m.selectedRowIndex = event.rowIndex
     m.selectedRow = m.rows[event.rowIndex]
-    m.selectedItem = m.selectedRow@.getChild(event.cellIndex)
+    m.selectedItem = m.selectedRow.getChild(event.cellIndex)
     m.selectedItemIndex = event.cellIndex
     m.log.info("selected item ", mc.dv(m.selectedItem), "from row", mc.dv(m.selectedRow))
 
@@ -305,13 +305,13 @@ class UpdateGridItemsScreen extends mv.BaseScreen
   private function changeContent()
     row = m.list@.getRow(1)
     child = m.makeItem(m.defaultCellType, "New item")
-    row@.insertChild(child, 0)
+    row.insertChild(child, 0)
 
     child = m.makeItem(m.defaultCellType, "Second New item")
-    row@.insertChild(child, 1)
+    row.insertChild(child, 1)
 
     row = m.list@.getRow(3)
-    row@.removeChildrenIndex(row.length - 1, 0)
+    row.removeChildrenIndex(row.count() - 1, 0)
   end function
 
   private function onKeyPressFastForward() as boolean

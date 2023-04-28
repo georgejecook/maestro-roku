@@ -110,7 +110,7 @@ namespace ml
 
       m.ascertainPreviousFocusInfo()
 
-      for each rowContent in m.content@.getChildren()
+      for each rowContent in m.content.getChildren()
         info = m.rowContentInfoByContentId[rowContent.id]
         if info <> invalid
           m.updateContentOnRow(info.row, rowContent, notifyRows, listResult)
@@ -289,7 +289,7 @@ namespace ml
         rowIndex = m.viewManager.getIndexAfterItemUpdate(m.previousFocusedRowInfo)
         newRowInfo = m.viewManager.getCellInfoForContentIndex(rowIndex)
         if newRowInfo <> invalid
-          content = m.content@.getChild(rowIndex)
+          content = m.content.getChild(rowIndex)
           if content.isHidden or not content.isFocusEnabled
             m.log.verbose("chosen content is no longer focusable")
             rowIndex = m.getValidRowIndexAfter(rowIndex)
@@ -325,8 +325,8 @@ namespace ml
 
     private function getValidRowIndexAfter(rowIndex as integer) as integer
       'first go forwards
-      for i = rowIndex + 1 to m.content.length - 1
-        row = m.content@.getChild(i)
+      for i = rowIndex + 1 to m.content.count() - 1
+        row = m.content.getChild(i)
         if not row.isHidden and row.isFocusEnabled
           m.log.verbose("valid row index after", rowIndex, i)
           return rowIndex
@@ -334,7 +334,7 @@ namespace ml
       end for
 
       for i = rowIndex - 1 to 0 step -1
-        row = m.content@.getChild(i)
+        row = m.content.getChild(i)
         if not row.isHidden and row.isFocusEnabled
           m.log.verbose("valid row index after", rowIndex, i)
           return rowIndex

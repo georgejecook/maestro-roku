@@ -227,8 +227,8 @@ namespace mc
           else if type(part) = "roAssociativeArray"
             part = part[parts[i]]
           else if type(part) = "roSGNode"
-            if part.isSubtype("mc_Node") or part.subType() = "mc_Node"
-              part = part.callFunc("getChild", parts[i].toInt())
+            if part.isSubtype("mc_Array") or part.subType() = "mc_Array"
+              part = part.callFunc("get", parts[i].toInt())
             else
               part = part.getChild(parts[i].toInt())
             end if
@@ -510,11 +510,7 @@ namespace mc
   function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, isCallingInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
     if parent <> invalid
       if type(parent) = "roSGNode" or parent.createChild <> invalid 'allows for mock nodes
-        if parent.isSubType("mc_Node") or parent.subType() = "mc_Node"
-          node = parent@.createChild(nodeType)
-        else
-          node = parent.createChild(nodeType)
-        end if
+        node = parent.createChild(nodeType)
       else
         mc.private.logError("Illegal parent received when calling mc.createSGNode")
         node = createObject("roSGNode", nodeType)

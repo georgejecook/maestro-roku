@@ -92,7 +92,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   private updateCount = 0
   private function reload()
     m.log.info("loading data again for dayIndex", m.dayIndex)
-    item = m.list.content@.getChild(1)@.getChild(0)
+    item = m.list.content.getChild(1).getChild(0)
     if item <> invalid
       m.updateCount++
       json = item.json
@@ -135,7 +135,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     timer.log("makeData")
 
-    content@.appendChildren([m.makeHeader()])
+    content.appendChildren([m.makeHeader()])
     content@.setNotificationsEnabled(false)
     m.list@.setContent(content)
 
@@ -213,8 +213,7 @@ class UpdateListDataScreen extends mv.BaseScreen
     row.settings.contentOffset = [100, 30]
     numItems = rnd(5) + (m.isUsingGrids ? 6 : 0)
     row.title = title
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
-    row@.setNotificationsEnabled(false)
+    row.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
     return row
   end function
 
@@ -253,8 +252,8 @@ class UpdateListDataScreen extends mv.BaseScreen
       modules.push(m.createModule(`more ${i}`, 5))
     end for
 
-    m.list.content@.appendChildren(modules)
-    m.list.content@.notifyUpdate()
+    m.list.content.appendChildren(modules)
+
 
   end function
 
@@ -287,7 +286,7 @@ class UpdateListDataScreen extends mv.BaseScreen
 
     'ensure that row offsets are applied correctly
     for each module in modules
-      if module.length > 0
+      if module.count() > 0
         if numModules > 0 and module.settings.subType() = "ml_GridRowSettings"
           settings = module.settings.clone(true)
           settings.firstRowScreenPos = settings.otherRowScreenPos
@@ -298,7 +297,7 @@ class UpdateListDataScreen extends mv.BaseScreen
       end if
     end for
 
-    m.list.content@.insertChildren(newModules, 1)
+    m.list.content.insertChildren(newModules, 1)
     m.list@.synchronizeContent()
   end function
 
@@ -306,9 +305,9 @@ class UpdateListDataScreen extends mv.BaseScreen
     if m.list.content = invalid
       return
     end if
-    header = m.list.content@.getChild(0)
-    m.list.content@.clear()
-    m.list.content@.appendChild(header)
+    header = m.list.content.getChild(0)
+    m.list.content.removeChildren(m.list.content.getChildren(-1, 0))
+    m.list.content.appendChild(header)
 
     if update
       m.list@.synchronizeContent()
@@ -324,11 +323,11 @@ class UpdateListDataScreen extends mv.BaseScreen
     ' else
     '   if applyToAll
     '     startIndex = 0
-    '     endIndex = row.content.length - 1
+    '     endIndex = row.content.count() - 1
     '   else
     '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.length - 1)
-    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.length - 1)
+    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.count() - 1)
+    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.count() - 1)
     '   end if
     '   for i = startIndex to endIndex
     '     cell = m.list@.getCellRenderer(rowIndex, i)
@@ -390,13 +389,13 @@ class UpdateListDataScreen extends mv.BaseScreen
   private function changeContent()
     row = m.list@.getRow(1)
     child = m.makeItem(m.defaultCellType, "New item")
-    row@.insertChild(child, 0)
+    row.insertChild(child, 0)
 
     child = m.makeItem(m.defaultCellType, "Second New item")
-    row@.insertChild(child, 1)
+    row.insertChild(child, 1)
 
     row = m.list@.getRow(3)
-    row@.removeChildrenIndex(row.length - 1, 0)
+    row.removeChildrenIndex(row.count() - 1, 0)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

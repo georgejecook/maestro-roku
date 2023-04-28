@@ -113,7 +113,7 @@ class ListEnterExitScreen extends mv.BaseScreen
 
     m.focusSettings = ml.listMixin.createFocusSettings("fixed")
     m.rowSettings = ml.listMixin.createRowSettings(m.cellSettings, m.focusSettings, 30)
-    headerSetings =  ml.listMixin.createHeaderSettings()
+    headerSetings = ml.listMixin.createHeaderSettings()
     listSettings = ml.listMixin.createListSettings()
     listSettings.sendScrollStartStop = false
     listSettings.sendScrollUpdate = false
@@ -131,7 +131,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.button.text = `create list with ${m.contentId} items`
     ' timer.log("makeData")
     m.setFocus(m.button)
-    content@.appendChildren(items)
+    content.appendChildren(items)
 
     m.listContent = content
   end function
@@ -229,7 +229,7 @@ class ListEnterExitScreen extends mv.BaseScreen
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
       content.push(row)
-      row@.appendChildren(m.makeItems(m.defaultCellType, m.numberOfItems, "HORIZ"))
+      row.appendChildren(m.makeItems(m.defaultCellType, m.numberOfItems, "HORIZ"))
     end for
 
     return content
@@ -261,22 +261,20 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onRemoveItems(numItems as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    startIndex = row.length - numItems
-    row@.removeChildrenIndex(startIndex, numItems)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    startIndex = row.count() - numItems
+    row.removeChildrenIndex(startIndex, numItems)
   end function
 
   private function onUpdateNow()
     m.log.info("UPDATING CONTENT NOW")
 
     for i = m.list.focusedRowIndex to m.list.focusedRowIndex
-      module = m.list.content@.getChild(i)
+      module = m.list.content.getChild(i)
       if module <> invalid
         m.log.info("Updating module", i)
-        module@.notifyUpdate()
       end if
     end for
-
     m.list@.synchronizeContent()
   end function
 
@@ -295,20 +293,20 @@ class ListEnterExitScreen extends mv.BaseScreen
     mc.setOrAddNodeField(row, "index", `${m.currentRowIndex}`)
     m.currentRowIndex++
     m.contentId++
-    row@.appendChildren(m.makeItems(m.defaultCellType, 5))
-    m.list.content@.insertChild(row, index)
+    row.appendChildren(m.makeItems(m.defaultCellType, 5))
+    m.list.content.insertChild(row, index)
     m.list@.synchronizeContent()
   end function
 
   private function removeRow(rowOffset as integer)
     rowIndex = m.list.focusedRowIndex + rowOffset
-    m.list.content@.removeChildIndex(rowIndex)
+    m.list.content.removeChildIndex(rowIndex)
     m.list@.synchronizeContent()
   end function
 
   private function toggleRowFocus(rowOffset as integer)
     rowIndex = m.list.focusedRowIndex + rowOffset
-    row = m.list.content@.getChild(rowIndex)
+    row = m.list.content.getChild(rowIndex)
     if row <> invalid
       row.isFocusEnabled = not row.isFocusEnabled
     end if
@@ -317,7 +315,7 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function toggleRowHidden(rowOffset as integer)
     rowIndex = m.list.focusedRowIndex + rowOffset
-    row = m.list.content@.getChild(rowIndex)
+    row = m.list.content.getChild(rowIndex)
     if row <> invalid
       row.isHidden = not row.isHidden
     end if
@@ -328,8 +326,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     rowIndex = m.list.focusedRowIndex + rowOffset
     cellIndex = m.list.focusedCellIndex + cellOffset
 
-    rowContent = m.list.content@.getChild(rowIndex)
-    rowContent@.insertChild(m.makeItems(m.defaultCellType, 1)[0], cellIndex)
+    rowContent = m.list.content.getChild(rowIndex)
+    rowContent.insertChild(m.makeItems(m.defaultCellType, 1)[0], cellIndex)
     m.list@.synchronizeContent()
   end function
 
@@ -338,25 +336,24 @@ class ListEnterExitScreen extends mv.BaseScreen
     cellIndex = m.list.focusedCellIndex + cellOffset
     m.log.info("removing item at ", rowIndex, cellIndex)
 
-    rowContent = m.list.content@.getChild(rowIndex)
-    rowContent@.setNotificationsEnabled(false)
-    rowContent@.removeChildIndex(cellIndex)
-    rowContent@.notifyUpdate()
+    rowContent = m.list.content.getChild(rowIndex)
+    'bs:disable-next-line
+    rowContent.removeChildIndex(cellIndex)
     m.list@.synchronizeContent()
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex + 4)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex + 2)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex + 4)
 
 
-    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 1)
+    ' rowContent = m.list.content.getChild(m.list.focusedRowIndex + 1)
     ' rowContent@.setNotificationsEnabled(false)
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex + 1)
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex + 2)
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex + 3)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex + 1)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex + 2)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex + 3)
 
-    ' rowContent = m.list.content@.getChild(m.list.focusedRowIndex + 2)
+    ' rowContent = m.list.content.getChild(m.list.focusedRowIndex + 2)
     ' rowContent@.setNotificationsEnabled(false)
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex)
-    ' rowContent@.removeChildIndex(m.list.focusedCellIndex + 1)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex)
+    ' rowContent.removeChildIndex(m.list.focusedCellIndex + 1)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -449,7 +446,7 @@ class ListEnterExitScreen extends mv.BaseScreen
   private function onRowData(event as ml.ListEvent)
     m.log.info("received row data for index", event.rowIndex, event.data)
     m.log.info("updating data")
-    item = m.list.content@.getChild(event.rowIndex)
+    item = m.list.content.getChild(event.rowIndex)
     mc.setOrAddNodeField(item, "rowText", "ROW HAS changed")
     item@.notifyUpdate()
     m.list@.synchronizeContent()

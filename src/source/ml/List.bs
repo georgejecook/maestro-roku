@@ -198,12 +198,10 @@ namespace ml
     function synchronizeContent(updateListContent = true as boolean, forceUpdateAll = false as boolean)
       'TODO add check that notifications are present, and if so use those
       if updateListContent = true and m.content <> invalid
-        m.content@.notifyUpdate()
+        'TODO
       end if
       m.contentManager.synchronizeContent(true, forceUpdateAll)
-      if m.content <> invalid
-        m.content@.resetChanges()
-      end if
+
       'reset the content's notifications
       'm.log.resetIndent()
     end function
@@ -285,7 +283,7 @@ namespace ml
 
     function getRow(index as integer) as dynamic
       if m.contentManager.content <> invalid
-        return m.contentManager.content@.getChild(index)
+        return m.contentManager.content.getChild(index)
       else
         return invalid
       end if
@@ -293,9 +291,9 @@ namespace ml
 
     function getItem(rowIndex as integer, index as integer) as dynamic
       if m.contentManager.content <> invalid
-        rowItem = m.contentManager.content@.getChild(rowIndex)
+        rowItem = m.contentManager.content.getChild(rowIndex)
         if rowItem <> invalid
-          return rowItem@.getChild(index)
+          return rowItem.getChild(index)
         end if
       end if
       return invalid
@@ -440,7 +438,7 @@ namespace ml
 
     function getFocusedRowContent()
       if m.contentManager.content <> invalid
-        return m.contentManager.content@.getChild(m.focusedRowIndex)
+        return m.contentManager.content.getChild(m.focusedRowIndex)
       else
         return invalid
       end if
@@ -449,7 +447,7 @@ namespace ml
     function getFocusedCellContent()
       rowContent = m.getFocusedRowContent()
       if rowContent <> invalid
-        return rowContent@.getChild(m.focusedCellIndex)
+        return rowContent.getChild(m.focusedCellIndex)
       else
         return invalid
       end if

@@ -81,7 +81,7 @@ namespace ml.sample
       items = m.createData()
       timer.log("makeData")
       m.setFocus(m.loadingIndicator)
-      content@.appendChildren(items)
+      content.appendChildren(items)
       content@.setNotificationsEnabled(false)
       m.list.visible = false
       m.list@.setContent(content)
@@ -122,7 +122,7 @@ namespace ml.sample
       content.push(row)
       m.favoriteModule = row
       rowFocusSettings = ml.listMixin.createFocusSettings()
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
 
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "FOLLOWING"
@@ -132,7 +132,7 @@ namespace ml.sample
       numItems = 5
       content.push(row)
       m.followingModule = row
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
 
       row = createObject("roSGNode", "ml_RowContent")
       row.title = "TEAMS"
@@ -147,7 +147,7 @@ namespace ml.sample
       numItems = 20
       content.push(row)
       m.teamsModule = row
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems))
       return content
     end function
 
@@ -201,19 +201,16 @@ namespace ml.sample
 
     private function unFollowTeam(index as integer) as void
 
-      team = m.followingModule@.getChild(index)
+      team = m.followingModule.getChild(index)
       if team = invalid
         return
       end if
 
       ? "un-follow ", team.title " ID " team.id
 
-
-      m.teamsModule@.setNotificationsEnabled(false)
-      m.followingModule@.setNotificationsEnabled(false)
-
-      m.followingModule@.removeChildIndex(index)
-      m.teamsModule@.insertChild(team, 0)
+      'bsdl
+      m.followingModule.removeChildIndex(index)
+      m.teamsModule.insertChild(team, 0)
       m.teamsModule@.sortByKey("title")
 
       m.teamsModule@.setNotificationsEnabled(true)
@@ -221,21 +218,21 @@ namespace ml.sample
       m.list@.synchronizeContent()
 
       'FIXME - need to fix a focus bug in content Manager here!
-      if m.followingModule.length = 0
+      if m.followingModule.count() = 0
         m.list@.moveToRowItemIndex(2, 0)
       end if
     end function
 
     private function selectFavorite()
-      team = m.followingModule@.getChild(0)
+      team = m.followingModule.getChild(0)
       ? "selected fave>>>>>:", mc.dv(team)
       m.teamsModule@.setNotificationsEnabled(false)
       m.favoriteModule@.setNotificationsEnabled(false)
-      m.favoriteModule@.clear()
+      m.favoriteModule.removeChildren(m.favoriteModule.getChildren(-1, 0))
       if team <> invalid
         'we need a clone, because this team will show in 2 modules
         team = team.clone(true)
-        m.favoriteModule@.appendChild(team)
+        m.favoriteModule.appendChild(team)
       end if
       m.teamsModule@.setNotificationsEnabled(true)
       m.favoriteModule@.setNotificationsEnabled(true)
@@ -243,7 +240,7 @@ namespace ml.sample
     end function
 
     private function followTeam(cellIndex as integer) as void
-      team = m.teamsModule@.getChild(cellIndex)
+      team = m.teamsModule.getChild(cellIndex)
       if team = invalid
         return
       end if
@@ -251,19 +248,19 @@ namespace ml.sample
       ? "follow ", team.title
       m.teamsModule@.setNotificationsEnabled(false)
       m.followingModule@.setNotificationsEnabled(false)
-      m.followingModule@.insertChild(team, 0)
-      m.teamsModule@.removeChild(team)
+      m.followingModule.insertChild(team, 0)
+      m.teamsModule.removeChild(team)
 
-      ' m.followingModule.isHidden = m.followingModule.length = 0
-      ' m.teamsModule.isHidden = m.teamsModule.length = 0
+      ' m.followingModule.isHidden = m.followingModule.count() = 0
+      ' m.teamsModule.isHidden = m.teamsModule.count() = 0
       m.teamsModule@.setNotificationsEnabled(true)
       m.followingModule@.setNotificationsEnabled(true)
-      m.list.content@.notifyUpdate()
+
       m.list@.synchronizeContent()
-      ? "followingModule : ", m.followingModule.length
-      ? "teamsModule : ", m.teamsModule.length
+      ? "followingModule : ", m.followingModule.count()
+      ? "teamsModule : ", m.teamsModule.count()
       'FIXME - need to fix a focus bug in content Manager here!
-      if m.teamsModule.length = 0
+      if m.teamsModule.count() = 0
         m.list@.moveToRowItemIndex(1, 0)
       end if
     end function
@@ -273,7 +270,7 @@ namespace ml.sample
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function onItemSelected(event as ml.ListEvent)
-      row = m.list.content@.getChild(event.rowIndex)
+      row = m.list.content.getChild(event.rowIndex)
       ? " ITEM IS SELECTED r ", event.rowIndex, "i ", event.cellIndex, " ", mc.dv(row)
       if m.favoriteModule.isSameNode(row)
         ? "SELECT FAVE"

@@ -151,9 +151,7 @@ namespace ListTests
 
     @it("synchronizes content, resets changes but doesn't notify updates if content is invalid")
     function _()
-      m.expectNotCalled(m.list.content@.notifyUpdate())
       m.expectCalled(m.list.contentManager.synchronizeContent())
-      m.expectCalled(m.list.content@.resetChanges())
 
       m.list.synchronizeContent(false)
     end function
@@ -163,9 +161,7 @@ namespace ListTests
       content = { "id": "content" }
       m.list.content = content
 
-      m.expectCalled(m.list.content@.notifyUpdate())
       m.expectCalled(m.list.contentManager.synchronizeContent())
-      m.expectCalled(m.list.content@.resetChanges())
 
       m.list.synchronizeContent()
     end function
@@ -294,7 +290,7 @@ namespace ListTests
       row = { "id": "row" }
       m.list.contentManager = contentManager
 
-      m.expectCalled(m.list.contentManager.content@.getChild(rowIndex), row)
+      m.expectCalled(m.list.contentManager.content.getChild(rowIndex), row)
 
       m.assertEqual(m.list.getRow(rowIndex), row)
     end function
@@ -319,7 +315,7 @@ namespace ListTests
       contentManager = { "id": "contentManager", "content": { "id": "content" } }
       m.list.contentManager = contentManager
 
-      m.expectCalled(m.list.contentManager.content@.getChild(rowIndex))
+      m.expectCalled(m.list.contentManager.content.getChild(rowIndex))
 
       m.assertInvalid(m.list.getItem(rowIndex, cellIndex))
     end function
@@ -334,8 +330,8 @@ namespace ListTests
 
       m.list.contentManager = contentManager
 
-      m.expectCalled(m.list.contentManager.content@.getChild(rowIndex), row)
-      m.expectCalled(row@.getChild(cellIndex), item)
+      m.expectCalled(m.list.contentManager.content.getChild(rowIndex), row)
+      m.expectCalled(row.getChild(cellIndex), item)
 
       m.assertEqual(m.list.getItem(rowIndex, cellIndex), item)
     end function
@@ -658,7 +654,7 @@ namespace ListTests
 
       m.list.contentManager = contentManager
 
-      m.expectCalled(m.list.contentManager.content@.getChild(m.list.focusedRowIndex), rowContent)
+      m.expectCalled(m.list.contentManager.content.getChild(m.list.focusedRowIndex), rowContent)
 
       m.assertEqual(m.list.getFocusedRowContent(), rowContent)
     end function
@@ -679,7 +675,7 @@ namespace ListTests
       cellContent = { "id": "cellContent" }
 
       m.expectCalled(m.list.getFocusedRowContent(), rowContent)
-      m.expectCalled(rowContent@.getChild(m.list.focusedCellIndex), cellContent)
+      m.expectCalled(rowContent.getChild(m.list.focusedCellIndex), cellContent)
 
       m.assertEqual(m.list.getFocusedCellContent(), cellContent)
     end function

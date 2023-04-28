@@ -95,34 +95,34 @@ namespace tests
       m.assertEqual(mc.getPath(a, path).id, expected)
     end function
 
-    @it("gets indexed value for mc_node")
+    @it("gets indexed value for mc_Array")
     @params("0", "c1")
     @params("1", "c2")
     @params("2", "c3")
     function _(path, expected)
-      a = mc.createSGNode("mc_Node", invalid, "root")
+      a = mc.createSGNode("mc_Array", invalid, "root")
       c1 = mc.createSGNode("Node", invalid, "c1")
       c2 = mc.createSGNode("Node", invalid, "c2")
       c3 = mc.createSGNode("Node", invalid, "c3")
 
-      a@.appendChildren([c1, c2, c3])
+      a.appendChildren([c1, c2, c3])
 
       m.assertEqual(mc.getPath(a, path).id, expected)
     end function
 
-    @it("gets indexed value for nested mc_node")
+    @it("gets indexed value for nested mc_Array")
     @params("node.0", "c1")
     @params("node.1", "c2")
     @params("node.2", "c3")
     function _(path, expected)
       a = {
-        node: mc.createSGNode("mc_Node", invalid, "root")
+        node: mc.createSGNode("mc_Array", invalid, "root")
       }
       c1 = mc.createSGNode("Node", invalid, "c1")
       c2 = mc.createSGNode("Node", invalid, "c2")
       c3 = mc.createSGNode("Node", invalid, "c3")
 
-      a.node@.appendChildren([c1, c2, c3])
+      a.node.appendChildren([c1, c2, c3])
 
       m.assertEqual(mc.getPath(a, path).id, expected)
     end function

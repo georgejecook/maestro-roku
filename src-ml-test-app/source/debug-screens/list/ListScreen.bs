@@ -80,9 +80,9 @@ class ListScreen extends mv.BaseScreen
     items = m.createGridData()
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
-    content@.appendChildren(items)
+    content.appendChildren(items)
     timer.log("set content")
-    m.originalChildren = content@.getChild(1)@.getChildren()
+    m.originalChildren = content.getChild(1).getChildren()
     m.list@.setContent(content)
     m.list.delegate = m.top
 
@@ -176,7 +176,7 @@ class ListScreen extends mv.BaseScreen
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
       content.push(row)
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems, "HORIZ"))
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems, "HORIZ"))
     end for
 
     return content
@@ -208,9 +208,9 @@ class ListScreen extends mv.BaseScreen
   end function
 
   private function onRemoveItems(numItems as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    startIndex = row.length - numItems
-    row@.removeChildrenIndex(startIndex, numItems)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    startIndex = row.count() - numItems
+    row.removeChildrenIndex(startIndex, numItems)
   end function
 
   private function addRow(index as integer)
@@ -225,23 +225,23 @@ class ListScreen extends mv.BaseScreen
     row.title = "NEW ROW " + m.contentId.toStr()
     row.id = rnd(2147483647).toStr()
     m.contentId++
-    row@.appendChildren(m.makeItems(m.defaultCellType, 5))
-    m.list.content@.insertChild(row, index)
+    row.appendChildren(m.makeItems(m.defaultCellType, 5))
+    m.list.content.insertChild(row, index)
   end function
 
   private function removeRow(index as integer)
-    m.list.content@.removeChildIndex(index)
+    m.list.content.removeChildIndex(index)
   end function
 
   private function addCell()
-    rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    rowContent@.appendChildren(m.makeItems(m.defaultCellType, 1))
-    rowContent@.insertChild(m.makeItems(m.defaultCellType, 1), m.list.focusedCellIndex)
+    rowContent = m.list.content.getChild(m.list.focusedRowIndex)
+    rowContent.appendChildren(m.makeItems(m.defaultCellType, 1))
+    rowContent.insertChild(m.makeItems(m.defaultCellType, 1), m.list.focusedCellIndex)
   end function
 
   private function removeCell()
-    rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    rowContent@.removeChildIndex(m.list.focusedCellIndex)
+    rowContent = m.list.content.getChild(m.list.focusedRowIndex)
+    rowContent.removeChildIndex(m.list.focusedCellIndex)
   end function
 
 
@@ -281,10 +281,10 @@ class ListScreen extends mv.BaseScreen
     m.contentIndex = mc.clamp(m.contentIndex + 1, 0, funcs.count() - 1, true)
     items = m[funcs[m.contentIndex]]()
     timer.log("makeData")
-    content@.appendChildren(items)
+    content.appendChildren(items)
     ' m.list.visible = false
     ' m.list@.setContent(invalid)
-    m.originalChildren = content@.getChild(1)@.getChildren()
+    m.originalChildren = content.getChild(1).getChildren()
     m.list@.setContent(content)
     timer.log("set content")
     if m.list.state = "rendered"
@@ -302,32 +302,24 @@ class ListScreen extends mv.BaseScreen
   private function onKeyPressPlay() as boolean
     m.log.info("removing renderers")
 
-    row = m.list.content@.getChild(1)
-    row@.setNotificationsEnabled(false)
-    row@.clear()
+    row = m.list.content.getChild(1)
+    row.removeChildren(row.getChildren(-1, 0))
     newItems = [m.originalChildren[0], m.originalChildren[1], m.originalChildren[3], m.originalChildren[2]]
 
-    row@.appendChildren(newItems)
+    row.appendChildren(newItems)
 
-    row@.setNotificationsEnabled(true)
-    ' row@.notifyUpdate()
     m.list@.synchronizeContent()
     return true
   end function
 
   private function onKeyPressFastForward() as boolean
     ' m.addRow(1)
-    row = m.list.content@.getChild(1)
-    row@.setNotificationsEnabled(false)
-    row@.clear()
+    row = m.list.content.getChild(1)
+    row.removeChildren(row.getChildren(-1, 0))
     newItems = [m.originalChildren[0], m.originalChildren[1], m.originalChildren[3], m.originalChildren[2]]
 
-    row@.appendChildren(newItems)
-
-    row@.setNotificationsEnabled(true)
-    ' row@.notifyUpdate()
+    row.appendChildren(newItems)
     m.list@.synchronizeContent()
-
     return true
   end function
 
@@ -456,11 +448,11 @@ class ListScreen extends mv.BaseScreen
 
   private function onItemSelected(event as ml.ListEvent)
     ' ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; event.cellIndex
-    rowContent = m.list.content@.getChild(event.rowIndex)
+    rowContent = m.list.content.getChild(event.rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)
-    rowContent@.insertChild(child, event.cellIndex)
-    ' rowContent@.removeChild(child)
+    rowContent.insertChild(child, event.cellIndex)
+    ' rowContent.removeChild(child)
     row = m.list@.getRowRenderer(event.rowIndex)
     row@.forceUpdate()
     ' newScreen = createObject("roSGNode", "ListScreen")

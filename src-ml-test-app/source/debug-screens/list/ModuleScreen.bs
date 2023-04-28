@@ -94,7 +94,7 @@ class ModuleScreen extends mv.BaseScreen
     ' items = m.createHeaderOnlyData()
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
-    ' content@.appendChildren(items)
+    ' content.appendChildren(items)
     m.list.visible = false
     m.list.content = content
     m.content = content
@@ -138,7 +138,7 @@ class ModuleScreen extends mv.BaseScreen
     row.title = "ROW " + str(i)
     ' row.settings.screenPos = 400
     content.push(row)
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
+    row.appendChildren(m.makeItems(m.defaultCellType, numItems, prefix))
 
     return content
   end function
@@ -155,13 +155,13 @@ class ModuleScreen extends mv.BaseScreen
     row.settings.contentOffset = [100, 30]
     numItems = 2
     row.title = title
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems))
+    row.appendChildren(m.makeItems(m.defaultCellType, numItems))
     return row
   end function
 
   private function addItems(cellType as string, number as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    row@.appendChildren(m.makeItems(cellType, number))
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row.appendChildren(m.makeItems(cellType, number))
   end function
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
@@ -190,9 +190,9 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function onRemoveItems(numItems as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    startIndex = row.length - numItems
-    row@.removeChildrenIndex(startIndex, numItems)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    startIndex = row.count() - numItems
+    row.removeChildrenIndex(startIndex, numItems)
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -238,10 +238,10 @@ class ModuleScreen extends mv.BaseScreen
 
   private function onItemSelected(event as ml.ListEvent)
     ? ">>>onItemSelected changed to:" ; event.rowIndex ; "," ; event.cellIndex
-    rowContent = m.list.content@.getChild(event.rowIndex)
+    rowContent = m.list.content.getChild(event.rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)
-    rowContent@.insertChild(child, event.cellIndex)
+    rowContent.insertChild(child, event.cellIndex)
     ' rowContent.removeChild(child)
     row = m.list@.getRowRenderer(event.rowIndex)
     row@.forceUpdate()
@@ -270,22 +270,22 @@ class ModuleScreen extends mv.BaseScreen
   end function
 
   private function moveDown()
-    row = m.list.content@.getChild(1)
+    row = m.list.content.getChild(1)
     item = row.getChild(0)
 
-    row = m.list.content@.getChild(3)
+    row = m.list.content.getChild(3)
     if row <> invalid
-      row@.appendChild(item)
+      row.appendChild(item)
     end if
   end function
 
   private function moveUp()
-    row = m.list.content@.getChild(3)
+    row = m.list.content.getChild(3)
     item = row.getChild(0)
 
-    row = m.list.content@.getChild(1)
+    row = m.list.content.getChild(1)
     if row <> invalid
-      row@.appendChild(item)
+      row.appendChild(item)
     end if
   end function
 
@@ -309,7 +309,7 @@ class ModuleScreen extends mv.BaseScreen
     ' end if
     'ensure that row offsets are applied correctly
     for each module in modules
-      if module.length > 0
+      if module.count() > 0
         if numModules > 0 and module.settings.subType() = "ml_GridRowSettings"
           settings = module.settings.clone(true)
           settings.firstRowScreenPos = settings.otherRowScreenPos
@@ -320,22 +320,22 @@ class ModuleScreen extends mv.BaseScreen
       end if
     end for
 
-    m.list.content@.insertChildren(newModules, 1)
-    m.list.content@.notifyUpdate()
+    m.list.content.insertChildren(newModules, 1)
+
   end function
 
   private function removeNonHeaderRows(update = true as boolean)
-    rows = m.list.content@.getChildren(-1, 0)
-    m.list.content@.setNotificationsEnabled(false)
+    rows = m.list.content.getChildren(-1, 0)
+
     for i = rows.count() - 1 to 0 step -1
       rowContent = rows[i]
       if rowContent.title = "LIVE" or rowContent.title = "UPCOMING" or rowContent.title = "FINAL"
-        m.list.content@.removeChildIndex(i)
+        m.list.content.removeChildIndex(i)
       end if
     end for
 
     if update
-      m.list.content@.notifyUpdate()
+
     end if
   end function
 
@@ -385,14 +385,14 @@ class ModuleScreen extends mv.BaseScreen
     ' ? "UPDATING DATA " ; m.dataIndex
     ' m.mergeLoadedData()
     ' if m.firstItem = invalid
-    '   m.firstItem = m.list.content@.getChild(0)
+    '   m.firstItem = m.list.content.getChild(0)
     '   m.list.content.removeChild(m.firstItem)
     ' else
     '   m.list.content.insertChild(m.firstItem, 0)
     '   m.firstItem = invalid
     ' end if
 
-    ' m.firstItem = m.list.content@.getChild(0)
+    ' m.firstItem = m.list.content.getChild(0)
     ' m.firstItem.isHidden = not m.firstItem.isHidden
     ' row.isHidden = not row.isHidden
     ' m.list.content = invalid
@@ -409,26 +409,26 @@ class ModuleScreen extends mv.BaseScreen
 
     ? "FOCUSED ROW INDEX ="; m.list.focusedRowIndex
     ? "FOCUSED LIST CELL INDEX ="; m.list.focusedCellIndex
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
 
     ? "FOCUSED row CELL INDEX ="; row.focusedCellIndex
     item = row.getChild(m.list.focusedCellIndex)
 
-    row = m.list.content@.getChild(m.list.focusedRowIndex - 1)
+    row = m.list.content.getChild(m.list.focusedRowIndex - 1)
     if row <> invalid
-      row@.appendChild(item)
+      row.appendChild(item)
     end if
     return true
   end function
 
   private function onKeyPressFastForward() as boolean
     ? " MOVE A CELL TO NEXT"
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
     item = row.getChild(m.list.focusedCellIndex)
 
-    row = m.list.content@.getChild(m.list.focusedRowIndex + 1)
+    row = m.list.content.getChild(m.list.focusedRowIndex + 1)
     if row <> invalid
-      row@.appendChild(item)
+      row.appendChild(item)
     end if
     return true
   end function

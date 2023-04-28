@@ -89,7 +89,7 @@ namespace ml
           m.batchTimer = m.setTimeout(m.createRendererBatch, 0.15)
         else
           m.log.verbose("creating renderers in sync mode")
-          m.batchSize = m.content.length
+          m.batchSize = m.content.count()
           isReady = true
           m.createRendererBatch()
         end if
@@ -109,7 +109,7 @@ namespace ml
       m.log.info("Renderers created on list")
 
       if m.content <> invalid
-        m.log.verbose("BATCHING: completed", m.content.length, "rows")
+        m.log.verbose("BATCHING: completed", m.content.count(), "rows")
       else
         m.log.verbose("BATCHING: completed. no rows")
       end if
@@ -134,14 +134,14 @@ namespace ml
           'm.log.increaseIndent()Indent("BEGIN CREATE ROW" + i.toStr())
           m.creationIndex++
           index = m.creationIndex
-          if m.creationIndex >= m.content.length
+          if m.creationIndex >= m.content.count()
             m.log.verbose("finished creating all renderers")
 
             m.onRenderersCreated()
             'm.log.decreaseIndent()
             return
           end if
-          rowContent = m.content@.getChild(index)
+          rowContent = m.content.getChild(index)
           settings = ml.listMixin.getRowSettings(m.content, rowContent)
           rect = m.rects[index]
 
@@ -178,8 +178,8 @@ namespace ml
           m.visibleComponents.push(comp)
           index++
         end for
-        if m.creationIndex < m.content.length
-          m.log.verbose("BATCHING: progress: ", m.creationIndex, "of", m.content.length, "rows")
+        if m.creationIndex < m.content.count()
+          m.log.verbose("BATCHING: progress: ", m.creationIndex, "of", m.content.count(), "rows")
 
           m.setTimeout(m.createRendererBatch, 0.15)
         end if
@@ -294,11 +294,11 @@ namespace ml
       end if
 
       'm.log.increaseIndent()Indent()
-      for i = 0 to m.content.length - 1
-        item = m.content@.getChild(i)
+      for i = 0 to m.content.count() - 1
+        item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
-        visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.length > 0)
-        m.log.verbose(i, mc.dv(item), " VISIBLE ", visible, " L ", item.length, " isHidden ", item.isHidden)
+        visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.count() > 0)
+        m.log.verbose(i, mc.dv(item), " VISIBLE ", visible, " L ", item.count(), " isHidden ", item.isHidden)
 
         if visible
           if settings.subType() = "ml_GridRowSettings"
@@ -377,7 +377,7 @@ namespace ml
     end function
 
     private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
-      numItems = row.length
+      numItems = row.count()
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
       numRows = mc.divideNumberToNearest(numItems, numCols)
@@ -452,7 +452,7 @@ namespace ml
       for i = 0 to m.visibleItems.count() - 1
         item = m.visibleItems[i]
         settings = ml.listMixin.getRowSettings(m.content, item)
-        if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.length > 0)
+        if (item.isHidden = invalid or item.isHidden = false) and (item.isFocusEnabled = invalid or item.isFocusEnabled = true) and (not settings.isHiddenWhenEmpty or item.count() > 0)
           component = m.renderersByContentId[item.id]
           m.log.verbose("got component", mc.dv(component))
 

@@ -91,16 +91,16 @@ class FocusOnGridItemScreen extends mv.BaseScreen
 
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
-    content@.appendChild(m.createHeaderOnlyData())
+    content.appendChild(m.createHeaderOnlyData())
     m.liveRow = m.createRow("live", 20)
     m.upcomingRow = m.createRow("upcoming", 20)
-    content@.appendChild(m.liveRow)
-    content@.appendChild(m.addRow())
-    content@.appendChild(m.addRow())
-    content@.appendChild(m.addRow())
-    content@.appendChild(m.addRow())
-    content@.appendChild(m.addRow())
-    content@.appendChild(m.upcomingRow)
+    content.appendChild(m.liveRow)
+    content.appendChild(m.addRow())
+    content.appendChild(m.addRow())
+    content.appendChild(m.addRow())
+    content.appendChild(m.addRow())
+    content.appendChild(m.addRow())
+    content.appendChild(m.upcomingRow)
     timer.log("makeData")
     m.setFocus(m.loadingIndicator)
 
@@ -128,7 +128,7 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     row.title = "NEW ROW " + m.contentId.toStr()
     row.id = rnd(2147483647).toStr()
     m.contentId++
-    row@.appendChildren(m.makeItems(m.defaultCellType, 20))
+    row.appendChildren(m.makeItems(m.defaultCellType, 20))
     return row
   end function
 
@@ -166,13 +166,13 @@ class FocusOnGridItemScreen extends mv.BaseScreen
 
     row.settings.contentOffset = [100, 30]
     row.title = title
-    row@.appendChildren(m.makeItems(m.defaultCellType, numItems, ""))
+    row.appendChildren(m.makeItems(m.defaultCellType, numItems, ""))
     return row
   end function
 
   private function addItems(cellType as string, number as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    row@.appendChildren(m.makeItems(cellType, number))
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    row.appendChildren(m.makeItems(cellType, number))
   end function
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
@@ -211,18 +211,18 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     ' ]
 
 
-    ' m.list.content@.insertChildren(m.rows, 1)
-    m.list.content@.notifyUpdate()
+    ' m.list.content.insertChildren(m.rows, 1)
+
   end function
 
 
   private function removeNonHeaderRows(update = true as boolean)
-    header = m.list.content@.getChild(0)
-    m.list.content@.setNotificationsEnabled(false)
-    m.list.content@.clear()
-    m.list.content@.appendChild(header)
+    header = m.list.content.getChild(0)
+
+    m.list.content.removeChildren(m.list.content.getChildren(-1, 0))
+    m.list.content.appendChild(header)
     if update
-      m.list.content@.notifyUpdate()
+
     end if
   end function
 
@@ -265,10 +265,10 @@ class FocusOnGridItemScreen extends mv.BaseScreen
   private function onRowData(event as ml.ListEvent)
     if event.data.action = "add"
       ? " add row"
-      m.liveRow@.appendChildren(m.makeItems(m.defaultCellType, 1, ""))
+      m.liveRow.appendChildren(m.makeItems(m.defaultCellType, 1, ""))
     else
       ? " remove row"
-      m.liveRow@.removeChildIndex(0)
+      m.liveRow.removeChildIndex(0)
     end if
 
   end function
@@ -312,7 +312,7 @@ class FocusOnGridItemScreen extends mv.BaseScreen
 
       ? "ADDING ROWS"
 
-      m.list.content@.insertChildren(m.rows, 1)
+      m.list.content.insertChildren(m.rows, 1)
     end if
     return true
   end function
