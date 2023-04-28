@@ -46,12 +46,6 @@ class AnimationScreen extends mv.BaseScreen
 
   }]
 
-  private rectangle = m.createSGNode("mv_Rectangle", m.top, "rectangle", {
-    color: "#ff0000"
-    size: [200, 200]
-    translation: [0, 500]
-  })
-
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Animations
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -78,39 +72,9 @@ class AnimationScreen extends mv.BaseScreen
     m.createViews()
     m.buttonAnim = new mv.animations.ViewJson(m.viewJson, m.updatedViewJson, 5)
     debugTimer = new mc.utils.DebugTimer("make keys")
-    m.makeAnim(300)
     debugTimer.log("made keys")
     m.buttonAnim.start()
     m.observeNodeField(m.controlsGroup, "selectedIndex", m.onSelectButton)
-  end function
-
-  private function makeAnim(times as integer)
-    toValues = [
-      [1000, 500],
-      [300, 500],
-      [1500, 500],
-      [1000, 0],
-      [0, 0],
-      [0, 500]
-    ]
-
-    ' Repeat the toValues 50 times
-    repeatedToValues = []
-    for i = 1 to times
-      repeatedToValues.append(toValues)
-    end for
-    toValues = repeatedToValues
-
-    ' Generate keys for 50 repetitions
-    keys = [0.0]
-    for i = 1 to times - 1
-      keys.push(i / times * 1.0)
-    end for
-    keys.push(1.0)
-
-    m.moveAnim = new mv.animations.Move(m.rectangle, 60, [0, 500], toValues, 0, keys)
-    m.moveAnim.observeKeyFrameFraction()
-    m.moveAnim.start()
   end function
 
   private function createViews()

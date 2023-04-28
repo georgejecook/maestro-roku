@@ -58,7 +58,6 @@ namespace ListTests
       m.list.contentManager = contentManager
 
       m.expectCalled(m.list.viewManager.setContent(m.list.contentManager.content))
-      m.expectCalled(m.list.onListRenderState("rendered"))
       m.list.resetState()
 
       m.assertEqual(m.list.top.clippingRect, [0, 0, 800, 600])
@@ -73,7 +72,7 @@ namespace ListTests
       m.list.contentManager = contentManager
 
       m.expectNotCalled(m.list.viewManager.setContent)
-      m.expectCalled(m.list.onListRenderState("rendered"))
+
       m.expectCalled(m.list.viewManager.reset())
 
       m.list.resetState()
@@ -97,39 +96,6 @@ namespace ListTests
 
       m.assertInvalid(m.list.top.clippingRect)
 
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("onListRenderState")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("doesn't do anything if list state is not rendered")
-    @params("loading")
-    @params("error")
-    @params("")
-
-    function _(state)
-      m.expectNotCalled(m.list.moveToRowItemIndex)
-      m.list.onListRenderState(state)
-    end function
-
-    @it("it moves to row item index if list state is rendered")
-    @params(0, 2, true, false)
-    @params(1, 3, false, invalid)
-    function _(focusedRowIndex, focusedCellIndex, isFocused, managerIsHidden)
-
-      focusIndicatorManager = { "id": "focusIndicatorManager" }
-
-      m.list.focusIndicatorManager = focusIndicatorManager
-      m.list.top.isFocused = isFocused
-      m.list.isChildFocused = false
-
-      m.list.focusedRowIndex = focusedRowIndex
-      m.list.focusedCellIndex = focusedCellIndex
-      m.expectCalled(m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false))
-      m.list.onListRenderState("rendered")
-
-      m.assertEqual(m.list.focusIndicatorManager.isHidden, managerIsHidden)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -678,23 +644,6 @@ namespace ListTests
       m.expectCalled(rowContent.getChild(m.list.focusedCellIndex), cellContent)
 
       m.assertEqual(m.list.getFocusedCellContent(), cellContent)
-    end function
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @describe("_onContentItemChange")
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    @it("calls the view manager to update the layout and processes changes")
-    function _()
-      changes = { "id": "changes" }
-      m.list.top.isFocused = true
-      m.list.top.isChildFocused = false
-
-      m.expectCalled(m.list.viewManager.forceUpdateLayout())
-      m.expectCalled(m.list.itemScroller.processChanges(changes))
-      m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
-
-      m.list._onContentItemChange(changes)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

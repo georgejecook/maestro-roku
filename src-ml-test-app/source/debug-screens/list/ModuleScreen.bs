@@ -320,8 +320,8 @@ class ModuleScreen extends mv.BaseScreen
       end if
     end for
 
+    'bs:disable-next-line
     m.list.content.insertChildren(newModules, 1)
-
   end function
 
   private function removeNonHeaderRows(update = true as boolean)
@@ -330,6 +330,7 @@ class ModuleScreen extends mv.BaseScreen
     for i = rows.count() - 1 to 0 step -1
       rowContent = rows[i]
       if rowContent.title = "LIVE" or rowContent.title = "UPCOMING" or rowContent.title = "FINAL"
+        'bs:disable-next-line
         m.list.content.removeChildIndex(i)
       end if
     end for

@@ -1,0 +1,230 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/Animation.bs"
+import "pkg:/source/core/DebugTimer.bs"
+
+@node("ListAnimationSpikeScreen", "mv_BaseScreen")
+class ListAnimationSpikeScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private container as mc.types.node
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Animations
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private moveAnim as mv.animations.Move
+  private rowContent = []
+  private rows = []
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private index = 0
+  private nextIndex = 0
+  private direction = 0
+  private numRows = 50
+  private rowsInAnimation = []
+
+  function new()
+    super("ListAnimationSpikeScreen")
+  end function
+
+  protected override function initialize()
+    super.initialize()
+    m.createViews()
+    m.createRows()
+    m.makeAnim()
+  end function
+
+  private function createRows()
+    spacing = 20
+    previousHeight = 0
+    for i = 0 to m.numRows
+      y = i * (spacing + 200) + previousHeight
+      data = m.createRowData(i, y)
+      previousHeight = data.height
+      m.rowContent.push(data)
+      m.rows.push(m.createRow(data))
+    end for
+  end function
+
+  private function makeAnim()
+    ' keyValues = [
+    '   [1000, 500],
+    '   [300, 500],
+    '   [1500, 500],
+    '   [1000, 0],
+    '   [0, 0],
+    '   [0, 500]
+    ' ]
+
+    ' ' Repeat the keyValues 50 times
+    ' repeatedkeyValues = []
+    ' for i = 1 to times
+    '   repeatedkeyValues.append(keyValues)
+    ' end for
+    ' keyValues = repeatedkeyValues
+
+    ' ' Generate keys for 50 repetitions
+    ' keys = [0.0]
+    ' for i = 1 to times - 1
+    '   keys.push(i / times * 1.0)
+    ' end for
+    ' keys.push(1.0)
+
+    ' m.moveAnim = new mv.animations.Move(m.container, 60, [0, 500], keyValues, 0, keys)
+    m.moveAnim = new mv.animations.Move(m.container, 5, [0, 0], [0, 0])
+    m.moveAnim.enableKeyObservers()
+    m.moveAnim.observeKeyFraction(m.onKeyFraction)
+    m.moveAnim.observeKeyIndex(m.onKeyIndex)
+
+    m.moveAnim.start()
+  end function
+
+  private function onKeyFraction(fraction as float)
+    ? " SCREEN >>> " m.nextIndex " fraction " fraction
+    data = m.rowContent[m.nextIndex]
+    if data <> invalid
+      row = m.rows[data.index]
+      row.color = mv.animations.utils.interpolate("#ff0000", "#00ff00", fraction)
+      ' row.opacity = fraction
+    end if
+  end function
+  private function onKeyIndex(index as integer)
+    data = m.rowsInAnimation[index]
+    ? " data is at index " data.index " " data.title
+    m.index = data.index
+    m.nextIndex = data.index + m.direction
+    ? " SCREEN >>> NEW INDEX " index " and NEXT INDEX " m.nextIndex
+  end function
+
+  private function createViews()
+    m.container = m.createSGNode("Group", m.top, "container")
+    m.focusedControl = m.container
+  end function
+
+  private function createRow(rowData as mc.types.assocarray)
+    row = m.createSGNode("mv_Rectangle", m.container, `row_${rowData.id}`, {
+      color: "#ff0000"
+      size: [1800, rowData.height]
+      translation: [0, rowData.y]
+    })
+    m.createSGNode("mv_Label", row, `label_${rowData.id}`, {
+      fontKey: "medium,50"
+      color: "#ffffff"
+      translation: [40, 20]
+      size: [500, 150]
+      text: `=== ${rowData.title} ::: ${rowData.screenPos}`
+    })
+    return row
+  end function
+
+  private function createRowData(index as integer, y as integer)
+    return {
+      index: index
+      id: rnd(1000000)
+      y: y
+      height: (index mod 5 = 0) ? [200, 400, 600, 1000][rnd(3)] : 200
+      screenPos: index > 1 and (index mod 3 = 0) ? [200, 400, 600][rnd(2)] : 0
+      title: `row ${index}`
+    }
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Methods
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function move(offset as integer)
+    targetIndex = mc.clamp(m.index + offset, 0, m.numRows)
+    m.log.info("moving to index", targetIndex)
+    m.animateToIndex(targetIndex)
+  end function
+
+  private function animateToIndex(targetIndex as integer) as void
+    keyValues = []
+    m.rowsInAnimation = []
+    distance = 0
+    m.direction = targetIndex > m.index ? 1 : -1
+    steps = abs(targetIndex - m.index)
+    if steps = 0
+      ? " NOTHING TO DO"
+      return
+    end if
+
+    previousContainerY = m.container.translation[1]
+    m.nextIndex = m.index + m.direction
+
+    for i = m.index to targetIndex step m.direction
+      data = m.rowContent[i]
+      isLast = m.direction = 1 and m.index = targetIndex - 1 or m.direction = -1 and m.index = targetIndex + 1
+      if isLast
+        screenPos = data.screenPos
+      else
+        screenPos = 0
+      end if
+      containerY = -data.y + screenPos
+      keyValues.push([0, containerY])
+      distance += (containerY - previousContainerY)
+      previousContainerY = containerY
+      m.rowsInAnimation.push(data)
+    end for
+
+    distance = abs(distance)
+
+    ' ? " GOING TO TRAVEL " distance " pixels in " steps " steps direction " m.direction
+    keys = []
+
+    for i = 0 to steps
+      keys.push(i / steps * 1.0)
+    end for
+
+    m.moveAnim.setKeys(keys, keyValues)
+
+    ' ? " >>>>>>>>>>>>>> SETTING KEYS "
+    ? formatJson(keys)
+    ' ? " values"
+    ? formatJson(keyValues)
+
+    pixelsPerSecond = 900
+    duration = distance / pixelsPerSecond
+    ' ? " duration " duration
+
+    m.moveAnim.setDuration(duration)
+    m.moveAnim.start()
+  end function
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onKeyPressUp() as boolean
+    m.log.info("GO 1 UP")
+    m.move(-1)
+    return true
+  end function
+
+
+  private function onKeyPressLeft() as boolean
+    m.log.info("GO 5 UP")
+    m.move(-5)
+    return true
+  end function
+
+  private function onKeyPressRight() as boolean
+    m.log.info("GO 5 DOWN")
+    m.move(5)
+    return true
+  end function
+
+  private function onKeyPressDown() as boolean
+    m.log.info("GO 1 DOWN")
+    m.move(1)
+    return true
+  end function
+
+end class
