@@ -3,7 +3,7 @@ import "pkg:/source/view/Animation.bs"
 import "pkg:/source/core/Registry.bs"
 import "pkg:/source/view/BaseAppController.bs"
 import "pkg:/source/core/Date.bs"
-
+import "pkg:/source/core/DebugTimer.bs"
 namespace mv.debug
   @node("mv_DeveloperScreen", "mv_BaseScreen")
   class DeveloperScreen extends mv.BaseAppController
@@ -43,6 +43,50 @@ namespace mv.debug
 
     function new()
       super("DeveloperScreen")
+      ' m.doIdExperiment()
+    end function
+
+    private function doIdExperiment()
+
+      mc.setOrAddNodeField(m.global, "_trackingId", 0)
+
+      'ID EXPERIMENT
+      node = createObject("roSGNode", "ContentNode")
+      for a = 0 to 30
+        row = node.createChild("ContentNode")
+        for b = 0 to 20
+          row.createChild("ContentNode")
+        end for
+      end for
+      timer = new mc.utils.DebugTimer("random inc")
+      _trackingId = m.global._trackingId
+      for each row in node.getChildren(-1, 0)
+        for each cell in row.getChildren(-1, 0)
+          _trackingId++
+          mc.setOrAddNodeField(cell, "_trackingId", _trackingId)
+        end for
+        _trackingId++
+        mc.setOrAddNodeField(row, "_trackingId", _trackingId)
+      end for
+      mc.setOrAddNodeField(m.global, "_trackingId", _trackingId)
+      timer.log("FINISHED INTS")
+
+      node = createObject("roSGNode", "ContentNode")
+      for a = 0 to 30
+        row = node.createChild("ContentNode")
+        for b = 0 to 20
+          row.createChild("ContentNode")
+        end for
+      end for
+      timer = new mc.utils.DebugTimer("random number")
+      for each row in node.getChildren(-1, 0)
+        deviceInfo = m.createNode("roDeviceInfo")
+        for each cell in row.getChildren(-1, 0)
+          mc.setOrAddNodeField(cell, "_trackingId", deviceInfo.getRandomUUID())
+        end for
+        mc.setOrAddNodeField(row, "_trackingId", deviceInfo.getRandomUUID())
+      end for
+      timer.log("FINISHED UIDS")
     end function
 
     protected override function initialize()

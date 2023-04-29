@@ -136,13 +136,18 @@ class ListAnimationSpikeScreen extends mv.BaseScreen
     else
       height = 300
     end if
+    if index = 1 or index = 10
+      screenPos = 650
+    else
+      screenPos = 0
+    end if
     return {
       index: index
       id: rnd(1000000)
       y: y
       ' height: (index mod 5 = 0) ? [200, 400, 600, 1000][rnd(3)] : 200
       height: height
-      screenPos: 0
+      screenPos: screenPos
       ' screenPos: index > 1 and (index mod 3 = 0) ? [200, 400, 600][rnd(2)] : 0
       title: `row ${index}`
     }
@@ -251,6 +256,26 @@ class ListAnimationSpikeScreen extends mv.BaseScreen
 
   private function onKeyPressRewind() as boolean
     m.move(-40)
+    return true
+  end function
+
+  private function getLongPressIntervalForKey(key as string) as float
+    return 0.2
+  end function
+
+  private function onLongPressStart(key as string) as boolean
+    m.log.info(">>>>onLongPressStart", key)
+    if key = "down"
+      m.move(10000)
+    else
+      m.move(-10000)
+    end if
+    return true
+  end function
+
+  private function onLongPressFinish(key as string) as boolean
+    ' m.log.verbose(" ON LONG PRESS FINISH - LIST ", key)
+    m.move(m.direction)
     return true
   end function
 

@@ -209,7 +209,7 @@ class ListScreen extends mv.BaseScreen
 
   private function onRemoveItems(numItems as integer)
     row = m.list.content.getChild(m.list.focusedRowIndex)
-    startIndex = row.count() - numItems
+    startIndex = row.getChildCount() - numItems
     row.removeChildrenIndex(startIndex, numItems)
   end function
 
@@ -280,7 +280,7 @@ class ListScreen extends mv.BaseScreen
       "createHeaderOnlyData"
       "createGridData"
     ]
-    m.contentIndex = mc.clamp(m.contentIndex + 1, 0, funcs.count() - 1, true)
+    m.contentIndex = mc.clamp(m.contentIndex + 1, 0, funcs.getChildCount() - 1, true)
     items = m[funcs[m.contentIndex]]()
     timer.log("makeData")
     content.appendChildren(items)

@@ -25,10 +25,10 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   'style
   private numberOfRows = 50
-  ' private numberOfItems = 20
-  ' private numberOfRows = 1
+  private numberOfItems = 20
   ' private numberOfRows = 10
-  private numberOfItems = 10
+  ' private numberOfRows = 10
+  ' private numberOfItems = 10
   ' private defaultCellType = "PosterCellEfficient"
   private defaultCellType = "RowListCellForMaestroList"
 
@@ -189,7 +189,7 @@ class ListEnterExitScreen extends mv.BaseScreen
         row.settings.screenPos = -1
       else if showComplex and (i = 1 or i = 8 or i = 14)
         row.settings = ml.listMixin.createCustomRowSettings("ComplexRowEfficient", 700)
-      else if showGrids 'and i = 0 'and (i = 3 or i = 4 or i = 12 or i = 20 or i = 30 or i = 40 or i = 50)
+      else if showGrids and (i = 4 or i = 12 or i = 20 or i = 30 or i = 40 or i = 50)
         gridFocusSettings = ml.listMixin.createFocusSettings("floating", [0, 0, 0, 0])
         if i = -2
           numCols = 1
@@ -228,6 +228,7 @@ class ListEnterExitScreen extends mv.BaseScreen
       ' numItems = 50
       row.title = "ROW " + str(i)
       ' row.settings.screenPos = 400
+      row.settings.screenPos = 0
       content.push(row)
       row.appendChildren(m.makeItems(m.defaultCellType, m.numberOfItems, "HORIZ"))
     end for
@@ -262,7 +263,7 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function onRemoveItems(numItems as integer)
     row = m.list.content.getChild(m.list.focusedRowIndex)
-    startIndex = row.count() - numItems
+    startIndex = row.getChildCount() - numItems
     row.removeChildrenIndex(startIndex, numItems)
   end function
 
@@ -384,19 +385,22 @@ class ListEnterExitScreen extends mv.BaseScreen
   end function
 
   private function onKeyPressReplay() as boolean
-    m.log.info("remove previous")
-    m.doAction(-1)
+    m.list@.moveToRow(m.list.focusedrowIndex - 5, true, 3)
+    ' m.log.info("remove previous")
+    ' m.doAction(-1)
     return true
   end function
 
   private function onKeyPressPlay() as boolean
-    m.modifyAction = mc.collections.getItemAtOffset(m.modifyActions, m.modifyAction, 1, invalid, true)
-    m.log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    m.log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
-    m.log.info("m.modifyAction ", m.modifyAction)
+    m.list@.moveToRow(m.list.focusedrowIndex + 5, true, 3)
+    ' m.modifyAction = mc.collections.getItemAtOffset(m.modifyActions, m.modifyAction, 1, invalid, true)
+    ' m.log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    ' m.log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>")
+    ' m.log.info("m.modifyAction ", m.modifyAction)
 
     return true
   end function
+
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ lifecycle
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

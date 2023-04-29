@@ -89,7 +89,7 @@ namespace ml
           m.batchTimer = m.setTimeout(m.createRendererBatch, 0.15)
         else
           m.log.verbose("creating renderers in sync mode")
-          m.batchSize = m.content.count()
+          m.batchSize = m.content.getChildCount()
           isReady = true
           m.createRendererBatch()
         end if
@@ -109,7 +109,7 @@ namespace ml
       m.log.info("Renderers created on list")
 
       if m.content <> invalid
-        m.log.verbose("BATCHING: completed", m.content.count(), "rows")
+        m.log.verbose("BATCHING: completed", m.content.getChildCount(), "rows")
       else
         m.log.verbose("BATCHING: completed. no rows")
       end if
@@ -134,7 +134,7 @@ namespace ml
           'm.log.increaseIndent()Indent("BEGIN CREATE ROW" + i.toStr())
           m.creationIndex++
           index = m.creationIndex
-          if m.creationIndex >= m.content.count()
+          if m.creationIndex >= m.content.getChildCount()
             m.log.verbose("finished creating all renderers")
 
             m.onRenderersCreated()
@@ -178,8 +178,8 @@ namespace ml
           m.visibleComponents.push(comp)
           index++
         end for
-        if m.creationIndex < m.content.count()
-          m.log.verbose("BATCHING: progress: ", m.creationIndex, "of", m.content.count(), "rows")
+        if m.creationIndex < m.content.getChildCount()
+          m.log.verbose("BATCHING: progress: ", m.creationIndex, "of", m.content.getChildCount(), "rows")
 
           m.setTimeout(m.createRendererBatch, 0.15)
         end if
@@ -294,7 +294,7 @@ namespace ml
       end if
 
       'm.log.increaseIndent()Indent()
-      for i = 0 to m.content.count() - 1
+      for i = 0 to m.content.getChildCount() - 1
         item = m.content.getChild(i)
         settings = ml.listMixin.getRowSettings(m.content, item)
         visible = item.isHidden <> true and (not settings.isHiddenWhenEmpty or item.count() > 0)

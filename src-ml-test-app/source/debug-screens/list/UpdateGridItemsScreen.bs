@@ -244,11 +244,11 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     ' else
     '   if applyToAll
     '     startIndex = 0
-    '     endIndex = row.content.count() - 1
+    '     endIndex = row.content.getChildCount() - 1
     '   else
     '     'TODO(gcook): maestro-list will have delegate callbacks for subRowIndex changes in future, so this kind of calculation won't be required
-    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.count() - 1)
-    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.count() - 1)
+    '     startIndex = mc.clamp((m.list.focusedSubRowIndex - (direction = -1 ? 1 : 0)) * 4, 0, row.content.getChildCount() - 1)
+    '     endIndex = mc.clamp(startIndex + 3, 0, row.content.getChildCount() - 1)
     '   end if
     '   for i = startIndex to endIndex
     '     cell = m.list@.getCellRenderer(event.rowIndex, i)
@@ -313,7 +313,7 @@ class UpdateGridItemsScreen extends mv.BaseScreen
     row.insertChild(child, 1)
 
     row = m.list@.getRow(3)
-    row.removeChildrenIndex(row.count() - 1, 0)
+    row.removeChildrenIndex(row.getChildCount() - 1, 0)
   end function
 
   private function onKeyPressFastForward() as boolean
