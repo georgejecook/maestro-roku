@@ -476,13 +476,14 @@ namespace ml
     private function canMoveFromKeyPress(key as string, isLongPress as boolean) as boolean
       direction = m.keyDirections[key]
 
-      ' ? " >>>>>>>>>>>>>>>>>>> CAN MOVE FROM " key " isFocusing " m.focusIndicatorManager.isFocusing
+      ? " >>>>>>>>>>>>>>>>>>> CAN MOVE FROM " key " isFocusing " m.focusIndicatorManager.isFocusing
       if m._isRenderingUpdate
         m.log.info("cannot interact with keys while rendering")
         return false
       end if
 
       if m.focusIndicatorManager.isFocusing
+        ? " IS ALRADY FOCUSING"
         'TODO - improve this
         m.log.info("ignoring press", key, "because the focus indiciator is moving")
         'Allow to keep moving in same direction
@@ -506,7 +507,9 @@ namespace ml
       m.log.info("key", key)
       m.itemScroller.isDoingLongPress = false
 
+
       if m.isAlreadyScrolling(false)
+        ? " IS ALREADY SCROLLING"
         return true
       end if
 
@@ -599,9 +602,17 @@ namespace ml
     end function
 
     private function isAlreadyScrolling(isUpDown as boolean) as boolean
-      ' ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus
+      ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus " IS FOCUSING " m.focusIndicatorManager.isFocusing
       m.log.info("isAlreadyScrolling? ", m.focusIndicatorManager.isFocusing)
 
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      'HACK
+      return false
       return m.focusIndicatorManager.isFocusing or m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
     end function
 

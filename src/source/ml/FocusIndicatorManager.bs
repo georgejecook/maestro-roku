@@ -224,12 +224,13 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public function setFocusComplete(focusIndicatorConfig as ml.FocusIndicatorConfig) as void
+      ? " SET FOCUS COMPLETE"
       if not m.isActive()
         return
       end if
 
       m.log.verbose(" FOCUS COMPLETE next indices", focusIndicatorConfig.rowIndex, ", ", focusIndicatorConfig.cellIndex)
-      ' ? " SET INDICES AFTER COMPLETE " focusIndicatorConfig.rowIndex ", " focusIndicatorConfig.cellIndex
+      ? " SET INDICES AFTER COMPLETE " focusIndicatorConfig.rowIndex ", " focusIndicatorConfig.cellIndex
       m._list@._setIndices(focusIndicatorConfig.rowIndex, focusIndicatorConfig.cellIndex)
       'We must be already prepared
       m.applyFocusSettings(true)
@@ -268,24 +269,32 @@ namespace ml
     end function
 
     public function setFocusedFraction(fraction as float) as void
+      ? " SET FOCUSED FRACTIN " fraction
+      ? " SFF AA"
       if not m.isActive()
+        ? " SFF BBB"
         return
       end if
 
       m.log.verbose("ON ROW Fraction CHANGE", fraction, " ", m.isDoingFlowFocus)
       m._list.focusedFraction = fraction
 
+      ? " SFF CCC"
       if m.isDoingFlowFocus
         'flow focus callbacks will handle this
+        ? " SFF DDD"
         return
       end if
 
       if fraction = 1
+        ? " SFF EEE FINISHED"
         m.applyFocusSettings(true)
       else if m.isFocusSettingsChangePending and fraction > m.minFocusChangeFraction
+        ? " SFF FFF"
         m.applyFocusSettings(false)
       end if
 
+      ? " SFF GGG"
       m.moveFocusIndicatorToTargetPosition(fraction)
     end function
 
@@ -354,6 +363,7 @@ namespace ml
     ' applies changes that affect the focus indicators appearance, like color, image, vis
     ' @params {node} focusSettings - settings to use when applying
     private function applyFocusSettings(isFinal as boolean) as void
+      ? " APPLY FOCUS SETTINGS final? " isFinal
       m.setIsFocusing(not isFinal)
 
       m.shouldShowIndicator = false

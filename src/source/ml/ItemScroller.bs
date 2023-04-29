@@ -61,6 +61,9 @@ namespace ml
     private isMultiMoveFinished = false
     private disableNonAnimatedFocusUpdates = false
 
+    private itemsInAnimation = []
+    private numberOfAnimationSteps = 0
+
     private pendingCellInfo
     private pendingNextCellInfo
     private pendingDirection
@@ -75,25 +78,46 @@ namespace ml
       m.axes = m.viewManager.axes
       m.viewPortEventNotifier = new ml.ViewPortEventNotifier(viewManager)
       m.moveAnimation = new mv.animations.Move(m.container, 1, m.container.translation, m.container.translation)
-      m.moveAnimation.enableKeyObservers()
-      m.moveAnimation.observeKeyFraction(m.onKeyFraction, m)
-      m.moveAnimation.observeKeyIndex(m.onKeyIndex, m)
-
       m.focusManager = focusManager
+      m.toggleAnimationObservers(true)
+    end function
+
+    function toggleAnimationObservers(active as boolean)
+      m.moveAnimation.disableKeyObservers()
+      m.moveAnimation.unobserveKeyFraction()
+      m.moveAnimation.unobserveKeyIndex()
+
+      if active
+        m.moveAnimation.enableKeyObservers()
+        m.moveAnimation.observeKeyFraction(m.onKeyFraction, m)
+        m.moveAnimation.observeKeyIndex(m.onKeyIndex, m)
+      end if
     end function
 
 
     private function onKeyFraction(fraction as float)
-      ' ? " ON KEY FRACTION " fraction " index is" m.index
-      m.focusManager@.onFocusAnimationUpdate(fraction)
+      ? " ON KEY FRACTION " fraction " index is" m.index
+      fraction = mc.clamp(fraction, 0.0, 1.0)
+      if fraction <> 1
+        m.focusManager@.onFocusAnimationUpdate(fraction)
+      end if
     end function
 
-    private function onKeyIndex(index as integer)
-      ' ? " on KEY INDEX " index
-      m.setFocusIndex(m.nextIndex, true, true)
-      ' m.finishMovingToIndex()
-    end function
+    private function onKeyIndex(index as integer) as void
+      if index = 0
+        return
+      end if
+      ? " on KEY INDEX " index " m.index " m.index " m.nextIndex " m.nextIndex " TI " m.targetIndex
 
+      if index = m.numberOfAnimationSteps
+        ? "FINISHED WHOLE ANIM ON STEP " index "(" m.index ")"
+        m.finishMovingToIndex(false, true)
+      else
+        ? " FINISHED STEP " index "(" m.index ")"
+        m.focusManager@.onFocusAnimationUpdate(1)
+        m.setFocusIndex(m.nextIndex, true, true)
+      end if
+    end function
 
     public function onViewManagerUpdate()
       if m.viewManager.settings <> invalid
@@ -105,7 +129,7 @@ namespace ml
 
     public function reset(keepOldFocusIfPossible = false as boolean) as void
 
-      ' ? " RESET keepOldFocusIfPossible "; keepOldFocusIfPossible
+      ? " RESET keepOldFocusIfPossible " keepOldFocusIfPossible
 
       if keepOldFocusIfPossible
         index = m.index
@@ -129,7 +153,7 @@ namespace ml
     end function
 
     public function cancelScrolling(setFocusNow = false as boolean)
-      ' ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling " " setFocusNow
+      ? ">>> CANCEL SCROLLING " ; m.__classname ; " " ; m.viewManager.isScrolling " " setFocusNow
 
       if setFocusNow
         m.focusManager@.completeFocusNow()
@@ -150,18 +174,24 @@ namespace ml
     private function getAnimSpeed(animSpeedIndex as integer)
       speed = 1
       'bs:disable-next-line
+      ' ? ">+>+>+> GET SPEEd row: " m.row " animSpeedIndex " animSpeedIndex
+      'bs:disable-next-line
       if m.row <> invalid
+        ' ? " GETTING SETTINGS FROM ROW"
         settings = m.viewManager.getFocusSettings()
       else
+        ' ? " GETTING SETTINGS FROM LIST SETTINGS"
         settings = m.viewManager.listSettings
       end if
+      ' ? " SETTINGS IS " settings
 
       if settings <> invalid
         speed = settings.animSpeeds[mc.clamp(animSpeedIndex, 0, settings.animSpeeds.count() - 1)]
       end if
 
-      ' ? " >>>> USING SPEED INDEX " m.keyPressIndex
+      ' ? " >>>> USING SPEED INDEX " m.animSpeedIndex " WHICH IS " speed
       speed = mc.clamp(speed - m.keyPressIndex, 0.02, speed)
+      ' ? " >>> FINAL SPEED  " speed
       return speed
     end function
 
@@ -176,7 +206,7 @@ namespace ml
     end function
 
     function canMoveToIndex(index as integer, direction as integer) as boolean
-      ' ? "CMTI D "; direction; " MI " ; index ; " NC "; m.viewManager.numberOfItems
+      ' ? "CMTI D " direction; " MI " ; index ; " NC " m.viewManager.numberOfItems
       ' m.viewManager.recalculateCellInfos(false)
       return m.viewManager.numberOfItems > 0 and ((direction = -1 and index > -1) or (direction = 1 and index < m.viewManager.numberOfItems))
     end function
@@ -186,7 +216,7 @@ namespace ml
       info = m.viewManager.getCellInfoForContentIndex(index)
       if info <> invalid
         ' ? " MTCI 111 " m.__classname
-        ' ? " INFO INDEX IS "; info.index
+        ' ? " INFO INDEX IS " info.index
         return m.moveToIndex(info.index, animated, animSpeedIndex, direction, forceSequential)
       else
         ' ? "+++ cannot move to content index - no info"
@@ -282,7 +312,10 @@ namespace ml
       m.log.info("moveToIndex I", m.__classname, m.index, "NI", index, animated)
       m.log.verbose(">?>?>?>?>?////////////////////////////////////////////////////.v///")
       m.log.verbose("////// MTI ", m.index, " NI ", index, " d ", direction, " FS ", forceSequential)
+      ? ">?>?>?>?>?////////////////////////////////////////////////////..v///"
+      ? "////// MTI " m.index " NI " index " d " direction " FS " forceSequential
       index = mc.clamp(index, 0, m.viewManager.numberOfItems - 1)
+
       'FIXME - cancel/tidy up a move in progress
       m.focusManager@.cancelFlowFocus()
 
@@ -304,7 +337,7 @@ namespace ml
       ' ? "////// MTI RESOLVED " ; m.index ; " NI " ; index ; " d " ; direction ; " FS " ; forceSequential
 
       '////////////////////////////////////////////////////////////////////////
-      ' ? "//// 1. get cellInfo"
+      ? "//// 1. get cellInfo"
       '////////////////////////////////////////////////////////////////////////
 
       m.isMovingMultiple = abs(index - m.index) > 1
@@ -322,31 +355,32 @@ namespace ml
 
       m.setTargetCellInfo(targetCellInfo)
 
-      ' ? ":::::::::::::: MOVE TO INDEX SET COMP INFO"
-      ' ? " NI " ; nextCellInfo.index
-      ' ? " TI " ; targetCellInfo.index
+      ? ":::::::::::::: MOVE TO INDEX SET COMP INFO"
+      ? " NI " ; nextCellInfo.index
+      ? " TI " ; targetCellInfo.index
 
       m.animSpeed = m.getAnimSpeed(animSpeedIndex)
       m.animSpeedIndex = animSpeedIndex
 
       ' ? " MTI CC"
       '////////////////////////////////////////////////////////////////////////
-      ' ? "//// 2. Ascertain offset "; m.__classname
+      ? "//// 2. Ascertain offset " m.__classname
       '////////////////////////////////////////////////////////////////////////
 
-      ' ? "2.b IS FLOW POSSIBLE ??? " ; m.screenPos ; "m.viewManager.maxPos " ;m.viewManager.maxPos; " NFA "; nextCellInfo.isFlowFocusAllowed
+      ? "2.b IS FLOW POSSIBLE ??? " m.screenPos "m.viewManager.maxPos " m.viewManager.maxPos; " NFA " nextCellInfo.isFlowFocusAllowed
       isFlowPossible = animated and m.viewManager.isFlowFocusPossible(nextCellInfo, direction, m.screenPos)
 
-      ' ? " ::::::::::::::: setNextCellInfo DDD"
+      ? " ::::::::::::::: setNextCellInfo DDD"
       m.isLastMoveFlowFocus = isFlowPossible
+      ? " >>> SET NEXT from moveToIndex"
+      ? " POS " m.container.translation[m.axes] " ASP " m.screenPos " MP " m.viewManager.maxPos " D " direction
       m.setNextCellInfo(nextCellInfo)
-      ' ? " POS " ;m.container.translation[m.axes] ; " ASP "; m.screenPos ; " MP "; m.viewManager.maxPos ; " D " ; direction
 
       m.log.verbose(" MTI DD")
       if isFlowPossible
-        ' ? "///// 2.b flow IS POSSIBLE I " ; index
-        ' ? " CELLINFO " m.cellInfo
-        ' ? " nextCellInfo " nextCellInfo
+        ? "///// 2.b flow IS POSSIBLE I " ; index
+        ? " CELLINFO " m.cellInfo
+        ? " nextCellInfo " nextCellInfo
         m.moveUsingFlowAnim(m.cellInfo, nextCellInfo, m.direction)
         'm.log.decreaseIndent()
         return true
@@ -354,29 +388,31 @@ namespace ml
 
       if animated
         '////////////////////////////////////////////////////////////////////////
-        ' ? "/////// 3. animated move"
+        ? "/////// 3. animated move"
         '////////////////////////////////////////////////////////////////////////
 
-        ' ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex "; m.index ; " F " formatJson(m.container.translation); " TO " ; formatJson(translation) ; " SPEED "; m.animSpeed ; " " ; m.__classname
+        ? ">>>> START ANIM ; REGULAR CONTAINER ANIM - moveToIndex " m.index " F " formatJson(m.container.translation) " " m.__classname
         m.toggleScrolling(true)
         m.setFocusIndex(m.index, true, true, false)
 
         m.configureAnimationToIndex(m.targetIndex)
         m.moveAnimation.start()
       else
+        ? "/////// 3. NOT ANIMATED MOVE"
+        ? " TSF>>>>>>>>>>>>>> AAA"
         m.toggleScrolling(false)
         translation = m.container.translation
 
         translation[m.axes] = (-targetCellInfo.getPosition(direction))
 
         m.container.translation = translation
-        ' ? " TCI " ; targetCellInfo.index ; " Content index "; targetCellInfo.componentIndex ; " C " ; mc.dv (targetCellInfo.component)
+        ' ? " TCI " ; targetCellInfo.index ; " Content index " targetCellInfo.componentIndex ; " C " ; mc.dv (targetCellInfo.component)
         m.nextScreenPos = targetCellInfo.getScreenPosition(m.direction)
         ' ? "nextScreenpos " ; m.nextScreenPos ; " index " ; index
 
-        ' ? " MTI GG"
+        ? " MTI GG"
         if not m.disableNonAnimatedFocusUpdates
-          ' ? " MTI HH"
+          ? " MTI HH"
           'Grid rows will handle getting their own focus, as they may have called this as part of going to a specific subrow
           m.setFocusIndex(index, false, notifyFocusManager)
           m.forceFocusOnIndex(index, notifyFocusManager)
@@ -388,9 +424,8 @@ namespace ml
       return true
     end function
 
-    private itemsInAnimation = []
-
     private function configureAnimationToIndex(targetIndex as integer) as void
+      ? " CONFIGURE ANIMATION TO " targetIndex
       keyValues = []
       m.itemsInAnimation = []
       distance = 0
@@ -403,22 +438,27 @@ namespace ml
       previousPos = m.container.translation[m.axes]
 
       nextTranslation = m.container.translation
+      if m.axes = 1
+        otherAxesValue = m.container.translation[0]
+      else
+        otherAxesValue = m.container.translation[1]
+      end if
       for i = m.index to targetIndex step m.direction
         cellInfo = m.viewManager.cellInfos[i]
-        isLast = m.direction = 1 and i = targetIndex - 1 or m.direction = -1 and i = targetIndex + 1
-        if isLast
+
+        if i = targetIndex
           screenPos = cellInfo.getScreenPosition(m.direction)
         else
           screenPos = 0
         end if
         nextTranslation[m.axes] = -cellInfo.getPosition(m.direction) + screenPos
-        ' ? " INDEX " i " POSITION IS " cellInfo.getPosition(m.direction)
+        ? " INDEX " i " POSITION IS " cellInfo.getPosition(m.direction)
 
         offset = -cellInfo.getPosition(m.direction)
         if m.axes = 1
-          nextTranslation = [0, offset]
+          nextTranslation = [otherAxesValue, offset]
         else
-          nextTranslation = [offset, 0]
+          nextTranslation = [offset, otherAxesValue]
         end if
         keyValues.push(nextTranslation)
         distance += offset - previousPos
@@ -448,14 +488,22 @@ namespace ml
       pixelsPerSecond = 900
       duration = distance / pixelsPerSecond
 
+
+      ? "::::::::::::::::::"
+      ' speed = m.getAnimSpeed(m.animSpeedIndex)
+      speed = m.getAnimSpeed(0)
+      ? "+>+>+> SPEED " speed " index " m.animSpeedIndex
+      ? "::::::::::::::::::"
       '2. Fixed
-      duration = steps * 0.2
+      ' duration = steps * m.animSpeed
+      duration = steps * speed
 
       '3. Proportional - for now we'll leave this disabled
 
       '4. Selected duration
       'DURATION MECHANISM::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+      m.numberOfAnimationSteps = steps
       m.moveAnimation.setDuration(duration)
     end function
 
@@ -465,8 +513,8 @@ namespace ml
 
     function finishMovingToIndex(isFromFlow = false as boolean, animated = true as boolean) as void
 
-      ' ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetCellInfo, "index") ; " IS " ; m.viewManager.isScrolling
-      ' ? m.__classname ; " " ; m.isScrollCancelled
+      ? "VVVVV finishMovingToIndex TI " ; mc.getPath(m.targetCellInfo, "index") ; " IS " ; m.viewManager.isScrolling
+      ? m.__classname ; " " ; m.isScrollCancelled
       m.keyPressIndex = 0
       'NOT SURE ABOUT THIS
       ' if m.isScrollCancelled
@@ -489,34 +537,41 @@ namespace ml
       '   ' ? "VVVV is not cancelled"
       ' end if
 
+      ? " VVVVVVVVVVV AA"
       if not m.viewManager.isScrolling
-        ' ? "VVVVV Scrolling is finished - cannot finish move"
+        ? "VVVVV WAS NOT Scrolling - cannot finish move"
         m.focusManager@.onFocusAnimationUpdate(1)
       end if
 
+      ? " VVVVVVVVVVV BB"
       if not m.isMovingMultiple and not m.isScrollCancelled
+        ? " VVVVVVVVVVV CC"
         ' ? "VVVVV was a simple move IFF " ; isFromFlow
-        ' ? "MI "; m.index ; " NI "; m.nextIndex
+        ' ? "MI " m.index ; " NI " m.nextIndex
 
         ' m.focusManager@.onFocusAnimationUpdate(1)
+        ? " TSF>>>>>>>>>>>>>> BBB"
         m.toggleScrolling(false)
         ' m.setFocusIndex(m.nextIndex, false, false)
       end if
 
+      ? " VVVVVVVVVVV DD"
       ' cellInfo = m.cellInfo
       cellInfo = m.nextCellInfo
-      ' ? "VVVV NCI " ; mc.getPath(m.targetCellInfo, "index"); mc.getPath(cellInfo, "index")
+      ? "VVVV NCI " ; mc.getPath(m.targetCellInfo, "index"); mc.getPath(cellInfo, "index")
       if cellInfo = invalid
-        ' ? "VVVVV NO Component Info"
+        ? "VVVVV NO Component Info"
         m.focusManager@.onFocusAnimationUpdate(1)
         m.setFocusIndex(m.nextIndex, true, true)
+        ? " TSF>>>>>>>>>>>>>> CCC"
         m.toggleScrolling(false)
         m.isMultiMoveFinished = true
       end if
 
       if m.targetCellInfo = invalid or cellInfo.index = m.targetCellInfo.index
-        ' ? "VVVVV HAVE ARRIVED"
+        ? "VVVVV HAVE ARRIVED"
         m.focusManager@.onFocusAnimationUpdate(1)
+        ? " TSF>>>>>>>>>>>>>> DDD"
         m.toggleScrolling(false)
         m.setFocusIndex(m.nextIndex, false, false)
         m.isMultiMoveFinished = true
@@ -528,6 +583,7 @@ namespace ml
         m.focusManager@.onFocusAnimationUpdate(1)
       end if
 
+      ? " TSF>>>>>>>>>>>>>> EEE"
       m.toggleScrolling(false)
     end function
 
@@ -542,6 +598,7 @@ namespace ml
       end if
 
       if not active
+        ?"  TOGGLE SCROLLING OFF!! STOPPING>!>!>!>!!>"
         m.setTargetCellInfo(invalid)
         m.moveAnimation.stop(false)
         m.isMovingMultiple = false
@@ -565,26 +622,26 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function moveUsingFlowAnim(fromInfo as ml.CellInfo, toInfo as ml.CellInfo, direction as integer)
-      ' ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  "; m.__classname
+      ' ? ")))))) moveUsingFlowAnim I " ; m.index ; " FI " ; fromInfo.index ; " TI " ; toInfo.index ; " CI " ; toInfo.contentIndex ; "  " m.__classname
 
       m.isLastMoveFlowFocus = true
       m.toggleScrolling(true)
       m.log.verbose("==== FROM moveUsingFlowAnim")
       ' ? " MOVE USING FLOW"
       m.setFocusManagerInfo(fromInfo, toInfo, direction, true)
-      ' ? "FLOW "; m.animSpeed
+      ' ? "FLOW " m.animSpeed
       m.focusManager@.startFlowFocus(m.nextFocusIndicatorConfig, m.animSpeed, mc.getTop())
     end function
 
     function onFlowFocusFraction(fraction as float)
-      ' ? "+>+>+>+> on FLow fraction"; fraction ; m.__classname
+      ' ? "+>+>+>+> on FLow fraction" fraction ; m.__classname
       ' m.log.info("onFlowFocusFraction", fraction, "multiple", m.isMovingMultiple, "targetIndex", m.targetIndex)
 
       if fraction = 1
         ' ? "+>+>+>+ FINISHED FLOW " ; m.__classname ; " multiple: " ; m.isMovingMultiple ; " TI " ; m.targetIndex
         m.log.info("finished focusing action with this flow")
 
-        ' ? "+>+>+>+> "; mc.getPath(m.targetCellInfo, "index"); " MI "; m.index ; " NI " ; m.nextIndex
+        ' ? "+>+>+>+> " mc.getPath(m.targetCellInfo, "index"); " MI " m.index ; " NI " ; m.nextIndex
         m.finishMovingToIndex(true)
       else
         m.focusManager@.onFocusAnimationUpdate(fraction)
@@ -598,7 +655,7 @@ namespace ml
     protected function setCellInfo(info as ml.CellInfo)
       m.cellInfo = info
       if info <> invalid
-        ' ? "SCI>>> (" ; m.__classname ; ") " ; info.index ; " CI " ; info.contentIndex
+        ? "SCI>>> (" ; m.__classname ; ") " ; info.index ; " CI " ; info.contentIndex
         m.index = info.index
         m.activeScrollLocation = -info.getPosition(m.direction)
         if not m.isLastMoveFlowFocus
@@ -613,6 +670,7 @@ namespace ml
     end function
 
     protected function setNextCellInfo(info as ml.CellInfo) as void
+      ? " CALLED SET NEXT CELL INFO "
       if info = invalid
         m.nextCellInfo = invalid
         m.nextIndex = 0
@@ -625,7 +683,7 @@ namespace ml
         return
       end if
 
-      ' ? m.__classname ; " SET NEXT COMPONENT INFO " ; info.index ; " IFF "; m.isLastMoveFlowFocus
+      ? m.__classname ; " SET NEXT COMPONENT INFO " ; info.index ; " IFF " m.isLastMoveFlowFocus
 
       if info.index <> m.nextIndex
         m.nextIndex = info.index
@@ -639,7 +697,7 @@ namespace ml
           m.viewManager.updateScrolling(info.contentIndex)
         else
           'we scrolled to a sub-row
-          ' ? "setNextCellInfo - not (yet) reporting subrow move on CI "; info.contentIndex ; " SI "; info.componentIndex
+          ' ? "setNextCellInfo - not (yet) reporting subrow move on CI " info.contentIndex ; " SI " info.componentIndex
         end if
       end if
 
@@ -672,30 +730,23 @@ namespace ml
       'This MUST be called infrequently
       ' TODO - check if index is actually changed
 
-      ' ? " SFI AA"
+      ? " SET FOCUS INDEX " index " " m.__classname
+      ? " SFI AA"
       if m.viewManager.numberOfItems = 0
-        ' ? " SFI BB"
+        ? " SFI ERROR!+++++"
         return
       end if
 
-      if false and index = -1
-        ' ? " SFI CC"
-        m.setCellInfo(m.viewManager.cellInfos[0])
-        ' ? " ::::::::::::::: setNextCellInfo AAA"
-        m.setNextCellInfo(m.viewManager.cellInfos[0])
-        ' m.setNextIndex(0)
-      else
-        ' ? " SFI DD"
-        if index >= m.viewManager.numberOfItems - 1
-          ' ? " SFI EE"
-          index = m.viewManager.numberOfItems - 1
-        end if
-
-        m.setCellInfo(m.viewManager.cellInfos[index])
-        index = mc.clamp(m.index + m.direction, 0, m.viewManager.numberOfItems - 1)
-        ' ? " ::::::::::::::: setNextCellInfo BBB"
-        m.setNextCellInfo(m.viewManager.cellInfos[index])
+      ? " SFI DD"
+      if index >= m.viewManager.numberOfItems - 1
+        ? " SFI EE"
+        index = m.viewManager.numberOfItems - 1
       end if
+
+      m.setCellInfo(m.viewManager.cellInfos[index])
+      index = mc.clamp(m.index + m.direction, 0, m.viewManager.numberOfItems - 1)
+      ? " ::::::::::::::: setNextCellInfo BBB"
+      m.setNextCellInfo(m.viewManager.cellInfos[index])
 
       if m.cellInfo = invalid
         m.log.error("setFocusIndex - invalid cellInfo")
@@ -710,7 +761,7 @@ namespace ml
 
       if notifyFocusManager
         m.log.verbose("==== FROM setFocusIndex ", m.__classname)
-        ' ? " ITEMSCROLLER FROM SET FOCUS INDEX"
+        ? " ITEMSCROLLER FROM SET FOCUS INDEX NOTIFY " m.nextCellInfo.index
         m._setFocusManagerInfo(m.cellInfo, m.nextCellInfo, m.direction, false)
       end if
     end function
@@ -741,7 +792,7 @@ namespace ml
 
     function forceFocusOnIndex(index as integer, notifyFocusManager = true as boolean, notifyOwner = true as boolean) as void
 
-      ' ? " >>>> forceFocusOnIndex " ; m.__classname
+      ? " >>>> forceFocusOnIndex " ; m.__classname
       if m.viewManager.numberOfItems = 0
         ' ? " no components!!"
         return
@@ -754,6 +805,7 @@ namespace ml
         m.setCellInfo(m.viewManager.cellInfos[index])
       end if
 
+      ? "FORCE FOCUS " index
       m.setNextCellInfo(m.viewManager.cellInfos[index])
 
       m.index = index
@@ -784,7 +836,7 @@ namespace ml
 
       ' rowIndex = m.viewManager.row = invalid ? - 1 : m.viewManager.row.index
       if info = invalid or info.component = invalid or m.settings = invalid
-        ' ? "cannot get focus indicator cellInfo or cellInfo.component is invalid "; m.__classname
+        ' ? "cannot get focus indicator cellInfo or cellInfo.component is invalid " m.__classname
         return ml.createFocusIndicatorConfig(m.viewManager.row, invalid, direction, m.index)
       end if
 

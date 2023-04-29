@@ -425,13 +425,27 @@ namespace mv.animations
       mc.tasks.observeNodeField(m.node, "keyFraction", callback, "value", false, scope)
     end function
 
+    function unobserveKeyFraction()
+      mc.tasks.cleanNodeObserver(m.node, "keyFraction")
+    end function
+
     @injectLocalM
     function observeKeyIndex(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "keyIndex", callback, "value", false, scope)
     end function
 
+    function unobserveKeyIndex()
+      mc.tasks.cleanNodeObserver(m.node, "keyIndex")
+    end function
+
     function enableKeyObservers()
       mc.tasks.observeNodeField(m.interpolator, "fraction", m.onInterpolatorFraction, "value", false, m)
+      mc.setOrAddNodeField(m.node, "keyIndex", 0)
+      mc.setOrAddNodeField(m.node, "keyFraction", 0.0)
+    end function
+
+    function disableKeyObservers()
+      mc.tasks.unobserveNodeField(m.interpolator, "fraction", m.onInterpolatorFraction)
       mc.setOrAddNodeField(m.node, "keyIndex", 0)
       mc.setOrAddNodeField(m.node, "keyFraction", 0.0)
     end function

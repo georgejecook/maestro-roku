@@ -65,6 +65,9 @@ class DisneyHeroScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
+    listSettings.numberItemsToRenderAfter = 4
+    listSettings.numberItemsToRenderBefore = 2
+
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
@@ -100,8 +103,8 @@ class DisneyHeroScreen extends mv.BaseScreen
     for i = 0 to 20
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
-      numItems = 5
-      if showHero and (i = 0 or i = 2)
+      numItems = 10
+      if showHero and (i = 0 or i = 2 or i = 8 or i = 15 or i = 29)
         numItems = 20
         row0FocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
         if i <> 10
