@@ -425,7 +425,9 @@ namespace ml
     end function
 
     private function configureAnimationToIndex(targetIndex as integer) as void
-      ? " CONFIGURE ANIMATION TO " targetIndex
+      ? "++++++++++++++ CONFIGURE ANIMATION TO " targetIndex " AXES " m.axes
+      ? "++++++++++++++ CONFIGURE ANIMATION TO " targetIndex " AXES " m.axes
+      ? "++++++++++++++ CONFIGURE ANIMATION TO " targetIndex " AXES " m.axes
       keyValues = []
       m.itemsInAnimation = []
       distance = 0
@@ -439,10 +441,11 @@ namespace ml
 
       nextTranslation = m.container.translation
       if m.axes = 1
-        otherAxesValue = m.container.translation[0]
+        otherAxesValue = nextTranslation[0]
       else
-        otherAxesValue = m.container.translation[1]
+        otherAxesValue = nextTranslation[1]
       end if
+
       for i = m.index to targetIndex step m.direction
         cellInfo = m.viewManager.cellInfos[i]
 
@@ -451,15 +454,23 @@ namespace ml
         else
           screenPos = 0
         end if
-        nextTranslation[m.axes] = -cellInfo.getPosition(m.direction) + screenPos
-        ? " INDEX " i " POSITION IS " cellInfo.getPosition(m.direction)
 
-        offset = -cellInfo.getPosition(m.direction)
+        ' nextTranslation[m.axes] = -cellInfo.getPosition(m.direction) + screenPos
+        ? " INDEX " i " POSITION IS " cellInfo.getPosition(m.direction) "  SCREEN POS " screenPos
+
+        if i = m.index
+          offset = previousPos
+        else
+          offset = -cellInfo.getPosition(m.direction)
+        end if
+
         if m.axes = 1
           nextTranslation = [otherAxesValue, offset]
         else
           nextTranslation = [offset, otherAxesValue]
         end if
+        ? " NEXT TRANSLATION " nextTranslation
+
         keyValues.push(nextTranslation)
         distance += offset - previousPos
         previousPos = offset
@@ -477,11 +488,11 @@ namespace ml
 
       m.moveAnimation.setKeys(keys, keyValues)
 
-      ' ? " >>>>>>>>>>>>>> SETTING KEYS "
-      ' ? formatJson(keys)
-      ' ? " values"
-      ' ? formatJson(keyValues)
-      ' ? " SETTING KEYS <<<<<<<<<<<<<<<<"
+      ? " >>>>>>>>>>>>>> SETTING KEYS "
+      ? formatJson(keys)
+      ? " values"
+      ? formatJson(keyValues)
+      ? " SETTING KEYS <<<<<<<<<<<<<<<<"
 
       'DURATION MECHANISM::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
       '1. Pixels per second
