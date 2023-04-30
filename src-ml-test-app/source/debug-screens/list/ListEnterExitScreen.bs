@@ -128,6 +128,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     listSettings.numberItemsToRenderBefore = m.numberItemsToRenderBefore
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
+
+    m.observe(content.change, m.onContentChange)
     items = m.createGridData()
     m.button.text = `create list with ${m.contentId} items`
     ' timer.log("makeData")
@@ -199,7 +201,7 @@ class ListEnterExitScreen extends mv.BaseScreen
         end if
 
         row.settings = ml.listMixin.createGridRowSettings(m.cellSettings, gridFocusSettings, 30, invalid, 150, numCols, 250, 5, 50)
-        ' row.settings.contentOffset = [100, 30]
+        row.settings.contentOffset = [100, 30]
         ' row.settings.peekNextPixels = 300
         ' if i = 3
         ' else
@@ -211,7 +213,7 @@ class ListEnterExitScreen extends mv.BaseScreen
         row.settings = ml.listMixin.createRowSettings(m.cellSettings, focusSettings)
         ' row.settings.renderStrategy = "all"
         ' row.settings.renderStrategy = "all"
-        ' row.settings.contentOffset = [100, 30]
+        row.settings.contentOffset = [100, 30]
         ' row.settings.height = 550
         row.settings.height = 300
         ' row.settings.peekNextPixels = 300
@@ -231,10 +233,21 @@ class ListEnterExitScreen extends mv.BaseScreen
       ' row.settings.screenPos = 400
       row.settings.screenPos = 0
       content.push(row)
+      m.observe(row.change, m.onRowChange)
       row.appendChildren(m.makeItems(m.defaultCellType, m.numberOfItems, "HORIZ"))
     end for
 
     return content
+  end function
+
+
+  private function onContentChange(change as mc.types.assocarray)
+    ? " SCREEN content change " change
+  end function
+
+
+  private function onRowChange(change as mc.types.assocarray)
+    ? "SCREEN: ROW change " change
   end function
 
   private function makeItems(cellType as string, number as integer, prefix = "Item" as string)
@@ -277,7 +290,7 @@ class ListEnterExitScreen extends mv.BaseScreen
         m.log.info("Updating module", i)
       end if
     end for
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function addRow(rowOffset as integer)
@@ -297,14 +310,14 @@ class ListEnterExitScreen extends mv.BaseScreen
     m.contentId++
     row.appendChildren(m.makeItems(m.defaultCellType, 5))
     m.list.content.insertChild(row, index)
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function removeRow(rowOffset as integer)
     rowIndex = m.list.focusedRowIndex + rowOffset
     'bs:disable-next-line
     m.list.content.removeChildIndex(rowIndex)
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function toggleRowFocus(rowOffset as integer)
@@ -313,7 +326,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     if row <> invalid
       row.isFocusEnabled = not row.isFocusEnabled
     end if
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function toggleRowHidden(rowOffset as integer)
@@ -322,7 +335,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     if row <> invalid
       row.isHidden = not row.isHidden
     end if
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function addCell(rowOffset = 0 as integer, cellOffset = 0 as integer)
@@ -331,18 +344,19 @@ class ListEnterExitScreen extends mv.BaseScreen
 
     rowContent = m.list.content.getChild(rowIndex)
     rowContent.insertChild(m.makeItems(m.defaultCellType, 1)[0], cellIndex)
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function removeCell(rowOffset = 0 as integer, cellOffset = 0 as integer)
     rowIndex = m.list.focusedRowIndex + rowOffset
     cellIndex = m.list.focusedCellIndex + cellOffset
     m.log.info("removing item at ", rowIndex, cellIndex)
-
     rowContent = m.list.content.getChild(rowIndex)
+    ? " REMOVING INDEX " cellIndex " FROM " rowIndex " row " mc.dv(rowContent)
+    rowContent.removeChild(rowContent.getChild(cellIndex))
     'bs:disable-next-line
-    rowContent.removeChildIndex(cellIndex)
-    m.list@.synchronizeContent()
+    ' rowContent.removeChildIndex(cellIndex)
+    ' m.list@.synchronizeContent()
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -351,6 +365,7 @@ class ListEnterExitScreen extends mv.BaseScreen
 
   private function doAction(offset as integer)
     m.log.info("doing action", m.modifyAction)
+    ? " ACTION " m.modifyAction
 
     if m.modifyAction = "removeCell"
       m.removeCell(0, offset)
@@ -441,7 +456,7 @@ class ListEnterExitScreen extends mv.BaseScreen
     item = m.list.content.getChild(event.rowIndex)
     mc.setOrAddNodeField(item, "rowText", "ROW HAS changed")
     item@.notifyUpdate()
-    m.list@.synchronizeContent()
+    ' m.list@.synchronizeContent()
   end function
 
   private function onRowDidGainFocus(event as ml.ListEvent)

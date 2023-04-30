@@ -13,13 +13,27 @@ namespace main
       a = createObject("roSGNode", "ContentNode")
       m.observe(a.change, m.onChangeChange)
       b = createObject("roSGNode", "ContentNode")
+      mc.setOrAddNodeField(a, "isHidden", false)
+      mc.setOrAddNodeField(b, "isHidden", false)
+      focusSettings = createObject("roSGNode", "ml_FocusSettings")
+      mc.setOrAddNodeField(b, "focusSettings", focusSettings)
       a.appendChild(b)
-
+      ' a.title = "changed title on a"
+      ' b.title = "changed title on b"
+      a.isHidden = true
+      b.isHidden = true
+      m.observe(b.focusSettings, m.onFSChange)
+      b.focusSettings.canLongPress = true
+      a.removeChild(b)
       m.showScreen(m.createSGNode("ListEnterExitScreen"))
     end function
 
     private function onChangeChange(change as mc.types.assocarray)
       ? " change is " change
+    end function
+
+    private function onFSChange(change as mc.types.assocarray)
+      ? " fs change " change
     end function
 
     private function makeViews()

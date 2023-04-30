@@ -74,7 +74,7 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function onContentItemsChange() as ml.ListChangeResult
+    function onContentItemsChange(isChildChange = false as boolean) as ml.ListChangeResult
       m.log.verbose(" ROW ", mc.dv(m.top), " CHANGES: ")
       if m.content = invalid
         m.log.error("content was invalid on row, during onContentItemsChange: investigate this case", mc.dv(m.top))
@@ -84,25 +84,24 @@ namespace ml
         }
       end if
 
-      m.log.info("This content has changed in some way")
-      changes = m.content.changes
-      if changes <> invalid and changes.count() > 0
+      if isChildChange = true
+        m.log.info("Content children have been added/removed")
         m.log.info("doing a content update, in case this is important for the row, itself")
         m.onContentUpdate(m.content)
-        m.log.verbose(" ITEM CHANGES ", formatJson(changes))
-        return m.applyChildChanges(changes)
+        return m.applyChildChanges()
       else
-        m.log.verbose("CELL CONTENT")
+        'TODO this might not be needed. potentially handled at cell level?..
+        m.log.verbose("Some content cells have changed")
         return m.updateChangedCells()
       end if
     end function
 
-    function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
-      m.log.verbose(" applying child changes ", mc.dv(m.top), " # changes", changes.count())
+    function applyChildChanges() as ml.ListChangeResult
+      m.log.verbose(" applying child changes ", mc.dv(m.top))
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
-        return m.viewManager.onContentItemsChange(changes)
+        return m.viewManager.onContentItemsChange()
       end if
       return {
         isLayoutRequired: false

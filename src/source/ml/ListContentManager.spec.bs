@@ -337,5 +337,145 @@ namespace tests
       m.assertTrue(m.manager.processRowContentChanges(oldRowContentInfo, newRowContentInfo, invalid))
 
     end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("scheduleDelayedUpdate")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if there is a scheduled update timer")
+    function _()
+      m.manager.isUpdateEnabled = true
+      m.manager.updateTimer = { "id": "updateTimer" }
+
+      m.expectNotCalled(m.manager.setTimeout)
+
+      m.manager.scheduleDelayedUpdate()
+    end function
+
+
+    @it("does nothing if there is update are disabled")
+    function _()
+      m.manager.isUpdateEnabled = false
+
+      m.expectNotCalled(m.manager.setTimeout)
+
+      m.manager.scheduleDelayedUpdate()
+    end function
+
+    @it("sets timer, if updates are enabled")
+    function _()
+      m.manager.isUpdateEnabled = true
+
+      timer = { "id": "timer" }
+
+      m.expectCalled(m.manager.setTimeout(m.manager.onDelayedUpdateTimer), timer)
+
+      m.manager.scheduleDelayedUpdate()
+
+      m.assertEqual(m.manager.updateTimer, timer)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("toggleContentObserver")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if there is no content")
+    @params(false)
+    @params(true)
+    function _(active)
+      m.expectNotCalled(m.manager.unobserve)
+      m.expectNotCalled(m.manager.observe)
+
+      m.manager.content = invalid
+
+      m.manager.toggleContentObserver(active)
+    end function
+
+    @it("unobserves when active is false`")
+    function _()
+      m.manager.content = { "id": "content" }
+
+      m.expectCalled(m.manager.unobserve(m.manager.content.change, m.manager.onRowContentChange, "both"))
+      m.expectNotCalled(m.manager.observe)
+
+      m.manager.content = invalid
+
+      m.manager.toggleContentObserver(false)
+    end function
+
+    @it("unobserves, and observes when active is true`")
+    function _()
+      m.manager.content = { "id": "content" }
+
+      m.expectCalled(m.manager.unobserve(m.manager.content.change, m.manager.onRowContentChange, "both"))
+      m.expectCalled(m.manager.observe(m.manager.content.change, m.manager.onRowContentChange, "both"))
+
+      m.manager.content = invalid
+
+      m.manager.toggleContentObserver(true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onRowContentChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stores row id, and schedules update")
+    function _()
+
+      a = { "id": "a" }
+      b = { "id": "b" }
+
+      m.expectCalled(m.manager.scheduleDelayedUpdate())
+
+      m.manager.onRowContentChange({ id: "change" }, a)
+      m.assertEqual(m.manager.changedRowsById, { a: true })
+
+      m.expectCalled(m.manager.scheduleDelayedUpdate())
+
+      m.manager.onRowContentChange({ id: "change" }, b)
+
+      m.assertEqual(m.manager.changedRowsById, { a: true, b: true })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onContentChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("stores row id, and schedules update")
+    function _()
+
+      content = { "id": "content" }
+      m.manager.content = content
+
+      m.expectCalled(m.manager.scheduleDelayedUpdate())
+
+      m.manager.onContentChange({ id: "a" }, content)
+      m.assertEqual(m.manager.pendingChanges, [{ id: "a" }])
+
+      m.expectCalled(m.manager.scheduleDelayedUpdate())
+
+      m.manager.onContentChange({ id: "b" }, content)
+
+      m.assertEqual(m.manager.pendingChanges, [{ id: "a" }, { id: "b" }])
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onDelayedUpdateTimer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("calls synchronizeContent and resets tracking fields")
+    function _()
+
+      m.manager.pendingChanges = [{ "id": "a" }]
+      m.manager.changedRowsById = { "a": true }
+
+      m.expectCalled(m.manager.synchronizeContent())
+
+      m.manager.onDelayedUpdateTimer()
+
+      m.assertEmpty(m.manager.pendingChanges)
+      m.assertEmpty(m.manager.changedRowsById)
+    end function
+
   end class
 end namespace

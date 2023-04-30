@@ -29,6 +29,10 @@ namespace ml
     private previousCellContent as mc.types.node
     private isForcingUpdateAll = false
 
+    private pendingUpdates = {}
+
+    private updateTimer as mc.types.node
+
     function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as mc.types.node)
       super("ListContentManager")
       m.list = list
@@ -41,6 +45,7 @@ namespace ml
 
     public function setContent(content as mc.types.node, forceUpdate = false as boolean) as void
 
+      m.toggleContentObserver(false)
       if content = invalid
         m.log.info("listContent set to invalid. Resetting list")
         content = ml.listMixin.createListContent()
@@ -81,6 +86,7 @@ namespace ml
       end if
 
       m.isForcingUpdateAll = false
+      m.toggleContentObserver(true)
     end function
 
     function setUpdatesEnabled(enabled as boolean)
@@ -93,7 +99,7 @@ namespace ml
         return
       end if
 
-      ' ? " LCM RENDERING SYNC CONTENT"
+      ? " LCM RENDERING SYNC CONTENT"
       m.setListRendering(true)
 
       m.focusIndicatorManager@.setEnabled(false)
@@ -110,9 +116,11 @@ namespace ml
 
       m.ascertainPreviousFocusInfo()
 
-      for each rowContent in m.content.getChildren()
+      for each rowContent in m.content.getChildren(-1, 0)
+        ? "CHECKING CONTENT " rowContent.id
         info = m.rowContentInfoByContentId[rowContent.id]
         if info <> invalid
+          ? "GOT INFO " rowContent.id
           m.updateContentOnRow(info.row, rowContent, notifyRows, listResult)
         else
           m.log.verbose(" THERE SHOULD HAVE BEEN A ROW SET FOR ", rowContent.id)
@@ -128,7 +136,8 @@ namespace ml
       m.updateListContentIfRequired(listResult)
 
       m.updateListFocusAfterApplyingChanges()
-
+      m.changedRowsById = {}
+      m.pendingUpdates = []
       'm.log.decreaseIndent()
       'm.log.resetIndent()
     end function
@@ -404,6 +413,8 @@ namespace ml
         row@.recycle(content)
       end if
 
+      ? "::::::::::::: ADD OBSERVER"
+      m.toggleRowContentObserver(content, true)
       m.applyRowContentChange(row, content, result)
 
       if isChanged
@@ -432,7 +443,7 @@ namespace ml
     end function
 
     private function applyRowContentUpdate(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult)
-      rowResult = row@.onContentItemsChange(content)
+      rowResult = row@.onContentItemsChange(true)
 
       if result <> invalid
         if not result.isLayoutRequired and rowResult.isLayoutRequired
@@ -499,6 +510,7 @@ namespace ml
         m.log.verbose("updateRowContentInfo - removing old content")
 
         isChanged = true
+        ' m.toggleRowContentObserver(false, oldRowContentInfo.row)
         if result <> invalid
           result.isLayoutRequired = true
         end if
@@ -513,7 +525,7 @@ namespace ml
         m.log.verbose("updateRowContentInfo - old & newContent info not invalid. lets compare", oldRowContentInfo.index, oldRowContentInfo.version, newRowContentInfo.version)
 
         ' If the row is still using some Content, and we are also passing a Content. check for differences in version, which indicates changes.
-        isChanged = m.isForcingUpdateAll or oldRowContentInfo.version <> newRowContentInfo.version
+        isChanged = m.isForcingUpdateAll or oldRowContentInfo.version <> newRowContentInfo.version or m.changedRowsById.doesExist(oldRowContentInfo.id)
         ' Check if there is a difference in the focus or hidden state
         if oldRowContentInfo.isHidden <> newRowContentInfo.isHidden
           ' Hidden state has changed, so the list needs laying out again.
@@ -592,6 +604,65 @@ namespace ml
       if not rendering and not m.list.contentGroup.visible
         m.list.contentGroup.visible = true
       end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Content change observation
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    'we observe changes on the main content, and rows, and set isChanged on them
+    'to indicate a change is required.
+
+    private function toggleContentObserver(active as mc.types.node)
+      ? " TOGGLING CONTENT OBSERVER " active
+
+      if m.content <> invalid
+        m.unobserve(m.content.change, m.onContentChange)
+        if active
+          m.observe(m.content.change, m.onContentChange, "both")
+        end if
+      end if
+    end function
+
+    private function scheduleDelayedUpdate()
+      ? " SCHEDULE 1"
+
+      if m.updateTimer = invalid and m.isUpdateEnabled
+        ? " SCHEDULE 2"
+        m.log.verbose("triggering delayed update")
+
+        m.updateTimer = m.setTimeout(m.onDelayedUpdateTimer)
+      end if
+    end function
+
+    private function onDelayedUpdateTimer()
+      m.log.info("delayed update timer is fired. Going to process pending updates")
+      m.updateTimer = invalid
+      ? " UPDATE TIMER FIRED"
+      m.synchronizeContent()
+    end function
+
+    private function toggleRowContentObserver(rowContent as mc.types.node, active as mc.types.node)
+      if rowContent <> invalid
+        m.unobserve(rowContent.change, m.onRowContentChange)
+        if active
+          m.observe(rowContent.change, m.onRowContentChange, "both")
+        end if
+      end if
+    end function
+
+    private function onRowContentChange(change as mc.types.assocarray, rowContent as mc.types.node)
+      ? " ROW CONTENT HAS CHANGE " mc.dv(rowContent)
+      m.changedRowsById[rowContent.id] = true
+      rowContent.version++
+      m.scheduleDelayedUpdate()
+    end function
+
+    private changedRowsById = {}
+    private function onContentChange(change as mc.types.assocarray, content as mc.types.node)
+      ? " CONTENT HAS CHANGE " mc.dv(content)
+      m.pendingUpdates.push(change)
+      m.scheduleDelayedUpdate()
     end function
 
   end class
