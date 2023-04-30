@@ -168,6 +168,12 @@ namespace mv.animations
     public control as string
     public fromValue as dynamic
     public toValue as dynamic
+    public keyValues as dynamic
+    public keys as dynamic
+    public keyIndex = 0
+    public keyFraction = 0.0
+    public keyStartFraction = 0.0
+    protected keyEndFraction = 0.0
 
     protected parentAnimation as mv.animations.AnimationBase
     protected log as log.Logger
@@ -187,6 +193,12 @@ namespace mv.animations
     end function
 
     function start(resume = false as boolean)
+      m.keyIndex = 0
+      m.node.keyIndex = 0
+      m.keyStartFraction = m.keys[m.keyIndex]
+      m.keyEndFraction = m.keys[m.keyIndex + 1]
+      m.keyFraction = 0
+      m.node.keyFraction = 0
       m.setControl(resume ? "resume" : "start")
     end function
 
@@ -220,7 +232,6 @@ namespace mv.animations
     public target
     public interpolator
     private keys = [0, 1]
-    private keyValues = invalid
     private easeFunction = "linear"
     private delay = 0
     private field = invalid
@@ -229,7 +240,7 @@ namespace mv.animations
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
 
-    function new(target as mc.types.node, field as string, duration as float, fromValue as dynamic, toValue as dynamic, name = "AbstractAnimation" as string, delay = 0 as float)
+    function new(target as mc.types.node, field as string, duration as float, fromValue as dynamic, toValue as dynamic, name = "AbstractAnimation" as string, delay = 0 as float, keys = invalid as mc.types.array)
       super(name, target)
       if field = "#ga_random"
         field = "ga_" + rnd(2147483647).toStr()
@@ -244,6 +255,10 @@ namespace mv.animations
       m.fromValue = fromValue
       m.toValue = toValue
       m.field = field
+      if keys <> invalid
+        m.keys = keys
+        m.keyValues = toValue
+      end if
       m.createAnimationNode()
       m.setDelay(delay)
     end function
@@ -277,12 +292,18 @@ namespace mv.animations
           m.log.error("tried to set illegal value in keyValues value: ", value)
         end if
       end for
+      m.keys = keys
+      m.keyValues = keyValues
       m.interpolator.key = keys
       m.interpolator.keyValue = keyValues
     end function
 
 
     protected function isValidValue(toValue as dynamic) as boolean
+      return false
+    end function
+
+    protected function isValidValues(keyValues as dynamic) as boolean
       return false
     end function
 
@@ -364,7 +385,28 @@ namespace mv.animations
         ' m.log.info("fromValue", fromValue, "toValue", toValue)
         m.interpolator.keyValue = [fromValue, toValue]
       else
-        m.log.error("tried to set invalid fromValue or toValue [", fromValue, ",", toValue, "]")
+        m.log.error("tried to set illegal fromValue or toValue [", fromValue, ",", toValue, "]")
+      end if
+    end function
+
+    function setkeyValues(keyValues as dynamic)
+      if m.isValidValues(keyValues)
+        m.keyValues = keyValues
+        ' m.log.info("fromValue", fromValue, "toValue", toValue)
+        m.interpolator.keyValue = keyValues
+      else
+        m.log.error("tried to set illegal keyValues")
+      end if
+    end function
+
+    function setMultiKeys(keys as dynamic)
+      'TODO check if it's a float array and legal values
+      if mc.isArray(keys)
+        m.keys = keys
+        ' m.log.info("fromValue", fromValue, "toValue", toValue)
+        m.interpolator.keyValue = keys
+      else
+        m.log.error("tried to set illegal keys")
       end if
     end function
 
@@ -373,10 +415,72 @@ namespace mv.animations
       m.target[m.field] = m.toValue
     end function
 
+    @injectLocalM
     function observeFraction(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.interpolator, "fraction", callback, "value", false, scope)
     end function
 
+    @injectLocalM
+    function observeKeyFraction(callback as function, scope = invalid as dynamic)
+      mc.tasks.observeNodeField(m.node, "keyFraction", callback, "value", false, scope)
+    end function
+
+    function unobserveKeyFraction()
+      mc.tasks.cleanNodeObserver(m.node, "keyFraction")
+    end function
+
+    @injectLocalM
+    function observeKeyIndex(callback as function, scope = invalid as dynamic)
+      mc.tasks.observeNodeField(m.node, "keyIndex", callback, "value", false, scope)
+    end function
+
+    function unobserveKeyIndex()
+      mc.tasks.cleanNodeObserver(m.node, "keyIndex")
+    end function
+
+    function enableKeyObservers()
+      mc.tasks.observeNodeField(m.interpolator, "fraction", m.onInterpolatorFraction, "value", false, m)
+      mc.setOrAddNodeField(m.node, "keyIndex", 0)
+      mc.setOrAddNodeField(m.node, "keyFraction", 0.0)
+    end function
+
+    function disableKeyObservers()
+      mc.tasks.unobserveNodeField(m.interpolator, "fraction", m.onInterpolatorFraction)
+      mc.setOrAddNodeField(m.node, "keyIndex", 0)
+      mc.setOrAddNodeField(m.node, "keyFraction", 0.0)
+    end function
+
+    private function onInterpolatorFraction(fraction as float)
+      m.keyFraction = (fraction - m.keyStartFraction) / (m.keyEndFraction - m.keyStartFraction)
+      m.node.keyFraction = m.keyFraction
+      ' ? " FRACTION " fraction " ( in key " m.keyFraction " ) keyIndex " m.keyIndex
+
+      if m.keyFraction >= 1
+        m.moveToNextKey()
+      end if
+    end function
+
+    function moveToNextKey()
+      nextKeyIndex = m.keyIndex + 1
+      ' ? " moving to next key " nextKeyIndex " count " m.keys.count() " fraction " m.keyFraction
+
+      if nextKeyIndex < m.keys.count()
+        ' ? " SETTING KEY INDEX"
+        ' Increment the keyIndex
+        m.keyIndex = nextKeyIndex
+        m.node.keyIndex = m.keyIndex
+
+        ' ? "MOVE TO KEY INDEX " m.keyIndex
+        ' Check if we've reached the end of the keys array
+
+        m.keyStartFraction = m.keys[m.keyIndex]
+        m.keyEndFraction = m.keys[m.keyIndex + 1]
+      else
+        ' ? " REACHED END"
+      end if
+    end function
+
+    @injectLocalM
     function observeState(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
     end function
@@ -389,6 +493,7 @@ namespace mv.animations
       mc.tasks.cleanNodeObserver(m.node, "state")
     end function
 
+    @injectLocalM
     function onFraction(fraction as float, func as function, scope = invalid as dynamic)
       if m.fractionValueObserver = invalid
         if scope = invalid
@@ -427,7 +532,11 @@ namespace mv.animations
       'bs:disable-next-line
       m.interpolator.id = `${m.target.id}_i_${m.field}_${animId}`
       m.interpolator.fieldToInterp = `${m.target.id}.${m.field}`
-      m.setKeys([0, 1], [m.fromValue, m.toValue])
+      if m.keys <> invalid and m.keys.count() > 2
+        m.setKeys(m.keys, m.keyValues)
+      else
+        m.setKeys([0, 1], [m.fromValue, m.toValue])
+      end if
     end function
 
   end class
@@ -505,6 +614,7 @@ namespace mv.animations
       end for
     end function
 
+    @injectLocalM
     function observeState(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
     end function
@@ -581,8 +691,8 @@ namespace mv.animations
   end class
 
   class Move extends mv.animations.AbstractAnimation
-    function new(target as mc.types.node, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float)
-      super(target, "translation", duration, fromValue, toValue, "MoveAnimation", delay)
+    function new(target as mc.types.node, duration as float, fromValue as mc.types.array, toValue as mc.types.array, delay = 0 as float, keys = invalid as mc.types.array)
+      super(target, "translation", duration, fromValue, toValue, "MoveAnimation", delay, keys)
     end function
 
     protected override function createInterpolator()
@@ -674,6 +784,7 @@ namespace mv.animations
       m.hAnim.setFromToValue(fromValue[1], toValue[1])
     end function
 
+    @injectLocalM
     override function observeFraction(callback as function, scope = invalid as dynamic)
       m.wAnim.observeFraction(callback, scope)
     end function
@@ -744,6 +855,7 @@ namespace mv.animations
     override function setFromToValue(fromValue as dynamic, toValue as dynamic)
     end function
 
+    @injectLocalM
     override function observeFraction(callback as function, scope = invalid as dynamic)
       m.sAnim.observeFraction(callback, scope)
     end function
@@ -1057,6 +1169,7 @@ namespace mv.animations
       end for
     end function
 
+    @injectLocalM
     function observeState(callback as function, scope = invalid as dynamic)
       mc.tasks.observeNodeField(m.node, "state", callback, "value", false, scope)
     end function
@@ -1136,6 +1249,7 @@ namespace mv.animations
       m.log.error("not supported")
     end function
 
+    @injectLocalM
     override function observeFraction(callback as function, scope = invalid as dynamic)
       m.sAnim.observeFraction(callback, scope)
     end function

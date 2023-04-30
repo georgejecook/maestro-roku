@@ -15,7 +15,6 @@ class DisneyHeroScreen extends mv.BaseScreen
   private bgRect
 
   'style
-  private numberOfRows = 20
   private defaultCellType = "ml_SimpleCell"
 
   'state
@@ -24,7 +23,6 @@ class DisneyHeroScreen extends mv.BaseScreen
   private rowSettings
   private focusSettings
   private cellSettings
-  private loadingIndicator
   private scrollSpeed = 2
 
   function new()
@@ -50,12 +48,6 @@ class DisneyHeroScreen extends mv.BaseScreen
       height: size[1]
     })
     mioc.setInstance("list", m.list)
-    m.loadingIndicator = m.createSGNode("LoadingIndicator", m.top, "loadingIndicator", {
-      isActive: true
-      width: 1920
-      height: 1080
-      backgroundVisible: false
-    })
     m.onResetChange()
   end function
 
@@ -73,17 +65,18 @@ class DisneyHeroScreen extends mv.BaseScreen
     listSettings.rowCreationStrategy = "async"
     listSettings.rowCreationBatchSize = 5
     listSettings.rowCreationBatchDelay = 0.3
+    listSettings.numberItemsToRenderAfter = 4
+    listSettings.numberItemsToRenderBefore = 2
+
 
     content = ml.listMixin.createListContent(m.focusSettings, m.rowSettings, listSettings)
     items = m.createGridData()
     timer.log("makeData")
-    m.setFocus(m.loadingIndicator)
-    content@.appendChildren(items)
-    m.list.content = content
+    content.appendChildren(items)
+    m.list@.setContent(content)
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
-      m.loadingIndicator.isActive = false
     else
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
@@ -95,7 +88,6 @@ class DisneyHeroScreen extends mv.BaseScreen
       ' m.setFocus(m.list)
       ' m.list@.moveToIndex([0, 0], false)
       ' m.list.visible = true
-      m.loadingIndicator.isActive = false
     end if
   end function
 
@@ -111,8 +103,8 @@ class DisneyHeroScreen extends mv.BaseScreen
     for i = 0 to 20
       row = createObject("roSGNode", "ml_RowContent")
       row.id = rnd(2147483647).toStr()
-      numItems = 5
-      if showHero and (i = 0 or i = 2)
+      numItems = 10
+      if showHero and (i = 0 or i = 2 or i = 8 or i = 15 or i = 29)
         numItems = 20
         row0FocusSettings = ml.listMixin.createFocusSettings("fixed", [0, 0, 0, 0])
         if i <> 10
@@ -164,7 +156,7 @@ class DisneyHeroScreen extends mv.BaseScreen
       row.title = "ROW " + str(i)
       ' row.settings.screenPos =-1 ' 400
       content.push(row)
-      row@.appendChildren(m.makeItems(m.defaultCellType, numItems, "HORIZ"))
+      row.appendChildren(m.makeItems(m.defaultCellType, numItems, "HORIZ"))
     end for
 
     return content
@@ -196,9 +188,9 @@ class DisneyHeroScreen extends mv.BaseScreen
   end function
 
   private function onRemoveItems(numItems as integer)
-    row = m.list.content@.getChild(m.list.focusedRowIndex)
-    startIndex = row.length - numItems
-    row@.removeChildrenIndex(startIndex, numItems)
+    row = m.list.content.getChild(m.list.focusedRowIndex)
+    startIndex = row.getChildCount() - numItems
+    row.removeChildrenIndex(startIndex, numItems)
   end function
 
   private function addRow(index as integer)
@@ -213,23 +205,25 @@ class DisneyHeroScreen extends mv.BaseScreen
     row.title = "NEW ROW " + m.contentId.toStr()
     row.id = rnd(2147483647).toStr()
     m.contentId++
-    row@.appendChildren(m.makeItems(m.defaultCellType, 5))
-    m.list.content@.insertChild(row, index)
+    row.appendChildren(m.makeItems(m.defaultCellType, 5))
+    m.list.content.insertChild(row, index)
   end function
 
   private function removeRow(index as integer)
-    m.list.content@.removeChildIndex(index)
+    'bs:disable-next-line
+    m.list.content.removeChildIndex(index)
   end function
 
   private function addCell()
-    rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    rowContent@.appendChildren(m.makeItems(m.defaultCellType, 1))
-    rowContent@.insertChild(m.makeItems(m.defaultCellType, 1), m.list.focusedCellIndex)
+    rowContent = m.list.content.getChild(m.list.focusedRowIndex)
+    rowContent.appendChildren(m.makeItems(m.defaultCellType, 1))
+    rowContent.insertChild(m.makeItems(m.defaultCellType, 1), m.list.focusedCellIndex)
   end function
 
   private function removeCell()
-    rowContent = m.list.content@.getChild(m.list.focusedRowIndex)
-    rowContent@.removeChildIndex(m.list.focusedCellIndex)
+    rowContent = m.list.content.getChild(m.list.focusedRowIndex)
+    'bs:disable-next-line
+    rowContent.removeChildIndex(m.list.focusedCellIndex)
   end function
 
 
@@ -265,14 +259,13 @@ class DisneyHeroScreen extends mv.BaseScreen
     m.contentIndex = mc.clamp(m.contentIndex + 1, 0, funcs.count() - 1, true)
     items = m[funcs[m.contentIndex]]()
     timer.log("makeData")
-    content@.appendChildren(items)
+    content.appendChildren(items)
     ' m.list.visible = false
     ' m.list.content = invalid
     m.list.content = content
     timer.log("set content")
     if m.list.state = "rendered"
       m.onListRenderState("rendered")
-      m.loadingIndicator.isActive = false
     else
       m.observeNodeField(m.list, "state", m.onListRenderState, "value", true)
     end if
@@ -428,11 +421,11 @@ class DisneyHeroScreen extends mv.BaseScreen
 
   private function onItemSelected(event as ml.ListEvent)
     ' ? ">>>onItemSelected changed to:" ; rowIndex ; "," ; event.cellIndex
-    rowContent = m.list.content@.getChild(event.rowIndex)
+    rowContent = m.list.content.getChild(event.rowIndex)
     title = `NEW Item ${m.contentId}`
     child = m.makeItem("SimpleCell", title)
-    rowContent@.insertChild(child, event.cellIndex)
-    ' rowContent@.removeChild(child)
+    rowContent.insertChild(child, event.cellIndex)
+    ' rowContent.removeChild(child)
     row = m.list@.getRowRenderer(event.rowIndex)
     row@.forceUpdate()
     ' newScreen = createObject("roSGNode", "DisneyHeroScreen")

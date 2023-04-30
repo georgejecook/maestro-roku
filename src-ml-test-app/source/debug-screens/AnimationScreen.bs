@@ -2,6 +2,7 @@ import "pkg:/source/ml/ListMixin.bs"
 import "pkg:/source/view/BaseScreen.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/Animation.bs"
+import "pkg:/source/core/DebugTimer.bs"
 
 @node("AnimationScreen", "mv_BaseScreen")
 class AnimationScreen extends mv.BaseScreen
@@ -17,6 +18,7 @@ class AnimationScreen extends mv.BaseScreen
   private button4 as mc.types.node
   private button5 as mc.types.node
   private animButton as mc.types.node
+  private rect as mc.types.node
 
   private viewJson = [{
     id: "animButton"
@@ -63,10 +65,14 @@ class AnimationScreen extends mv.BaseScreen
     super("AnimationScreen")
   end function
 
+  private moveAnim as mv.animations.Move
+
   protected override function initialize()
     super.initialize()
     m.createViews()
     m.buttonAnim = new mv.animations.ViewJson(m.viewJson, m.updatedViewJson, 5)
+    debugTimer = new mc.utils.DebugTimer("make keys")
+    debugTimer.log("made keys")
     m.buttonAnim.start()
     m.observeNodeField(m.controlsGroup, "selectedIndex", m.onSelectButton)
   end function

@@ -14,6 +14,7 @@ function initScreen() as void
   rootScene.id = "MainScene"
 
   screen.show()
+  ' vscode_rdb_on_device_component_entry
 
   'do any other stuff here that _must_ be done in main
   'I'm not a fan of that though; but just showing how it would work
