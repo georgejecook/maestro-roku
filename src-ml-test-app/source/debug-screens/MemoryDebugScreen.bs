@@ -1,0 +1,83 @@
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/Utils.bs"
+
+@node("MemoryDebugScreen", "mv_BaseScreen")
+class MemoryDebugScreen extends mv.BaseScreen
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Views
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private addButton as mc.types.node
+  private removeButton as mc.types.node
+  private resetButton as mc.types.node
+  private outputLabel as mc.types.node
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Private Fields
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private models = []
+  private focusableControls = []
+  private itemIndex = 0
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Initialization
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  function new()
+    super("MemoryDebugScreen")
+  end function
+
+  protected override function initialize()
+    super.initialize()
+
+    bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/MemoryDebugScreen.json")
+    m.createViewsFromStyleJson(bundle.views)
+    m.focusableControls = [m.addButton, m.removeButton, m.resetButton]
+    m.focusedControl = m.addButton
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Callbacks
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function onAddButtonSelected(selected as boolean)
+    m.outputLabel.text += `\n Adding 100 models..`
+    model = mc.createSGNode("Item", invalid, `${m.itemIndex}`)
+    m.itemIndex++
+    m.models.push(model)
+  end function
+
+  private function onCancelButtonSelected(selected as boolean)
+    m.outputLabel.text += `\n removing 100..`
+    for i = mc.clamp(100, 0, m.models.count() - 1) to 0 step -1
+      m.models.delete(i)
+    end for
+  end function
+
+  private function onResetButtonSelected(selected as boolean)
+    m.outputLabel.text += `\n Resetting..`
+    m.models = []
+  end function
+
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+  '++ Key Presses
+  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+  private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+    return key <> "back" and key <> "up"
+  end function
+
+  protected override function onKeyPressLeft() as boolean
+    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, -1))
+    return true
+  end function
+
+  protected override function onKeyPressRight() as boolean
+    m.setFocus(mc.collections.getItemAtOffset(m.focusableControls, m.focusedControl, 1))
+    return true
+  end function
+
+end class
