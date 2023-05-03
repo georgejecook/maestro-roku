@@ -196,9 +196,19 @@ namespace mx
     '++ Notification Center
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function sendNotification(notification as mc.notification)
+
+    protected function sendNotification(nameOrNotification as dynamic, data = invalid as dynamic)
       'bs:disable-next-line
       notificationCenter = m.getInstance("notificationCenter")
+      if mc.isAACompatible(nameOrNotification)
+        notification = nameOrNotification
+      else
+        notification = {
+          name: nameOrNotification
+          data: data
+        }
+      end if
+
       notificationCenter@.send(notification)
     end function
 
