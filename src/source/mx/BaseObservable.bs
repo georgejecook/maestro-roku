@@ -193,6 +193,52 @@ namespace mx
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Notification Center
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function sendNotification(notification as mc.notification)
+      'bs:disable-next-line
+      notificationCenter = m.getInstance("notificationCenter")
+      notificationCenter@.send(notification)
+    end function
+
+    protected function observeNotification(name as string, callback as function)
+      callbacks = m["_notificationCallbacks"]
+      if callbacks = invalid
+        m["_notificationCallbacks"] = {}
+        callbacks = m["_notificationCallbacks"]
+      end if
+      callbacks[name] = callback
+      'bs:disable-next-line
+      notificationCenter = m.getInstance("notificationCenter")
+      'bs:disable-next-line
+      notificationCenter@.addObserver(m.top, name)
+    end function
+
+    protected function unobserveNotification(name as string)
+      callbacks = m["_notificationCallbacks"]
+      if callbacks <> invalid
+        callbacks.delete(name)
+        'bs:disable-next-line
+        notificationCenter = m.getInstance("notificationCenter")
+        'bs:disable-next-line
+        notificationCenter@.removeObserver(m.top, name)
+      end if
+    end function
+
+    protected function _onNotification(notification as mc.Notification)
+      try
+        callbacks = m["_notificationCallbacks"]
+        if callbacks <> invalid
+          callback = m["_notificationCallbacks"][notification.name]
+          mc.apply(callback, [notification], m)
+        end if
+      catch error
+        m.log.error("error handling notification", error)
+      end try
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Bindings
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
