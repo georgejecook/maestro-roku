@@ -2,26 +2,82 @@ namespace mc
   class Command
     name as string
     func as function
-    nextCommands as mc.types.array
+    ignoreFailure = false
+    parentCommand as mc.Command
+    childCommands = []
+    isFinished = false
+    commandCount = 0
 
-    function new(name as string, func as function, nextCommands = [] as mc.types.array)
+    function new(name as string, func as function, options = {} as mc.types.assocarray)
       m.name = name
       m.func = func
-      m.nextCommands = nextCommands
+      m.ignoreFailure = asBoolean(options.ignoreFailure)
+    end function
+
+    function configureChildCommands(commands as mc.types.array)
+      m.childCommands = []
+      for each command in commands
+        if command <> invalid
+          command.parentCommand = m
+          m.childCommands.push(command)
+        end if
+      end for
+      m.commandCount = m.childCommands.count()
     end function
   end class
+
   class TaskCommand extends mc.Command
     isTask = true
     taskArgs as mc.types.assocarray
     taskName as string
-    ignoreFailure = false
+    onComplete as function
+    parentCommant as mc.Command
+    isWaitingResult = true
 
-    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, nextCommands = [] as mc.types.array, options = {} as mc.types.assocarray)
-      super(name, invalid, nextCommands)
+    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, options = {} as mc.types.assocarray)
+      super(name, invalid, options)
+      m.isWaitingResult = asBoolean(options.isWaitingResult, true)
       m.isTask = true
       m.taskName = taskName
       m.taskArgs = { args: taskArgs }
-      m.ignoreFailure = asBoolean(options.ignoreFailure)
+      m.onComplete = options.onComplete
+    end function
+  end class
+
+  class SequentialCommand extends mc.Command
+    commandIndex = 0
+    currentCommand as mc.Command
+    isSequence = true
+
+    function new(name as string, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, invalid, options)
+      m.configureChildCommands(commands)
+    end function
+
+    function moveNext()
+      while m.commandIndex < m.commandCount
+        m.commandIndex++
+        m.currentCommand = m.childCommands[m.commandIndex]
+        if m.currentCommand <> invalid
+          m.currentCommand.parentCommant = m
+        end if
+      end while
+      m.isFinished = m.commandIndex = m.commandCount
+    end function
+  end class
+  class ParallelCommand extends mc.Command
+    completeCount = 0
+    currentCommand as mc.Command
+    isParallel = true
+
+    function new(name as string, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, invalid, options)
+      m.configureChildCommands(commands)
+    end function
+
+    function completeCommand(command as mc.Command)
+      m.completeCount++
+      m.isFinished = m.completeCount = m.commandCount
     end function
   end class
 end namespace
