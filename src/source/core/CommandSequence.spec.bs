@@ -1,0 +1,61 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/Command.bs"
+import "pkg:/source/core/CommandSequence.bs"
+
+namespace tests
+  @suite("CommandSequence tests")
+  class CommandSequenceTest extends tests.BaseTestSuite
+
+    private commandSequence
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.commandSequence = m.createNodeClass(mc.CommandSequence)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    @it("sets initial values")
+    function _()
+      m.assertEmpty(m.commandSequence.completedCommands)
+      m.assertEmpty(m.commandSequence.runningCommands)
+      m.assertEqual(m.commandSequence.runningCommandsCount, 0)
+      m.assertEmpty(m.commandSequence.commands)
+      m.assertEmpty(m.commandSequence.taskCommands)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("startSequentialCommand")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("finishes straight away if the command is finished")
+    function _()
+      command = {
+        name: "c1"
+        isFinished: true
+      }
+      m.expectCalled(command.moveNext())
+
+      m.commandSequence.startSequentialCommand(command)
+    end function
+
+    @it("starts next command if sequence is not finished")
+    function _()
+      currentCommand = { "name": "currentCommand" }
+
+      command = {
+        name: "c1"
+        isFinished: false
+        currentCommand: currentCommand
+      }
+      m.expectCalled(command.moveNext())
+      m.expectCalled(m.commandSequence.startCommand(currentCommand))
+
+      m.commandSequence.startSequentialCommand(command)
+    end function
+
+  end class
+end namespace

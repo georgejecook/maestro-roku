@@ -58,6 +58,8 @@ namespace ListTests
       m.list.contentManager = contentManager
 
       m.expectCalled(m.list.viewManager.setContent(m.list.contentManager.content))
+      'fixme
+      'bs:disable-next-line
       m.expectCalled(m.list.onListRenderState("rendered"))
       m.list.resetState()
 
@@ -73,6 +75,8 @@ namespace ListTests
       m.list.contentManager = contentManager
 
       m.expectNotCalled(m.list.viewManager.setContent)
+      'fixme
+      'bs:disable-next-line
       m.expectCalled(m.list.onListRenderState("rendered"))
       m.expectCalled(m.list.viewManager.reset())
 
@@ -110,6 +114,8 @@ namespace ListTests
 
     function _(state)
       m.expectNotCalled(m.list.moveToRowItemIndex)
+      'fixme
+      'bs:disable-next-line
       m.list.onListRenderState(state)
     end function
 
@@ -127,6 +133,8 @@ namespace ListTests
       m.list.focusedRowIndex = focusedRowIndex
       m.list.focusedCellIndex = focusedCellIndex
       m.expectCalled(m.list.moveToRowItemIndex(m.list.focusedRowIndex, m.list.focusedCellIndex, false))
+      'fixme
+      'bs:disable-next-line
       m.list.onListRenderState("rendered")
 
       m.assertEqual(m.list.focusIndicatorManager.isHidden, managerIsHidden)
@@ -695,9 +703,13 @@ namespace ListTests
       m.list.top.isChildFocused = false
 
       m.expectCalled(m.list.viewManager.forceUpdateLayout())
+      'fixme
+      'bs:disable-next-line
       m.expectCalled(m.list.itemScroller.processChanges(changes))
       m.expectCalled(m.list.focusIndicatorManager@.setFocusedOnRow(true))
 
+      'fixme
+      'bs:disable-next-line
       m.list._onContentItemChange(changes)
     end function
 
@@ -705,7 +717,7 @@ namespace ListTests
     @describe("onFlowFocusFraction")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("calls the item scroler to update the focus fraction")
+    @it("calls the item scroller to update the focus fraction")
     function _()
       fraction = 0.5
       m.expectCalled(m.list.itemScroller.onFlowFocusFraction(fraction))

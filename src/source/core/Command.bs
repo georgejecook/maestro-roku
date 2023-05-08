@@ -7,6 +7,7 @@ namespace mc
     childCommands = []
     isFinished = false
     commandCount = 0
+    isOk = true
 
     function new(name as string, func as function, options = {} as mc.types.assocarray)
       m.name = name
@@ -16,13 +17,18 @@ namespace mc
 
     function configureChildCommands(commands as mc.types.array)
       m.childCommands = []
-      for each command in commands
-        if command <> invalid
-          command.parentCommand = m
-          m.childCommands.push(command)
-        end if
-      end for
-      m.commandCount = m.childCommands.count()
+      if mc.isArray(commands)
+        for each command in commands
+          if command <> invalid
+            command.parentCommand = m
+            m.childCommands.push(command)
+          end if
+        end for
+        m.commandCount = m.childCommands.count()
+      else
+        ? "ERROR: CANNOT SET COMMAND CHILDREN: RECEIVED NON ARRAY" m.name
+        m.isOk = false
+      end if
     end function
   end class
 
@@ -39,13 +45,13 @@ namespace mc
       m.isWaitingResult = asBoolean(options.isWaitingResult, true)
       m.isTask = true
       m.taskName = taskName
-      m.taskArgs = { args: taskArgs }
+      m.taskArgs = taskArgs
       m.onComplete = options.onComplete
     end function
   end class
 
   class SequentialCommand extends mc.Command
-    commandIndex = 0
+    commandIndex = -1
     currentCommand as mc.Command
     isSequence = true
 
@@ -55,16 +61,17 @@ namespace mc
     end function
 
     function moveNext()
-      while m.commandIndex < m.commandCount
+      nextCommand = invalid
+      while nextCommand = invalid and m.commandIndex < m.commandCount
         m.commandIndex++
-        m.currentCommand = m.childCommands[m.commandIndex]
-        if m.currentCommand <> invalid
-          m.currentCommand.parentCommant = m
-        end if
+        nextCommand = m.childCommands[m.commandIndex]
       end while
+      m.currentCommand = nextCommand
       m.isFinished = m.commandIndex = m.commandCount
     end function
+
   end class
+
   class ParallelCommand extends mc.Command
     completeCount = 0
     currentCommand as mc.Command

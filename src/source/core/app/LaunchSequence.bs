@@ -42,10 +42,10 @@ namespace mc.app
     private prebakeCommand as mc.Command
 
     protected override function createCommands()
-      m.firstCommand.nextCommands = [new mc.SequentialCommand("Maestro Configuration Commands", [
+      return [new mc.SequentialCommand("Launch Sequence Commands", [
           new mc.Command("Init IOC", m.initializeIOC)
-          m.optionalCommand(m.isIncludingView, new mc.SequentialCommand("Maestro Configuration Commands", m.getMaestroInitializationCommands))
-          new mc.SequentialCommand("Custom Launch Commands", m.getCustomCommands())
+          m.optionalCommand(m.isIncludingView, new mc.SequentialCommand("Maestro Initialization", m.getMaestroInitializationCommands()))
+          new mc.SequentialCommand("Custom Launch", m.getCustomCommands())
         ]
       )]
     end function

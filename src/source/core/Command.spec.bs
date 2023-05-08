@@ -1,0 +1,297 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/Command.bs"
+namespace tests
+  @suite("Commands tests")
+  class CommandTest extends tests.BaseTestSuite
+
+    private command
+
+    protected override function beforeEach()
+      super.beforeEach()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("configureChildCommands")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets parent on all comands")
+    function _()
+
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      m.command = new mc.Command("test", invalid)
+      m.command.configureChildCommands(commands)
+
+      m.assertEqual(m.command.commandCount, 2)
+      m.assertEqual(m.command.childCommands[0].id, "c1")
+      m.assertEqual(m.command.childCommands[1].id, "c2")
+
+      m.assertEqual(c1.parentCommand, m.command)
+      m.assertEqual(c2.parentCommand, m.command)
+    end function
+
+    @it("filters invalid commands")
+    function _()
+
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, invalid, c2]
+
+      m.command = new mc.Command("test", invalid)
+      m.command.configureChildCommands(commands)
+
+      m.assertEqual(m.command.commandCount, 2)
+      m.assertEqual(m.command.childCommands[0].id, "c1")
+      m.assertEqual(m.command.childCommands[1].id, "c2")
+
+      m.assertEqual(c1.parentCommand, m.command)
+      m.assertEqual(c2.parentCommand, m.command)
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("Command constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets appropriate fields")
+    function _()
+      m.command = new mc.Command("test", m.assertEqual)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertEqual(m.command.func, m.assertEqual)
+      m.assertFalse(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertEmpty(m.command.childCommands)
+      m.assertEqual(m.command.commandCount, 0)
+    end function
+
+
+    @it("includes options")
+    function _()
+      options = {
+        unknown: "option"
+        ignoreFailure: true
+      }
+      m.command = new mc.Command("test", m.assertEqual, options)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertEqual(m.command.func, m.assertEqual)
+      m.assertTrue(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertEmpty(m.command.childCommands)
+      m.assertEqual(m.command.commandCount, 0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("TaskCommand constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets appropriate fields")
+    function _()
+      taskArgs = { "id": "taskArgs" }
+      m.command = new mc.TaskCommand("test", "TaskName", taskArgs)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertInvalid(m.command.func)
+      m.assertEqual(m.command.taskName, "TaskName")
+      m.assertEqual(m.command.taskArgs, taskArgs)
+      m.assertFalse(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertEmpty(m.command.childCommands)
+      m.assertEqual(m.command.commandCount, 0)
+    end function
+
+    @it("includes options")
+    function _()
+      options = {
+        onComplete: m.assertEqual
+        ignoreFailure: true
+      }
+      taskArgs = { "id": "taskArgs" }
+
+      m.command = new mc.TaskCommand("test", "TaskName", taskArgs, options)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertEqual(m.command.taskName, "TaskName")
+      m.assertEqual(m.command.taskArgs, taskArgs)
+      m.assertInvalid(m.command.func)
+      m.assertEqual(m.command.onComplete, m.assertEqual)
+      m.assertTrue(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertEmpty(m.command.childCommands)
+      m.assertEqual(m.command.commandCount, 0)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SequentialCommand constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets appropriate fields")
+    function _()
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      m.command = new mc.SequentialCommand("test", commands)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertInvalid(m.command.func)
+      m.assertFalse(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertTrue(m.command.isSequence)
+      m.assertEqual(m.command.commandIndex, -1)
+      m.assertEqual(m.command.commandCount, 2)
+      m.assertEqual(m.command.childCommands[0].id, "c1")
+      m.assertEqual(m.command.childCommands[1].id, "c2")
+
+      m.assertEqual(c1.parentCommand, m.command)
+      m.assertEqual(c2.parentCommand, m.command)
+
+    end function
+
+    @it("includes options")
+    function _()
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      options = {
+        onComplete: m.assertEqual
+        ignoreFailure: true
+      }
+
+      m.command = new mc.SequentialCommand("test", commands, options)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertEqual(m.command.commandIndex, -1)
+      m.assertInvalid(m.command.func)
+      m.assertTrue(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertEqual(m.command.commandCount, 2)
+      m.assertTrue(m.command.isSequence)
+      m.assertEqual(m.command.childCommands[0].id, "c1")
+      m.assertEqual(m.command.childCommands[1].id, "c2")
+
+      m.assertEqual(c1.parentCommand, m.command)
+      m.assertEqual(c2.parentCommand, m.command)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("ParallelCommand constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("sets appropriate fields")
+    function _()
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      m.command = new mc.ParallelCommand("test", commands)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertInvalid(m.command.func)
+      m.assertFalse(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertTrue(m.command.isParallel)
+      m.assertEqual(m.command.completeCount, 0)
+      m.assertEqual(m.command.commandCount, 2)
+      m.assertEqual(m.command.childCommands[0].id, "c1")
+      m.assertEqual(m.command.childCommands[1].id, "c2")
+
+      m.assertEqual(c1.parentCommand, m.command)
+      m.assertEqual(c2.parentCommand, m.command)
+
+    end function
+
+    @it("includes options")
+    function _()
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      options = {
+        onComplete: m.assertEqual
+        ignoreFailure: true
+      }
+
+      m.command = new mc.ParallelCommand("test", commands, options)
+
+      m.assertEqual(m.command.name, "test")
+      m.assertInvalid(m.command.func)
+      m.assertTrue(m.command.ignoreFailure)
+      m.assertFalse(m.command.isFinished)
+      m.assertTrue(m.command.isParallel)
+      m.assertEqual(m.command.completeCount, 0)
+      m.assertEqual(m.command.commandCount, 2)
+      m.assertEqual(m.command.childCommands[0].id, "c1")
+      m.assertEqual(m.command.childCommands[1].id, "c2")
+
+      m.assertEqual(c1.parentCommand, m.command)
+      m.assertEqual(c2.parentCommand, m.command)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("ParallelCommand completeCommand")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("increases complete count")
+    function _()
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      m.command = new mc.ParallelCommand("test", commands)
+
+      m.command.completeCommand(c1)
+      m.assertEqual(m.command.completeCount, 1)
+      m.assertFalse(m.command.isFinished)
+
+      m.command.completeCommand(c2)
+      m.assertEqual(m.command.completeCount, 2)
+      m.assertTrue(m.command.isFinished)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("SequentialCommand moveNext")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("increases complete count")
+    function _()
+      c1 = { "id": "c1" }
+      c2 = { "id": "c2" }
+      commands = [c1, c2]
+
+      m.command = new mc.SequentialCommand("test", commands)
+
+      m.command.moveNext()
+      m.assertEqual(m.command.currentCommand.id, "c1")
+      m.assertEqual(m.command.commandIndex, 0)
+      m.assertFalse(m.command.isFinished)
+
+      m.command.moveNext()
+      m.assertEqual(m.command.currentCommand.id, "c2")
+      m.assertEqual(m.command.commandIndex, 1)
+      m.assertFalse(m.command.isFinished)
+
+      m.command.moveNext()
+      m.assertInvalid(m.command.currentCommand)
+      m.assertEqual(m.command.commandIndex, 2)
+      m.assertTrue(m.command.isFinished)
+    end function
+
+    @it("is complete when there are no tasks")
+    function _()
+      commands = []
+
+      m.command = new mc.SequentialCommand("test", commands)
+
+      m.command.moveNext()
+      m.assertInvalid(m.command.currentCommand)
+      m.assertEqual(m.command.commandIndex, 0)
+      m.assertTrue(m.command.isFinished)
+    end function
+
+  end class
+end namespace
