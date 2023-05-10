@@ -30,6 +30,7 @@ namespace mc.app
     'TODO - where will this file actually be?
     'this is in the ropm folder - let ropm rename
     protected maestroStyleUrl = "pkg:/meta/maestroDefaultStyles.json"
+    protected notificationCenter as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -41,44 +42,28 @@ namespace mc.app
     private prebakeCommand as mc.Command
 
     protected override function createCommands()
-      iocCommand = new mc.Command("Init IOC", m.initializeIOC)
-      m.firstCommand.nextCommands = [iocCommand]
-
-      if m.isIncludingView
-        iocCommand.nextCommands = [
-          new mc.Command("Create FontManger", m.createFontManger)
-          new mc.Command("Load Styles", m.loadStyles)
-          new mc.Command("Setup Maestro", m.setupMaestro)
-          new mc.Command("Initialize ComponentPool", m.initializeComponentPool)
-          new mc.Command("Prebake Cells", m._prebakeViews)
+      return [new mc.SequentialCommand("Launch Sequence Commands", [
+          new mc.Command("Init IOC", m.initializeIOC)
+          new mc.OptionalSequentialCommand("Maestro Initialization", m.isIncludingView, m.getMaestroInitializationCommands())
+          ' new mc.SequentialCommand("Custom Launch", m.getCustomCommands())
+          new mc.SequentialCommand("Custom Launch", m.getCustomCommands())
         ]
-        iocCommand.nextCommands.append(m.getCustomSteps())
-      else
-        m.log.warn("view commands are disabled")
-        iocCommand.nextCommands = m.getCustomSteps()
-      end if
+      )]
     end function
 
-    protected function getCustomSteps() as mc.types.array
-      'override point to provide custom steps
+    protected function getCustomCommands() as mc.types.array
+      'override point to provide sequential custom commands
       return []
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Marker functions
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    'these functions are used as markers to kick off the next block of steps that are waiting on these
-    private function startView(command as mc.Command)
-      'marker function implementation
-    end function
-
-    private function startCustomSteps(command as mc.Command)
-      'marker function implementation
-    end function
-
-    private function stepsFinished(command as mc.Command)
-      'marker function implementation
+    protected function getMaestroInitializationCommands() as mc.types.array
+      return [
+        new mc.Command("Create FontManger", m.createFontManger)
+        new mc.Command("Load Styles", m.loadStyles)
+        new mc.Command("Setup Maestro", m.setupMaestro)
+        new mc.Command("Initialize ComponentPool", m.initializeComponentPool)
+        new mc.Command("Prebake Cells", m._prebakeViews)
+      ]
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -96,6 +81,10 @@ namespace mc.app
       tick.control = "start"
       mc.setOrAddNodeField(m.global, "tick", tick)
       m.setInstance("tick", tick)
+
+      m.notificationCenter = mc.createSGNode("mc_NotificationCenter", invalid, "notificationCenter")
+      mioc.setInstance("notificationCenter", m.notificationCenter)
+
       m.finishCommand(command)
     end function
 
@@ -103,15 +92,24 @@ namespace mc.app
     '++ IOC
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function initializeIOC(command as mc.Command)
+    protected function initializeIOC(command as mc.Command)
       m.log.info("initializing the IOC container")
       mioc.createContainer()
 
-      delayedTaskManager = m.createSGNode("mc_delayedTaskManager", invalid, "delayedTaskManager")
-      m.setInstance("delayedTaskManager", delayedTaskManager)
+      m.createIOCInstance("mc_delayedTaskManager", "delayedTaskManager")
       m.setInstance("manifest", m.loadManifest())
       m.finishCommand(command)
     end function
+
+    protected function createIOCInstance(nodeType as string, id as string, args = invalid as mc.types.assocarray, copyToGlobal = false as boolean)
+      instance = m.createSGNode(nodeType, invalid, id, args)
+      m.setInstance(id, instance)
+      if copyToGlobal
+        mc.setOrAddNodeField(m.global, id, instance)
+      end if
+      return instance
+    end function
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Flyweight
@@ -157,7 +155,7 @@ namespace mc.app
     '++ View Related Setup
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function createFontManger(command as mc.Command)
+    protected function createFontManger(command as mc.Command)
       'bs:disable-next-line
       fontManager = createObject("roSGNode", "mv_FontManager")
       m.setInstance("fontManager", fontManager)
@@ -165,7 +163,7 @@ namespace mc.app
       m.finishCommand(command)
     end function
 
-    private function loadStyles(command as mc.Command) as void
+    protected function loadStyles(command as mc.Command) as void
 
       styleManager = mc.createSGNode("mv_StyleManager", invalid, "styleManager")
       m.setInstance("styleManager", styleManager)
@@ -186,16 +184,16 @@ namespace mc.app
     end function
 
     protected override function failCommand(command as mc.Command, message as string)
-      m.log.error(`error executing loading step ${command.name}: `, message)
+      m.log.error(`error executing loading command ${command.name}: `, message)
       ' TODO(gcook):  what happens here?
-      m.showErrorDialog(`Loading step failed: ${command.name}`, message)
+      m.showErrorDialog(`Loading command failed: ${command.name}`, message)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Private Methods
+    '++ Protected Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function loadJson(path as string) as mc.types.assocarray
+    protected function loadJson(path as string) as mc.types.assocarray
       try
         text = readAsciiFile(path)
         result = parseJson(text)
@@ -205,7 +203,7 @@ namespace mc.app
       end try
     end function
 
-    public function showErrorDialog(title as string, message as string) as mc.types.node
+    protected function showErrorDialog(title as string, message as string) as mc.types.node
       dialog = m.createSGNode("Dialog")
       dialog.title = title
       dialog.message = message
@@ -213,12 +211,12 @@ namespace mc.app
 
       m.top.getScene().dialog = dialog
 
-      m.observeNodeField(dialog, "buttonSelected", m.onErrorDialogClose, "none")
-      m.observeNodeField(dialog, "wasClosed", m.onErrorDialogClose, "none")
+      m.observe(dialog.buttonSelected, m.onErrorDialogClose, "none")
+      m.observe(dialog.wasClosed, m.onErrorDialogClose, "none")
       return dialog
     end function
 
-    public function onErrorDialogClose()
+    protected function onErrorDialogClose()
       m.top.getScene().dialog = invalid
       m.top.getScene().closeChannel = true
     end function

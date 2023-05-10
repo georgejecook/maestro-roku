@@ -1,27 +1,125 @@
+import "pkg:/source/core/DebugTimer.bs"
 namespace mc
   class Command
     name as string
     func as function
-    nextCommands as mc.types.array
+    ignoreFailure = false
+    parentCommand as mc.Command
+    childCommands = []
+    isFinished = false
+    commandCount = 0
+    isOk = true
+    timer as mc.utils.DebugTimer
 
-    function new(name as string, func as function, nextCommands = [] as mc.types.array)
+    function new(name as string, func as function, options = {} as mc.types.assocarray)
       m.name = name
       m.func = func
-      m.nextCommands = nextCommands
+      m.timer = mc.utils.DebugTimer(name)
+      m.ignoreFailure = asBoolean(options.ignoreFailure)
+    end function
+
+    function configureChildCommands(commands as mc.types.array)
+      m.childCommands = []
+      if mc.isArray(commands)
+        for each command in commands
+          if command <> invalid
+            command.parentCommand = m
+            m.childCommands.push(command)
+          end if
+        end for
+        m.commandCount = m.childCommands.count()
+      else
+        ? "ERROR: CANNOT SET COMMAND CHILDREN: RECEIVED NON ARRAY" m.name
+        m.isOk = false
+      end if
     end function
   end class
+
   class TaskCommand extends mc.Command
     isTask = true
     taskArgs as mc.types.assocarray
     taskName as string
-    ignoreFailure = false
+    onComplete as function
+    parentCommant as mc.Command
+    isWaitingResult = true
 
-    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, nextCommands = [] as mc.types.array, options = {} as mc.types.assocarray)
-      super(name, invalid, nextCommands)
+    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, options = {} as mc.types.assocarray)
+      super(name, invalid, options)
+      m.isWaitingResult = asBoolean(options.isWaitingResult, true)
       m.isTask = true
       m.taskName = taskName
-      m.taskArgs = { args: taskArgs }
-      m.ignoreFailure = asBoolean(options.ignoreFailure)
+      m.taskArgs = taskArgs
+      m.onComplete = options.onComplete
+    end function
+  end class
+
+  class SequentialCommand extends mc.Command
+    commandIndex = -1
+    completeCount = 0
+    currentCommand as mc.Command
+    isSequence = true
+
+    function new(name as string, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, invalid, options)
+      m.configureChildCommands(commands)
+    end function
+
+    function moveNext()
+      nextCommand = invalid
+      while nextCommand = invalid and m.commandIndex < m.commandCount
+        m.commandIndex++
+        nextCommand = m.childCommands[m.commandIndex]
+      end while
+      m.currentCommand = nextCommand
+    end function
+
+    function completeCommand(command as mc.Command)
+      m.completeCount++
+      m.isFinished = m.completeCount = m.commandCount
+    end function
+
+  end class
+  class OptionalSequentialCommand extends mc.SequentialCommand
+    isOptional = true
+    isActive = false
+
+    function new(name as string, isActive as boolean, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, isActive ? commands : [], options)
+      m.isActive = isActive
+    end function
+  end class
+
+  class ParallelCommand extends mc.Command
+    completeCount = 0
+    currentCommand as mc.Command
+    isParallel = true
+
+    function new(name as string, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, invalid, options)
+      m.configureChildCommands(commands)
+    end function
+
+    function completeCommand(command as mc.Command)
+      m.completeCount++
+      m.isFinished = m.completeCount = m.commandCount
+    end function
+  end class
+
+  class OptionalParallelCommand extends mc.ParallelCommand
+    isOptional = true
+    isActive = false
+
+    function new(name as string, isActive as boolean, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, isActive ? commands : [], options)
+      m.isActive = isActive
+    end function
+  end class
+
+  class CommandProvider extends mc.Command
+    isProvider = true
+
+    function new(name as string, builderFunction as function)
+      super(name, builderFunction, {})
     end function
   end class
 end namespace
