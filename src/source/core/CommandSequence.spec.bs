@@ -22,7 +22,6 @@ namespace tests
     function _()
       m.assertEmpty(m.commandSequence.completedCommands)
       m.assertEmpty(m.commandSequence.runningCommands)
-      m.assertEqual(m.commandSequence.runningCommandsCount, 0)
       m.assertEmpty(m.commandSequence.commands)
       m.assertEmpty(m.commandSequence.taskCommands)
     end function
@@ -38,6 +37,7 @@ namespace tests
         isFinished: true
       }
       m.expectCalled(command.moveNext())
+      m.expectCalled(m.commandSequence.finishCommand(command))
 
       m.commandSequence.startSequentialCommand(command)
     end function
@@ -58,7 +58,6 @@ namespace tests
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    @only
     @describe("test scenario")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -112,6 +111,36 @@ namespace tests
       m.assertEqual(m.commandSequence.output, { isOk: true })
     end function
 
+    @it("scenario E")
+    function _()
+      ? "-------------------------"
+      ? "-------------------------"
+      m.commandSequence.createcommands = m.createTestCommands_E
+      m.commandSequence.begin()
+
+      m.assertEqual(m.commandSequence.output, { isOk: true })
+    end function
+
+    @it("scenario F")
+    function _()
+      ? "-------------------------"
+      ? "-------------------------"
+      m.commandSequence.createcommands = m.createTestCommands_F
+      m.commandSequence.begin()
+
+      m.assertEqual(m.commandSequence.output, { isOk: true })
+    end function
+
+    @it("scenario G")
+    function _()
+      ? "-------------------------"
+      ? "-------------------------"
+      m.commandSequence.createcommands = m.createTestCommands_G
+      m.commandSequence.begin()
+
+      m.assertEqual(m.commandSequence.output, { isOk: true })
+    end function
+
     private function getProvidedCommand(commandProvider as mc.CommandProvider) as mc.Command
       return new mc.Command(commandProvider.name, m.doMockCommandWork)
     end function
@@ -121,6 +150,7 @@ namespace tests
     end function
 
     private function doMockCommandWork(command as mc.Command)
+      ? "DO WORK FOR COMMAND " command.name
       'bs:disable-next-line
       m.finishCommand(command)
     end function
@@ -130,24 +160,6 @@ namespace tests
         new mc.Command("A", m.doMockCommandWork)
         new mc.Command("B", m.doMockCommandWork)
       ]
-      '----------
-      ' return [new mc.SequentialCommand("Commands", [
-      ' new mc.Command("A", m.doMockCommandWork)
-      ' new mc.OptionalSequentialCommand("B", true, [
-      '   mc.Command("B_1", m.doMockCommandWork)
-      '   mc.Command("B_2", m.doMockCommandWork)
-      ' ])
-      ' new mc.Command("C", m.doMockCommandWork)
-      ' new mc.CommandProvider("D", m.getProvidedCommand)
-      ' new mc.Command("E", m.doMockCommandWork)
-      ' new mc.CommandProvider("F", m.getInvalidProvidedCommand)
-      ' new mc.Command("G", m.doMockCommandWork),
-      ' new mc.OptionalSequentialCommand("H", false, [
-      '   mc.Command("H_1", m.doMockCommandWork)
-      '   mc.Command("H_2", m.doMockCommandWork)
-      ' ])
-      '   ]
-      ' )]
     end function
 
     private function createTestCommands_B() as mc.types.array
@@ -208,6 +220,42 @@ namespace tests
             mc.Command("H_1", m.doMockCommandWork)
             mc.Command("H_2", m.doMockCommandWork)
           ])
+        ]
+      )]
+    end function
+
+    private function createTestCommands_E() as mc.types.array
+      return [new mc.SequentialCommand("Optional Commands", [
+          new mc.OptionalCommand("A", true, m.doMockCommandWork)
+          new mc.OptionalSequentialCommand("B", true, [
+            mc.OptionalCommand("B_1", true, m.doMockCommandWork)
+            mc.OptionalCommand("B_2", true, m.doMockCommandWork)
+          ])
+          new mc.OptionalCommand("C", true, m.doMockCommandWork)
+        ]
+      )]
+    end function
+
+    private function createTestCommands_F() as mc.types.array
+      return [new mc.SequentialCommand("Optional Commands", [
+          new mc.OptionalCommand("A", false, m.doMockCommandWork)
+          new mc.OptionalSequentialCommand("B", true, [
+            mc.OptionalCommand("B_1", false, m.doMockCommandWork)
+            mc.OptionalCommand("B_2", false, m.doMockCommandWork)
+          ])
+          new mc.OptionalCommand("C", false, m.doMockCommandWork)
+        ]
+      )]
+    end function
+
+    private function createTestCommands_G() as mc.types.array
+      return [new mc.SequentialCommand("Optional Commands", [
+          new mc.OptionalCommand("A", false, m.doMockCommandWork)
+          new mc.OptionalSequentialCommand("B", true, [
+            mc.OptionalCommand("B_1", false, m.doMockCommandWork)
+            mc.OptionalCommand("B_2", true, m.doMockCommandWork)
+          ])
+          new mc.OptionalCommand("C", false, m.doMockCommandWork)
         ]
       )]
     end function

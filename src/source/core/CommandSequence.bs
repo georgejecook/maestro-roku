@@ -57,6 +57,11 @@ namespace mc
         return
       end if
 
+      if command.isOptional = true and not command.isActive
+        m.log.info("skipping inactive optional command", command.name)
+        return
+      end if
+
       if command.isProvider = true
         m.log.verbose("this command is a provider, using the provided command")
         providedCommand = mc.apply(command.func, [command], m)
