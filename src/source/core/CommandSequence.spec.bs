@@ -141,6 +141,16 @@ namespace tests
       m.assertEqual(m.commandSequence.output, { isOk: true })
     end function
 
+    @it("scenario H")
+    function _()
+      ? "-------------------------"
+      ? "-------------------------"
+      m.commandSequence.createcommands = m.createTestCommands_H
+      m.commandSequence.begin()
+
+      m.assertEqual(m.commandSequence.output, { isOk: true })
+    end function
+
     private function getProvidedCommand(commandProvider as mc.CommandProvider) as mc.Command
       return new mc.Command(commandProvider.name, m.doMockCommandWork)
     end function
@@ -252,6 +262,18 @@ namespace tests
       return [new mc.SequentialCommand("Optional Commands", [
           new mc.OptionalCommand("A", false, m.doMockCommandWork)
           new mc.OptionalSequentialCommand("B", true, [
+            mc.OptionalCommand("B_1", false, m.doMockCommandWork)
+            mc.OptionalCommand("B_2", true, m.doMockCommandWork)
+          ])
+          new mc.OptionalCommand("C", false, m.doMockCommandWork)
+        ]
+      )]
+    end function
+
+    private function createTestCommands_H() as mc.types.array
+      return [new mc.SequentialCommand("Optional Commands", [
+          new mc.OptionalCommand("A", true, m.doMockCommandWork)
+          new mc.ParallelCommand("B", true, [
             mc.OptionalCommand("B_1", false, m.doMockCommandWork)
             mc.OptionalCommand("B_2", true, m.doMockCommandWork)
           ])
