@@ -44,7 +44,8 @@ namespace mc.app
     protected override function createCommands()
       return [new mc.SequentialCommand("Launch Sequence Commands", [
           new mc.Command("Init IOC", m.initializeIOC)
-          m.optionalCommand(m.isIncludingView, new mc.SequentialCommand("Maestro Initialization", m.getMaestroInitializationCommands()))
+          new mc.OptionalSequentialCommand("Maestro Initialization", m.isIncludingView, m.getMaestroInitializationCommands())
+          ' new mc.SequentialCommand("Custom Launch", m.getCustomCommands())
           new mc.SequentialCommand("Custom Launch", m.getCustomCommands())
         ]
       )]

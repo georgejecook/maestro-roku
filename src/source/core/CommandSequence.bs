@@ -25,14 +25,13 @@ namespace mc
 
     private completedCommands = {}
     private runningCommands = {}
-    private runningCommandsCount = 0
     private commands = {}
     private taskCommands = {}
 
     protected firstCommand as mc.SequentialCommand
 
     function new()
-      super(mc.dv(m.top))
+      super("CommandSequence")
     end function
 
     private function begin()
@@ -47,19 +46,30 @@ namespace mc
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Marker functions
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Loading command Management
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function optionalCommand(condition as boolean, command as mc.Command)
-      return condition ? command : invalid
-    end function
-
     protected function startCommand(command as mc.Command) as void
       m.log.info("starting command", command.name)
+
+      if command = invalid
+        m.failCommand({ name: invalid }, "received invalid command")
+        return
+      end if
+
+      if command.isProvider = true
+        m.log.verbose("this command is a provider, using the provided command")
+        providedCommand = mc.apply(command.func, [command], m)
+        if providedCommand = invalid
+          m.log.warn("command", command.name, "did not provide a command. skipping")
+          if command.parentCommand <> invalid
+            m.finishCommand(command)
+          end if
+          return
+        end if
+        providedCommand.parentCommand = command.parentCommand
+        command = providedCommand
+      end if
 
       if m.completedCommands.doesExist(command.name) or m.runningCommands.doesExist(command.name)
         m.log.error("duplicate command name. Cannot proceed", command.name)
@@ -67,48 +77,50 @@ namespace mc
         return
       end if
 
-      m.runningCommandsCount++
+
       m.runningCommands[command.name] = true
       m.completedCommands[command.name] = false
       m.taskCommands[command.name] = command
 
-      try
-        if (command.isParallel = true or command.isSequence = true) and command.commandCount = 0
-          m.log.info("Parallel or sequential command, with no children:", command.name)
-          m.finishCommand(command)
+      m.log.info("Starting command", command.name, "running:", m.getRunningCommandCount(), "running commands: ", formatJson(m.runningCommands.keys()))
 
-        else if command.isParallel = true
-          m.log.info(`command ${command.name} is a parallel command - starting commands now`)
-          m.startParallelCommands(command)
+      ' try
+      if (command.isParallel = true or command.isSequence = true) and command.commandCount = 0
+        m.log.warn("Parallel or sequential command, with no children:", command.name)
+        m.finishCommand(command)
 
-        else if command.isSequence = true
-          m.log.info(`command ${command.name} is a sequential command - starting commands now`)
-          m.startSequentialCommand(command)
+      else if command.isParallel = true
+        m.log.verbose(`command ${command.name} is a parallel command - starting commands now`)
+        m.startParallelCommands(command)
 
-        else if command.isTask = true
-          task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")
-          if task <> invalid
-            mc.setOrAddNodeField(task, "__commandName", command.name)
-            if task.isWaitingResult = false
-              m.log.info("this task command does not need to await the result to continue")
-              m.finishCommand(command)
-            end if
-          else
-            message = `Error executing command ${command.name} could not create task: ${command.taskName}`
-            m.failCommand(command, message)
+      else if command.isSequence = true
+        m.log.verbose(`command ${command.name} is a sequential command - starting commands now`)
+        m.startSequentialCommand(command)
+
+      else if command.isTask = true
+        task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")
+        if task <> invalid
+          mc.setOrAddNodeField(task, "__commandName", command.name)
+          if task.isWaitingResult = false
+            m.log.verbose("this task command does not need to await the result to continue")
+            m.finishCommand(command)
           end if
         else
-          'bs:disable-next-line
-          m.__cb = command.func
-          'bs:disable-next-line
-          m.__cb(command)
+          message = `Error executing command ${command.name} could not create task: ${command.taskName}`
+          m.failCommand(command, message)
         end if
-      catch error
+      else
         'bs:disable-next-line
-        message = `Error executing command ${command.name} error was: ${formatJson(error)}`
-        m.log.error(message)
-        m.failCommand(command, message)
-      end try
+        m.__cb = command.func
+        'bs:disable-next-line
+        m.__cb(command)
+      end if
+      ' catch error
+      '   'bs:disable-next-line
+      '   message = `Error executing command ${command.name} error was: ${formatJson(error)}`
+      '   m.log.error(message)
+      '   m.failCommand(command, message)
+      ' end try
     end function
 
     private function onTaskCommandCallback(value as mc.Result, task as mc.types.node)
@@ -124,7 +136,7 @@ namespace mc
         end if
 
         if command.isWaitingResult = false
-          m.log.info("this command was already completed, previously")
+          m.log.warn("this command was already completed, previously")
         else
           if isOk or asBoolean(command.ignoreFailure)
             m.finishCommand(command)
@@ -139,12 +151,12 @@ namespace mc
 
     protected function finishCommand(command as mc.Command)
 
-      m.completedCommands[command.name] = true
-      m.runningCommands.delete(command.name)
-      m.runningCommandsCount--
-      m.log.info("Finished command", command.name, m.runningCommandsCount, "remaining: ", formatJson(m.runningCommands.keys()))
+
 
       if command.parentCommand <> invalid
+        ? " >>>>>>>>>>>"
+        ? " >>>>>>>>>>>"
+        ? " >>>>>>>>>>> " command.parentCommand.isFinished " CC " command.parentCommand.completeCount
         if command.parentCommand.isParallel = true
           m.finishParallelCommand(command)
         end if
@@ -153,38 +165,51 @@ namespace mc
         end if
 
         if command.parentCommand.isFinished
-          m.log.info("parent command is finished")
+          m.log.verbose("parent command", command.parentCommand.name, "is finished")
           m.finishCommand(command.parentCommand)
         end if
       end if
 
-      if m.runningCommandsCount = 0
-        m.log.info("finished sequence")
-        m.output = { isOK: true }
+
+      m.completedCommands[command.name] = true
+      m.runningCommands.delete(command.name)
+      m.log.info("Finished command", command.name, "running:", m.getRunningCommandCount(), "running commands: ", formatJson(m.runningCommands.keys()))
+      command.isFinished = true
+      command.timer.log("Finished")
+
+      if m.getRunningCommandCount() = 0
+        m.log.info("FINISHED WHOLE SEQUENCE")
+        m.output = { isOk: true }
       end if
+    end function
+
+    function getRunningCommandCount()
+      return m.runningCommands.keys().count()
     end function
 
     private function finishSequentialCommand(command as mc.Command)
-      m.log.info("this command is a sequence, seeing if it has a next command")
+      m.log.verbose("this command is a sequence, seeing if it has a next command")
       command.parentCommand.moveNext()
+
       if command.parentCommand.currentCommand <> invalid
-        m.log.info("has next command", command.parentCommand.currentCommand.name, "starting it")
+        m.log.verbose("has next command", command.parentCommand.currentCommand.name, "starting it")
         m.startCommand(command.parentCommand.currentCommand)
       end if
+      command.parentCommand.completeCommand(command)
     end function
 
     private function finishParallelCommand(command as mc.Command)
-      m.log.info("this command is a parallel command, seeing if all commands are now finished")
+      m.log.verbose("this command is a parallel command, seeing if all commands are now finished")
       command.parentCommand.completeCommand(command)
     end function
 
     private function startSequentialCommand(command as mc.SequentialCommand)
       command.moveNext()
       if command.isFinished
-        m.log.info("parent command is finished on very first task")
+        m.log.verbose("parent command is finished on very first task")
         m.finishCommand(command)
       else
-        m.log.info("starting first command in sequence")
+        m.log.verbose("starting first command in sequence")
         m.startCommand(command.currentCommand)
       end if
     end function
@@ -205,7 +230,7 @@ namespace mc
       else
         m.log.error("cannot continue from command failure")
 
-        m.output = { isOK: false, message: message }
+        m.output = { isOk: false, message: message }
       end if
     end function
 

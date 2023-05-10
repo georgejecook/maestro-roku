@@ -1,3 +1,4 @@
+import "pkg:/source/core/DebugTimer.bs"
 namespace mc
   class Command
     name as string
@@ -8,10 +9,12 @@ namespace mc
     isFinished = false
     commandCount = 0
     isOk = true
+    timer as mc.utils.DebugTimer
 
     function new(name as string, func as function, options = {} as mc.types.assocarray)
       m.name = name
       m.func = func
+      m.timer = mc.utils.DebugTimer(name)
       m.ignoreFailure = asBoolean(options.ignoreFailure)
     end function
 
@@ -52,6 +55,7 @@ namespace mc
 
   class SequentialCommand extends mc.Command
     commandIndex = -1
+    completeCount = 0
     currentCommand as mc.Command
     isSequence = true
 
@@ -67,9 +71,22 @@ namespace mc
         nextCommand = m.childCommands[m.commandIndex]
       end while
       m.currentCommand = nextCommand
-      m.isFinished = m.commandIndex = m.commandCount
     end function
 
+    function completeCommand(command as mc.Command)
+      m.completeCount++
+      m.isFinished = m.completeCount = m.commandCount
+    end function
+
+  end class
+  class OptionalSequentialCommand extends mc.SequentialCommand
+    isOptional = true
+    isActive = false
+
+    function new(name as string, isActive as boolean, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, isActive ? commands : [], options)
+      m.isActive = isActive
+    end function
   end class
 
   class ParallelCommand extends mc.Command
@@ -85,6 +102,24 @@ namespace mc
     function completeCommand(command as mc.Command)
       m.completeCount++
       m.isFinished = m.completeCount = m.commandCount
+    end function
+  end class
+
+  class OptionalParallelCommand extends mc.ParallelCommand
+    isOptional = true
+    isActive = false
+
+    function new(name as string, isActive as boolean, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+      super(name, isActive ? commands : [], options)
+      m.isActive = isActive
+    end function
+  end class
+
+  class CommandProvider extends mc.Command
+    isProvider = true
+
+    function new(name as string, builderFunction as function)
+      super(name, builderFunction, {})
     end function
   end class
 end namespace
