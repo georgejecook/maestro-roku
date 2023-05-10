@@ -15,7 +15,7 @@ title: Maestro-roku
 
 ### Maestro Makes roku development easier, especially for experienced software engineers from other platforms:
 
-I believe that experienced developers from android, ios, c#, web, node, etc, should be able to be productive on a roku app in no more than a week, just as they would on any other platform. So I wrote maestro to make that possible.
+Experienced developers from android, ios, c#, web, node, etc, will be able to be productive on a maestro roku app in no more than a week, just as they would on any other platform.
 
 ## Maestro is built to:
 
@@ -29,10 +29,11 @@ I believe that experienced developers from android, ios, c#, web, node, etc, sho
  - Write code that can be tested and breakpoint debugged, outside of SG views (which are slow as hell, and prone to crashing when breakpoint debugging)
 
 
-## Maestro is easy to use:
+## Maestro is easy to use and powerful:
 
  - Delivered as ropm module for easy installation
  - Has sample app, which is ready to roll for production ready roku apps
+ - Has a transpiler plugin which adds additional language comfort
 
 ## Maestro is aligned with community best practices and tools
 
@@ -54,7 +55,7 @@ Been in production for > 2 years at:
   - applicaster, and their various clients
   - smithsonian
   - corco
-  - other clients (names pending permission ;) )
+  - NBA
 
 # Contributing:
 
@@ -96,5 +97,6 @@ Been in production for > 2 years at:
   - [Getting started](/docs/About:-Getting-started.md)
   - [Callbacks](/docs/List-Component:-Callbacks.md)
   - [CustomCells](/docs/List-Component:-CustomCells.md)
+* [Command Sequences and controlling application launch] (/docs/command-and-launch.md)
 * [Debugging](/docs/Debugging.md)
 * [API documentation](/docs/API-Docs.md)

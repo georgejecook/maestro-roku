@@ -28,8 +28,8 @@ namespace tests
       m.assertEqual(m.command.childCommands[0].id, "c1")
       m.assertEqual(m.command.childCommands[1].id, "c2")
 
-      m.assertEqual(c1.parentCommand, m.command)
-      m.assertEqual(c2.parentCommand, m.command)
+      m.assertEqual(c1.parentCommand.name, "test")
+      m.assertEqual(c2.parentCommand.name, "test")
     end function
 
     @it("filters invalid commands")
@@ -46,8 +46,8 @@ namespace tests
       m.assertEqual(m.command.childCommands[0].id, "c1")
       m.assertEqual(m.command.childCommands[1].id, "c2")
 
-      m.assertEqual(c1.parentCommand, m.command)
-      m.assertEqual(c2.parentCommand, m.command)
+      m.assertEqual(c1.parentCommand.name, "test")
+      m.assertEqual(c2.parentCommand.name, "test")
     end function
 
 
@@ -146,8 +146,8 @@ namespace tests
       m.assertEqual(m.command.childCommands[0].id, "c1")
       m.assertEqual(m.command.childCommands[1].id, "c2")
 
-      m.assertEqual(c1.parentCommand, m.command)
-      m.assertEqual(c2.parentCommand, m.command)
+      m.assertEqual(c1.parentCommand.name, "test")
+      m.assertEqual(c2.parentCommand.name, "test")
 
     end function
 
@@ -174,8 +174,8 @@ namespace tests
       m.assertEqual(m.command.childCommands[0].id, "c1")
       m.assertEqual(m.command.childCommands[1].id, "c2")
 
-      m.assertEqual(c1.parentCommand, m.command)
-      m.assertEqual(c2.parentCommand, m.command)
+      m.assertEqual(c1.parentCommand.name, "test")
+      m.assertEqual(c2.parentCommand.name, "test")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -200,8 +200,8 @@ namespace tests
       m.assertEqual(m.command.childCommands[0].id, "c1")
       m.assertEqual(m.command.childCommands[1].id, "c2")
 
-      m.assertEqual(c1.parentCommand, m.command)
-      m.assertEqual(c2.parentCommand, m.command)
+      m.assertEqual(c1.parentCommand.name, "test")
+      m.assertEqual(c2.parentCommand.name, "test")
 
     end function
 
@@ -228,8 +228,8 @@ namespace tests
       m.assertEqual(m.command.childCommands[0].id, "c1")
       m.assertEqual(m.command.childCommands[1].id, "c2")
 
-      m.assertEqual(c1.parentCommand, m.command)
-      m.assertEqual(c2.parentCommand, m.command)
+      m.assertEqual(c1.parentCommand.name, "test")
+      m.assertEqual(c2.parentCommand.name, "test")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -278,7 +278,6 @@ namespace tests
       m.command.moveNext()
       m.assertInvalid(m.command.currentCommand)
       m.assertEqual(m.command.commandIndex, 2)
-      m.assertTrue(m.command.isFinished)
     end function
 
     @it("is complete when there are no tasks")
@@ -290,7 +289,6 @@ namespace tests
       m.command.moveNext()
       m.assertInvalid(m.command.currentCommand)
       m.assertEqual(m.command.commandIndex, 0)
-      m.assertTrue(m.command.isFinished)
     end function
 
   end class

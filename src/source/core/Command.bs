@@ -22,7 +22,7 @@ namespace mc
       m.childCommands = []
       if mc.isArray(commands)
         for each command in commands
-          if command <> invalid
+          if command <> invalid and not (command.isOptional = true and command.isActive = false)
             command.parentCommand = m
             m.childCommands.push(command)
           end if
@@ -78,6 +78,15 @@ namespace mc
       m.isFinished = m.completeCount = m.commandCount
     end function
 
+  end class
+  class OptionalCommand extends mc.Command
+    isOptional = true
+    isActive = false
+
+    function new(name as string, isActive as boolean, func as function, options = {} as mc.types.assocarray)
+      super(name, func, options)
+      m.isActive = isActive
+    end function
   end class
   class OptionalSequentialCommand extends mc.SequentialCommand
     isOptional = true
