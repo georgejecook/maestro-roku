@@ -84,43 +84,43 @@ namespace mc
 
       m.log.info("Starting command", command.name, "running:", m.getRunningCommandCount(), "running commands: ", formatJson(m.runningCommands.keys()))
 
-      ' try
-      if (command.isParallel = true or command.isSequence = true) and command.commandCount = 0
-        m.log.warn("Parallel or sequential command, with no children:", command.name)
-        m.finishCommand(command)
+      try
+        if (command.isParallel = true or command.isSequence = true) and command.commandCount = 0
+          m.log.warn("Parallel or sequential command, with no children:", command.name)
+          m.finishCommand(command)
 
-      else if command.isParallel = true
-        m.log.verbose(`command ${command.name} is a parallel command - starting commands now`)
-        m.startParallelCommands(command)
+        else if command.isParallel = true
+          m.log.verbose(`command ${command.name} is a parallel command - starting commands now`)
+          m.startParallelCommands(command)
 
-      else if command.isSequence = true
-        m.log.verbose(`command ${command.name} is a sequential command - starting commands now`)
-        m.startSequentialCommand(command)
+        else if command.isSequence = true
+          m.log.verbose(`command ${command.name} is a sequential command - starting commands now`)
+          m.startSequentialCommand(command)
 
-      else if command.isTask = true
-        task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")
-        if task <> invalid
-          mc.setOrAddNodeField(task, "__commandName", command.name)
-          if task.isWaitingResult = false
-            m.log.verbose("this task command does not need to await the result to continue")
-            m.finishCommand(command)
+        else if command.isTask = true
+          task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")
+          if task <> invalid
+            mc.setOrAddNodeField(task, "__commandName", command.name)
+            if task.isWaitingResult = false
+              m.log.verbose("this task command does not need to await the result to continue")
+              m.finishCommand(command)
+            end if
+          else
+            message = `Error executing command ${command.name} could not create task: ${command.taskName}`
+            m.failCommand(command, message)
           end if
         else
-          message = `Error executing command ${command.name} could not create task: ${command.taskName}`
-          m.failCommand(command, message)
+          'bs:disable-next-line
+          m.__cb = command.func
+          'bs:disable-next-line
+          m.__cb(command)
         end if
-      else
+      catch error
         'bs:disable-next-line
-        m.__cb = command.func
-        'bs:disable-next-line
-        m.__cb(command)
-      end if
-      ' catch error
-      '   'bs:disable-next-line
-      '   message = `Error executing command ${command.name} error was: ${formatJson(error)}`
-      '   m.log.error(message)
-      '   m.failCommand(command, message)
-      ' end try
+        message = `Error executing command ${command.name} error was: ${formatJson(error)}`
+        m.log.error(message)
+        m.failCommand(command, message)
+      end try
     end function
 
     private function onTaskCommandCallback(value as mc.Result, task as mc.types.node)
@@ -154,9 +154,6 @@ namespace mc
 
 
       if command.parentCommand <> invalid
-        ? " >>>>>>>>>>>"
-        ? " >>>>>>>>>>>"
-        ? " >>>>>>>>>>> " command.parentCommand.isFinished " CC " command.parentCommand.completeCount
         if command.parentCommand.isParallel = true
           m.finishParallelCommand(command)
         end if
