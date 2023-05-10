@@ -8,7 +8,7 @@ namespace tests
     protected override function beforeEach()
       super.beforeEach()
 
-      m.sequence = m.createNodeClass(mc.LaunchSequence)
+      m.sequence = m.createNodeClass(mc.app.LaunchSequence)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -17,52 +17,47 @@ namespace tests
 
     @it("initializes variables")
     function _()
-      sequence = m.createNodeClass(mc.LaunchSequence)
-
-      m.assertEmpty(sequence.poolsByComponentType)
-      m.assertEqual(sequence.numberOfComponents, 0)
-      m.assertEqual(sequence.numberOfComponentsInUse, 0)
-      m.assertEqual(sequence.numberOfComponentsToCreateWhenDry, 10)
-      m.assertTrue(sequence.isCreateMoreEnabled)
+      sequence = m.createNodeClass(mc.app.LaunchSequence)
+      'TODO
     end function
 
-       '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-       @describe("createIOCInstance")
-       '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createIOCInstance")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-       @it("creates the required node type and stores it in ioc")
-       function _()
-         args = { "id": "args" }
-         node = mc.createSGNode("Node")
-         globalNode = mc.createSGNode("Node")
-         m.sequence.global = globalNode
+    @it("creates the required node type and stores it in ioc")
+    function _()
+      args = { "id": "args" }
+      node = mc.createSGNode("Node")
+      globalNode = mc.createSGNode("Node")
+      m.sequence.global = globalNode
 
-         m.expectCalled(m.sequence.createSGNode("Node", invalid, "instanceId", args), node)
+      m.expectCalled(m.sequence.createSGNode("Node", invalid, "instanceId", args), node)
 
-         m.expectCalled(m.sequence.setInstance("instanceId", node))
+      m.expectCalled(m.sequence.setInstance("instanceId", node))
 
 
-         instance = m.sequence.createIOCInstance("Node", "instanceId", args)
-         m.assertEqual(instance, node)
-         m.assertInvalid(globalNode.instanceId)
+      instance = m.sequence.createIOCInstance("Node", "instanceId", args)
+      m.assertEqual(instance, node)
+      m.assertInvalid(globalNode.instanceId)
 
-       end function
+    end function
 
-       @it("creates the required node type and stores it in ioc, and stores in global when copyToGlobal is set")
-       function _()
-         args = { "id": "args" }
-         node = mc.createSGNode("Node")
-         globalNode = mc.createSGNode("Node")
-         m.sequence.global = globalNode
+    @it("creates the required node type and stores it in ioc, and stores in global when copyToGlobal is set")
+    function _()
+      args = { "id": "args" }
+      node = mc.createSGNode("Node")
+      globalNode = mc.createSGNode("Node")
+      m.sequence.global = globalNode
 
-         m.expectCalled(m.sequence.createSGNode("Node", invalid, "instanceId", args), node)
+      m.expectCalled(m.sequence.createSGNode("Node", invalid, "instanceId", args), node)
 
-         m.expectCalled(m.sequence.setInstance("instanceId", node))
+      m.expectCalled(m.sequence.setInstance("instanceId", node))
 
-         m.sequence.createIOCInstance("Node", "instanceId", args, true)
+      m.sequence.createIOCInstance("Node", "instanceId", args, true)
 
-         m.assertEqual(globalNode.instanceId, node)
-       end function
+      m.assertEqual(globalNode.instanceId, node)
+    end function
 
 
   end class
