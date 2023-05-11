@@ -406,6 +406,31 @@ namespace tests
       m.assertEqual(value, node2)
     end function
 
+    @only
+    @it("gets indexed child nodes ")
+    function _()
+      a = {
+        node: mc.createSGNode("Node", invalid, "root")
+      }
+      c1 = mc.createSGNode("Node", a.node, "c1")
+      c2 = mc.createSGNode("Node", a.node, "c2")
+      c3 = mc.createSGNode("Node", c2, "c3")
+      c4 = mc.createSGNode("Node", c3, "c4")
+      c5 = mc.createSGNode("Node", c3, "c5")
+
+      m.assertInvalid(asNode(a))
+      m.assertInvalid(asNode(a.node[3]))
+      m.assertInvalid(asNode(a.node[0][1]))
+      m.assertInvalid(asNode(a.node[0][2][1]))
+      m.assertInvalid(asNode(a.node[0][0][1]))
+      m.assertEqual(asNode(a.node[0]).id, "c1")
+      m.assertEqual(asNode(a.node[1]).id, "c2")
+      m.assertEqual(asNode(a.node[1][0]).id, "c3")
+      m.assertEqual(asNode(a.node[1][0][0]).id, "c4")
+      m.assertEqual(asNode(a.node[1][0][1]).id, "c5")
+    end function
+
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("asAny")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
