@@ -1,0 +1,234 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/DelayedTaskManager.bs"
+
+namespace tests
+
+  @suite("DelayedTaskManager tests")
+  class DelayedTaskManagerTests extends tests.BaseTestSuite
+
+    private manager
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.manager = m.createNodeClass(mc.tasks.DelayedTaskManager)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("has correct initial values")
+    function _()
+      m.assertEmpty(m.manager.activeTimers)
+      m.assertEmpty(m.manager.delayedTasks)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("cancelDelayedTaskWithId")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("deletes timer and task")
+    @params("i1")
+    @params("i2")
+    function _(id)
+      m.expectCalled(m.manager.removeTimer(id))
+      m.expectCalled(m.manager.removeTask(id))
+
+      m.manager.cancelDelayedTaskWithId(id)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("removeTimer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("removes timer if present")
+    function _()
+
+      timer1 = { "id": "timer1" }
+      timer2 = { "id": "timer2" }
+      m.manager.activeTimers["i1"] = timer1
+      m.manager.activeTimers["i2"] = timer2
+
+      m.expectCalled(m.manager.cancelTimeout(timer1))
+      m.expectCalled(m.manager.cancelTimeout(timer2))
+
+      m.manager.removeTimer("i1")
+      m.assertEqual(m.manager.activeTimers, { i2: timer2 })
+      m.manager.removeTimer("i2")
+      m.assertEmpty(m.manager.activeTimers)
+    end function
+
+    @it("does not remove timer with unknown id")
+    function _()
+
+      timer1 = { "id": "timer1" }
+      timer2 = { "id": "timer2" }
+      m.manager.activeTimers["i1"] = timer1
+      m.manager.activeTimers["i2"] = timer2
+      m.expectNotCalled(m.manager.cancelTimeout)
+
+      m.manager.removeTimer("i3")
+      m.assertEqual(m.manager.activeTimers, { i1: timer1, i2: timer2 })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("removeTask")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("does nothing if task is unknown")
+    function _()
+      task1 = { "id": "task1" }
+
+      m.manager.delayedTasks = {
+        "i1": task1
+      }
+
+      m.expectNotCalled(m.manager.cancelTask)
+      m.manager.removeTask("i3")
+
+      m.assertEqual(m.manager.delayedTasks, { i1: task1 })
+    end function
+
+    @it("removes the tasks and cancels it, also removing it from it's parent")
+    function _()
+      parent = mc.createSGNode("Group", invalid, "parent")
+      task1 = mc.createSGNode("Group", parent, "i1")
+      task2 = mc.createSGNode("Group", parent, "i2")
+
+      m.manager.delayedTasks = {
+        "i1": task1
+        "i2": task2
+      }
+
+      m.expectCalled(m.manager.cancelTask(task1))
+      m.expectCalled(m.manager.cancelTask(task2))
+
+      m.manager.removeTask("i1")
+      m.assertEqual(m.manager.delayedTasks, { i2: task2 })
+      m.assertInvalid(task1.getParent())
+
+      m.manager.removeTask("i2")
+      m.assertEmpty(m.manager.delayedTasks)
+      m.assertInvalid(task2.getParent())
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("scheduleDelayedTask")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("cancels delayed task if present, and creates new task, plus sets timeout")
+    @params(true, invalid)
+    @params(invalid, true)
+    function _(activeTimer, delayedTask)
+      m.manager.activeTimers["i1"] = activeTimer
+      m.manager.delayedTasks["i1"] = delayedTask
+
+      m.expectCalled(m.manager.cancelDelayedTaskWithId("i1"))
+
+      timer = { "id": "timer" }
+      m.expectCalled(m.manager.createTimer("Group", "i1", 10, { data: true }, "output"), timer)
+
+      m.manager.scheduleDelayedTask("Group", "i1", 10, { data: true })
+      m.assertEqual(m.manager.activeTimers["i1"], timer)
+    end function
+
+    @it("does not cancels delayed task if not present, and creates new task, plus sets timeout")
+    function _()
+      m.manager.activeTimers["i1"] = invalid
+      m.manager.delayedTasks["i1"] = invalid
+
+      m.expectNotCalled(m.manager.cancelDelayedTaskWithId)
+
+      timer = { "id": "timer" }
+      m.expectCalled(m.manager.createTimer("Group", "i1", 10, { data: true }, "output"), timer)
+
+      m.manager.scheduleDelayedTask("Group", "i1", 10, { data: true })
+      m.assertEqual(m.manager.activeTimers["i1"], timer)
+
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createTimer")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates timer type and sets all fields")
+    function _()
+      group = mc.createSGNode("Group")
+      m.expectCalled(m.manager.setTimeout(m.manager.onDelayedTaskTimerFire, 10, "node"), group)
+
+      timer = m.manager.createTimer("Group", "i1", 10, { data: "data" }, "output")
+
+      m.assertEqual(timer, group)
+      m.assertEqual(timer.id, "i1")
+      m.assertEqual(timer.taskInfo, {
+        fields: { id: "i1", data: "data" }
+        nodeType: "Group"
+        resultField: "output"
+      })
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onDelayedTaskTimerFire")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates the delayed task and removes the active timer")
+    function _()
+      taskInfo = {
+        nodeType: "Group"
+        fields: { data: "data" }
+      }
+      timer1 = { "id": "i1", "taskInfo": taskInfo }
+      m.manager.activeTimers = { "i1": timer1 }
+
+      task = { "id": "task" }
+      m.expectCalled(m.manager.createTask("Group", { data: "data" }), task)
+
+      m.manager.onDelayedTaskTimerFire(timer1)
+
+      m.assertEqual(m.manager.delayedTasks["i1"], task)
+      m.assertEmpty(m.manager.activeTimers)
+    end function
+
+    @it("does not remove timers")
+    function _()
+      taskInfo = {
+        nodeType: "Group"
+        fields: { data: "data" }
+      }
+      timer1 = { "id": "i1", "taskInfo": taskInfo }
+      timer2 = { "id": "i2", "taskInfo": taskInfo }
+      m.manager.activeTimers = { "i1": timer1, "i2": timer2 }
+
+      task = { "id": "task" }
+      m.expectCalled(m.manager.createTask("Group", { data: "data" }), task)
+
+      m.manager.onDelayedTaskTimerFire(timer1)
+
+      m.assertEqual(m.manager.delayedTasks["i1"], task)
+      m.assertEqual(m.manager.activeTimers, { i2: timer2 })
+    end function
+
+    @it("ignores unknown timers")
+    function _()
+      taskInfo = {
+        nodeType: "Group"
+        fields: { data: "data" }
+      }
+
+      timer1 = { "id": "i1", "taskInfo": taskInfo }
+      timer2 = { "id": "i2", "taskInfo": taskInfo }
+      timer3 = { "id": "i3" }
+      m.manager.activeTimers = { "i1": timer1, "i2": timer2 }
+
+      m.expectNotCalled(m.manager.createTask)
+
+      m.manager.onDelayedTaskTimerFire(timer3)
+
+      m.assertEmpty(m.manager.delayedTasks)
+      m.assertEqual(m.manager.activeTimers, { i1: timer1, i2: timer2 })
+    end function
+
+
+  end class
+end namespace
