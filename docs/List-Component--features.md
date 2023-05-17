@@ -7,45 +7,45 @@
    - So you can choose if you want to keep ram low and be lazy with instantiation, or instantiate up front (maybe while loading data), so the list is snappy and smooth from the get go
    - Performs better than any roku list control, on all devices tested (even roku se1)
    - CPU usage is less than roku rowlists in all tests, even with rich animations, and many delegate callbacks
-   
+
 ### Reuses cells aggressively
 
    - Reuses cells across whole app, not just within once list
    - In native comparisons, roku's rowlists end up using 1,000's of cells compared to a few hundred for maestro-roku-list
    - Use the reuse policy that makes sense for you
-   
+
 ### Use any component as a renderer, anywhere
 
    - The list can use more than one type of renderer (i.e itemComponent)
    - Use different renderers in different rows
    - And even use different renderers, in different cells, in the same row
-   
+
 ### Use custom renderers for rows
 
    - Can be any visual component you wish
    - Mix regular components with rows (e.g. buttons, posters, video, etc)
    - All Sub-components of maestro-roku-list get focus, so you can code as you normally would for custom rows (e.g. have buttons that get/lose focus, get keypresses, etc)
-   
+
 ### Custom focus indicator settings, per row:
 
-   - Choose if a row has focus indicator: 
+   - Choose if a row has focus indicator:
       - underneath
       - onTop
       - none
    - Can change focus color, per row
    - Change image per row,
    - Can provide offsets for focus indicator position and size
-   
+
 ### Easy to write custom cells
 
    - Extend a base nodeclass, and override onContentChange method
-   
+
 ### Easy to use callbacks for facilitating whatever choreography you wish
 
-The maestro-list paradigm for responding to focus, selection and other events, such as scrolling, is to implement _delegate_ callbacks. 
+The maestro-list paradigm for responding to focus, selection and other events, such as scrolling, is to implement _delegate_ callbacks.
 
 Delegate callbacks can be defiend in:
- 
+
  - A screen/view containing a list
  - In a Custom row component
  - In a cell component
@@ -68,22 +68,22 @@ Delegate callbacks can be defiend in:
      - `onRowLosingFocus(rowIndex as integer, direction as integer, fraction as float)`
      - `onItemSelected(rowIndex as integer, itemIndex as integer)`
      - `onCellWillGainFocus(rowIndex as integer, itemIndex as integer, direction as integer)`
-     
+
   ### Get renderers for any row or cell
 
   - `row = m.list@.getRowRenderer(rowIndex)`
   - `cell = m.list@.getCellRenderer(rowIndex, cellIndex)`
   - `cell = row@.getRenderer(index)`
-  
+
   ### Get screen rectangle position for any cell:
 
    - `getRowScreenRect(rowIndex, cellIndex)`
    - `getCellScreenRect(rowIndex, cellIndex)`
-   
+
 ### Rows can easily be show/hidden made focusable/un-focusable:
 
    - Simply change `isFocusEnabled` and `isHidden` values on the row's content
-   
+
 ### Simple data model
 
 No more guessing/wrestling with arrays, maestro-roku-list has models for:
@@ -104,7 +104,7 @@ No more guessing/wrestling with arrays, maestro-roku-list has models for:
        - `HeaderSettings` - font, insets, background style, color, and even custom header component
        - `FocusSettings` - focus animation style, placement, colors, image uri
        - `CellSettings` - specify the cell size, space, exact screen position when scrolled to
-       
+
 ### Debug in RALE
 
    -  no more headaches, everything in a maestro-roku-list is in your scene graph, and can be debugged in RALE
