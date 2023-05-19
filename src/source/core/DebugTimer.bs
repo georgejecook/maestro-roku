@@ -3,18 +3,18 @@ namespace mc.utils
   @strict
   class DebugTimer
     private name
-    private lastTime
+    private startTime
     private timer
     public function new(name as string)
       m.name = name
-      m.lastTime = 0
       m.timer = createObject("roTimespan")
+      m.startTime = m.timer.totalmilliseconds()
     end function
 
     public function log(message = "" as string)
       currentTime = m.timer.totalmilliseconds()
-      sinceLast = currentTime - m.lastTime
-      m.lastTime = currentTime
+      sinceLast = currentTime - m.startTime
+
       print ">--TIMER : " ; m.name; " " ; message ; " " ; sinceLast ; " (TOTAL "; currentTime ; ")"
     end function
 
