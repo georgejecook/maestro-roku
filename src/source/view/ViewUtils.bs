@@ -53,18 +53,21 @@ namespace mv
     end if
   end function
 
-  function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray, updateDataMappedIds = false as boolean)
-    if mTarget = invalid
-      mTarget = m
-    end if
+  function createFragment(fragmentJson as dynamic, targetNode = invalid as mc.types.node, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+    mTarget = m
     if targetNode = invalid
       targetNode = m.top
     end if
-    'TODO - convert this to use update api, for speed.
-    if mc.isArray(childrenJson)
+    firstView = invalid
+
+    if not mc.isArray(fragmentJson) and mc.isAACompatible(fragmentJson)
+      fragmentJson = [fragmentJson]
+    end if
+
+    if mc.isArray(fragmentJson)
       if type(targetNode) = "roSGNode"
-        for i = 0 to childrenJson.count() - 1
-          nodeJson = childrenJson[i]
+        for i = 0 to fragmentJson.count() - 1
+          nodeJson = fragmentJson[i]
 
           nodeType = nodeJson._type
           if nodeType <> invalid
@@ -72,28 +75,40 @@ namespace mv
             id = nodeJson.id
             _type = nodeJson._type
             _children = nodeJson._children
-            _dataMap = nodeJson._dataMap
             _initializeAfterCreatingChildren = nodeJson._initializeAfterCreatingChildren = true
             nodeJson.delete("id")
             nodeJson.delete("_type")
             nodeJson.delete("_children")
-            nodeJson.delete("_dataMap")
+            if dataBindingContext <> invalid
+              bindingFields = {}
+              for each field in nodeJson
+                value = nodeJson[field]
+                if mc.isString(value) and value.instr("${") = 0
+                  bindingFields[field] = value
+                  if value.instr("[") <> -1
+                    value = value.replace("[", ".")
+                    value = value.replace("]", "")
+                  end if
+                  nodeJson[field] = mc.getPath(dataBindingContext, value.mid(2, len(value) - 3))
+                end if
+              end for
+            end if
             view = mc.createSGNode(nodeType, targetNode, id, nodeJson, not _initializeAfterCreatingChildren, mTarget)
             nodeJson.id = id
             nodeJson._type = _type
             nodeJson._children = _children
+            'bs:disable-next-line
+            if dataBindingContext <> invalid and bindingFields.count() > 0
+              'bs:disable-next-line
+              nodeJson.append(bindingFields)
+            end if
             if view <> invalid
-              if _dataMap <> invalid
-                mc.setOrAddNodeField(view, "_dataMap", _dataMap)
-                if updateDataMappedIds
-                  if mTarget._dataMappedControlIds = invalid
-                    mTarget._dataMappedControlIds = []
-                  end if
-                  mTarget._dataMappedControlIds.push(id)
-                end if
+              if firstView = invalid
+                firstView = view
               end if
+
               if children <> invalid
-                mv.createViewsFromStyleJson(children, view, assignViewsToM, mTarget, updateDataMappedIds)
+                mv.createFragment(children, view, dataBindingContext, assignViewsToM)
               end if
               if assignViewsToM and id <> invalid
                 if mTarget[id] <> invalid
@@ -117,6 +132,81 @@ namespace mv
     else
       mc.private.logError("CREATE VIEW FROM STYLE JSON: Could not create view in targetNode", mc.dv(targetNode), "json was invalid")
     end if
+
+    return firstView
+  end function
+
+  function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
+    if mTarget = invalid
+      mTarget = m
+    end if
+    if targetNode = invalid
+      targetNode = m.top
+    end if
+    firstView = invalid
+
+    'TODO - convert this to use update api, for speed.
+    if mc.isArray(childrenJson)
+      if type(targetNode) = "roSGNode"
+        for i = 0 to childrenJson.count() - 1
+          nodeJson = childrenJson[i]
+
+          nodeType = nodeJson._type
+          if nodeType <> invalid
+            children = nodeJson._children
+            id = nodeJson.id
+            _type = nodeJson._type
+            _children = nodeJson._children
+            _dataMap = nodeJson._dataMap
+            _initializeAfterCreatingChildren = nodeJson._initializeAfterCreatingChildren = true
+            nodeJson.delete("id")
+            nodeJson.delete("_type")
+            nodeJson.delete("_children")
+            nodeJson.delete("_dataMap")
+            view = mc.createSGNode(nodeType, targetNode, id, nodeJson, not _initializeAfterCreatingChildren, mTarget)
+            nodeJson.id = id
+            nodeJson._type = _type
+            nodeJson._children = _children
+            if view <> invalid
+              if firstView = invalid
+                firstView = view
+              end if
+              if _dataMap <> invalid
+                mc.setOrAddNodeField(view, "_dataMap", _dataMap)
+                if updateDataMappedIds
+                  if mTarget._dataMappedControlIds = invalid
+                    mTarget._dataMappedControlIds = []
+                  end if
+                  mTarget._dataMappedControlIds.push(id)
+                end if
+              end if
+              if children <> invalid
+                mv.createViewsFromStyleJson(children, view, assignViewsToM, mTarget, updateDataMappedIds, dataBindingContext)
+              end if
+              if assignViewsToM and id <> invalid
+                if mTarget[id] <> invalid
+                  mc.private.logWarn("CREATE VIEW FROM STYLE JSON: Target view already had a view set for id", id)
+                end if
+                mTarget[id] = view
+              end if
+            else
+              mc.private.logError("CREATE VIEW FROM STYLE JSON: Could not create view ", id, "with type", nodeType)
+            end if
+            if _initializeAfterCreatingChildren
+              view@._initialize()
+            end if
+          else
+            mc.private.logError("CREATE VIEW FROM STYLE JSON: Could not create view ", nodeJson.id, "no _type specified")
+          end if
+        end for
+      else
+        mc.private.logError("CREATE VIEW FROM STYLE JSON: Could not create views from style Json: Target node was invalid")
+      end if
+    else
+      mc.private.logError("CREATE VIEW FROM STYLE JSON: Could not create view in targetNode", mc.dv(targetNode), "json was invalid")
+    end if
+
+    return firstView
   end function
 
   ' update views, which have fields mapped to the node ids with json of the form of:
