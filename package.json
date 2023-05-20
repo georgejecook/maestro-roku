@@ -24,6 +24,7 @@
     "brighterscript": "^0.64.0",
     "fs-extra": "^7.0.1",
     "maestro-roku-bsc-plugin": "^0.29.0",
+    "release-it": "^15.10.3",
     "rimraf": "^3.0.2",
     "roku-log-bsc-plugin": "^0.8.0",
     "rooibos-roku": "^5.4.2",
@@ -67,6 +68,7 @@
     "tag-pattern": ".+"
   },
   "scripts": {
+    "preversion": "npm run build",
     "update-schema": "npm run build && cd build && npx scenegraph-schema -o ../.vscode/project.xsd",
     "_postinstall": "npx ropm copy",
     "build": "node scripts/run.js dist && npx ts-node scripts/cleanup-build.js",
@@ -77,7 +79,9 @@
     "publish-docs": "npm run build-docs && git checkout docspub && rm -rf docs && cp -r .tmp/docs . && git add --all && git commit -m 'docs update' && git push -f && git checkout master",
     "watch-docs": "npm run build-docs -- --watch",
     "lint": "npx bsc",
-    "ropm": "npx ropm copy"
+    "ropm": "npx ropm copy",
+    "commit": "cz",
+    "release": "release-it"
   },
   "optionalDependencies": {
     "fsevents": "^2.3.2"
