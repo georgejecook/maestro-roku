@@ -6,7 +6,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       #hardcode the coveralls token...it's not overly important to protect, and github actions won't allow forks to work with coveralls otherwise
-     COVERALLS_REPO_TOKEN: "RuXDcEBMUavqJgSdr5svlXWGDjrDEWFUI"
+      COVERALLS_REPO_TOKEN: "RuXDcEBMUavqJgSdr5svlXWGDjrDEWFUI"
     strategy:
       matrix:
         os: [ubuntu-18.04, macos-10.15]
@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
         with:
-          node-version: "10.19.0"
+          node-version: "14.18.1"
       - run: npm install --no-optional
       - run: npm ci
       - run: npx ropm copy
@@ -33,11 +33,10 @@ jobs:
       - uses: actions/checkout@master
       - uses: actions/setup-node@master
         with:
-          node-version: "10.19.0"
+          node-version: "14.18.1"
       - run: echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ./.npmrc
       - run: npm ci
       - run: npm run build
-      - run: npm run lint
       #create npm package
       - run: npm pack
 
@@ -61,5 +60,7 @@ jobs:
         with:
           asset_paths: '["./*.tgz"]'
 
+      #If there's a dash followed by an alpha character, this is a prerelease and should be tagged "next". Otherwise tag as "latest"
+      - run: if [[ "${{ github.ref }}" =~ -[a-zA-Z] ]]; then echo "DIST_TAG=next" >> $GITHUB_ENV; else echo "DIST_TAG=latest" >> $GITHUB_ENV; fi
       #upload to npm
-      - run: npm publish
+      - run: npm publish --tag ${{env.DIST_TAG}}
