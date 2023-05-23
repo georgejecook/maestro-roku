@@ -256,12 +256,11 @@ namespace mv
         result = appController@.onExecuteSelection(selection)
         if result = invalid
           m.log.error("Selection could not be executed. Do you have an appController assigned, with an onExecuteSelection method?")
-          if result = true
-            m.log.info("selection was handled synchronously")
-          else
-            m.log.info("selection requires async resolution")
-            m.observeNodeField(selection, "state", m.onSelectionStateChange, "both", true)
-          end if
+        else if result = true
+          m.log.info("selection was handled synchronously")
+        else
+          m.log.info("selection requires async resolution")
+          m.observeNodeField(selection, "state", m.onSelectionStateChange, "both", true)
         end if
       else
         m.log.error("Selection could not be executed. There is no appController in the IOC")
