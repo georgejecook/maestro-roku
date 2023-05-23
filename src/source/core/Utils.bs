@@ -566,7 +566,11 @@ namespace mc
           end for
           args.delete("observe")
         end if
-        node.setFields(args)
+        if args._forceAddFields = true
+          mc.setOrAddNodeFields(node, args)
+        else
+          node.setFields(args)
+        end if
       end if
 
       if isCallingInitialize and node.isInitialized <> invalid
