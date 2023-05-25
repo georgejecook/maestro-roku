@@ -2,6 +2,7 @@ import "pkg:/components/view/mixin/FocusMixin.bs"
 import "pkg:/source/core/BaseClass.bs"
 import "pkg:/source/core/Date.bs"
 import "pkg:/source/view/Animation.bs"
+import "pkg:/source/core/MIOC.bs"
 
 namespace mv
   ' utility for creating various dialogs. Only works with brighterscript classes, and only allows for one dialog at a time
@@ -168,7 +169,7 @@ namespace mv
       mv.setFocus(control)
     end function
 
-    private function setFocusLocked(control as mc.types.node, reason as string)
+    protected function setFocusLocked(control as mc.types.node, reason as string)
       'bs:disable-next-line
       mv.setFocusLocked(control, reason)
     end function
@@ -176,6 +177,12 @@ namespace mv
     protected function setFocusUnlocked(reason = "" as string)
       'bs:disable-next-line
       mv.setFocusUnlocked(reason)
+    end function
+
+    protected function setFocusOnApp()
+      m.log.info("all dialogs dismissed, setting focus on the app")
+
+      m.setFocus(mioc.getInstance("appController"))
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -202,6 +209,7 @@ namespace mv
       else
         m.log.info("there are no more dialog. removing dialog stack")
         m.setFocusUnlocked("all dialogs dismissed")
+        m.setFocusOnApp()
         mc.getScene().removeChild(dialogContainer)
       end if
     end function
