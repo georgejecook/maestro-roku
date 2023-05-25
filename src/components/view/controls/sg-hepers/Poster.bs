@@ -2,10 +2,19 @@
 function init()
   m.top.observeFieldScoped("style", "onStyleChange")
   m.top.observeFieldScoped("size", "onSizeChange")
+  m.top.observeFieldScoped("isFocused", "onIsFocusedChange")
 end function
 
 function onStyleChange()
   m.top.setFields(m.top.style)
+end function
+
+function onIsFocusedChange()
+  if m.top.isFocused
+    m.top.uri = m.top.focusedUri
+  else
+    m.top.uri = m.top.normalUri
+  end if
 end function
 
 function onSizeChange()
