@@ -1,0 +1,38 @@
+name: release
+on:
+  workflow_dispatch:
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    env:
+      #hardcode the coveralls token...it's not overly important to protect, and github actions won't allow forks to work with coveralls otherwise
+      COVERALLS_REPO_TOKEN: "RuXDcEBMUavqJgSdr5svlXWGDjrDEWFUI"
+    strategy:
+      matrix:
+        os: [ubuntu-20.04]
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+      - name: Configure node
+        uses: actions/setup-node@v2
+        with:
+          node-version: "14.18.1"
+      - name: Run full CI
+        run: npm ci
+      - name: ropm
+        run: npm run ropm
+      - name: Build
+        run: npm run build
+      - name: Configure npm
+        run: npm config set //registry.npmjs.org/:_authToken=$NPM_TOKEN
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Run release
+        run: npm run release -ci --dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: End message
+        run: echo 'All done. Have a nice day!'
+
+      # - run: npm run publish-coverage

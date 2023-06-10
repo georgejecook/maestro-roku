@@ -52,7 +52,7 @@ try {
         if (filePath.endsWith('Task.xml')) {
 
             let text = fs.readFileSync(filePath, 'utf8');
-            let r = /\/roku_modules\/undefined/gim;
+            let r = /\/roku_modules\/rokucommunity_bslib/gim;
             text = text.replace(r, '/roku_modules/maestro');
             fs.writeFileSync(filePath, text);
         }

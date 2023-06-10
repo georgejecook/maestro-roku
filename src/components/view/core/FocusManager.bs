@@ -25,7 +25,7 @@ end function
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
-  m.log.verbose("setFocusOn", node)
+  m.log.verbose("setFocusOn", mc.dv(node))
 
   if m.top.enabled = false
     m.log.error("DISABLED: cannot set focus on", mc.dv(node))
@@ -36,7 +36,7 @@ function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
     if isForced
       m.log.warn("overriding setting m.locked focus (locked reason:", m.top.lockReason, ")")
     else
-      m.log.warn("cannot set focus, it is m.locked - reason :", m.top.lockReason)
+      m.log.warn("cannot set focus, it is locked on", mc.dv(m.lockedNode), "- reason :", m.top.lockReason)
       return
     end if
   end if
@@ -67,7 +67,7 @@ end function
 function isChildOfLockedNode(node as mc.types.node) as boolean
   parents = getParents(node)
   for each parent in parents
-    if node.isSameNode(m.lockedNode)
+    if parent.isSameNode(m.lockedNode)
       return true
     end if
   end for

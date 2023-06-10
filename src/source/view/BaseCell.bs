@@ -12,6 +12,8 @@ namespace mv.cells
     protected isViewCreated = false
     protected isFocused = false
 
+    @rootOnly
+    @alwaysnotify
     @observer("onContentChange")
     public itemContent as mc.types.node
 
@@ -114,13 +116,17 @@ namespace mv.cells
     protected function _createView()
     end function
 
+    function createFragment(fragmentJson as dynamic, targetNode = invalid as mc.types.node, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+      return mv.createFragment(fragmentJson, targetNode, dataBindingContext, assignViewsToM)
+    end function
+
     protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
       'FIXME - maestro-bsc needs to understand overloaded namespaces
       'bs:disable-next-line
-      mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+      return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
     protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)

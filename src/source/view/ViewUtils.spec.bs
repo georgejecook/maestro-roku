@@ -953,5 +953,234 @@ namespace tests
       m.assertEqual(label.text, "text_replaced")
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createFragment")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates a view fragment, with no bindings")
+    function _()
+      json = {
+        "_type": "Rectangle"
+        "id": "v1"
+        "height": 1.0
+      }
+      view = mv.createFragment(json)
+
+      m.assertSubType(view, "Rectangle")
+      m.assertEqual(view.id, "v1")
+      m.assertEqual(view.height, 1.0)
+    end function
+
+    @it("creates a view fragment, with children, with no bindings")
+    function _()
+      json = {
+        "_type": "Rectangle"
+        "id": "v1"
+        "height": 1.0
+        "_children": [
+          {
+            "_type": "mv_Label"
+            "id": "v2"
+            "text": "a"
+          }
+          {
+            "_type": "mv_Label"
+            "id": "v3"
+            "text": "b"
+            "_children": [
+              {
+                "_type": "mv_Label"
+                "id": "v4"
+                "text": "c"
+              }
+            ]
+          }
+        ]
+      }
+      view = mv.createFragment(json)
+
+      m.assertSubType(view, "Rectangle")
+      m.assertEqual(view.id, "v1")
+      m.assertEqual(view.height, 1.0)
+
+      child1 = view.getChild(0)
+
+      m.assertSubType(child1, "mv_Label")
+      m.assertEqual(child1.id, "v2")
+      m.assertEqual(child1.text, "a")
+
+      child2 = view.getChild(1)
+
+      m.assertSubType(child2, "mv_Label")
+      m.assertEqual(child2.id, "v3")
+      m.assertEqual(child2.text, "b")
+
+      child2_1 = child2.getChild(0)
+
+      m.assertSubType(child2_1, "mv_Label")
+      m.assertEqual(child2_1.id, "v4")
+      m.assertEqual(child2_1.text, "c")
+    end function
+
+    @it("creates a view fragment, with children, with bindings")
+    function _()
+      json = {
+        "_type": "Rectangle"
+        "id": "v1"
+        "height": "${json.height}"
+        "_children": [
+          {
+            "_type": "mv_Label"
+            "id": "v2"
+            "text": "${json.item1.a}"
+          }
+          {
+            "_type": "mv_Label"
+            "id": "v3"
+            "text": "${json.item2.subItem.b}"
+            "_children": [
+              {
+                "_type": "mv_Label"
+                "id": "v4"
+                "text": "${json.others[1]}"
+              }
+            ]
+          }
+        ]
+      }
+
+      data = {
+        json: {
+          "height": 200.0
+          item1: {
+            "a": "first"
+          }
+          item2: {
+            subItem: {
+              "b": "second"
+            }
+          }
+          others: [
+            "third", "fourth"
+          ]
+        }
+      }
+      view = mv.createFragment(json, invalid, data)
+
+      m.assertSubType(view, "Rectangle")
+      m.assertEqual(view.id, "v1")
+      m.assertEqual(view.height, 200.0)
+
+      child1 = view.getChild(0)
+
+      m.assertSubType(child1, "mv_Label")
+      m.assertEqual(child1.id, "v2")
+      m.assertEqual(child1.text, "first")
+
+      child2 = view.getChild(1)
+
+      m.assertSubType(child2, "mv_Label")
+      m.assertEqual(child2.id, "v3")
+      m.assertEqual(child2.text, "second")
+
+      child2_1 = child2.getChild(0)
+
+      m.assertSubType(child2_1, "mv_Label")
+      m.assertEqual(child2_1.id, "v4")
+      m.assertEqual(child2_1.text, "fourth")
+    end function
+
+    @it("creates a view fragment, with children, with bindings, and works multiple times")
+    function _()
+      json = {
+        "_type": "Rectangle"
+        "id": "v1"
+        "height": "${json.height}"
+        "_children": [
+          {
+            "_type": "mv_Label"
+            "id": "v2"
+            "text": "${json.item1.a}"
+          }
+          {
+            "_type": "mv_Label"
+            "id": "v3"
+            "text": "${json.item2.subItem.b}"
+            "_children": [
+              {
+                "_type": "mv_Label"
+                "id": "v4"
+                "text": "${json.others[1]}"
+              }
+            ]
+          }
+        ]
+      }
+
+      data = {
+        json: {
+          "height": 200.0
+          item1: {
+            "a": "first"
+          }
+          item2: {
+            subItem: {
+              "b": "second"
+            }
+          }
+          others: [
+            "third", "fourth"
+          ]
+        }
+      }
+      view = mv.createFragment(json, invalid, data)
+
+      m.assertSubType(view, "Rectangle")
+      m.assertEqual(view.id, "v1")
+      m.assertEqual(view.height, 200.0)
+
+      child1 = view.getChild(0)
+
+      m.assertSubType(child1, "mv_Label")
+      m.assertEqual(child1.id, "v2")
+      m.assertEqual(child1.text, "first")
+
+      child2 = view.getChild(1)
+
+      m.assertSubType(child2, "mv_Label")
+      m.assertEqual(child2.id, "v3")
+      m.assertEqual(child2.text, "second")
+
+      child2_1 = child2.getChild(0)
+
+      m.assertSubType(child2_1, "mv_Label")
+      m.assertEqual(child2_1.id, "v4")
+      m.assertEqual(child2_1.text, "fourth")
+
+      view = mv.createFragment(json, invalid, data)
+
+      m.assertSubType(view, "Rectangle")
+      m.assertEqual(view.id, "v1")
+      m.assertEqual(view.height, 200.0)
+
+      child1 = view.getChild(0)
+
+      m.assertSubType(child1, "mv_Label")
+      m.assertEqual(child1.id, "v2")
+      m.assertEqual(child1.text, "first")
+
+      child2 = view.getChild(1)
+
+      m.assertSubType(child2, "mv_Label")
+      m.assertEqual(child2.id, "v3")
+      m.assertEqual(child2.text, "second")
+
+      child2_1 = child2.getChild(0)
+
+      m.assertSubType(child2_1, "mv_Label")
+      m.assertEqual(child2_1.id, "v4")
+      m.assertEqual(child2_1.text, "fourth")
+    end function
+
   end class
 end namespace
