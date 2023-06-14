@@ -17,13 +17,15 @@ jobs:
       COVERALLS_REPO_TOKEN: "RuXDcEBMUavqJgSdr5svlXWGDjrDEWFUI"
     strategy:
       matrix:
-        os: [ubuntu-20.04, macos-13, windows-2019]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
         with:
-          node-version: "18.4.0"
+          node-version: "lts/*"
+          cache: "npm"
       - run: npm ci
       - run: npm run ropm
       - run: npm run build
+      - run: npm run lint
       # - run: npm run publish-coverage
