@@ -177,6 +177,13 @@ namespace mv.controls
       return m._focusedControl
     end function
 
+    function setSelectedIndex(index as integer)
+      control = m.visibleChildren[index]
+      if control <> invalid and control.isDisabled <> true
+        control.isSelected = true
+      end if
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -240,7 +247,9 @@ namespace mv.controls
           end if
 
           m._focusedControl = m.visibleChildren[index]
+          ? "FOCUSED CONTROL SET TO"; m._focusedControl
           m.focusedIndex = index
+          ? "FOCUSED INDEX SET TO"; m.focusedIndex
           if m.selectOnFocus
             m.selectedIndex = index
           end if
