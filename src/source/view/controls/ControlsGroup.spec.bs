@@ -267,5 +267,29 @@ namespace tests
       m.assertEqual(m.control.getIsFocusedControl(control), isSameNode)
     end function
 
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("setSelectedIndex")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't do anything if index is out of bounds")
+    @params(-1)
+    @params(1)
+    @params(2)
+    function _(index)
+      control = { "id": "c1" }
+      m.control.visibleChildren = [control]
+      m.control.setSelectedIndex(index)
+    end function
+
+    @it("sets isSelected to true on the selected control if control is found in original children and not disabled")
+    @params(false, true)
+    @params(true, false)
+    function _(disabled, expected)
+      control = { "id": "c1", isSelected: false, isDisabled: disabled }
+      m.control.visibleChildren = [control]
+      m.control.setSelectedIndex(0)
+      m.assertEqual(control.isSelected, expected)
+    end function
+
   end class
 end namespace
