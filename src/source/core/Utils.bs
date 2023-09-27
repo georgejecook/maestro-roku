@@ -56,6 +56,10 @@ namespace mc
     return type(value) <> "<uninitialized>" and GetInterface(value, "ifFloat") <> invalid
   end function
 
+  function isLong(value as dynamic) as boolean
+    return type(value) <> "<uninitialized>" and (GetInterface(value, "ifLongInt") <> invalid or GetInterface(value, "ifDouble") or GetInterface(value, "ifDouble") <> invalid or GetInterface(value, "ifInt") <> invalid)
+  end function
+
   function isPoint(value as dynamic) as boolean
     return mc.isArray(value) and value.count() = 2
   end function
@@ -293,6 +297,15 @@ namespace mc
       return value
     else if mc.isInteger(value)
       return value * 1.0
+    end if
+    return default
+  end function
+
+  function getLong(content as object, path = invalid as string, default = 0 as dynamic, disableIndexing = false as boolean) as dynamic
+    value = mc.getPath(content, path, invalid, disableIndexing)
+    if mc.isLong(value)
+      'any number is considered a long at this point
+      return value
     end if
     return default
   end function
