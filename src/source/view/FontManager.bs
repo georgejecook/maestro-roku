@@ -49,7 +49,12 @@ namespace mv
       if font = invalid
         font = CreateObject("roSGNode", "Font")
         if name.instr(".ttf") <> -1
-          font.uri = "pkg:" + "/fonts/" + name
+          language = m.getInstance("languageCode") ?? "en"
+          if language = "zh"
+            font.uri = "tmp:" + "/fonts/" + name
+          else
+            font.uri = "pkg:" + "/fonts/" + name
+          end if
         else
           'it's a system font
           m.fontLabel.font = "font:" + name + "SystemFont"
