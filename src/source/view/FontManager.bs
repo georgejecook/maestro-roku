@@ -39,6 +39,10 @@ namespace mv
       return invalid
     end function
 
+    function getLanguageCode()
+      return m.getInstance("languageCode") ?? "en"
+    end function
+
     public function getFont(name as string, size as integer) as dynamic
       if name = invalid or name.trim() = ""
         return invalid
@@ -49,7 +53,7 @@ namespace mv
       if font = invalid
         font = CreateObject("roSGNode", "Font")
         if name.instr(".ttf") <> -1
-          language = m.getInstance("languageCode") ?? "en"
+          language = m.getLanguageCode()
           if language = "zh"
             font.uri = "tmp:" + "/fonts/" + name
           else

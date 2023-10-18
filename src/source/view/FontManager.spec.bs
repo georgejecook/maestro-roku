@@ -2,6 +2,7 @@ import "pkg:/source/tests/ViewBaseTestSuite.spec.bs"
 import "pkg:/source/view/FontManager.bs"
 
 namespace tests
+  @only
   @suite("FontManager tests")
   class FontManagerTests extends mv.tests.BaseTestSuite
 
@@ -30,6 +31,7 @@ namespace tests
     @params("HelveticaNeue.ttf", 30)
     @params("HelveticaNeue.ttf", 30)
     function _(name, size)
+      m.expectOnce(m.manager, "getLanguageCode", [])
       '/* cspell:enable *\
       font = m.manager.getFont(name, size)
       m.assertEqual(font.uri, "pkg:/fonts/" + name)
@@ -52,7 +54,9 @@ namespace tests
     @it("caches font values")
     function _()
       '/* cspell:disable *\
+      m.expectOnce(m.manager, "getLanguageCode", [])
       m.manager.getFont("HelveticaNeue.ttf", 30)
+      m.expectOnce(m.manager, "getLanguageCode", [])
       m.manager.getFont("HelveticaNeue.ttf", 30)
       m.manager.getFont("HelveticaNeue.ttf", 30)
       m.manager.getFont("HelveticaNeue.ttf", 30)
@@ -71,6 +75,21 @@ namespace tests
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 40), "Font")
       '/* cspell:enable *\
+    end function
+
+    @it("return tmp language path on zh language code")
+    @params("HelveticaNeue.ttf", 20)
+    @params("HelveticaNeue.ttf", 30)
+    @params("HelveticaNeue.ttf", 50)
+    @params("HelveticaNeue.ttf", 30)
+    @params("HelveticaNeue.ttf", 30)
+    function _(name, size)
+      m.expectOnce(m.manager, "getLanguageCode", [], "zh")
+      '/* cspell:enable *\
+      font = m.manager.getFont(name, size)
+      m.assertEqual(font.uri, "tmp:/fonts/" + name)
+      m.assertEqual(font.size, size)
+      m.assertSubType(font, "Font")
     end function
   end class
 end namespace
