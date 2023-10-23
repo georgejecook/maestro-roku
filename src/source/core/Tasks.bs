@@ -87,7 +87,7 @@ namespace mc.tasks
   '  * @returns {node|invalid} task, or invalid it could not be created
   '  */
   function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, scope = invalid as object, fieldName = "output" as string)
-
+    globalObj = mc.getGlobal()
     task = mc.createSGNode(taskType)
 
     if task = invalid
@@ -114,6 +114,20 @@ namespace mc.tasks
 
     if isRunning
       task.control = "RUN"
+    end if
+
+    if asBoolean(globalObj.isTrackingTaskUsage)
+      if globalObj.taskUsage = invalid
+        taskUsage = {}
+        taskUsage[taskType] = 1
+      else
+        taskUsage = globalObj.taskUsage
+        if taskUsage[taskType] = invalid
+          taskUsage[taskType] = 0
+        end if
+        taskUsage[taskType] += 1
+      end if
+      mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
     end if
 
     return task
