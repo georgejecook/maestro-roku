@@ -9,6 +9,7 @@ namespace tests
       super.beforeEach()
       'bs:disable-next-line
       tests.setNodeLogger()
+      m.global.removeField("taskUsage")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -71,7 +72,6 @@ namespace tests
         }
       }
       mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", true)
-
       t = mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, false, "none", m)
       mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, false, "none", m)
       mc.tasks.createTask("mc_LaunchSequence", invalid, m.taskCallback, false, "none", m)
@@ -96,6 +96,68 @@ namespace tests
       m.assertEqual(t.args.fv1, "a")
       m.assertEqual(t.args.fv2, "b")
       m.assertEqual(t.control, "run")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("onTaskStateChange")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("it gets called when a task changes state and does't do anything if state is run or init")
+    @params("run")
+    @params("init")
+    function _(state)
+      task = { "id": "task" }
+      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
+
+      m.expectNotCalled(task.subType)
+
+      mc.tasks.onTaskStateChange(state, task)
+      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 2)
+    end function
+
+    @it("doesn't do anything if state is done or stop and isTrackingTaskUsage global flag is set to false")
+    @params("done")
+    @params("stop")
+    function _(state)
+      task = { "id": "task" }
+      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
+      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", false)
+
+      m.expectNotCalled(task.subType)
+
+      mc.tasks.onTaskStateChange(state, task)
+      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 2)
+    end function
+
+    @it("decreases the task usage if state is done or stop and isTrackingTaskUsage global flag is set to true")
+    @params("done")
+    @params("stop")
+    function _(state)
+      task = { "id": "task" }
+      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
+      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", true)
+
+      m.expectCalled(task.subType(), "mc_RequestTask")
+      m.expectNotCalled(taskUsage.removeField)
+
+      mc.tasks.onTaskStateChange(state, task)
+      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 1)
+    end function
+
+    @it("removes entries from taskUsage if there are no more entries and state is done or stop and isTrackingTaskUsage global flag is set to true")
+    @params("done")
+    @params("stop")
+    function _(state)
+      task = { "id": "task" }
+      taskUsage = mc.createSGNode("Node")
+      mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 1)
+      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
+      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", true)
+
+      m.expectCalled(task.subType(), "mc_RequestTask")
+
+      mc.tasks.onTaskStateChange(state, task)
+      m.assertInvalid(m.global.taskUsage["mc_RequestTask"])
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

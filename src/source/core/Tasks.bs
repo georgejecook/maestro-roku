@@ -112,22 +112,24 @@ namespace mc.tasks
       mc.tasks.observeNodeField(task, fieldName, callback, sendMode, true, scope)
     end if
 
-    if isRunning
-      task.control = "RUN"
-    end if
-
     if asBoolean(globalObj.isTrackingTaskUsage)
+      mc.tasks.observeNodeField(task, "state", mc.tasks.onTaskStateChange, "both")
       if globalObj.taskUsage = invalid
-        taskUsage = {}
-        taskUsage[taskType] = 1
+        taskUsage = mc.createSGNode("Node")
+        mc.setOrAddNodeField(taskUsage, taskType, 1)
       else
         taskUsage = globalObj.taskUsage
+
         if taskUsage[taskType] = invalid
-          taskUsage[taskType] = 0
+          mc.setOrAddNodeField(taskUsage, taskType, 0)
         end if
         taskUsage[taskType] += 1
       end if
       mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
+    end if
+
+    if isRunning
+      task.control = "RUN"
     end if
 
     return task
@@ -375,6 +377,26 @@ namespace mc.tasks
     if task <> invalid
       mc.tasks.cleanNodeObserver(task, task._observedField)
       task.control = "stop"
+    end if
+  end function
+
+  function onTaskStateChange(state as string, task as mc.types.node)
+    if state = "done" or state = "stop"
+      globalObj = mc.getGlobal()
+      if asBoolean(globalObj.isTrackingTaskUsage)
+        taskUsage = globalObj.taskUsage
+        taskType = task.subType()
+        if taskUsage[taskType] <> invalid
+          if taskUsage[taskType] > 0
+            taskUsage[taskType] = taskUsage[taskType] - 1
+          end if
+          if taskUsage[taskType] = 0
+            taskUsage.removeField(taskType)
+          end if
+          mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
+        end if
+        mc.tasks.unObserveNodeField(task, "state", mc.tasks.onTaskStateChange)
+      end if
     end if
   end function
 
