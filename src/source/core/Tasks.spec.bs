@@ -84,6 +84,9 @@ namespace tests
     @it("sets track usage when state is run")
     function _()
       task = { "id": "task" }
+      taskUsage = mc.createSGNode("Node")
+      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
+
       m.expectCalled(task.subType(), "mc_RequestTask")
 
       mc.tasks.onTaskStateChange("run", task)
@@ -93,7 +96,10 @@ namespace tests
     @it("updates count when state is run and task is already tracked")
     function _()
       task = { "id": "task" }
-      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 1 })
+      taskUsage = mc.createSGNode("Node")
+      mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 1)
+      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
+
       m.expectCalled(task.subType(), "mc_RequestTask")
 
       mc.tasks.onTaskStateChange("run", task)
@@ -105,7 +111,9 @@ namespace tests
     @params("stop")
     function _(state)
       task = { "id": "task", _mIsRunning: true }
-      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
+      taskUsage = mc.createSGNode("Node")
+      mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 2)
+      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
 
       m.expectCalled(task.subType(), "mc_RequestTask")
 
@@ -120,6 +128,7 @@ namespace tests
       task = { "id": "task", _mIsRunning: true }
       taskUsage = mc.createSGNode("Node")
       mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 1)
+      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
       mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
 
       m.expectCalled(task.subType(), "mc_RequestTask")

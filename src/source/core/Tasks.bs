@@ -400,6 +400,13 @@ namespace mc.tasks
     end if
     mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
     m.log.info("Task usage for", taskType, "is now", taskUsage[taskType])
+    fields = taskUsage.getFields()
+    for each field in fields.items()
+      if not mc.isInteger(field.value)
+        fields.delete(field.key)
+      end if
+    end for
+    m.log.info("Currently running tasks", fields)
   end function
 
   function updateTaskUsage(task as mc.types.node, wasRunning as boolean)
@@ -417,6 +424,13 @@ namespace mc.tasks
       mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
       m.log.info("Task usage for", taskType, "is now", taskUsage[taskType])
     end if
+    fields = taskUsage.getFields()
+    for each field in fields.items()
+      if not mc.isInteger(field.value)
+        fields.delete(field.key)
+      end if
+    end for
+    m.log.info("Currently running tasks", fields)
   end function
 
 
