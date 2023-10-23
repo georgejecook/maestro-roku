@@ -63,27 +63,6 @@ namespace tests
       m.assertEqual(t.control, "init")
     end function
 
-    @it("tracks task usage if isTrackingTaskUsage global flag is set to true")
-    function _()
-      fields = {
-        args: {
-          "fv1": "d"
-          "fv2": "e"
-        }
-      }
-      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", true)
-      t = mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, false, "none", m)
-      mc.tasks.createTask("mc_RequestTask", fields, m.taskCallback, false, "none", m)
-      mc.tasks.createTask("mc_LaunchSequence", invalid, m.taskCallback, false, "none", m)
-
-      m.assertSubType(t, "mc_RequestTask")
-      m.assertEqual(t.args.fv1, "d")
-      m.assertEqual(t.args.fv2, "e")
-      m.assertEqual(t.control, "init")
-      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 2)
-      m.assertEqual(m.global.taskUsage["mc_LaunchSequence"], 1)
-    end function
-
     @it("starts a task")
     function _()
       fields = {
@@ -102,57 +81,46 @@ namespace tests
     @describe("onTaskStateChange")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("it gets called when a task changes state and does't do anything if state is run or init")
-    @params("run")
-    @params("init")
-    function _(state)
+    @it("sets track usage when state is run")
+    function _()
       task = { "id": "task" }
-      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
+      m.expectCalled(task.subType(), "mc_RequestTask")
 
-      m.expectNotCalled(task.subType)
+      mc.tasks.onTaskStateChange("run", task)
+      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 1)
+    end function
 
-      mc.tasks.onTaskStateChange(state, task)
+    @it("updates count when state is run and task is already tracked")
+    function _()
+      task = { "id": "task" }
+      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 1 })
+      m.expectCalled(task.subType(), "mc_RequestTask")
+
+      mc.tasks.onTaskStateChange("run", task)
       m.assertEqual(m.global.taskUsage["mc_RequestTask"], 2)
     end function
 
-    @it("doesn't do anything if state is done or stop and isTrackingTaskUsage global flag is set to false")
+    @it("update tracking usage count when state is done or stop")
     @params("done")
     @params("stop")
     function _(state)
-      task = { "id": "task" }
+      task = { "id": "task", _mIsRunning: true }
       mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
-      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", false)
-
-      m.expectNotCalled(task.subType)
-
-      mc.tasks.onTaskStateChange(state, task)
-      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 2)
-    end function
-
-    @it("decreases the task usage if state is done or stop and isTrackingTaskUsage global flag is set to true")
-    @params("done")
-    @params("stop")
-    function _(state)
-      task = { "id": "task" }
-      mc.setOrAddNodeField(m.global, "taskUsage", { "mc_RequestTask": 2 })
-      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", true)
 
       m.expectCalled(task.subType(), "mc_RequestTask")
-      m.expectNotCalled(taskUsage.removeField)
 
       mc.tasks.onTaskStateChange(state, task)
       m.assertEqual(m.global.taskUsage["mc_RequestTask"], 1)
     end function
 
-    @it("removes entries from taskUsage if there are no more entries and state is done or stop and isTrackingTaskUsage global flag is set to true")
+    @it("removes entries from taskUsage if there are no more entries and state is done or stop")
     @params("done")
     @params("stop")
     function _(state)
-      task = { "id": "task" }
+      task = { "id": "task", _mIsRunning: true }
       taskUsage = mc.createSGNode("Node")
       mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 1)
       mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
-      mc.setOrAddNodeField(m.global, "isTrackingTaskUsage", true)
 
       m.expectCalled(task.subType(), "mc_RequestTask")
 
@@ -176,9 +144,7 @@ namespace tests
       m.assertEqual(`${timer.duration}`, `${duration}`)
       m.assertEqual(timer.control, "start")
       m.assertTrue(timer.isFrameTimer)
-
     end function
-
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ utils

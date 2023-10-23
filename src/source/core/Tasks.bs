@@ -114,18 +114,6 @@ namespace mc.tasks
 
     if asBoolean(globalObj.isTrackingTaskUsage)
       mc.tasks.observeNodeField(task, "state", mc.tasks.onTaskStateChange, "both")
-      if globalObj.taskUsage = invalid
-        taskUsage = mc.createSGNode("Node")
-        mc.setOrAddNodeField(taskUsage, taskType, 1)
-      else
-        taskUsage = globalObj.taskUsage
-
-        if taskUsage[taskType] = invalid
-          mc.setOrAddNodeField(taskUsage, taskType, 0)
-        end if
-        taskUsage[taskType] += 1
-      end if
-      mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
     end if
 
     if isRunning
@@ -381,24 +369,56 @@ namespace mc.tasks
   end function
 
   function onTaskStateChange(state as string, task as mc.types.node)
-    if state = "done" or state = "stop"
-      globalObj = mc.getGlobal()
-      if asBoolean(globalObj.isTrackingTaskUsage)
-        taskUsage = globalObj.taskUsage
-        taskType = task.subType()
-        if taskUsage[taskType] <> invalid
-          if taskUsage[taskType] > 0
-            taskUsage[taskType] = taskUsage[taskType] - 1
-          end if
-          if taskUsage[taskType] = 0
-            taskUsage.removeField(taskType)
-          end if
-          mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
-        end if
-        mc.tasks.unObserveNodeField(task, "state", mc.tasks.onTaskStateChange)
-      end if
+    isRunning = state = "run"
+    wasRunning = asBoolean(task._mIsRunning) = true
+    if not wasRunning and state = "run"
+      mc.setOrAddNodeField(task, "_mIsRunning", true)
+    else if wasRunning and state = "stop" or state = "done"
+      mc.setOrAddNodeField(task, "_mIsRunning", false)
+    end if
+
+    if isRunning
+      mc.tasks.trackTaskUsage(task)
+    else if wasRunning <> (task._mIsRunning = true)
+      mc.tasks.updateTaskUsage(task, wasRunning)
     end if
   end function
+
+  function trackTaskUsage(task as mc.types.node)
+    globalObj = mc.getGlobal()
+    taskType = task.subType()
+    m.log.info("Tracking task usage for", taskType)
+    if globalObj.taskUsage = invalid
+      taskUsage = mc.createSGNode("Node")
+      mc.setOrAddNodeField(taskUsage, taskType, 1)
+    else
+      taskUsage = globalObj.taskUsage
+      if taskUsage[taskType] = invalid
+        mc.setOrAddNodeField(taskUsage, taskType, 0)
+      end if
+      taskUsage[taskType] += 1
+    end if
+    mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
+    m.log.info("Task usage for", taskType, "is now", taskUsage[taskType])
+  end function
+
+  function updateTaskUsage(task as mc.types.node, wasRunning as boolean)
+    globalObj = mc.getGlobal()
+    taskType = task.subType()
+    m.log.info(taskType, "was finished or canceled.Updating task usage")
+    taskUsage = globalObj.taskUsage
+    if taskUsage[taskType] <> invalid
+      if taskUsage[taskType] > 0
+        taskUsage[taskType] -= 1
+      end if
+      if taskUsage[taskType] = 0
+        taskUsage.removeField(taskType)
+      end if
+      mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
+      m.log.info("Task usage for", taskType, "is now", taskUsage[taskType])
+    end if
+  end function
+
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ ValueObserver class
