@@ -112,7 +112,7 @@ namespace mc.tasks
       mc.tasks.observeNodeField(task, fieldName, callback, sendMode, true, scope)
     end if
 
-    if asBoolean(globalObj.isTrackingTaskUsage)
+    if asBoolean(globalObj.maestroConfig.isTrackingTaskUsage)
       mc.tasks.observeNodeField(task, "state", mc.tasks.onTaskStateChange, "both")
     end if
 
@@ -377,62 +377,38 @@ namespace mc.tasks
       mc.setOrAddNodeField(task, "_mIsRunning", false)
     end if
 
-    if isRunning
-      mc.tasks.trackTaskUsage(task)
-    else if wasRunning <> (task._mIsRunning = true)
-      mc.tasks.updateTaskUsage(task, wasRunning)
+    if isRunning = wasRunning
+      return invalid
     end if
-  end function
 
-  function trackTaskUsage(task as mc.types.node)
     globalObj = mc.getGlobal()
     taskType = task.subType()
-    m.log.info("Tracking task usage for", taskType)
-    if globalObj.taskUsage = invalid
-      taskUsage = mc.createSGNode("Node")
-      mc.setOrAddNodeField(taskUsage, taskType, 1)
+    isLoggingTasks = asBoolean(globalObj.maestroConfig.isLoggingTaskTracking)
+
+    maestroTasks = globalObj._maestroTasks
+    if maestroTasks = invalid
+      maestroTasks = mc.createSGNode("Node")
+      mc.setOrAddNodeField(globalObj, "_maestroTasks", maestroTasks)
+    end if
+    isRunning = isRunning = true ? 1 : 0
+    numberRunning = asInteger(maestroTasks[taskType]) + isRunning ? 1 : 0
+
+    if numberRunning > 0
+      mc.setOrAddNodeField(maestroTasks, taskType, numberRunning)
     else
-      taskUsage = globalObj.taskUsage
-      if taskUsage[taskType] = invalid
-        mc.setOrAddNodeField(taskUsage, taskType, 0)
-      end if
-      taskUsage[taskType] += 1
+      maestroTasks.removeField(taskType)
     end if
-    mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
-    m.log.info("Task usage for", taskType, "is now", taskUsage[taskType])
-    fields = taskUsage.getFields()
-    for each field in fields.items()
-      if not mc.isInteger(field.value)
-        fields.delete(field.key)
-      end if
-    end for
-    m.log.info("Currently running tasks", fields)
-  end function
 
-  function updateTaskUsage(task as mc.types.node, wasRunning as boolean)
-    globalObj = mc.getGlobal()
-    taskType = task.subType()
-    m.log.info(taskType, "was finished or canceled.Updating task usage")
-    taskUsage = globalObj.taskUsage
-    if taskUsage[taskType] <> invalid
-      if taskUsage[taskType] > 0
-        taskUsage[taskType] -= 1
-      end if
-      if taskUsage[taskType] = 0
-        taskUsage.removeField(taskType)
-      end if
-      mc.setOrAddNodeField(globalObj, "taskUsage", taskUsage)
-      m.log.info("Task usage for", taskType, "is now", taskUsage[taskType])
+    if isLoggingTasks
+      fields = maestroTasks.getFields()
+      for each field in fields.items()
+        if not mc.isInteger(field.value)
+          fields.delete(field.key)
+        end if
+      end for
     end if
-    fields = taskUsage.getFields()
-    for each field in fields.items()
-      if not mc.isInteger(field.value)
-        fields.delete(field.key)
-      end if
-    end for
-    m.log.info("Currently running tasks", fields)
+    return invalid
   end function
-
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ ValueObserver class

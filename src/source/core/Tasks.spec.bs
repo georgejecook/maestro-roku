@@ -9,7 +9,7 @@ namespace tests
       super.beforeEach()
       'bs:disable-next-line
       tests.setNodeLogger()
-      m.global.removeField("taskUsage")
+      m.global.removeField("_maestroTasks")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -81,29 +81,23 @@ namespace tests
     @describe("onTaskStateChange")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    @it("does nothing if task is already running")
+    function _()
+      task = { "id": "task", _mIsRunning: true }
+      _maestroTasks = mc.createSGNode("Node")
+      mc.setOrAddNodeField(m.global, "_maestroTasks", _maestroTasks)
+
+      m.expectNotCalled(task.subType)
+      mc.tasks.onTaskStateChange("run", task)
+    end function
+
     @it("sets track usage when state is run")
     function _()
       task = { "id": "task" }
-      taskUsage = mc.createSGNode("Node")
-      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
-
       m.expectCalled(task.subType(), "mc_RequestTask")
 
       mc.tasks.onTaskStateChange("run", task)
-      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 1)
-    end function
-
-    @it("updates count when state is run and task is already tracked")
-    function _()
-      task = { "id": "task" }
-      taskUsage = mc.createSGNode("Node")
-      mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 1)
-      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
-
-      m.expectCalled(task.subType(), "mc_RequestTask")
-
-      mc.tasks.onTaskStateChange("run", task)
-      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 2)
+      m.assertEqual(m.global._maestroTasks["mc_RequestTask"], 1)
     end function
 
     @it("update tracking usage count when state is done or stop")
@@ -111,30 +105,29 @@ namespace tests
     @params("stop")
     function _(state)
       task = { "id": "task", _mIsRunning: true }
-      taskUsage = mc.createSGNode("Node")
-      mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 2)
-      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
+      _maestroTasks = mc.createSGNode("Node")
+      mc.setOrAddNodeField(_maestroTasks, "mc_RequestTask", 2)
+      mc.setOrAddNodeField(m.global, "_maestroTasks", _maestroTasks)
 
       m.expectCalled(task.subType(), "mc_RequestTask")
 
       mc.tasks.onTaskStateChange(state, task)
-      m.assertEqual(m.global.taskUsage["mc_RequestTask"], 1)
+      m.assertEqual(m.global._maestroTasks["mc_RequestTask"], 1)
     end function
 
-    @it("removes entries from taskUsage if there are no more entries and state is done or stop")
+    @it("removes entries from _maestroTasks if there are no more entries and state is done or stop")
     @params("done")
     @params("stop")
     function _(state)
       task = { "id": "task", _mIsRunning: true }
-      taskUsage = mc.createSGNode("Node")
-      mc.setOrAddNodeField(taskUsage, "mc_RequestTask", 1)
-      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
-      mc.setOrAddNodeField(m.global, "taskUsage", taskUsage)
+      _maestroTasks = mc.createSGNode("Node")
+      mc.setOrAddNodeField(_maestroTasks, "mc_RequestTask", 0)
+      mc.setOrAddNodeField(m.global, "_maestroTasks", _maestroTasks)
 
       m.expectCalled(task.subType(), "mc_RequestTask")
 
       mc.tasks.onTaskStateChange(state, task)
-      m.assertInvalid(m.global.taskUsage["mc_RequestTask"])
+      m.assertInvalid(m.global._maestroTasks["mc_RequestTask"])
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
