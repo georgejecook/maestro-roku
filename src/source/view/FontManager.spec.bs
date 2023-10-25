@@ -25,15 +25,15 @@ namespace tests
 
     '/* cspell:disable *\
     @it("gets filesystem fonts")
-    @params("HelveticaNeue.ttf", 20)
-    @params("HelveticaNeue.ttf", 30)
-    @params("HelveticaNeue.ttf", 50)
-    @params("HelveticaNeue.ttf", 30)
-    @params("HelveticaNeue.ttf", 30)
+    @params("pkg:/fonts/HelveticaNeue.ttf", 20)
+    @params("pkg:/fonts/HelveticaNeue.ttf", 30)
+    @params("pkg:/fonts/HelveticaNeue.ttf", 50)
+    @params("pkg:/fonts/HelveticaNeue.ttf", 30)
+    @params("pkg:/fonts/HelveticaNeue.ttf", 30)
     function _(name, size)
       '/* cspell:enable *\
       font = m.manager.getFont(name, size)
-      m.assertEqual(font.uri, "pkg:/fonts/" + name)
+      m.assertEqual(font.uri, name)
       m.assertEqual(font.size, size)
       m.assertSubType(font, "Font")
     end function
@@ -75,15 +75,15 @@ namespace tests
     end function
 
     @it("return tmp language path specific path")
-    @params("HelveticaNeue.ttf:", 20)
-    @params("HelveticaNeue.ttf:", 30)
-    @params("HelveticaNeue.ttf:", 50)
-    @params("HelveticaNeue.ttf:", 30)
-    @params("HelveticaNeue.ttf:", 30)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 20)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 30)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 50)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 30)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 30)
     function _(name, size)
       '/* cspell:enable *\
       font = m.manager.getFont(name, size)
-      m.assertEqual(font.uri, "tmp:/fonts/" + "HelveticaNeue.ttf")
+      m.assertEqual(font.uri, name)
       m.assertEqual(font.size, size)
       m.assertSubType(font, "Font")
     end function
