@@ -1,0 +1,92 @@
+import "pkg:/source/roku_modules/maestro/view/BaseScreen.brs"
+
+namespace $NAMESPACE$
+
+  @observersWaitInitialize
+  @node("$CLASSNAME$", "mv_BaseView")
+  class $CLASSNAME$ extends mv.BaseScreen
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private buttonsGroup
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("$CLASSNAME$")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+      m.createViews()
+    end function
+
+    private function createViews()
+      bundle = m.styleManager@.loadBundle("pkg:/$SOURCE_PKG_PATH$.json")
+      m.createViewsFromStyleJson(bundle.views, m.top)
+      m.focusedControl = m.buttonsGroup
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+      return key <> "back"
+    end function
+
+    protected override function onKeyPressBack() as boolean
+      m.log.info("onKeyPressBack")
+      return false
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onFirstShow()
+      super.onFirstShow()
+    end function
+
+    protected override function onShow()
+      m.log.info("onShow")
+      super.onShow()
+    end function
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      m.log.info("onGainedFocus")
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.setFocus(m.buttonsGroup)
+      end if
+    end function
+  end class
+end namespace

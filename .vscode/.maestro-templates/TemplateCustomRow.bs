@@ -1,0 +1,98 @@
+import "pkg:/source/roku_modules/maestro/ml/ListMixin.brs"
+import "pkg:/source/roku_modules/maestro/ml/BaseRow.brs"
+import "pkg:/source/roku_modules/maestro/ml/RowItemScroller.brs"
+import "pkg:/source/roku_modules/maestro/ml/RowItemViewManager.brs"
+import "pkg:/source/roku_modules/maestro/ml/ItemFocusManager.brs"
+
+namespace $NAMESPACE$
+
+  @observersWaitInitialize
+  @node("$CLASSNAME$", "ml_BaseRow")
+  class $CLASSNAME$ extends ml.BaseRow
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private menu as mc.types.node
+    private titleLabel as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+      m.createViews()
+    end function
+
+    private function createViews()
+      bundle = m.styleManager@.loadBundle("pkg:/$SOURCE_PKG_PATH$.json")
+      m.createViewsFromStyleJson(bundle.views, m.top)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onContentUpdate(content as mc.types.node)
+      m.log.info("ROW CHANGE")
+      super.onContentUpdate(content)
+      m.titleLabel.text = asString(content.rowText)
+      m.observe(m.menu.selectedIndex, m.onMenuItemChange)
+    end function
+
+    public override function getFocusIndicatorConfig(cellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean, isFromListScroll = false as boolean) as ml.FocusIndicatorConfig
+      return ml.createFocusIndicatorConfig(m.top, invalid, direction, -1, true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onMenuItemChange(index as integer)
+      m.log.info("selected tab item", index)
+      if index = 0
+        m.sendRowData({ offset: -1 })
+      else if index = 1
+        m.sendRowData({ offset: 1 })
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Row Delegate Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onDidGainFocus(event as ml.ListEvent)
+      ' ? "CR: onDidGainFocus " ; " " ; direction
+      if m.owner.isFocused or m.owner.isChildFocused
+        m.setFocus(m.menu)
+      end if
+    end function
+
+  end class
+end namespace

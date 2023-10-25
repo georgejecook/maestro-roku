@@ -3,11 +3,16 @@ import "pkg:/source/core/Utils.bs"
 import "Types-Polyfill.bs"
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/DestroyUtils.bs"
 
 namespace mc
   class BaseClass
 
-    public state = "none"
+    state = "none"
+    isCleanable = true
+    isDestroyable = true
+    isDestroyed = false
+
     protected name
     protected log
 
@@ -65,7 +70,21 @@ namespace mc
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ creation
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function cleanup()
+      if m.isCleanable
+        m.onCleanup()
+      end if
+    end function
+
+    function destroy()
+      mc.internal.destroyUtils.destroy(m)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Creation Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
@@ -209,6 +228,21 @@ namespace mc
       end if
     end function
 
+    protected function unobserveAllNotifications()
+      if m.isNotificationObservingSupported()
+        callbacks = m["_notificationCallbacks"]
+        if callbacks <> invalid
+          'bs:disable-next-line
+          notificationCenter = m.getInstance("notificationCenter")
+          for each name in callbacks
+            'bs:disable-next-line
+            notificationCenter@.removeObserver(m.top, name)
+          end for
+          m["_notificationCallbacks"] = invalid
+        end if
+      end if
+    end function
+
     protected function _onNotification(notification as mc.Notification)
       try
         callbacks = m["_notificationCallbacks"]
@@ -219,6 +253,12 @@ namespace mc
       catch error
         m.log.error("error handling notification", error)
       end try
+    end function
+
+    protected function onCleanup()
+      'do any specific cleanup here that needs to be done ahead of destroying
+      'we should set any large json objects to invalid here
+      'to save needless and potentially very expensive iteration
     end function
 
   end class
