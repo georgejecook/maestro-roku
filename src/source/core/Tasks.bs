@@ -87,7 +87,7 @@ namespace mc.tasks
   '  * @returns {node|invalid} task, or invalid it could not be created
   '  */
   function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, scope = invalid as object, fieldName = "output" as string)
-
+    globalObj = mc.getGlobal()
     task = mc.createSGNode(taskType)
 
     if task = invalid
@@ -110,6 +110,10 @@ namespace mc.tasks
     mc.setOrAddNodeFields(task, fields)
     if callback <> invalid
       mc.tasks.observeNodeField(task, fieldName, callback, sendMode, true, scope)
+    end if
+
+    if asBoolean(globalObj.maestroConfig.isTrackingTaskUsage)
+      mc.tasks.observeNodeField(task, "state", mc.tasks.onTaskStateChange, "both")
     end if
 
     if isRunning
@@ -362,6 +366,48 @@ namespace mc.tasks
       mc.tasks.cleanNodeObserver(task, task._observedField)
       task.control = "stop"
     end if
+  end function
+
+  function onTaskStateChange(state as string, task as mc.types.node)
+    isRunning = state = "run"
+    wasRunning = asBoolean(task._mIsRunning) = true
+    if not wasRunning and state = "run"
+      mc.setOrAddNodeField(task, "_mIsRunning", true)
+    else if wasRunning and state = "stop" or state = "done"
+      mc.setOrAddNodeField(task, "_mIsRunning", false)
+    end if
+
+    if isRunning = wasRunning
+      return invalid
+    end if
+
+    globalObj = mc.getGlobal()
+    taskType = task.subType()
+    isLoggingTasks = asBoolean(globalObj.maestroConfig.isLoggingTaskTracking)
+
+    maestroTasks = globalObj._maestroTasks
+    if maestroTasks = invalid
+      maestroTasks = mc.createSGNode("Node")
+      mc.setOrAddNodeField(globalObj, "_maestroTasks", maestroTasks)
+    end if
+    isRunning = isRunning = true ? 1 : 0
+    numberRunning = asInteger(maestroTasks[taskType]) + isRunning ? 1 : 0
+
+    if numberRunning > 0
+      mc.setOrAddNodeField(maestroTasks, taskType, numberRunning)
+    else
+      maestroTasks.removeField(taskType)
+    end if
+
+    if isLoggingTasks
+      fields = maestroTasks.getFields()
+      for each field in fields.items()
+        if not mc.isInteger(field.value)
+          fields.delete(field.key)
+        end if
+      end for
+    end if
+    return invalid
   end function
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
