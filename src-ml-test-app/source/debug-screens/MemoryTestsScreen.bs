@@ -1,0 +1,128 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "pkg:/source/core/DebugTimer.bs"
+
+namespace debug.screens
+
+  @observersWaitInitialize
+  @node("MemoryTestsScreen", "mv_BaseView")
+  class MemoryTestsScreen extends mv.BaseScreen
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private buttonsGroup as mc.types.node
+    private addButton as mc.types.node
+    private destroyButton as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private views = []
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("MemoryTestsScreen")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+      m.createViews()
+    end function
+
+    private function createViews()
+      bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/MemoryTestsScreen.json")
+      m.createViewsFromStyleJson(bundle.views, m.top)
+      m.focusedControl = m.buttonsGroup
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onButtonsGroupSelectedIndex(index as integer)
+      m.log.info("selected", index)
+      button = m.buttonsGroup@.getSelectedButton()
+      if m.addButton.isSameNode(button)
+      else if m.addButton.isSameNode(button)
+      end if
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function addViews()
+      timer = new mc.utils.DebugTimer("make cells")
+      for i = 0 to 100
+        ' m.views.push(m.top.createChild("Group"))
+        '   ' m.views.push(m.createSGNode("mv_Poster"))
+        '   ' m.views.push(m.createSGNode("mv_Label"))
+        '   ' m.views.push(m.createSGNode("mv_Rectangle"))
+        '   ' m.views.push(m.createSGNode("mv_Rectangle"))
+        ' m.views.push(m.createSGNode("HeroCellEfficient"))
+        ' m.views.push(m.createSGNode("HeroCellEfficient"))
+        m.views.push(m.top.createChild("HeroCellEfficient"))
+      end for
+      ' m.global.componentPool@.prebakeComponents(1000, "HeroCellEfficient")
+      ' timer.log("made 100 posters")
+      ' m.global.componentPool@.prebakeComponents(500, "PosterCellEfficient")
+      ' timer.log("made 500 posters cells")
+      ' m.global.componentPool@.prebakeComponents(59, "ml_RowHeader")
+      ' timer.log("made 59 row headers")
+      ' m.global.componentPool@.prebakeComponents(20, "ml_GridRow")
+      ' timer.log("made 20 grid rows")
+      ' m.global.componentPool@.prebakeComponents(50, "ml_HorizontalRow")
+      timer.log("finished")
+    end function
+
+    private function removeViews()
+      for each view in m.views
+        view.getParent().removeChild(view)
+      end for
+      m.views = []
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+      return key <> "back"
+    end function
+
+    protected override function onKeyPressBack() as boolean
+      m.log.info("onKeyPressBack")
+      return false
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onFirstShow()
+      super.onFirstShow()
+    end function
+
+    protected override function onShow()
+      m.log.info("onShow")
+      super.onShow()
+    end function
+
+    protected override function onGainedFocus(isSelfFocused as boolean)
+      m.log.info("onGainedFocus")
+      super.onGainedFocus(isSelfFocused)
+      if isSelfFocused
+        m.setFocus(m.buttonsGroup)
+      end if
+    end function
+  end class
+end namespace
