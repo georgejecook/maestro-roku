@@ -16,8 +16,8 @@ The `serialize` function takes an object as input and returns an associative arr
 
 ### Arguments
 
-| Argument Name | Type | Description |
-| ---| ---| --- |
+| Argument Name  | Type     | Description                  |
+|----------------|----------|------------------------------|
 | `serializable` | `object` | The object to be serialized. |
 
 ### Returns
@@ -31,10 +31,10 @@ The `deSerialize` function takes an associative array as input and returns an ob
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `data` | `mc.types.assocarray` | N/A | The associative array containing the serialized representation of the object. |
-| `serializable` | `object` | `invalid` | An optional object to deserialize the data into. If not provided, a new object will be created based on the data. |
+| Argument Name  | Type                 | Default Value | Description                                                                                                       |
+|----------------|----------------------|---------------|-------------------------------------------------------------------------------------------------------------------|
+| `data`         | `roAssociativeArray` | N/A           | The associative array containing the serialized representation of the object.                                     |
+| `serializable` | `object`             | `invalid`     | An optional object to deserialize the data into. If not provided, a new object will be created based on the data. |
 
 ### Returns
 
@@ -47,9 +47,9 @@ This function returns a boolean indicating whether an object is serializable.
 
 ### Arguments
 
-| Argument Name | Type | Description |
-| ---| ---| --- |
-| `item` | `object` | The object to check for serializability. |
+| Argument Name | Type     | Description                              |
+|---------------|----------|------------------------------------------|
+| `item`        | `object` | The object to check for serializability. |
 
 ### Returns
 

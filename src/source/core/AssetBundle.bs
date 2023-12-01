@@ -4,7 +4,7 @@ namespace mc
     private json
     public version
 
-    function new(json as mc.types.assocarray)
+    function new(json as roAssociativeArray)
       m.json = json
       m.version = json.version
     end function
@@ -31,7 +31,7 @@ namespace mc
 
       for each assetKey in newerBundle.json.files
         if m.json.files[assetKey] = invalid or m.json.files[assetKey] <> newerBundle.json.files[assetKey]
-    '      ? "assetKey " ; assetKey ; " is changed or new"
+          '      ? "assetKey " ; assetKey ; " is changed or new"
           'new or changed
           changedAssets[assetKey] = m.json.files[assetKey]
         end if
@@ -39,7 +39,7 @@ namespace mc
       return changedAssets
     end function
 
-    function writeAssets(assetData as mc.types.assocarray, items as mc.types.assocarray)
+    function writeAssets(assetData as roAssociativeArray, items as roAssociativeArray)
       fs = CreateObject("roFileSystem")
       id = m.json.id
       if items = invalid

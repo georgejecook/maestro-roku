@@ -7,7 +7,7 @@ namespace mc.collections
   ' @param {function} function to run on each item. For an array is form function(item), for dictionary function(key, value)
   '  */
   @injectLocalM
-  function forEach(collection as dynamic, func as function, mTarget = invalid as mc.types.assocarray)
+  function forEach(collection as dynamic, func as function, mTarget = invalid as roAssociativeArray)
     items = []
     if mTarget = invalid
       mTarget = m
@@ -30,7 +30,7 @@ namespace mc.collections
   ' @returns {outputType} items mapped by the mapper
   '  */
   @injectLocalM
-  function map(array as mc.types.array, mapper as mc.collections.BaseMapper, mTarget = invalid as mc.types.assocarray)
+  function map(array as roArray, mapper as mc.collections.BaseMapper, mTarget = invalid as roAssociativeArray)
     items = []
     if mTarget = invalid
       mTarget = m
@@ -82,7 +82,7 @@ namespace mc.collections
   ' @params{array} array - array to sort
   ' @params{keyPath} string - path to value to sort on
   ' @params{boolean} ascending
-  function getSortedArrayByKey(array as mc.types.array, keyPath as string, ascending = true as boolean) as mc.types.array
+  function getSortedArrayByKey(array as roArray, keyPath as string, ascending = true as boolean) as roArray
     result = []
     if type(array) = "roSGNode"
       if array.isSubType("mc_Node") or array.subType() = "mc_Node"
@@ -113,7 +113,7 @@ namespace mc.collections
   end function
 
   @injectLocalM
-  function getSortedArrayByFunction(array as mc.types.array, func as function, ascending = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.array
+  function getSortedArrayByFunction(array as roArray, func as function, ascending = true as boolean, mTarget = invalid as roAssociativeArray) as roArray
     if mTarget = invalid
       mTarget = m
     end if
@@ -144,7 +144,7 @@ namespace mc.collections
     return result
   end function
 
-  function getSortedArrayByCallFunc(array as mc.types.array, funcName as string, ascending = true as boolean) as mc.types.array
+  function getSortedArrayByCallFunc(array as roArray, funcName as string, ascending = true as boolean) as roArray
     result = []
     if type(array) = "roSGNode"
       if array.isSubType("mc_Node") or array.subType() = "mc_Node"
@@ -172,7 +172,7 @@ namespace mc.collections
     return result
   end function
 
-  function getItemAtOffset(array as mc.types.array, item as dynamic, offset as integer, key = invalid as string, wrap = false as boolean, limitBounds = true as boolean)
+  function getItemAtOffset(array as roArray, item as dynamic, offset as integer, key = invalid as string, wrap = false as boolean, limitBounds = true as boolean)
     if array = invalid or array.count() = 0
       return invalid
     end if
@@ -191,7 +191,7 @@ namespace mc.collections
     end if
   end function
 
-  function getArrayIndex(array as mc.types.array, item as dynamic, key = invalid as string)
+  function getArrayIndex(array as roArray, item as dynamic, key = invalid as string)
 
     if type(array) = "roSGNode"
       if array.isSubType("mc_Node") or array.subType() = "mc_Node"
@@ -249,9 +249,9 @@ namespace mc.collections
 
   class CallFuncMapper extends mc.collections.BaseMapper
     private funcName as string
-    private args as mc.types.assocarray
+    private args as roAssociativeArray
 
-    function new(funcName as string, args as mc.types.assocarray)
+    function new(funcName as string, args as roAssociativeArray)
       super()
       m.funcName = funcName
       m.args = args
@@ -305,7 +305,7 @@ namespace mc.collections
   ' @param {boolean} findAll, boolean to filter all occurrences
   ' @returns {array} items that match the predicate
   @injectLocalM
-  function filter(array as mc.types.array, predicate as dynamic, findAll = true as boolean, mTarget = invalid as mc.types.assocarray)
+  function filter(array as roArray, predicate as dynamic, findAll = true as boolean, mTarget = invalid as roAssociativeArray)
     items = []
     if mTarget = invalid
       mTarget = m
@@ -361,7 +361,7 @@ namespace mc.collections
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns the first item that matches, or invalid
   @injectLocalM
-  function find(array as mc.types.array, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as mc.types.array)
+  function find(array as roArray, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as roArray)
     items = mc.collections.filter(array, predicate, false, mTarget)
     if items.count() = 0
       return default
@@ -374,7 +374,7 @@ namespace mc.collections
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns true if the array matches the predicate
   @injectLocalM
-  function contains(array as mc.types.array, predicate as dynamic, mTarget = invalid as mc.types.array) as boolean
+  function contains(array as roArray, predicate as dynamic, mTarget = invalid as roArray) as boolean
     items = mc.collections.filter(array, predicate, true, mTarget)
     return items.count() > 0
   end function
@@ -442,9 +442,9 @@ namespace mc.collections
 
   class CallFuncPredicate extends mc.collections.AbstractPredicate
     private funcName as string
-    private args as mc.types.assocarray
+    private args as roAssociativeArray
 
-    function new(funcName as string, args as mc.types.assocarray, expected as dynamic)
+    function new(funcName as string, args as roAssociativeArray, expected as dynamic)
       super(expected)
       m.funcName = funcName
       m.args = args
@@ -459,7 +459,7 @@ namespace mc.collections
     end function
   end class
 
-  function arrayContains(array as mc.types.array, value as dynamic) as boolean
+  function arrayContains(array as roArray, value as dynamic) as boolean
     return mc.collections.getArrayIndex(array, value) <> -1
   end function
 

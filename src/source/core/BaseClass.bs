@@ -39,7 +39,7 @@ namespace mc
     '++ Internal Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function _apply(funcName as string, args as mc.types.array, warnIfNoFunction = true as boolean)
+    function _apply(funcName as string, args as roArray, warnIfNoFunction = true as boolean)
       return mc.apply(funcName, args, m, warnIfNoFunction)
     end function
 
@@ -68,15 +68,15 @@ namespace mc
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
+    protected function createSGNode(nodeType as string, parent = invalid as roSGnode, id = invalid as string, args = invalid as roAssociativeArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGnode
       return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
-    function createFragment(fragmentJson as dynamic, targetNode = invalid as mc.types.node, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+    function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGnode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
       return mv.createFragment(fragmentJson, targetNode, dataBindingContext, assignViewsToM)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGnode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -88,7 +88,7 @@ namespace mc
       return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget, true)
     end function
 
-    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -105,11 +105,11 @@ namespace mc
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, fieldAndValueTargetField = invalid as string)
+    protected function observeNodeField(node as roSGnode, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, fieldAndValueTargetField = invalid as string)
       mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m, fieldAndValueTargetField)
     end function
 
-    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
+    protected function unobserveNodeField(node as roSGnode, fieldName as string, callback = invalid as function)
       mc.tasks.unobserveNodeField(node, fieldName, callback, m)
     end function
 
@@ -133,23 +133,23 @@ namespace mc
       return mc.tasks.setInterval(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as mc.types.node)
+    protected function cancelWaitTimer(timer as roSGnode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function cancelTimeout(timer as mc.types.node)
+    protected function cancelTimeout(timer as roSGnode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function cancelInterval(timer as mc.types.node)
+    protected function cancelInterval(timer as roSGnode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as float, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
+    protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as float, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as mc.types.node)
+    protected function cancelTask(task as roSGnode)
       mc.tasks.cancelTask(task)
     end function
 

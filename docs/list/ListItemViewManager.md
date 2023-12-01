@@ -31,10 +31,10 @@ Creates renderers for the specified `content` and updates the `visibleComponents
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `content` | `mc.types.node` | N/A | The content for which to create renderers. |
-| `forceSync` | boolean | `false` | A flag indicating whether to create renderers synchronously (`true`) or asynchronously (`false`). |
+| Argument Name | Type       | Default Value | Description                                                                                       |
+|---------------|------------|---------------|---------------------------------------------------------------------------------------------------|
+| `content`     | `roSGnode` | N/A           | The content for which to create renderers.                                                        |
+| `forceSync`   | boolean    | `false`       | A flag indicating whether to create renderers synchronously (`true`) or asynchronously (`false`). |
 
 ### Returns
 *   A boolean value indicating whether the renderers were created successfully (`true`) or not (`false`).
@@ -48,9 +48,9 @@ Retrieves the renderer at the specified index in the `visibleComponents` array.
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `index` | integer | N/A | The index of the renderer in the `visibleComponents` array. |
+| Argument Name | Type    | Default Value | Description                                                 |
+|---------------|---------|---------------|-------------------------------------------------------------|
+| `index`       | integer | N/A           | The index of the renderer in the `visibleComponents` array. |
 
 
 <br />
@@ -61,12 +61,12 @@ Creates a row component for the specified `rowContent` and adds it to the `conta
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `rowContent` | `mc.types.node` | N/A | The content for the row. |
-| `index` | integer | N/A | The index of the row in the list. |
-| `settings` | `mc.types.node` | N/A | The settings for the row. |
-| `rect` | `mc.types.assocarray` | N/A | The rect for the row. |
+| Argument Name | Type                 | Default Value | Description                       |
+|---------------|----------------------|---------------|-----------------------------------|
+| `rowContent`  | `roSGnode`           | N/A           | The content for the row.          |
+| `index`       | integer              | N/A           | The index of the row in the list. |
+| `settings`    | `roSGnode`           | N/A           | The settings for the row.         |
+| `rect`        | `roAssociativeArray` | N/A           | The rect for the row.             |
 
 ### Returns
 
@@ -80,9 +80,9 @@ Updates the layout of the rows in the list.
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `fullUpdate` | boolean | `false` | A flag indicating whether to perform a full update (`true`) or a partial update (`false`). |
+| Argument Name | Type    | Default Value | Description                                                                                |
+|---------------|---------|---------------|--------------------------------------------------------------------------------------------|
+| `fullUpdate`  | boolean | `false`       | A flag indicating whether to perform a full update (`true`) or a partial update (`false`). |
 
 
 
@@ -103,9 +103,9 @@ Updates the list's row renderers and processes changes in the item scroller when
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `changes` | `mc.types.array` | N/A | An array of changes that occurred in the list's content. |
+| Argument Name | Type      | Default Value | Description                                              |
+|---------------|-----------|---------------|----------------------------------------------------------|
+| `changes`     | `roArray` | N/A           | An array of changes that occurred in the list's content. |
 
 
 
@@ -119,11 +119,11 @@ Determines whether flow focus is possible for a given cell info, direction, and 
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `info` | `ml.CellInfo` | `invalid` | The cell info to check for flow focus. |
-| `direction` | `integer` | N/A | The direction to check flow focus in. |
-| `activeScreenPos` | `integer` | N/A | The current active screen position. |
+| Argument Name     | Type          | Default Value | Description                            |
+|-------------------|---------------|---------------|----------------------------------------|
+| `info`            | `ml.CellInfo` | `invalid`     | The cell info to check for flow focus. |
+| `direction`       | `integer`     | N/A           | The direction to check flow focus in.  |
+| `activeScreenPos` | `integer`     | N/A           | The current active screen position.    |
 
 
 <br/>
@@ -136,10 +136,10 @@ Gets the item info for a given row index and cell index.
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `rowIndex` | `integer` | N/A | The index of the row to get the item info for. |
-| `cellIndex` | `integer` | N/A | The index of the cell to get the item info for. |
+| Argument Name | Type      | Default Value | Description                                     |
+|---------------|-----------|---------------|-------------------------------------------------|
+| `rowIndex`    | `integer` | N/A           | The index of the row to get the item info for.  |
+| `cellIndex`   | `integer` | N/A           | The index of the cell to get the item info for. |
 
 
 <br/>
@@ -151,10 +151,10 @@ Gets the index of the item at a given position and direction.
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `position` | `integer` | N/A | The position to get the index at. |
-| `direction` | `integer` | N/A | The direction to get the index in. |
+| Argument Name | Type      | Default Value | Description                        |
+|---------------|-----------|---------------|------------------------------------|
+| `position`    | `integer` | N/A           | The position to get the index at.  |
+| `direction`   | `integer` | N/A           | The direction to get the index in. |
 
 
 <br />
@@ -166,5 +166,5 @@ Recalculates the list's cell info.
 ---------
 
 | argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| None | None | None | None |
+|---------------|------|--------------|-------------|
+| None          | None | None         | None        |

@@ -5,7 +5,7 @@ import "pkg:/source/ml/ListContentManager.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
-    private batchTimer as mc.types.node
+    private batchTimer as roSGnode
     private visibleComponents = []
 
     private isUpdating = false
@@ -43,7 +43,7 @@ namespace ml
     private batchSize = 3
     private batchDelay = 3
 
-    function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
+    function new(list as roSGnode, container as roSGnode, minPos as integer, maxPos as integer, componentPool as roSGnode)
       super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
     end function
 
@@ -65,7 +65,7 @@ namespace ml
       m.cancelWaitTimer(m.batchTimer)
     end function
 
-    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    override function createRenderers(content as roSGnode, forceSync = false as boolean) as boolean
 
       m.owner._isRenderingUpdate = true
       m.log.verbose(">>> LIST CREATE RENDERERS _isRenderingUpdate", mc.dv(m.owner), m.owner._isRenderingUpdate)
@@ -187,7 +187,7 @@ namespace ml
       'm.log.decreaseIndent()
     end function
 
-    function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, rect as mc.types.assocarray)
+    function createRow(rowContent as roSGnode, index as integer, settings as roSGnode, rect as roAssociativeArray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'm.log.increaseIndent()Indent("CREATE ROW " + index.toStr() + " " + compName)
       'TODO - measure height to ascertain how many
@@ -358,7 +358,7 @@ namespace ml
     end function
 
     ' @params{ml_RowSettings} settings for the current row
-    private function calculateRowHeight(settings as mc.types.node) as integer
+    private function calculateRowHeight(settings as roSGnode) as integer
       height = 300
       if settings = invalid
         return height
@@ -376,7 +376,7 @@ namespace ml
       return height
     end function
 
-    private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
+    private function calculateGridRowHeight(row as roSGnode, settings as roSGnode) as integer
       numItems = row.length
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
@@ -391,7 +391,7 @@ namespace ml
       return height
     end function
 
-    override function onContentItemsChange(changes as mc.types.array)
+    override function onContentItemsChange(changes as roArray)
       m.log.info("updating row renderers due to contents change")
       m.isUpdating = true
       m.createRenderers(m.content, true)

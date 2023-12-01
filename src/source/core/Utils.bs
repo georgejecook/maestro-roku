@@ -1,5 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
-import "pkg:/source/core/Types-Polyfill.bs"
+
 import "pkg:/source/core/Global.bs"
 
 namespace mc
@@ -97,7 +97,7 @@ namespace mc
   '  * @param {Any} p3 param 3, can leave blank to skip
   '  * @returns {any} whatever the func returns, or invald if not found
   '  */
-  function callAAFunc(target as mc.types.node, funcName as string, p1 = "#M_NONE#" as dynamic, p2 = "#M_NONE#" as dynamic, p3 = "#M_NONE#" as dynamic) as dynamic
+  function callAAFunc(target as roSGnode, funcName as string, p1 = "#M_NONE#" as dynamic, p2 = "#M_NONE#" as dynamic, p3 = "#M_NONE#" as dynamic) as dynamic
 
     if target <> invalid
       if mc.isFunction(target[funcName])
@@ -120,7 +120,7 @@ namespace mc
     return invalid
   end function
 
-  function apply(func as dynamic, args = [] as mc.types.array, target = invalid as mc.types.assocarray, warnIfNoFunction = true as boolean) as dynamic
+  function apply(func as dynamic, args = [] as roArray, target = invalid as roAssociativeArray, warnIfNoFunction = true as boolean) as dynamic
     if not mc.isArray(args)
       m.log.error("apply expects an array of args")
       return invalid
@@ -191,7 +191,7 @@ namespace mc
     return invalid
   end function
 
-  function removeDuplicateKeys(aa = invalid as mc.types.assocarray, otherAA = invalid as mc.types.assocarray)
+  function removeDuplicateKeys(aa = invalid as roAssociativeArray, otherAA = invalid as roAssociativeArray)
     if otherAA <> invalid and aa <> invalid
 
       for each key in otherAA
@@ -346,7 +346,7 @@ namespace mc
     return mc.getPath(content, path, default, disableIndexing)
   end function
 
-  function append(source as mc.types.assocarray, other as mc.types.assocarray)
+  function append(source as roAssociativeArray, other as roAssociativeArray)
     if mc.isAACompatible(source) and mc.isAACompatible(other)
       source.append(other)
     end if
@@ -422,13 +422,13 @@ namespace mc
     end if
   end function
 
-  function createPath(path as string, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as mc.types.assocarray
+  function createPath(path as string, value = invalid as dynamic, insertAAsForMissingValues = true as boolean) as roAssociativeArray
     content = {}
     mc.setPath(content, path, value)
     return content
   end function
 
-  function setOrAddNodeField(node as mc.types.node, field as string, value = invalid as dynamic)
+  function setOrAddNodeField(node as roSGnode, field as string, value = invalid as dynamic)
     if type(node) = "roSGNode"
       if node.doesExist(field)
         node[field] = value
@@ -444,7 +444,7 @@ namespace mc
     end if
   end function
 
-  function setNodeAAValue(node as mc.types.node, field as string, key as string, value = invalid as dynamic)
+  function setNodeAAValue(node as roSGnode, field as string, key as string, value = invalid as dynamic)
     v = node[field]
     if v = invalid
       v = {}
@@ -453,7 +453,7 @@ namespace mc
     mc.setOrAddNodeField(node, field, v)
   end function
 
-  function setNodeArrayValue(node as mc.types.node, field as string, index as integer, value = invalid as dynamic)
+  function setNodeArrayValue(node as roSGnode, field as string, index as integer, value = invalid as dynamic)
     v = node[field]
     if v = invalid
       v = []
@@ -462,13 +462,13 @@ namespace mc
     mc.setOrAddNodeField(node, field, v)
   end function
 
-  function setOrAddNodeFields(node as mc.types.node, fields as mc.types.array)
+  function setOrAddNodeFields(node as roSGnode, fields as roArray)
     for each field in fields
       mc.setOrAddNodeField(node, field, fields[field])
     end for
   end function
 
-  function getChildAtDepth(node as mc.types.node, depth as integer) as dynamic
+  function getChildAtDepth(node as roSGnode, depth as integer) as dynamic
     currentDepth = 0
 
     while node <> invalid and currentDepth < depth
@@ -504,7 +504,7 @@ namespace mc
     return a&
   end function
 
-  function getIndexOfItem(parent as mc.types.node, item as mc.types.node) as integer
+  function getIndexOfItem(parent as roSGnode, item as roSGnode) as integer
     if item <> invalid
       for index = 0 to parent.getChildCount() - 1
         node = parent.getChild(index)
@@ -520,7 +520,7 @@ namespace mc
   ' @param {node} parent - parent to append created node to
   ' @param {string} id - id of new node
   ' @param {assocarray|array of assocarray} args - if assocarray, fields that are applied to the node on creation, if array of assoarray, will iterate over the fields applying them all
-  function createSGNode(nodeType as dynamic, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, isCallingInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
+  function createSGNode(nodeType as dynamic, parent = invalid as roSGnode, id = invalid as string, args = invalid as roAssociativeArray, isCallingInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGnode
 
     if mc.isAACompatible(nodeType)
       id = nodeType.id
@@ -608,7 +608,7 @@ namespace mc
     return node
   end function
 
-  function createNode(nodeType as string) as mc.types.node
+  function createNode(nodeType as string) as roSGnode
     node = createObject(nodeType)
     return node
   end function
@@ -672,11 +672,11 @@ namespace mc
     return m.global
   end function
 
-  function getTop() as mc.types.node
+  function getTop() as roSGnode
     return m.top
   end function
 
-  function getScene() as mc.types.node
+  function getScene() as roSGnode
     return m.top.getScene()
   end function
 
@@ -684,7 +684,7 @@ namespace mc
   '++ mis utils
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  function interpolateArray(a as mc.types.array, b as mc.types.array, fraction as float) as mc.types.array
+  function interpolateArray(a as roArray, b as roArray, fraction as float) as roArray
     if a <> invalid and b <> invalid
       return [a[0] + (b[0] - a[0]) * fraction, a[1] + (b[1] - a[1]) * fraction]
     else
@@ -741,7 +741,7 @@ namespace mc.private
     end if
   end function
 
-  function getDebugMObject(node as mc.types.assocarray)
+  function getDebugMObject(node as roAssociativeArray)
     mObject = {}
     for each field in node.items()
       if not mc.isFunction(field.value)

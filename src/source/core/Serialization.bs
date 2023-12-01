@@ -2,7 +2,7 @@ import "Utils.bs"
 
 namespace mc.utils.Serialization
 
-  function serialize(serializable as object) as mc.types.assocarray
+  function serialize(serializable as object) as roAssociativeArray
     if mc.utils.Serialization.isSerializable(serializable)
       if type(serializable) = "roSGNode"
         data = serializable@.serialize()
@@ -23,7 +23,7 @@ namespace mc.utils.Serialization
     return invalid
   end function
 
-  function deSerialize(data as mc.types.assocarray, serializable = invalid as object) as dynamic
+  function deSerialize(data as roAssociativeArray, serializable = invalid as object) as dynamic
     if not mc.isAACompatible(data)
       m.log.warn("received non aa value to deserialize - cannot proceed")
       return invalid
@@ -61,7 +61,7 @@ namespace mc.utils.Serialization
     return false
   end function
 
-  function isDeSerializableToNode(json as mc.types.assocarray) as boolean
+  function isDeSerializableToNode(json as roAssociativeArray) as boolean
     return mc.isAACompatible(json) and json._serializationType <> invalid
   end function
 

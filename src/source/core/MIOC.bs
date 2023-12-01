@@ -84,7 +84,7 @@ namespace mioc
 
   end function
 
-  function setInstances(instances as mc.types.assocarray)
+  function setInstances(instances as roAssociativeArray)
     for each key in instances
       mioc.setInstance(key, instances[key])
     end for
@@ -197,7 +197,7 @@ namespace mioc
   '  * @param {boolean}  storeInstance - defaults to true
   '  * @returns {any|invalid} resource, or invalid if not found
   '  */
-  function getClassInstance(clazz as dynamic, args = [] as mc.types.assocarray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+  function getClassInstance(clazz as dynamic, args = [] as roAssociativeArray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
     if mc.isFunction(clazz)
       instance = mioc.createClassInstance(clazz, args)
       if storeInstance and instance <> invalid
@@ -224,7 +224,7 @@ namespace mioc
   end function
 
   ' @params {string|constructor} - name of class, or pointer to class constructor
-  function createClassInstance(classType as dynamic, args = [] as mc.types.array) as dynamic
+  function createClassInstance(classType as dynamic, args = [] as roArray) as dynamic
 
     if mc.isFunction(classType)
       return mc_apply(classType, args)
@@ -263,7 +263,7 @@ end namespace
 
 namespace mioc.testing
 
-  function setContainer(container as mc.types.assocarray)
+  function setContainer(container as roAssociativeArray)
     mioc.testing.unset__mioc()
     m.__mioc = container
     mc.setOrAddNodeField(mc.getGlobal(), "__mioc", m.__mioc)
@@ -275,7 +275,7 @@ namespace mioc.testing
     mc.getGlobal().delete("__mioc")
   end function
 
-  function createMockClassInstance(classname as string, id as string, fields = {} as mc.types.assocarray) as dynamic
+  function createMockClassInstance(classname as string, id as string, fields = {} as roAssociativeArray) as dynamic
     instance = { "id": id, "__classname": classname }
     instance.append(fields)
     mioc.setClassInstance(instance)

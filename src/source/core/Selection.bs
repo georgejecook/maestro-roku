@@ -1,17 +1,17 @@
-import "pkg:/source/core/Types-Polyfill.bs"
+
 import "pkg:/source/core/Collections.bs"
 
 namespace mc
   @node("mc_Selection", "ContentNode")
   class Selection
     'item that started the selection
-    initialItem as mc.types.node
+    initialItem as roSGnode
 
     'parentCollection where this item came from
-    parentCollection as mc.types.node
+    parentCollection as roSGnode
 
     'current item, if changed since initial Item
-    currentItem as mc.types.node
+    currentItem as roSGnode
 
     'e.g. play or display
     action as string
@@ -20,13 +20,13 @@ namespace mc
     actionInfo = {}
 
     'screen where selection occurred
-    originScreen as mc.types.node
+    originScreen as roSGnode
 
     ' kind of screen to create, to execute the selection
     targetScreen as string
 
     'extra info that can be used to supply context to the selection
-    context as mc.types.assocarray
+    context as roAssociativeArray
 
     ' pending|success|error - can listen for this on async selection scenarios - the state should only be changed once!
     state = "pending"
@@ -37,11 +37,11 @@ namespace mc
     ' info pertaining to state changes
     result = {}
 
-    function getNextItem(args = invalid as dynamic) as mc.types.node
+    function getNextItem(args = invalid as dynamic) as roSGnode
       return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, 1, invalid, false, false)
     end function
 
-    function getPreviousItem(args = invalid as dynamic) as mc.types.node
+    function getPreviousItem(args = invalid as dynamic) as roSGnode
       return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, -1, invalid, false, false)
     end function
 
@@ -53,7 +53,7 @@ namespace mc
       m.currentItem = m.getPreviousItem()
     end function
 
-    function getItemIndex(item as mc.types.node) as integer
+    function getItemIndex(item as roSGnode) as integer
       return mc.collections.getArrayIndex(m.parentCollection, item)
     end function
 

@@ -18,7 +18,7 @@ namespace mc.collections
     @observer("onDebugChange")
     public _debug = false
 
-    public __contents as mc.types.AssocArray
+    public __contents as roAssociativeArray
 
     protected log
 
@@ -73,12 +73,12 @@ namespace mc.collections
       return m.data[key] <> invalid
     end function
 
-    public function getAA() as mc.types.assocarray
+    public function getAA() as roAssociativeArray
       return m.data
     end function
 
     ' @returns{array} - array of values
-    function getValues() as mc.types.array
+    function getValues() as roArray
       values = []
       for each key in m.data
         values.push(m.data[key])
@@ -87,7 +87,7 @@ namespace mc.collections
     end function
 
     ' @returns{array} - array of values
-    function getKeys() as mc.types.array
+    function getKeys() as roArray
       return m.data.keys()
     end function
 
@@ -95,7 +95,7 @@ namespace mc.collections
     '++ Serializable support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function serialize() as mc.types.assocarray
+    public function serialize() as roAssociativeArray
       data = {}
       for each key in m.data
         item = m.data[key]
@@ -111,7 +111,7 @@ namespace mc.collections
       }
     end function
 
-    public function deserialize(data as mc.types.assocarray)
+    public function deserialize(data as roAssociativeArray)
       m.clear()
       data = mc.getPath(data, "data", {})
       for each key in data

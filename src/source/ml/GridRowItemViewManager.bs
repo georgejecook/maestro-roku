@@ -22,7 +22,7 @@ namespace ml
     private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
     private renderedRows = {}
 
-    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
+    function new(list as roSGnode, row as roSGnode, container as roSGnode, componentPool as roSGnode, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
     end function
@@ -41,7 +41,7 @@ namespace ml
       return fix(index / m.numCols)
     end function
 
-    function getCellInfosInRow(rowIndex as integer) as mc.types.array
+    function getCellInfosInRow(rowIndex as integer) as roArray
       infos = []
       firstIndex = rowIndex * m.numCols
       for i = firstIndex to firstIndex + m.numCols - 1
@@ -53,7 +53,7 @@ namespace ml
       return infos
     end function
 
-    function getRenderersInRow(rowIndex as integer, createIfNotReady = false as boolean, forceUpdate = false as boolean) as mc.types.array
+    function getRenderersInRow(rowIndex as integer, createIfNotReady = false as boolean, forceUpdate = false as boolean) as roArray
       infos = m.getCellInfosInRow(rowIndex)
       renderers = []
       ' ? " renderers in row " rowIndex " "
@@ -93,7 +93,7 @@ namespace ml
     '++ Overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
+    override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as roArray
       if m.content = invalid
         m.log.info("gridrow has invalid")
         return []
@@ -151,7 +151,7 @@ namespace ml
       super.reset()
     end function
 
-    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    override function createRenderers(content as roSGnode, forceSync = false as boolean) as boolean
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
@@ -250,7 +250,7 @@ namespace ml
       ' ? " UPDATE LAYOUT MADE " m.numRows " rows from " m.numberOfItems " items"
     end function
 
-    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
+    private function getRowInfo(rowIndex as integer, size as roArray, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
 
       yOffset += y
 
@@ -317,7 +317,7 @@ namespace ml
       end if
     end function
 
-    override function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
+    override function onContentItemsChange(changes as roArray) as ml.ListChangeResult
       m.log.info("updating row renderers due to contents change")
       ' ? "((((((((())))))))) GRID IS UPDATING CONTENT ITEMS"
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)

@@ -38,7 +38,7 @@ namespace ml
     '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function onContentChange(content as mc.types.node)
+    protected override function onContentChange(content as roSGnode)
       m.log.info("onContentChange on ", mc.dv(m.top))
       m.configureHeader()
 
@@ -63,7 +63,7 @@ namespace ml
       return changeResult
     end function
 
-    override function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
+    override function getRect(index as integer, useScreenCoords = false as boolean) as roAssociativeArray
       rect = m.viewManager.getRect(index, useScreenCoords = true)
       rect.subRowIndex = 0
       return rect
@@ -76,7 +76,7 @@ namespace ml
       return invalid
     end function
 
-    protected override function onRecycle(newContent as mc.types.node)
+    protected override function onRecycle(newContent as roSGnode)
       super.onRecycle(newContent)
 
       m.cleanHeader()
@@ -165,7 +165,7 @@ namespace ml
       ' ? " GRID onLosingFocus " m.index subRowIndex direction fraction
     end function
 
-    private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
+    private function callMethodOnFocusedCell(functionName as string, args as roArray)
       cell = m.itemScroller.cellInfo.component
       if cell <> invalid
 

@@ -14,7 +14,7 @@ namespace mc.app
     '++ Events
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public output as mc.types.AssocArray
+    public output as roAssociativeArray
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Fields
@@ -30,7 +30,7 @@ namespace mc.app
     'TODO - where will this file actually be?
     'this is in the ropm folder - let ropm rename
     protected maestroStyleUrl = "pkg:/meta/maestroDefaultStyles.json"
-    protected notificationCenter as mc.types.node
+    protected notificationCenter as roSGnode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -51,12 +51,12 @@ namespace mc.app
       )]
     end function
 
-    protected function getCustomCommands() as mc.types.array
+    protected function getCustomCommands() as roArray
       'override point to provide sequential custom commands
       return []
     end function
 
-    protected function getMaestroInitializationCommands() as mc.types.array
+    protected function getMaestroInitializationCommands() as roArray
       return [
         new mc.Command("Create FontManger", m.createFontManger)
         new mc.Command("Load Styles", m.loadStyles)
@@ -101,7 +101,7 @@ namespace mc.app
       m.finishCommand(command)
     end function
 
-    protected function createIOCInstance(nodeType as string, id as string, args = invalid as mc.types.assocarray, copyToGlobal = false as boolean)
+    protected function createIOCInstance(nodeType as string, id as string, args = invalid as roAssociativeArray, copyToGlobal = false as boolean)
       instance = m.createSGNode(nodeType, invalid, id, args)
       m.setInstance(id, instance)
       if copyToGlobal
@@ -192,7 +192,7 @@ namespace mc.app
     '++ Protected Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function loadJson(path as string) as mc.types.assocarray
+    protected function loadJson(path as string) as roAssociativeArray
       try
         text = readAsciiFile(path)
         result = parseJson(text)
@@ -202,7 +202,7 @@ namespace mc.app
       end try
     end function
 
-    protected function showErrorDialog(title as string, message as string) as mc.types.node
+    protected function showErrorDialog(title as string, message as string) as roSGnode
       dialog = m.createSGNode("Dialog")
       dialog.title = title
       dialog.message = message

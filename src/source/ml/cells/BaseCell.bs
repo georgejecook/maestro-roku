@@ -12,20 +12,20 @@ namespace ml
 
     ' any item in a list will have this set whenever it gets recycled
     @observer("onInitialStateChange")
-    public initialState as mc.types.AssocArray
+    public initialState as roAssociativeArray
 
     public isInViewPort = false
 
-    public listEvent as mc.types.AssocArray
+    public listEvent as roAssociativeArray
     public contentVersion as integer = -1
 
     private isViewCreated = false
     private isRecyclePending = true
 
-    public content as mc.types.node
-    protected list as mc.types.node
-    protected row as mc.types.node
-    protected size as mc.types.array
+    public content as roSGnode
+    protected list as roSGnode
+    protected row as roSGnode
+    protected size as roArray
     protected isContentDisplayed = false
 
     private isCreatingViewsOnInitialize = true
@@ -68,7 +68,7 @@ namespace ml
       end if
     end function
 
-    private function _onContentChange(content as mc.types.node) as void
+    private function _onContentChange(content as roSGnode) as void
       isChanged = false
       if content = invalid
         m.contentVersion = -1
@@ -88,7 +88,7 @@ namespace ml
       m.isRecyclePending = false
     end function
 
-    protected function onInitialStateChange(state as mc.types.assocarray)
+    protected function onInitialStateChange(state as roAssociativeArray)
       ' ? " ON INITIAL STATE CHANGE " m.top.index
       m.list = state.list
       m.row = state.row
@@ -104,7 +104,7 @@ namespace ml
       end if
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGnode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -113,7 +113,7 @@ namespace ml
       return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -135,12 +135,12 @@ namespace ml
       ' ? "CLEANING UP " ; m.index
     end function
 
-    protected function onContentChange(content as mc.types.node)
+    protected function onContentChange(content as roSGnode)
       'override me
     end function
 
 
-    protected function onShowWithContent(content as mc.types.node)
+    protected function onShowWithContent(content as roSGnode)
       'override me
     end function
 
@@ -152,7 +152,7 @@ namespace ml
     '++ Delegate function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function _apply(funcName as string, args as mc.types.array, warnIfNoFunction = true as boolean)
+    function _apply(funcName as string, args as roArray, warnIfNoFunction = true as boolean)
       return mc.apply(funcName, args, m, false)
     end function
 

@@ -57,7 +57,7 @@ namespace mx
       m.state = "destroyed"
     end function
 
-    protected function onAddedToAggregateView(view as mc.types.node)
+    protected function onAddedToAggregateView(view as roSGnode)
     end function
 
     protected function onFirstShow()
@@ -68,7 +68,7 @@ namespace mx
       m.isShown = true
     end function
 
-    protected function onRemovedFromAggregateView(view as mc.types.node)
+    protected function onRemovedFromAggregateView(view as roSGnode)
     end function
 
     protected function onHide()
@@ -94,7 +94,7 @@ namespace mx
       end if
     end function
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray)
+    protected function initializeView(view as roSGnode, args = invalid as roAssociativeArray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -102,12 +102,12 @@ namespace mx
       end if
     end function
 
-    protected function setFocus(target as mc.types.node, forceSet = false as boolean)
+    protected function setFocus(target as roSGnode, forceSet = false as boolean)
       'bs:disable-next-line
       mv_setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as mc.types.node, message = "" as string)
+    protected function setFocusLocked(target as roSGnode, message = "" as string)
       'bs:disable-next-line
       mv_setFocusLocked(target, message)
     end function
@@ -116,15 +116,15 @@ namespace mx
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as mc.types.node, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
+    protected function createSGNode(nodeType as roSGnode, parent = invalid as roSGnode, id = invalid as string, args = invalid as roAssociativeArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGnode
       return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
-    protected function createNode(nodeType as string) as mc.types.node
+    protected function createNode(nodeType as string) as roSGnode
       return mc.createNode(nodeType)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGnode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -133,7 +133,7 @@ namespace mx
       return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -214,7 +214,7 @@ namespace mx
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as mc.types.node, animated = true as boolean)
+    protected function push(view as roSGnode, animated = true as boolean)
 
       if mc.isString(view)
         view = m.getViewById(view)
@@ -223,7 +223,7 @@ namespace mx
       push(view, animated)
     end function
 
-    protected function pop(animated = true as boolean) as mc.types.node
+    protected function pop(animated = true as boolean) as roSGnode
       'bs:disable-next-line
       return(pop(animated))
     end function
@@ -239,7 +239,7 @@ namespace mx
       end if
     end function
 
-    protected function getViewById(id as string) as mc.types.node
+    protected function getViewById(id as string) as roSGnode
       view = mc.getMField(id)
 
       if view = invalid
@@ -254,12 +254,12 @@ namespace mx
       resetNavControllerToRoot(animated)
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+    protected function resetNavController(newFirstScreen = invalid as roSGnode, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex, animated)
     end function
 
-    protected function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+    protected function replaceNavControllerScreen(targetScreen as roSGnode, animated = false as boolean)
       'bs:disable-next-line
       replaceNavControllerScreen(targetScreen, animated)
     end function
@@ -268,11 +268,11 @@ namespace mx
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
+    protected function observeNodeField(node as roSGnode, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
       mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
     end function
 
-    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
+    protected function unobserveNodeField(node as roSGnode, fieldName as string, callback = invalid as function)
       'TODO - we need to be a bitmore clever about observing things, as they might be going to various callbacks
       mc.tasks.cleanNodeObserver(node, fieldName)
     end function
@@ -285,19 +285,19 @@ namespace mx
       'substituted by plugin
     end function
 
-    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.types.node
+    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as roSGnode
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as mc.types.node)
+    protected function cancelWaitTimer(timer as roSGnode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as mc.types.node
+    protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as roSGnode
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as mc.types.node)
+    protected function cancelTask(task as roSGnode)
       mc.tasks.cancelTask(task)
     end function
 
@@ -317,11 +317,11 @@ namespace mx
       mioc.updateInstance(instanceName, path, value)
     end function
 
-    protected function getClassInstance(className as string, args = [] as mc.types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as object
+    protected function getClassInstance(className as string, args = [] as roArray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as object
       return mioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
     end function
 
-    protected function createClassInstance(className as string, args = [] as mc.types.array) as object
+    protected function createClassInstance(className as string, args = [] as roArray) as object
       return mioc.createClassInstance(className, args)
     end function
 

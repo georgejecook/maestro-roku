@@ -4,7 +4,7 @@ namespace models
   @node("Item", "ContentNode")
   class Item
 
-    public json as mc.types.assocarray
+    public json as roAssociativeArray
 
     public version = 0
     public type = ""
@@ -18,14 +18,14 @@ namespace models
     '++ Serialization support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function serialize() as mc.types.assocarray
+    public function serialize() as roAssociativeArray
       return {
         type: m.type
         json: m.json
       }
     end function
 
-    public function deserialize(data as mc.types.assocarray)
+    public function deserialize(data as roAssociativeArray)
       m.json = data.json
       m.type = data.type
     end function
@@ -34,7 +34,7 @@ namespace models
     '++ Cloning
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function cloneCustomFieldsIntoNode(node as mc.types.node)
+    protected function cloneCustomFieldsIntoNode(node as roSGnode)
       node.isSerializable = true
       node.type = m.top.type
     end function

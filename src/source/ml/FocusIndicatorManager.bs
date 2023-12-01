@@ -15,7 +15,7 @@ namespace ml
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = true
-    public list as mc.types.node
+    public list as roSGnode
     public isFocusing = false
     public _isContentUpdating = false
 
@@ -30,7 +30,7 @@ namespace ml
 
     public focusedFraction = 0.0
 
-    private nextFocusIndex as mc.types.array
+    private nextFocusIndex as roArray
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Internal event tracking
@@ -44,17 +44,17 @@ namespace ml
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private focusPoint as mc.types.node
-    private focusIndicator as mc.types.node
-    private activeFocusView as mc.types.node
-    private nextFocusView as mc.types.node
+    private focusPoint as roSGnode
+    private focusIndicator as roSGnode
+    private activeFocusView as roSGnode
+    private nextFocusView as roSGnode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Animations
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPointAnim
-    private _list as mc.types.node
+    private _list as roSGnode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -64,12 +64,12 @@ namespace ml
     private isIndicatorOnTop = true
     private direction = 0
 
-    private flowFocusDelegate as mc.types.node
+    private flowFocusDelegate as roSGnode
 
     private nextConfig as object
 
-    private nextFocusSettings as mc.types.node
-    private previousFocusSettings as mc.types.node
+    private nextFocusSettings as roSGnode
+    private previousFocusSettings as roSGnode
     private previousSize = [0, 0]
     private previousTranslation = [0, 0]
     private rowHasIndicator = true
@@ -211,11 +211,11 @@ namespace ml
       m.itemFocusManager.reset()
     end function
 
-    function sendManualDelegateRowMessage(method as string, event as mc.types.assocarray)
+    function sendManualDelegateRowMessage(method as string, event as roAssociativeArray)
       m.itemFocusManager.delegateManager.callRowDelegateMethodOnList(method, event)
     end function
 
-    function sendManualDelegateCellMessage(method as string, event as mc.types.assocarray)
+    function sendManualDelegateCellMessage(method as string, event as roAssociativeArray)
       m.itemFocusManager.delegateManager.callCellDelegateMethodOnList(method, event)
     end function
 
@@ -339,7 +339,7 @@ namespace ml
       return m.nextConfig
     end function
 
-    private function setActiveFocusSettings(newSettings as mc.types.node)
+    private function setActiveFocusSettings(newSettings as roSGnode)
       m.previousFocusSettings = m.nextFocusSettings
       m.nextFocusSettings = newSettings
       m.previousSize = m.focusIndicator.size
@@ -436,7 +436,7 @@ namespace ml
     '++ Flow Focus Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
+    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as roSGnode) as void
 
       if not m.isActive()
         return

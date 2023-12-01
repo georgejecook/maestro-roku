@@ -27,23 +27,23 @@ namespace mc.net
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function get(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function get(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
       return m.executeRequest("GET", url, params, headers, otherArgs)
     end function
 
-    function post(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function post(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function delete(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function delete(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
       return m.executeRequest("DELETE", url, params, headers, otherArgs)
     end function
 
-    function put(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function put(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
-    function formPost(url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function formPost(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
       if mc.isAACompatible(otherArgs) and mc.isAACompatible(params)
         json = asAA(otherArgs.json)
         json.append(params)
@@ -52,7 +52,7 @@ namespace mc.net
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function executeRequest(method as string, url as string, params = invalid as mc.types.assocarray, headers = invalid as mc.types.assocarray, otherArgs = invalid as mc.types.assocarray) as mc.net.NetResult
+    function executeRequest(method as string, url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
 
       if mc.isAACompatible(otherArgs)
         args = otherArgs
@@ -75,7 +75,7 @@ namespace mc.net
       return m.runRequest(method, url, args)
     end function
 
-    function logAsCurl(method as string, url as string, headers as mc.types.assocarray, data as string)
+    function logAsCurl(method as string, url as string, headers as roAssociativeArray, data as string)
       if m.isLogAsCurlEnabled
         method = uCase(method)
         headers = m.getHeadersAsCurl(headers)
@@ -151,7 +151,7 @@ namespace mc.net
       return m._execute(method, url, headers, data, timeout, retryCount, certificatePath)
     end function
 
-    private function _execute(method as string, url as string, headers as mc.types.assocarray, data as string, timeout as float, retryCount as integer, certificatePath as string)
+    private function _execute(method as string, url as string, headers as roAssociativeArray, data as string, timeout as float, retryCount as integer, certificatePath as string)
       transfer = m.createUrlTransfer(true, true, certificatePath)
       transfer.setUrl(url)
       transfer.setHeaders(headers)
@@ -274,7 +274,7 @@ namespace mc.net
     '++ Private methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function getHeadersAsCurl(headers as mc.types.assocarray)
+    private function getHeadersAsCurl(headers as roAssociativeArray)
       result = ""
       if headers <> invalid and mc.isAACompatible(headers)
         for each header in headers.items()

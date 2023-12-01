@@ -40,7 +40,7 @@ namespace mv
       m.top.numberOfCellsInUse = 0
     end function
 
-    function getTrackers(scope = "all" as string) as mc.types.assocarray
+    function getTrackers(scope = "all" as string) as roAssociativeArray
       trackers = m.trackers[scope]
       if trackers = invalid
         trackers = {
@@ -54,13 +54,13 @@ namespace mv
       return trackers
     end function
 
-    function getCell(cellId as string, scope = "all" as string) as mc.types.node
+    function getCell(cellId as string, scope = "all" as string) as roSGnode
       trackers = m.getTrackers(scope)
 
       return trackers.cellsById[cellId]
     end function
 
-    function getCellForContentId(id as string, scope = "all" as string) as mc.types.node
+    function getCellForContentId(id as string, scope = "all" as string) as roSGnode
       trackers = m.getTrackers(scope)
       cellId = trackers.cellIdsByContentId[id]
 
@@ -71,7 +71,7 @@ namespace mv
       end if
     end function
 
-    function bindCellToContent(cell as mc.types.node, content as mc.types.node, scope = "all" as string) as void
+    function bindCellToContent(cell as roSGnode, content as roSGnode, scope = "all" as string) as void
 
       trackers = m.getTrackers(scope)
 
@@ -106,7 +106,7 @@ namespace mv
       trackers.cellsById[cell.trackingId] = cell
     end function
 
-    function unbindCell(cell as mc.types.node, scope = "all" as string)
+    function unbindCell(cell as roSGnode, scope = "all" as string)
       trackers = m.getTrackers(scope)
       contentId = trackers.contentIdsByCellId[cell.trackingId]
 
@@ -122,7 +122,7 @@ namespace mv
       end if
     end function
 
-    function setViewStates(states as mc.types.assocarray, scope = "all" as string)
+    function setViewStates(states as roAssociativeArray, scope = "all" as string)
 
       trackers = m.getTrackers(scope)
 

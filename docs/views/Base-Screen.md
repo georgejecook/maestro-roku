@@ -29,9 +29,9 @@ This is the constructor of the `BaseScreen` class, which takes in a `name` argum
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `name` | string | The name of the `BaseScreen` instance being created. |
+| Argument name | Type   | Description                                          |
+|---------------|--------|------------------------------------------------------|
+| `name`        | string | The name of the `BaseScreen` instance being created. |
 
 
 <br/>
@@ -58,10 +58,10 @@ This method pushes a view onto the navigation stack, making it the current view.
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| view | mc.types.node | n/a | The view to push onto the navigation stack. |
-| animated | boolean | true | Whether or not to animate the transition when pushing the view. |
+| argument name | type     | default value | description                                                     |
+|---------------|----------|---------------|-----------------------------------------------------------------|
+| view          | roSGnode | n/a           | The view to push onto the navigation stack.                     |
+| animated      | boolean  | true          | Whether or not to animate the transition when pushing the view. |
 
 <br/>
 
@@ -73,9 +73,9 @@ This method removes the current view from the navigation stack and returns it.
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| animated | boolean | true | Whether or not to animate the transition when removing the view. |
+| argument name | type    | default value | description                                                      |
+|---------------|---------|---------------|------------------------------------------------------------------|
+| animated      | boolean | true          | Whether or not to animate the transition when removing the view. |
 
 <br/>
 
@@ -86,9 +86,9 @@ This method resets the navigation stack to only contain the root view.
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| animated | boolean | true | Whether or not to animate the transition when resetting the navigation stack. |
+| argument name | type    | default value | description                                                                   |
+|---------------|---------|---------------|-------------------------------------------------------------------------------|
+| animated      | boolean | true          | Whether or not to animate the transition when resetting the navigation stack. |
 
 
 
@@ -108,9 +108,9 @@ This method resets the navigation stack to only contain a specified set of views
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| newFirstScreen | mc.types.node | invalid | The view to set as the first view in the navigation stack. If not provided, the current first view will be used. |
+| argument name  | type     | default value | description                                                                                                      |
+|----------------|----------|---------------|------------------------------------------------------------------------------------------------------------------|
+| newFirstScreen | roSGnode | invalid       | The view to set as the first view in the navigation stack. If not provided, the current first view will be used. |
 | endIndex | integer |  |
 
 <br/>
@@ -122,10 +122,10 @@ Dismisses the current view and updates the state of the top level scope.
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| state | `string` |  | The state to set on the top level scope. |
-| animated | `boolean` | `true` | Whether to animate the transition when dismissing the view. |
+| Argument | Type      | Default Value | Description                                                 |
+|----------|-----------|---------------|-------------------------------------------------------------|
+| state    | `string`  |               | The state to set on the top level scope.                    |
+| animated | `boolean` | `true`        | Whether to animate the transition when dismissing the view. |
 
 <br />
 
@@ -136,10 +136,10 @@ Replaces the current screen in the navigation controller with the target screen.
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| targetScreen | `mc.types.node` |  | The screen to replace the current screen with in the navigation controller. |
-| animated | `boolean` | `false` | Whether to animate the transition when replacing the screen in the navigation controller. |
+| Argument     | Type       | Default Value | Description                                                                               |
+|--------------|------------|---------------|-------------------------------------------------------------------------------------------|
+| targetScreen | `roSGnode` |               | The screen to replace the current screen with in the navigation controller.               |
+| animated     | `boolean`  | `false`       | Whether to animate the transition when replacing the screen in the navigation controller. |
 
 <br/>
 `onKeyPressBack`

@@ -15,9 +15,9 @@ This method is the entry point for the task when it is executed. It creates an i
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| args | mc.types.assocarray |  | An associative array of arguments for the task. |
+| argument name | type               | defaultValue | description                                     |
+|---------------|--------------------|--------------|-------------------------------------------------|
+| args          | roAssociativeArray |              | An associative array of arguments for the task. |
 
 ### Returns - `dynamic`
 
@@ -48,9 +48,9 @@ This method is responsible for making an HTTP request based on the provided `met
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| args | mc.types.assocarray |  | An associative array of arguments for the task. |
+| argument name | type               | defaultValue | description                                     |
+|---------------|--------------------|--------------|-------------------------------------------------|
+| args          | roAssociativeArray |              | An associative array of arguments for the task. |
 
 ### Returns - `dynamic`
 

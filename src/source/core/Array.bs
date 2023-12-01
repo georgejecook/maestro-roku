@@ -34,7 +34,7 @@ namespace mc.collections
     @observer("onDebugAsChildrenChange")
     public _debugAsChildren = false
 
-    public __contents as mc.types.array
+    public __contents as roArray
 
     private pendingChanges = []
     private notifyChanges = true
@@ -129,7 +129,7 @@ namespace mc.collections
       m.top.changes = [{ type: "add", item: value, index: 0 }]
     end function
 
-    function append(other as mc.types.assocarray)
+    function append(other as roAssociativeArray)
       index = m.top.length - 1
       m.data.append(other)
       m.top.length = m.data.count()
@@ -195,7 +195,7 @@ namespace mc.collections
     '++ Serializable support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function serialize() as mc.types.assocarray
+    function serialize() as roAssociativeArray
       serialized = {
         items: []
       }
@@ -210,7 +210,7 @@ namespace mc.collections
       return serialized
     end function
 
-    function deserialize(data as mc.types.assocarray)
+    function deserialize(data as roAssociativeArray)
       m.clear()
       if mc.isAACompatible(data) and mc.isArray(data.items)
         for each item in data.items
@@ -231,7 +231,7 @@ namespace mc.collections
     '++ Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function addChange(change as mc.types.assocarray)
+    private function addChange(change as roAssociativeArray)
       if m.notifyChanges
         m.changes = [change]
       else

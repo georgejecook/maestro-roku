@@ -5,7 +5,7 @@ import "pkg:/components/view/mixin/KeyMixin.bs"
 import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/core/MIOC.bs"
-import "pkg:/source/core/Types-Polyfill.bs"
+
 
 ' /**
 '  * @module BaseView
@@ -46,7 +46,7 @@ end function
 '  * @description initializes the passed in View
 '  * @param {BaseView} the view to initialize
 '  */
-function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray) as void
+function initializeView(view as roSGnode, args = invalid as roAssociativeArray) as void
   if view <> invalid
     view@._initialize(args)
   else
@@ -74,7 +74,7 @@ end function
 '++ Lifecycle methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _onShow(args as mc.types.assocarray) as void
+function _onShow(args as roAssociativeArray) as void
   ' ? ">> base VIEW _OnShow " ; m.top.id ; " isShown " ; m.top.isShown
   oldIsShowing = m.top.isShown
   if not m.top.isInitialized
@@ -114,7 +114,7 @@ function _onShow(args as mc.types.assocarray) as void
   end if
 end function
 
-function _onHide(args as mc.types.assocarray)
+function _onHide(args as roAssociativeArray)
   if m.wasShown
     m.top.isShown = false
     'bs:disable-next-line
@@ -135,7 +135,7 @@ function _onHide(args as mc.types.assocarray)
   end if
 end function
 
-function _initialize(args = invalid as mc.types.assocarray)
+function _initialize(args = invalid as roAssociativeArray)
   if not m.top.isInitialized
     m.top.isInitialized = true
     initialize(args)
@@ -171,7 +171,7 @@ function _observeVisibilityIfRequired()
   end if
 end function
 
-function onAddedToAggregateView(view as mc.types.node)
+function onAddedToAggregateView(view as roSGnode)
   if not m.isInAggregateView
     m.isInAggregateView = true
     _observeVisibilityIfRequired()
@@ -183,7 +183,7 @@ function onAddedToAggregateView(view as mc.types.node)
   end if
 end function
 
-function onRemovedFromAggregateView(view as mc.types.node)
+function onRemovedFromAggregateView(view as roSGnode)
   if m.isInAggregateView
     m.isInAggregateView = false
 
@@ -307,5 +307,5 @@ end function
 '++ abstract lifecycle methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as roAssociativeArray)
 end function

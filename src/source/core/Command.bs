@@ -11,14 +11,14 @@ namespace mc
     isOk = true
     timer as mc.utils.DebugTimer
 
-    function new(name as string, func as function, options = {} as mc.types.assocarray)
+    function new(name as string, func as function, options = {} as roAssociativeArray)
       m.name = name
       m.func = func
       m.timer = mc.utils.DebugTimer(name)
       m.ignoreFailure = asBoolean(options.ignoreFailure)
     end function
 
-    function configureChildCommands(commands as mc.types.array)
+    function configureChildCommands(commands as roArray)
       m.childCommands = []
       if mc.isArray(commands)
         for each command in commands
@@ -37,13 +37,13 @@ namespace mc
 
   class TaskCommand extends mc.Command
     isTask = true
-    taskArgs as mc.types.assocarray
+    taskArgs as roAssociativeArray
     taskName as string
     onComplete as function
     parentCommant as mc.Command
     isWaitingResult = true
 
-    function new(name as string, taskName as string, taskArgs as mc.types.assocarray, options = {} as mc.types.assocarray)
+    function new(name as string, taskName as string, taskArgs as roAssociativeArray, options = {} as roAssociativeArray)
       super(name, invalid, options)
       m.isWaitingResult = asBoolean(options.isWaitingResult, true)
       m.isTask = true
@@ -59,7 +59,7 @@ namespace mc
     currentCommand as mc.Command
     isSequence = true
 
-    function new(name as string, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+    function new(name as string, commands = [] as roArray, options = {} as roAssociativeArray)
       super(name, invalid, options)
       m.configureChildCommands(commands)
     end function
@@ -83,7 +83,7 @@ namespace mc
     isOptional = true
     isActive = false
 
-    function new(name as string, isActive as boolean, func as function, options = {} as mc.types.assocarray)
+    function new(name as string, isActive as boolean, func as function, options = {} as roAssociativeArray)
       super(name, func, options)
       m.isActive = isActive
     end function
@@ -92,7 +92,7 @@ namespace mc
     isOptional = true
     isActive = false
 
-    function new(name as string, isActive as boolean, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+    function new(name as string, isActive as boolean, commands = [] as roArray, options = {} as roAssociativeArray)
       super(name, isActive ? commands : [], options)
       m.isActive = isActive
     end function
@@ -103,7 +103,7 @@ namespace mc
     currentCommand as mc.Command
     isParallel = true
 
-    function new(name as string, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+    function new(name as string, commands = [] as roArray, options = {} as roAssociativeArray)
       super(name, invalid, options)
       m.configureChildCommands(commands)
     end function
@@ -118,7 +118,7 @@ namespace mc
     isOptional = true
     isActive = false
 
-    function new(name as string, isActive as boolean, commands = [] as mc.types.array, options = {} as mc.types.assocarray)
+    function new(name as string, isActive as boolean, commands = [] as roArray, options = {} as roAssociativeArray)
       super(name, isActive ? commands : [], options)
       m.isActive = isActive
     end function

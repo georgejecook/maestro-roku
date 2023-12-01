@@ -1,5 +1,5 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
-import "pkg:/source/core/Types-Polyfill.bs"
+
 
 function init()
   m.previousY = 0
@@ -24,11 +24,11 @@ function init()
   onSizeChange()
 end function
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as roAssociativeArray)
   updateChildren()
 end function
 
-function updateChildren(newChildren = invalid as mc.types.array)
+function updateChildren(newChildren = invalid as roArray)
   children = []
   backgroundChildren = []
   m.container_updateTimer.control = "stop"
@@ -95,7 +95,7 @@ function onHeroOffsetChildCurrFocusRowChange(event as object)
   end if
 end function
 
-function fixRowListPosition(rowlist as mc.types.node, direction as integer, currFocusRow as mc.types.node)
+function fixRowListPosition(rowlist as roSGnode, direction as integer, currFocusRow as roSGnode)
   if m.rowListFloatingFocusPositionOffset <> 0 and direction = 1 and not m.isFloatingFocusOffsetApplied and currFocusRow > 1.5 and currFocusRow < 2.5
     ' ? "applying fix"
     m.isFloatingFocusOffsetApplied = true
@@ -207,7 +207,7 @@ function getYOfIndex(index as integer)
   if child <> invalid and child.heroControl <> invalid and child.isHeroOffsetApplied
     ' m.log.verbose("child is hero with offset applied")
     ' m.log.verbose(">>> adding child hero height", child.heroControl.boundingRect().height)
-    currentOffset += - child.heroControl.boundingRect().height
+    currentOffset += -child.heroControl.boundingRect().height
   else
     if index < m.top.yOffsets.count()
       currentOffset -= m.top.yOffsets[index]
@@ -235,7 +235,7 @@ function getYOfIndex(index as integer)
   end for
 
   y += currentOffset
-  return - y
+  return -y
 end function
 
 function onNeedsRecalculatingChange()

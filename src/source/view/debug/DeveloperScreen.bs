@@ -23,7 +23,7 @@ namespace mv.debug
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private subScreen as mc.types.node
+    private subScreen as roSGnode
     private isBusy = false
     private pageIndex = 0
     private numberOfPages = 0
@@ -122,7 +122,7 @@ namespace mv.debug
     '++ Protected Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function getMenuPageBuilderFunctions() as mc.types.array
+    protected function getMenuPageBuilderFunctions() as roArray
       'override, and return your DeveloperMenuPage instances here
       return [
         m.getDefaultPage
@@ -140,7 +140,7 @@ namespace mv.debug
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-    private function showSubMenu(buttonFunction as mc.types.array)
+    private function showSubMenu(buttonFunction as roArray)
       m.previousMenuIndex = m.buttonGroup.buttonSelected
       m.subMenuButtonFunction = buttonFunction
       m.updateButtons()
@@ -201,7 +201,7 @@ namespace mv.debug
       ]
     end function
 
-    private function setButtonFunctions(control as mc.types.node, buttons as mc.types.array)
+    private function setButtonFunctions(control as roSGnode, buttons as roArray)
       control.buttons = mc.collections.map(buttons, function(item as string)
         return item[0]
       end function)
@@ -210,7 +210,7 @@ namespace mv.debug
       m.observeNodeField(control, "buttonSelected", m.onButtonGroupSelectedChange, "both")
     end function
 
-    function onButtonGroupSelectedChange(index as integer, node as mc.types.node) as void
+    function onButtonGroupSelectedChange(index as integer, node as roSGnode) as void
       if m.isBusy
         m.log.info("ignoring - screen is still busy")
         return
@@ -218,7 +218,7 @@ namespace mv.debug
       m.activeButtons[index][1]()
     end function
 
-    private function showScreen(screen as mc.types.node)
+    private function showScreen(screen as roSGnode)
       m.subScreen = screen
       m.observeNodeField(screen, "state", m.onScreenStateChange)
       m.navController@.push(screen)

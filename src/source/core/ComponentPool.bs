@@ -40,7 +40,7 @@ namespace mc
       m.numberOfComponentsInUse = 0
     end function
 
-    function getComponentPool(componentType as string) as mc.types.assocarray
+    function getComponentPool(componentType as string) as roAssociativeArray
       pool = m.poolsByComponentType[componentType]
       if pool = invalid
         pool = { usedComponentsById: {}
@@ -75,7 +75,7 @@ namespace mc
       end for
     end function
 
-    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as mc.types.node
+    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as roSGnode
 
       pool = m.getComponentPool(componentType)
 
@@ -123,7 +123,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponent(component as mc.types.node)
+    function releaseComponent(component as roSGnode)
       if component <> invalid
         ' ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid
@@ -137,7 +137,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponents(components as mc.types.array)
+    function releaseComponents(components as roArray)
       for each component in components
         m.releaseComponent(component)
       end for

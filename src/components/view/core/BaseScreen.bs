@@ -1,4 +1,4 @@
-import "pkg:/source/core/Types-Polyfill.bs"
+
 
 function init()
   m.isManagingVisibilityCallbacks = false
@@ -14,7 +14,7 @@ end function
 '++ nav support
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view as mc.types.node, animated = true as boolean)
+function push(view as roSGnode, animated = true as boolean)
   navController = getNavController()
 
   if navController <> invalid
@@ -35,7 +35,7 @@ function pop(animated = true as boolean) as object
   end if
 end function
 
-function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+function replaceNavControllerScreen(targetScreen as roSGnode, animated = false as boolean)
   navController = getNavController()
 
   if navController <> invalid
@@ -51,7 +51,7 @@ function resetNavControllerToRoot(animated = false as boolean)
   resetNavController(invalid, 0, animated)
 end function
 
-function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+function resetNavController(newFirstScreen = invalid as roSGnode, endIndex = -1 as integer, animated = false as boolean)
   m.log.method("resetNavController." + m.top.id)
   navController = getNavController()
 
@@ -83,7 +83,7 @@ end function
 '  * @description gets the screen at the top of this screen's sceneGraph.
 '  * @returns {BaseScreen} a screen considered as the top of this graph
 '  */
-function _getTopScreen(args = invalid as mc.types.assocarray)
+function _getTopScreen(args = invalid as roAssociativeArray)
   m.log.method("_getTopScreen")
   topScreen = getTopScreen()
   navController = getNavController()

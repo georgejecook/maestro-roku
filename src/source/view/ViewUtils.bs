@@ -1,7 +1,7 @@
 import "pkg:/source/core/Utils.bs"
 
 namespace mv
-  function findNodes(nodeIds as mc.types.array) as void
+  function findNodes(nodeIds as roArray) as void
     if type(nodeIds) = "roArray"
       for each nodeId in nodeIds
         node = m.top.findNode(nodeId)
@@ -14,7 +14,7 @@ namespace mv
     end if
   end function
 
-  function getFirstParentWithType(node as mc.types.node, parentType as string) as mc.types.node
+  function getFirstParentWithType(node as roSGnode, parentType as string) as roSGnode
     currentNode = node
 
     while currentNode <> invalid
@@ -28,7 +28,7 @@ namespace mv
     return invalid
   end function
 
-  function getFieldInParent(content as mc.types.node, fieldName as string, maxIterations = 3 as integer, defaultValue = {} as dynamic) as dynamic
+  function getFieldInParent(content as roSGnode, fieldName as string, maxIterations = 3 as integer, defaultValue = {} as dynamic) as dynamic
     currentNode = content
     value = invalid
 
@@ -45,7 +45,7 @@ namespace mv
     return defaultValue
   end function
 
-  function destroyView(view as mc.types.node)
+  function destroyView(view as roSGnode)
     p = view.getParent()
 
     if p <> invalid
@@ -53,7 +53,7 @@ namespace mv
     end if
   end function
 
-  function createFragment(fragmentJson as dynamic, targetNode = invalid as mc.types.node, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+  function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGnode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
     mTarget = m
     if targetNode = invalid
       targetNode = m.top
@@ -136,7 +136,7 @@ namespace mv
     return firstView
   end function
 
-  function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
+  function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGnode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
     if mTarget = invalid
       mTarget = m
     end if
@@ -215,7 +215,7 @@ namespace mv
   ' @param {assocarray|array} json - json to apply - either an array of views to update, or a nested json structure, as used in createViewsFromStyleJson
   ' in which case all the
   ' @param {assocarray} mTarget - the m to look up field names on
-  function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray, isChild = false as boolean)
+  function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray, isChild = false as boolean)
     if mTarget = invalid
       mTarget = m
     end if
@@ -304,7 +304,7 @@ namespace mv
   ' given json of the form of createViewsFromStyleJson, will return a json blob
   ' describing the current values of the fields that are stored
   ' this is used to generate animation keys, and for other framework purposes
-  function getCurrentValuesWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray, nodes = {} as mc.types.assocarray) as dynamic
+  function getCurrentValuesWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray, nodes = {} as roAssociativeArray) as dynamic
     if mTarget = invalid
       mTarget = m
     end if
@@ -341,7 +341,7 @@ namespace mv
   ' given json of the form of createViewsFromStyleJson, will return a json blob
   ' describing the current values of the fields that are stored
   ' this is used to generate animation keys, and for other framework purposes
-  function getRootValuesWithStyleJson(sourceJson as dynamic, targetJson as dynamic, nodes = {} as mc.types.assocarray) as dynamic
+  function getRootValuesWithStyleJson(sourceJson as dynamic, targetJson as dynamic, nodes = {} as roAssociativeArray) as dynamic
 
     sourceMap = mv.getMapFromStyleJson(sourceJson)
     targetMap = mv.getMapFromStyleJson(targetJson)
@@ -361,7 +361,7 @@ namespace mv
   end function
 
   ' returns a flat map from a styles json structure
-  function getMapFromStyleJson(json as dynamic, nodes = {} as mc.types.assocarray) as dynamic
+  function getMapFromStyleJson(json as dynamic, nodes = {} as roAssociativeArray) as dynamic
 
     if mc.isArray(json)
       for each childtargetJson in json
@@ -387,7 +387,7 @@ namespace mv
     return nodes
   end function
 
-  function getIdsFromStyleJson(childrenJson as mc.types.array, ids = [] as mc.types.array) as mc.types.array
+  function getIdsFromStyleJson(childrenJson as roArray, ids = [] as roArray) as roArray
     for i = 0 to childrenJson.count() - 1
       nodeJson = childrenJson[i]
       id = nodeJson.id
@@ -404,7 +404,7 @@ namespace mv
 
   ' params {node} control
   ' params {node|assocarray|invalid} datasource
-  function applyDataMap(control as mc.types.node, dataSource = invalid as dynamic)
+  function applyDataMap(control as roSGnode, dataSource = invalid as dynamic)
     dataMaps = mc.getAA(control, "_dataMap")
     for each field in dataMaps
       dataMap = dataMaps[field]

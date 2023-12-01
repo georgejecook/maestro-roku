@@ -23,9 +23,9 @@ This method removes a key-value pair from the map, given a key.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| `key` | `string` | None | The key of the key-value pair to be removed from the map. |
+| argument name | type     | defaultValue | description                                               |
+|---------------|----------|--------------|-----------------------------------------------------------|
+| `key`         | `string` | None         | The key of the key-value pair to be removed from the map. |
 
 <br/>
 
@@ -35,10 +35,10 @@ This method adds or updates a key-value pair in the map.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| `key` | `string` | None | The key of the key-value pair to be added or updated in the map. |
-| `value` | `dynamic` | None | The value of the key-value pair to be added or updated in the map. |
+| argument name | type      | defaultValue | description                                                        |
+|---------------|-----------|--------------|--------------------------------------------------------------------|
+| `key`         | `string`  | None         | The key of the key-value pair to be added or updated in the map.   |
+| `value`       | `dynamic` | None         | The value of the key-value pair to be added or updated in the map. |
 
 
 <br/>
@@ -48,9 +48,9 @@ This method adds all key-value pairs from another map or an associative array to
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| `other` | `dynamic` | None | A map object or an associative array containing the key-value pairs to be added to the current map. |
+| argument name | type      | defaultValue | description                                                                                         |
+|---------------|-----------|--------------|-----------------------------------------------------------------------------------------------------|
+| `other`       | `dynamic` | None         | A map object or an associative array containing the key-value pairs to be added to the current map. |
 
 <br/>
 
@@ -59,9 +59,9 @@ This method retrieves the value of a key-value pair from the map, given a key.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| `key` | `string` | None | The key of the key-value pair to retrieve the value for. |
+| argument name | type     | defaultValue | description                                              |
+|---------------|----------|--------------|----------------------------------------------------------|
+| `key`         | `string` | None         | The key of the key-value pair to retrieve the value for. |
 
 ### Returns `dynamic`
 
@@ -73,9 +73,9 @@ This method returns a boolean indicating whether the map has a key-value pair wi
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| `key` | `string` | None | The key to check for in the map. |
+| argument name | type     | defaultValue | description                      |
+|---------------|----------|--------------|----------------------------------|
+| `key`         | `string` | None         | The key to check for in the map. |
 
 ### Returns `boolean`
 
@@ -132,6 +132,6 @@ This method takes in an associative array and updates the map with the key-value
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| `data` | `mc.types.assocarray` | None | The associative array containing the key-value pairs to be added or updated in the map. |
+| argument name | type                 | defaultValue | description                                                                             |
+|---------------|----------------------|--------------|-----------------------------------------------------------------------------------------|
+| `data`        | `roAssociativeArray` | None         | The associative array containing the key-value pairs to be added or updated in the map. |

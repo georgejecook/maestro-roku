@@ -1,4 +1,4 @@
-import "pkg:/source/core/Types-Polyfill.bs"
+
 
 function init() as void
   m.currentView = invalid
@@ -9,7 +9,7 @@ end function
 '++ view management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function hideView(view as mc.types.node)
+function hideView(view as roSGnode)
   if view <> invalid
     if view.isSameNode(m.top.currentView)
       m.top.currentView = invalid
@@ -20,7 +20,7 @@ function hideView(view as mc.types.node)
 
 end function
 
-function transitionToView(view as mc.types.node, animated = true as boolean)
+function transitionToView(view as roSGnode, animated = true as boolean)
   if m.tempTransition <> invalid
     m.log.info("using temporary transition")
     m.tempTransition@.execute(m.top, m.top.currentView, view, animated)

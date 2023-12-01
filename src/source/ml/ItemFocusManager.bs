@@ -13,8 +13,8 @@ namespace ml
     direction as integer
     fraction as float
     isRowEvent as boolean
-    cell as mc.types.node
-    row as mc.types.node
+    cell as roSGnode
+    row as roSGnode
   end interface
 
   class ItemFocusManager extends mc.BaseClass
@@ -42,7 +42,7 @@ namespace ml
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function new(name as string, focusIndicatorManager as mc.types.node)
+    function new(name as string, focusIndicatorManager as roSGnode)
       super("ItemFocusManager")
       m.name = name
       m.focusIndicatorManager = focusIndicatorManager
@@ -61,9 +61,9 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private list as mc.types.node
+    private list as roSGnode
 
-    function setList(list as mc.types.node)
+    function setList(list as roSGnode)
       m.list = list
       m.delegateManager = new ml.ListDelegateManager(list)
     end function

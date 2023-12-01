@@ -9,13 +9,13 @@ class FocusOnGridItemScreen extends mv.BaseScreen
   '++ Views
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private list as mc.types.node
+  private list as roSGnode
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  public componentPool as mc.types.node
+  public componentPool as roSGnode
   private contentId = 0
   private rowSettings
   private focusSettings
@@ -27,14 +27,14 @@ class FocusOnGridItemScreen extends mv.BaseScreen
 
   private firstItem = invalid
   private dataIndex = 0
-  private selectedRow as mc.types.node
+  private selectedRow as roSGnode
   private selectedRowIndex as integer
   private selectedItemIndex as integer
-  private selectedItem as mc.types.node
+  private selectedItem as roSGnode
 
   private rows = []
-  private label as mc.types.node
-  private updateInfoTimeout as mc.types.node
+  private label as roSGnode
+  private updateInfoTimeout as roSGnode
 
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -133,8 +133,8 @@ class FocusOnGridItemScreen extends mv.BaseScreen
   end function
 
 
-  private liveRow as mc.types.node
-  private upcomingRow as mc.types.node
+  private liveRow as roSGnode
+  private upcomingRow as roSGnode
 
   private function onListRenderState(state as string)
     m.log.info("onListRenderState", state)
@@ -183,7 +183,7 @@ class FocusOnGridItemScreen extends mv.BaseScreen
     return items
   end function
 
-  private function makeItem(cellType as string, title as string) as mc.types.node
+  private function makeItem(cellType as string, title as string) as roSGnode
     id = str(m.contentId).trim()
     child = m.createSGNode("Item", invalid, id, {
       title: title

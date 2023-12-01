@@ -15,7 +15,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'Instance of RowContent
-    public content as mc.types.node
+    public content as roSGnode
 
     public index = -1
     public renderState = "none"
@@ -27,15 +27,15 @@ namespace ml
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
-    public owner as mc.types.node
+    public owner as roSGnode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected backgroundGroup as mc.types.node
-    protected contentGroup as mc.types.node
-    protected foregroundGroup as mc.types.node
+    protected backgroundGroup as roSGnode
+    protected contentGroup as roSGnode
+    protected foregroundGroup as roSGnode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -48,7 +48,7 @@ namespace ml
     '++ Header Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected header as mc.types.node
+    protected header as roSGnode
     protected currentHeaderType = invalid
 
     function new()
@@ -97,7 +97,7 @@ namespace ml
       end if
     end function
 
-    function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
+    function applyChildChanges(changes as roArray) as ml.ListChangeResult
       m.log.verbose(" applying child changes ", mc.dv(m.top), " # changes", changes.count())
       'bs:disable-next-line
       if m.viewManager <> invalid
@@ -123,7 +123,7 @@ namespace ml
       }
     end function
 
-    function setContent(content as mc.types.node, isForced = false as boolean) as ml.ListChangeResult
+    function setContent(content as roSGnode, isForced = false as boolean) as ml.ListChangeResult
       m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
       m._content = content
       m.log.verbose(" SET CONTENT ", mc.dv(m.top))
@@ -207,17 +207,17 @@ namespace ml
       return invalid
     end function
 
-    function getRenderersAtSubRowIndex(subRowIndex as integer) as mc.types.array
+    function getRenderersAtSubRowIndex(subRowIndex as integer) as roArray
       'implement me
       return []
     end function
 
-    function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
+    function getRect(index as integer, useScreenCoords = false as boolean) as roAssociativeArray
       'implement me
       return invalid
     end function
 
-    function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
+    function getRowInfos(forceRecalculate = false as boolean) as roArray
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
@@ -268,7 +268,7 @@ namespace ml
     end function
 
     'sends a row data event back to the owning list
-    protected function sendRowData(data as mc.types.assocarray)
+    protected function sendRowData(data as roAssociativeArray)
       if m.owner <> invalid and m.owner.delegate <> invalid
         m.owner.delegate@._apply("onRowData", [{
           rowIndex: m.top.index
@@ -281,7 +281,7 @@ namespace ml
     '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function onContentChange(content as mc.types.node) as ml.ListChangeResult
+    protected function onContentChange(content as roSGnode) as ml.ListChangeResult
       ? "ON CONTENT CHANGE"
       return {
         isLayoutRequired: false
@@ -289,12 +289,12 @@ namespace ml
       }
     end function
 
-    protected function onContentUpdate(content as mc.types.node)
+    protected function onContentUpdate(content as roSGnode)
       ? "ON CONTENT UPDATED"
       m.configureHeader(false)
     end function
 
-    protected function onRecycle(newContent as mc.types.node)
+    protected function onRecycle(newContent as roSGnode)
       m.log.verbose("recycling row", mc.dv(m.top), "content", mc.dv(newContent))
       m.isInViewport = false
     end function
@@ -308,7 +308,7 @@ namespace ml
       return false
     end function
 
-    function getItemSize(index as integer) as mc.types.array
+    function getItemSize(index as integer) as roArray
       'implement me
       return invalid
     end function
@@ -330,7 +330,7 @@ namespace ml
       return m.contentGroup
     end function
 
-    function recycle(newContent as mc.types.node)
+    function recycle(newContent as roSGnode)
       m.onRecycle(newContent)
     end function
 

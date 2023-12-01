@@ -62,7 +62,7 @@ namespace mv
       m.defaultLocale = locale
     end function
 
-    public function setStyleJson(json as mc.types.assocarray)
+    public function setStyleJson(json as roAssociativeArray)
       if mc.isAACompatible(json)
         m.styles = json
       else
@@ -72,7 +72,7 @@ namespace mv
       m.cachedStyles = {} ' we lazily pull out styles and parse them on demand
     end function
 
-    public function addStyles(json as mc.types.assocarray)
+    public function addStyles(json as roAssociativeArray)
       if mc.isAACompatible(json)
         m.styles.append(json)
       else
@@ -80,7 +80,7 @@ namespace mv
       end if
     end function
 
-    public function addStyle(key as string, json as mc.types.assocarray, merge = true as boolean)
+    public function addStyle(key as string, json as roAssociativeArray, merge = true as boolean)
       if mc.isAACompatible(json)
         if m.styles[key] <> invalid
           if merge = true
@@ -113,7 +113,7 @@ namespace mv
     '
     ' @params {string} bundlePath of the root bundle
     ' @params {string} locale of the bundle, or invalid if the default (english)
-    public function loadBundle(bundlePath as string, locale = invalid as string) as mc.types.assocarray
+    public function loadBundle(bundlePath as string, locale = invalid as string) as roAssociativeArray
 
       if locale = invalid
         locale = m.defaultLocale
@@ -230,7 +230,7 @@ namespace mv
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function loadJson(path as string) as mc.types.assocarray
+    private function loadJson(path as string) as roAssociativeArray
       text = readAsciiFile(path)
       return text = invalid ? invalid : parseJson(text)
     end function

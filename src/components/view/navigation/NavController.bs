@@ -9,7 +9,7 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view as mc.types.node, animated = true as boolean, transition = invalid as mc.types.node) as void
+function push(view as roSGnode, animated = true as boolean, transition = invalid as roSGnode) as void
   m.log.method("push")
   if view = invalid
     m.log.warn(" push invalid view passed in : ignoring")
@@ -28,7 +28,7 @@ function push(view as mc.types.node, animated = true as boolean, transition = in
   transitionToView(view, animated)
 end function
 
-function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean, transition = invalid as mc.types.node)
+function reset(newFirstScreen = invalid as roSGnode, endIndex = -1 as integer, animated = false as boolean, transition = invalid as roSGnode)
   m.log.info(" reset ", m.top.numberOfViews)
   if endIndex < -1
     endIndex = -1
@@ -64,7 +64,7 @@ function reset(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integ
 
 end function
 
-function pop(animated = true as boolean, transition = invalid as mc.types.node)
+function pop(animated = true as boolean, transition = invalid as roSGnode)
   m.log.method("pop ", m.top.numberOfViews)
   previousView = m.top.currentView
   m.tempTransition = transition
@@ -87,7 +87,7 @@ function pop(animated = true as boolean, transition = invalid as mc.types.node)
   return previousView
 end function
 
-function replace(newView = invalid as mc.types.node, animated = false as boolean, transition = invalid as mc.types.node) as object
+function replace(newView = invalid as roSGnode, animated = false as boolean, transition = invalid as roSGnode) as object
   m.log.method("replace ", m.top.numberOfViews)
   previousView = m.top.currentView
   m.tempTransition = transition
@@ -131,7 +131,7 @@ end function
 '++ Lifecycle methods
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as roAssociativeArray)
   m.log.method("initialize(args)")
   m.log = new log.Logger("NC.(" + m.top.getParent().subType() + ")")
 end function

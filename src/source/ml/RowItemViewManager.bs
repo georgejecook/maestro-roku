@@ -6,7 +6,7 @@ namespace ml
     public lastRowIsRendered = "none"
     public isFlowSupported = false
 
-    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
+    function new(list as roSGnode, row as roSGnode, container as roSGnode, componentPool as roSGnode, minPos as integer, maxPos as integer)
       super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
     end function
@@ -25,7 +25,7 @@ namespace ml
     end function
 
 
-    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
+    override function createRenderers(content as roSGnode, forceSync = false as boolean) as boolean
       ' ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
@@ -100,7 +100,7 @@ namespace ml
       end for
     end function
 
-    override function onContentItemsChange(changes as mc.types.array)
+    override function onContentItemsChange(changes as roArray)
       m.log.info("updating row renderers due to contents change")
       oldNumComponents = m.numberOfItems
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)

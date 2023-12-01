@@ -113,9 +113,9 @@ Sets the content of the list to the specified value.
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `content` | `mc.types.node` | The new content for the list. This must be of type ListContent. |
+| Argument name | Type       | Description                                                     |
+|---------------|------------|-----------------------------------------------------------------|
+| `content`     | `roSGnode` | The new content for the list. This must be of type ListContent. |
 <br />
 
 ### `synchronizeContent()`
@@ -133,9 +133,9 @@ Forces an update of the list.
 Forces an update of the list layout.
 ### Arguments
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| `fullUpdate` | `Boolean `| false | Whether to perform a full update or not. |
+| Argument name | Type       | Default value | Description                              |
+|---------------|------------|---------------|------------------------------------------|
+| `fullUpdate`  | `Boolean ` | false         | Whether to perform a full update or not. |
 <br />
 
 ### `onContentChange()`
@@ -154,10 +154,10 @@ Moves the focus to the end of the list in the specified direction.
 
 ### Arguments
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| `direction` | `Integer` | \-1 | The direction to move the focus. A value of -1 moves the focus to the start of the list, while a value of 1 moves the focus to the end of the list. |
-| `animated` | `Boolean` | false | Whether to animate the movement of the focus. |
+| Argument name | Type      | Default value | Description                                                                                                                                         |
+|---------------|-----------|---------------|-----------------------------------------------------------------------------------------------------------------------------------------------------|
+| `direction`   | `Integer` | \-1           | The direction to move the focus. A value of -1 moves the focus to the start of the list, while a value of 1 moves the focus to the end of the list. |
+| `animated`    | `Boolean` | false         | Whether to animate the movement of the focus.                                                                                                       |
 
 <br />
 
@@ -167,9 +167,9 @@ Moves the focus to the specified row and item index.
 
 #### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `rowIndex` | `Integer` | The index of |
+| Argument name | Type      | Description  |
+|---------------|-----------|--------------|
+| `rowIndex`    | `Integer` | The index of |
 
 <br />
 
@@ -180,9 +180,9 @@ Retrieves the row at the specified index.
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `index` | `Integer` | The index of the row to retrieve. |
+| Argument name | Type      | Description                       |
+|---------------|-----------|-----------------------------------|
+| `index`       | `Integer` | The index of the row to retrieve. |
 
 
 ### `getItem(rowIndex, index)`
@@ -191,10 +191,10 @@ Retrieves the item at the specified row and index.
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `rowIndex` | `Integer` | The index of the row that the item is in. |
-| `index` | `Integer` | The index of the item within the row. |
+| Argument name | Type      | Description                               |
+|---------------|-----------|-------------------------------------------|
+| `rowIndex`    | `Integer` | The index of the row that the item is in. |
+| `index`       | `Integer` | The index of the item within the row.     |
 
 ### Return value
 
@@ -208,11 +208,11 @@ Moves the focus to the specified row.
 
 ### Arguments
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| `index` | `Integer` | None | The index of the row to move the focus to. |
-| `animated` | `Boolean` | None | Whether to animate the movement of the focus. |
-| `animSpeedIndex` | `Integer` | 0 | The index of the animation speed to use. |
+| Argument name    | Type      | Default value | Description                                   |
+|------------------|-----------|---------------|-----------------------------------------------|
+| `index`          | `Integer` | None          | The index of the row to move the focus to.    |
+| `animated`       | `Boolean` | None          | Whether to animate the movement of the focus. |
+| `animSpeedIndex` | `Integer` | 0             | The index of the animation speed to use.      |
 
 <br />
 
@@ -224,12 +224,12 @@ Moves the focus to the specified row and item index.
 ### Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| `rowIndex` | `Integer` | None | The index of the row to move the focus to. |
-| `index` | `Integer` | None | The index of the item within the row to move the focus to. |
-| `animated` | `Boolean` | None | Whether to animate the movement of the focus. |
-| `animSpeedIndex` | `Integer` | 0 | The index of the animation speed to use. |
+| Argument name    | Type      | Default value | Description                                                |
+|------------------|-----------|---------------|------------------------------------------------------------|
+| `rowIndex`       | `Integer` | None          | The index of the row to move the focus to.                 |
+| `index`          | `Integer` | None          | The index of the item within the row to move the focus to. |
+| `animated`       | `Boolean` | None          | Whether to animate the movement of the focus.              |
+| `animSpeedIndex` | `Integer` | 0             | The index of the animation speed to use.                   |
 <br />
 
 
@@ -239,13 +239,13 @@ Moves the focus to the specified sub-row index.
 
 ### Arguments
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| `index` | `Integer` | None | The index of the sub-row to move the focus to. |
-| `animated` | `Boolean` | None | Whether to animate the movement of the focus. |
-| `animSpeedIndex` | `Integer` | 0 | The index of the animation speed to use. |
-| `setFocusIndex` | `Boolean` | false | Whether to set the focus index to the specified sub-row index. |
-| `useGridHack` | `Boolean` | false | Whether to use the "grid hack" when moving the focus. |
+| Argument name    | Type      | Default value | Description                                                    |
+|------------------|-----------|---------------|----------------------------------------------------------------|
+| `index`          | `Integer` | None          | The index of the sub-row to move the focus to.                 |
+| `animated`       | `Boolean` | None          | Whether to animate the movement of the focus.                  |
+| `animSpeedIndex` | `Integer` | 0             | The index of the animation speed to use.                       |
+| `setFocusIndex`  | `Boolean` | false         | Whether to set the focus index to the specified sub-row index. |
+| `useGridHack`    | `Boolean` | false         | Whether to use the "grid hack" when moving the focus.          |
 
 ### Return value
 Void
@@ -257,9 +257,9 @@ Enables or disables updates for the list.
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `enabled` | `Boolean` | Whether to enable updates for the list. |
+| Argument name | Type      | Description                             |
+|---------------|-----------|-----------------------------------------|
+| `enabled`     | `Boolean` | Whether to enable updates for the list. |
 
 ### Return value
 
@@ -273,9 +273,9 @@ Retrieves the row renderer at the specified index.
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `index` | `Integer` | The index of the row renderer to retrieve. |
+| Argument name | Type      | Description                                |
+|---------------|-----------|--------------------------------------------|
+| `index`       | `Integer` | The index of the row renderer to retrieve. |
 
 ### Return value
 
@@ -289,10 +289,10 @@ Retrieves the cell renderer at the specified row and cell index.
 
 ### Arguments
 
-| Argument name | Type | Description |
-| ---| ---| --- |
-| `rowIndex` | `Integer` | The index of the row that the cell renderer is in. |
-| `cellIndex` | `Integer` | The index of the cell renderer within the row. |
+| Argument name | Type      | Description                                        |
+|---------------|-----------|----------------------------------------------------|
+| `rowIndex`    | `Integer` | The index of the row that the cell renderer is in. |
+| `cellIndex`   | `Integer` | The index of the cell renderer within the row.     |
 
 ### Return value
 

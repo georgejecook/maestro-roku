@@ -40,7 +40,7 @@ namespace mv
     '++ View Helpers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.array)
+    protected function initializeView(view as roSGnode, args = invalid as roArray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -48,13 +48,13 @@ namespace mv
       end if
     end function
 
-    protected function setFocus(target as mc.types.node, forceSet = false as boolean)
+    protected function setFocus(target as roSGnode, forceSet = false as boolean)
       m.focusedControl = target
       'bs:disable-next-line
       mv.setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as mc.types.node, message = "" as string)
+    protected function setFocusLocked(target as roSGnode, message = "" as string)
       if target <> invalid
         m.focusedControl = target
       end if
@@ -67,7 +67,7 @@ namespace mv
       mv.setFocusUnlocked(reason)
     end function
 
-    protected function isControlFocused(control as mc.types.node)
+    protected function isControlFocused(control as roSGnode)
       return m.focusedControl <> invalid and control <> invalid and m.focusedControl.id = control.id
     end function
 
@@ -76,7 +76,7 @@ namespace mv
     ' for a field
     ' Views that create their child views from json, will automatically have a _dataMappedControlIds property, which tells this function which controls to apply the data source to.
     ' Alternately, a _controls_ array can be used to apply the datamap to the passed in array of controls
-    protected function applyDataMapToControls(dataSource = invalid as dynamic, targetControls = invalid as mc.types.array) as boolean
+    protected function applyDataMapToControls(dataSource = invalid as dynamic, targetControls = invalid as roArray) as boolean
       if targetControls <> invalid
         for each control in targetControls
           mv.applyDataMap(control, dataSource)
@@ -233,7 +233,7 @@ namespace mv
     '++ Selection Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSelection(initialItem as mc.types.node, action = "display" as string, actionInfo = {} as mc.types.assocarray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
+    protected function createSelection(initialItem as roSGnode, action = "display" as string, actionInfo = {} as roAssociativeArray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
       id = `${m.name}-${mc.getString(initialItem, "id")}-${action}`
       selection = mc.createSGNode(selectionCompName, invalid, id, {
         initialItem: initialItem
@@ -248,7 +248,7 @@ namespace mv
       return selection
     end function
 
-    protected function executeSelection(selection as mc.types.node, observeIfPendingAfterExecution = true as boolean)
+    protected function executeSelection(selection as roSGnode, observeIfPendingAfterExecution = true as boolean)
       'assumes that you have an appController instance that will handle the selection
       appController = m.getInstance("appController")
       if appController <> invalid
@@ -267,7 +267,7 @@ namespace mv
       end if
     end function
 
-    protected function cancelPendingSelection(selection as mc.types.node)
+    protected function cancelPendingSelection(selection as roSGnode)
       m.unobserveNodeField(selection, "state")
       m.unobserveNodeField(selection, "itemCompletionState")
     end function
@@ -306,18 +306,18 @@ namespace mv
       m.isFocused = false
     end function
 
-    protected function onSelectionStateChange(state as string, selection as mc.types.node)
+    protected function onSelectionStateChange(state as string, selection as roSGnode)
       m.log.info("selection", mc.dv(selection), "changed state to", state)
     end function
 
-    protected function onSelectionCompletionStateChange(completionState as string, selection as mc.types.node)
+    protected function onSelectionCompletionStateChange(completionState as string, selection as roSGnode)
       m.log.info("selection", mc.dv(selection), "changed completionState to", completionState)
     end function
 
-    protected function onAddedToAggregateView(view as mc.types.node)
+    protected function onAddedToAggregateView(view as roSGnode)
     end function
 
-    protected function onRemovedFromAggregateView(view as mc.types.node)
+    protected function onRemovedFromAggregateView(view as roSGnode)
     end function
 
   end class

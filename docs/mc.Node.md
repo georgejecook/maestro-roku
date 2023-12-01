@@ -30,10 +30,10 @@ Sets the value of a field in the `mc_Node` object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| name | string | N/A | The name of the field to set. |
-| value | dynamic | N/A | The value to set the field to. |
+| argument name | type    | defaultValue | description                    |
+|---------------|---------|--------------|--------------------------------|
+| name          | string  | N/A          | The name of the field to set.  |
+| value         | dynamic | N/A          | The value to set the field to. |
 
 ### Returns
 
@@ -46,10 +46,10 @@ Returns the `children` field of the `mc_Node` object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| count | integer | \-1 | The maximum number of children to return. |
-| start | integer | 0 | The index of the first child to return. |
+| argument name | type    | defaultValue | description                               |
+|---------------|---------|--------------|-------------------------------------------|
+| count         | integer | \-1          | The maximum number of children to return. |
+| start         | integer | 0            | The index of the first child to return.   |
 
 ### Returns
 
@@ -62,9 +62,9 @@ Returns the child at a given index in the `children` field of the `mc_Node` obje
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| index | integer | N/A | The index of the child to return. |
+| argument name | type    | defaultValue | description                       |
+|---------------|---------|--------------|-----------------------------------|
+| index         | integer | N/A          | The index of the child to return. |
 
 ### Returns
 
@@ -80,10 +80,10 @@ Sorts the `children` field of the `mc_Node` object by the value of a given key, 
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| keyName | string | N/A | The name of the key to sort by. |
-| ascending | boolean | true | Whether to sort in ascending or descending order. |
+| argument name | type    | defaultValue | description                                       |
+|---------------|---------|--------------|---------------------------------------------------|
+| keyName       | string  | N/A          | The name of the key to sort by.                   |
+| ascending     | boolean | true         | Whether to sort in ascending or descending order. |
 
 ### Returns
 
@@ -98,10 +98,10 @@ Sorts the `children` field of the `mc_Node` object by the return value of a give
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| functionName | string | N/A | The name of the function to sort by. |
-| ascending | boolean | true | Whether to sort in ascending or descending order. |
+| argument name | type    | defaultValue | description                                       |
+|---------------|---------|--------------|---------------------------------------------------|
+| functionName  | string  | N/A          | The name of the function to sort by.              |
+| ascending     | boolean | true         | Whether to sort in ascending or descending order. |
 
 ### Returns
 
@@ -114,9 +114,9 @@ Clears the `children` field of the `mc_Node` object, setting it to an empty arra
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| args | dynamic | invalid | Additional arguments, unused in this function. |
+| argument name | type    | defaultValue | description                                    |
+|---------------|---------|--------------|------------------------------------------------|
+| args          | dynamic | invalid      | Additional arguments, unused in this function. |
 
 ### Returns
 
@@ -129,9 +129,9 @@ Returns the last element in the `children` field of the `mc_Node` object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| args | dynamic | invalid | Additional arguments, unused in this function. |
+| argument name | type    | defaultValue | description                                    |
+|---------------|---------|--------------|------------------------------------------------|
+| args          | dynamic | invalid      | Additional arguments, unused in this function. |
 
 ### Returns
 
@@ -146,9 +146,9 @@ Appends a given child object to the `children` field of the `mc_Node` object. If
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | object | N/A | The child object to append. |
+| argument name | type   | defaultValue | description                 |
+|---------------|--------|--------------|-----------------------------|
+| child         | object | N/A          | The child object to append. |
 
 ### Returns
 
@@ -161,10 +161,10 @@ Replaces the child at a given index in the `children` field of the `mc_Node` obj
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | object | N/A | The child object to replace the existing child with. |
-| index | integer | N/A | The index of the child to replace. |
+| argument name | type    | defaultValue | description                                          |
+|---------------|---------|--------------|------------------------------------------------------|
+| child         | object  | N/A          | The child object to replace the existing child with. |
+| index         | integer | N/A          | The index of the child to replace.                   |
 
 ### Returns
 
@@ -179,10 +179,10 @@ Replaces the child at a given index in the `children` field of the `mc_Node` obj
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | object | N/A | The child object to replace the existing child with. |
-| index | integer | N/A | The index of the child to replace. |
+| argument name | type    | defaultValue | description                                          |
+|---------------|---------|--------------|------------------------------------------------------|
+| child         | object  | N/A          | The child object to replace the existing child with. |
+| index         | integer | N/A          | The index of the child to replace.                   |
 
 ### Returns
 
@@ -195,10 +195,10 @@ Inserts a given child object into the `children` field of the `mc_Node` object a
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | object | N/A | The child object to insert. |
-| index | integer | N/A | The index to insert the child at. |
+| argument name | type    | defaultValue | description                       |
+|---------------|---------|--------------|-----------------------------------|
+| child         | object  | N/A          | The child object to insert.       |
+| index         | integer | N/A          | The index to insert the child at. |
 
 ### Returns
 
@@ -211,10 +211,10 @@ Inserts an array of child objects into the `children` field of the `mc_Node` obj
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| children | mc.types.array | N/A | The array of child objects to insert. |
-| index | integer | N/A | The index to insert the children at. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| children      | roArray | N/A          | The array of child objects to insert. |
+| index         | integer | N/A          | The index to insert the children at.  |
 
 ### Returns
 
@@ -227,9 +227,9 @@ Removes the child at a given index in the `children` field of the `mc_Node` obje
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| index | integer | N/A | The index of the child to remove. |
+| argument name | type    | defaultValue | description                       |
+|---------------|---------|--------------|-----------------------------------|
+| index         | integer | N/A          | The index of the child to remove. |
 
 ### Returns
 
@@ -242,9 +242,9 @@ Appends an array of child objects to the `children` field of the `mc_Node` objec
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| children | mc.types.array | N/A | The array of child objects to append. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| children      | roArray | N/A          | The array of child objects to append. |
 
 ### Returns
 
@@ -257,10 +257,10 @@ Removes a given number of children starting at a given index in the `children` f
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| numberOfItems | integer | N/A | The number of children to remove. |
-| index | integer | N/A | The index of the first child to remove. |
+| argument name | type    | defaultValue | description                             |
+|---------------|---------|--------------|-----------------------------------------|
+| numberOfItems | integer | N/A          | The number of children to remove.       |
+| index         | integer | N/A          | The index of the first child to remove. |
 
 ### Returns
 
@@ -273,9 +273,9 @@ Removes an array of child objects from the `children` field of the `mc_Node` obj
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| children | mc.types.array | N/A | The array of child objects to remove. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| children      | roArray | N/A          | The array of child objects to remove. |
 
 ### Returns
 
@@ -288,9 +288,9 @@ Removes a given child object from the `children` field of the `mc_Node` object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | mc.types.array | N/A | The child object to remove. |
+| argument name | type    | defaultValue | description                 |
+|---------------|---------|--------------|-----------------------------|
+| child         | roArray | N/A          | The child object to remove. |
 
 ### Returns
 
@@ -303,10 +303,10 @@ Returns whether the `children` field of the `mc_Node` object contains a given ch
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | object | N/A | The child object to search for. |
-| key | string | invalid | The name of the key to use for comparison. |
+| argument name | type   | defaultValue | description                                |
+|---------------|--------|--------------|--------------------------------------------|
+| child         | object | N/A          | The child object to search for.            |
+| key           | string | invalid      | The name of the key to use for comparison. |
 
 ### Returns
 
@@ -319,10 +319,10 @@ Returns the index of a given child object in the `children` field of the `mc_Nod
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| child | object | N/A | The child object to search for. |
-| key | string | invalid | The name of the key to use for comparison. |
+| argument name | type   | defaultValue | description                                |
+|---------------|--------|--------------|--------------------------------------------|
+| child         | object | N/A          | The child object to search for.            |
+| key           | string | invalid      | The name of the key to use for comparison. |
 
 ### Returns
 
@@ -335,10 +335,10 @@ Inserts an array of objects into the `children` field of the `mc_Node` object at
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| index | integer | N/A | The index to insert the objects at. |
-| value | dynamic | N/A | The array of objects to insert. |
+| argument name | type    | defaultValue | description                         |
+|---------------|---------|--------------|-------------------------------------|
+| index         | integer | N/A          | The index to insert the objects at. |
+| value         | dynamic | N/A          | The array of objects to insert.     |
 
 ### Returns
 
@@ -353,10 +353,10 @@ This method creates a new child node in the current node with the specified node
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| nodeType | string |  | The type of the node to be created |
-| id | string | "" | The id of the node to be created. If not provided, a random id is generated. |
+| argument name | type   | defaultValue | description                                                                  |
+|---------------|--------|--------------|------------------------------------------------------------------------------|
+| nodeType      | string |              | The type of the node to be created                                           |
+| id            | string | ""           | The id of the node to be created. If not provided, a random id is generated. |
 
 ### Returns
 
@@ -371,10 +371,10 @@ This method creates a specified number of child nodes with the given subtype in 
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| numChildren | integer |  | The number of child nodes to be created |
-| subtype | string |  | The subtype of the child nodes to be created |
+| argument name | type    | defaultValue | description                                  |
+|---------------|---------|--------------|----------------------------------------------|
+| numChildren   | integer |              | The number of child nodes to be created      |
+| subtype       | string  |              | The subtype of the child nodes to be created |
 
 ### Returns
 
@@ -405,9 +405,9 @@ Enables notifications and sends an update notification if notifications were pre
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| args | dynamic | invalid | Additional arguments to pass to the update notification. |
+| argument name | type    | defaultValue | description                                              |
+|---------------|---------|--------------|----------------------------------------------------------|
+| args          | dynamic | invalid      | Additional arguments to pass to the update notification. |
 
 ### Returns
 
@@ -420,9 +420,9 @@ Resets the `pendingChanges` field and optionally the `changes` field of the `mc_
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| resetAll | boolean | true | A boolean value indicating whether to reset the `changes` field as well. |
+| argument name | type    | defaultValue | description                                                              |
+|---------------|---------|--------------|--------------------------------------------------------------------------|
+| resetAll      | boolean | true         | A boolean value indicating whether to reset the `changes` field as well. |
 
 ### Returns
 
@@ -439,9 +439,9 @@ Adds an array of changes to the `changes` field of the `mc_Node` object, or to t
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| changes | mc.types.array | N/A | The array of changes to add. |
+| argument name | type    | defaultValue | description                  |
+|---------------|---------|--------------|------------------------------|
+| changes       | roArray | N/A          | The array of changes to add. |
 
 ### Returns
 
@@ -454,10 +454,10 @@ Enables or disables notifications and sends an update notification if requested.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| active | boolean | N/A | A boolean value indicating whether to enable or disable notifications. |
-| sendUpdatedChange | boolean | false | A boolean value indicating whether to send an update notification. |
+| argument name     | type    | defaultValue | description                                                            |
+|-------------------|---------|--------------|------------------------------------------------------------------------|
+| active            | boolean | N/A          | A boolean value indicating whether to enable or disable notifications. |
+| sendUpdatedChange | boolean | false        | A boolean value indicating whether to send an update notification.     |
 
 ### Returns
 
@@ -490,9 +490,9 @@ Deserializes the `mc_Node` object using the provided data. If the `deserialize` 
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| data | mc.types.assocarray | N/A | The data to use for deserialization. |
+| argument name | type               | defaultValue | description                          |
+|---------------|--------------------|--------------|--------------------------------------|
+| data          | roAssociativeArray | N/A          | The data to use for deserialization. |
 
 ### Returns
 

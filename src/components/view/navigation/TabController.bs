@@ -23,7 +23,7 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function changeCurrentItem(item as mc.types.node)
+function changeCurrentItem(item as roSGnode)
   m.log.info("changeCurrentItem", item)
 
   if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
@@ -40,7 +40,7 @@ end function
 '++ View management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function getViewForMenuItemContent(menuItemContent as mc.types.node, useCache = true as boolean)
+function getViewForMenuItemContent(menuItemContent as roSGnode, useCache = true as boolean)
   if menuItemContent = invalid
     return invalid
   end if
@@ -67,7 +67,7 @@ function addExistingView(existingView as boolean)
   existingView.visible = false
 end function
 
-function _createView(menuItemContent as mc.types.node)
+function _createView(menuItemContent as roSGnode)
   m.log.method("createView menuItemContent.screenType", menuItemContent.screenType)
   childView = createView(menuItemContent)
 
@@ -100,7 +100,7 @@ end function
 '  * @param {node} a selected menu item
 '  * @returns {BaseScreen} a screen to display in a TabChildScreen
 '  */
-function createView(menuItemContent as mc.types.node)
+function createView(menuItemContent as roSGnode)
   view = invalid
 
   if menuItemContent.screenType <> "none"
@@ -120,6 +120,6 @@ end function
 '++ Lifecycle
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function initialize(args as mc.types.assocarray)
+function initialize(args as roAssociativeArray)
   addChildViews()
 end function

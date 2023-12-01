@@ -17,10 +17,10 @@ Calls a delegate method on the `List` delegate and the cell component for a give
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `eventName` | `string` | N/A | The name of the event for which to call the delegate method. |
-| `event` | `mc.types.assocarray` | N/A | An associative array containing information about the event. |
+| Argument Name | Type                 | Default Value | Description                                                  |
+|---------------|----------------------|---------------|--------------------------------------------------------------|
+| `eventName`   | `string`             | N/A           | The name of the event for which to call the delegate method. |
+| `event`       | `roAssociativeArray` | N/A           | An associative array containing information about the event. |
 
 
 
@@ -33,10 +33,10 @@ Calls a delegate method on the `List` delegate and the row component for a given
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `eventName` | `string` | N/A | The name of the event for which to call the delegate method. |
-| `event` | `mc.types.assocarray` | N/A | An associative array containing information about the event. |
+| Argument Name | Type                 | Default Value | Description                                                  |
+|---------------|----------------------|---------------|--------------------------------------------------------------|
+| `eventName`   | `string`             | N/A           | The name of the event for which to call the delegate method. |
+| `event`       | `roAssociativeArray` | N/A           | An associative array containing information about the event. |
 
 
 

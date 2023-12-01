@@ -9,7 +9,7 @@ The `ListItemScroller` class is a subclass of `ml.ItemScroller` and is used to h
 ##### Properties
 
 *   `viewManager` (`ml.ItemViewManager`): The view manager for the list.
-*   `focusManager` (`mc.types.node`): The focus manager for the list.
+*   `focusManager` (`roSGnode`): The focus manager for the list.
 
 
 <br/>
@@ -23,12 +23,12 @@ Sets focus manager information for the list.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `cellInfo` | `ml.CellInfo` | N/A | The current cell information. |
-| `nextCellInfo` | `ml.CellInfo` | N/A | The next cell information. |
-| `direction` | `integer` | N/A | The direction of the focus. |
-| `isFloatingFocus` | `boolean` | N/A | Indicates whether the focus is floating. |
+| Argument Name     | Type          | Default Value | Description                              |
+|-------------------|---------------|---------------|------------------------------------------|
+| `cellInfo`        | `ml.CellInfo` | N/A           | The current cell information.            |
+| `nextCellInfo`    | `ml.CellInfo` | N/A           | The next cell information.               |
+| `direction`       | `integer`     | N/A           | The direction of the focus.              |
+| `isFloatingFocus` | `boolean`     | N/A           | Indicates whether the focus is floating. |
 
 
 
@@ -39,12 +39,12 @@ Gets the focus indicator configuration for the list.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `cellInfo` | `ml.CellInfo` | N/A | The current cell information. |
-| `direction` | `integer` | N/A | The direction of the focus. |
-| `isFloatingFocus` | `boolean` | N/A | Indicates whether the focus is floating. |
-| `isFromListScroll` | `boolean` | `false` | Indicates whether the focus is from a list scroll. |
+| Argument Name      | Type          | Default Value | Description                                        |
+|--------------------|---------------|---------------|----------------------------------------------------|
+| `cellInfo`         | `ml.CellInfo` | N/A           | The current cell information.                      |
+| `direction`        | `integer`     | N/A           | The direction of the focus.                        |
+| `isFloatingFocus`  | `boolean`     | N/A           | Indicates whether the focus is floating.           |
+| `isFromListScroll` | `boolean`     | `false`       | Indicates whether the focus is from a list scroll. |
 
 Returns `ml.FocusIndicatorConfig` - The focus indicator configuration.
 
@@ -56,9 +56,9 @@ Returns `ml.FocusIndicatorConfig` - The focus indicator configuration.
 Sets the current cell information for the list.
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `info` | `ml.CellInfo` | N/A | The cell information. |
+| Argument Name | Type          | Default Value | Description           |
+|---------------|---------------|---------------|-----------------------|
+| `info`        | `ml.CellInfo` | N/A           | The cell information. |
 
 
 ## `setNextCellInfo`
@@ -66,18 +66,18 @@ Sets the next cell information for the list.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `info` | `ml.CellInfo` | N/A | The cell information. |
+| Argument Name | Type          | Default Value | Description           |
+|---------------|---------------|---------------|-----------------------|
+| `info`        | `ml.CellInfo` | N/A           | The cell information. |
 
 ## `updateSrollOffsetFraction`
 Updates the scroll offset fraction for the list.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `fraction` | `float` | N/A | The fraction to update the scroll offset. |
+| Argument Name | Type    | Default Value | Description                               |
+|---------------|---------|---------------|-------------------------------------------|
+| `fraction`    | `float` | N/A           | The fraction to update the scroll offset. |
 
 
 
@@ -100,7 +100,7 @@ Handles the move action for the list.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `dir` | `integer` | N/A | The direction of the move. |
+| Argument Name | Type      | Default Value | Description                |
+|---------------|-----------|---------------|----------------------------|
+| `dir`         | `integer` | N/A           | The direction of the move. |
 | `isFloatingFocus` | `boolean` | N/A |

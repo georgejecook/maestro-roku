@@ -21,7 +21,7 @@ namespace mv.controls
 
     @alwaysnotify
     @observer("onStyleChange")
-    public style as mc.types.assocarray
+    public style as roAssociativeArray
 
     @debounce
     @alwaysnotify
@@ -36,7 +36,7 @@ namespace mv.controls
     @debounce
     @alwaysnotify
     @observer("redraw")
-    public iconStyle as mc.types.assocarray
+    public iconStyle as roAssociativeArray
 
     @debounce
     @alwaysnotify
@@ -71,13 +71,13 @@ namespace mv.controls
     @debounce
     @alwaysnotify
     @observer("redraw")
-    public customLayout as mc.types.assocarray
+    public customLayout as roAssociativeArray
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private _style as mc.types.assocarray
+    private _style as roAssociativeArray
     private loadedStyleKey = "none"
     private isStyleSet = false
 
@@ -85,10 +85,10 @@ namespace mv.controls
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private label as mc.types.node
-    private subTextLabel as mc.types.node
-    private backgroundPoster as mc.types.node
-    private iconPoster as mc.types.node
+    private label as roSGnode
+    private subTextLabel as roSGnode
+    private backgroundPoster as roSGnode
+    private iconPoster as roSGnode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ initialization
@@ -119,7 +119,7 @@ namespace mv.controls
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onStyleChange(style as mc.types.assocarray)
+    private function onStyleChange(style as roAssociativeArray)
       if style <> invalid and style.count() > 0
         m._style = style
         m.isStyleSet = true
@@ -208,7 +208,7 @@ namespace mv.controls
       return [w, sh]
     end function
 
-    private function layout(size as mc.types.array, hasIcon as boolean)
+    private function layout(size as roArray, hasIcon as boolean)
       w = size[0]
       h = size[1]
       'note - all style sizes and translations have _only_ just been set at this point
@@ -311,7 +311,7 @@ namespace mv.controls
       end if
     end function
 
-    protected override function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+    protected override function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
       super.updateViewsWithStyleJson(json, mTarget)
       if json.iconStyle <> invalid
         m.iconStyle = json.iconStyle

@@ -107,7 +107,7 @@ function insertChild(child as object, index as integer) as void
   insertChildren([child], index)
 end function
 
-function insertChildren(children as mc.types.array, index as integer) as void
+function insertChildren(children as roArray, index as integer) as void
 
   if type(children) = "roSGNode"
     children = [children]
@@ -131,7 +131,7 @@ function removeChildIndex(index as integer)
   removeChildrenIndex(1, index)
 end function
 
-function findNode(name as string) as mc.types.node
+function findNode(name as string) as roSGnode
   if not mc.isString(name)
     return invalid
   end if
@@ -144,7 +144,7 @@ function findNode(name as string) as mc.types.node
   return invalid
 end function
 
-function appendChildren(children as mc.types.array) as void
+function appendChildren(children as roArray) as void
   if type(children) = "roSGNode"
     children = [children]
   end if
@@ -179,13 +179,13 @@ function removeChildrenIndex(numberOfItems as integer, index as integer)
   end if
 end function
 
-function removeChildren(children as mc.types.array)
+function removeChildren(children as roArray)
   for each child in children
     removeChild(child)
   end for
 end function
 
-function removeChild(child as mc.types.array)
+function removeChild(child as roArray)
   index = getIndex(child, "id")
   if index <> -1
     removeChildrenIndex(1, index)
@@ -283,7 +283,7 @@ function resetChanges(resetAll = true as boolean)
   end if
 end function
 
-function addChanges(changes as mc.types.array)
+function addChanges(changes as roArray)
   if m.notifyChanges
     m.top.changes = changes
     m.top.version++
@@ -317,14 +317,14 @@ end function
 '++ Serialization support
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function serialize() as mc.types.assocarray
+function serialize() as roAssociativeArray
   if m.serialize <> invalid
     return m.serialize()
   end if
   return {}
 end function
 
-function deserialize(data as mc.types.assocarray)
+function deserialize(data as roAssociativeArray)
   if m.deserialize <> invalid
     m.deserialize(data)
   end if
