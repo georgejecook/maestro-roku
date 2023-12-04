@@ -84,28 +84,24 @@ namespace tests
     @describe("executeRequest")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    @it("does not pass parmas or headers if not set")
+    @it("does not pass params or headers if not set")
     @params("get", "u1", invalid, invalid)
     @params("put", "u2", invalid, invalid)
     @params("get", "u1", "illegal", invalid)
     @params("put", "u2", invalid, "illegal")
     @params("put", "u2", "illegal", "illegal")
     function _(method, url, params, headers)
-
       expectedArgs = {
       }
-
       result = { "id": "result" }
       m.expectOnce(m.request, "runRequest", [method, url, expectedArgs], result)
 
       m.assertEqual(m.request.executeRequest(method, url, params, headers), result)
     end function
 
-
     @it("passes headers values to request, if set")
     @params("put", "u2", { "i": 1 }, { "i": 2 })
     function _(method, url, params, headers)
-
       expectedArgs = {
         params: params
         headers: headers
@@ -150,6 +146,28 @@ namespace tests
       m.assertEqual(m.request.executeRequest("method", "url", params, headers, otherArgs), result)
     end function
 
+    @it("returns mc.net.NetResult if runRequest throws an error")
+    function _()
+      m.request.runRequest = function(method, url, args)
+        throw "error"
+      end function
+      expectedResult = new mc.net.NetResult(-1, invalid, invalid, invalid)
+      result = m.request.executeRequest("GET", "url")
+      m.assertEqual(result, expectedResult)
+    end function
+
+    @it("returns mc.net.NetResult if type miss match error was caught by try catch block")
+    @params(invalid, invalid)
+    @params(invalid, "url")
+    @params("GET", invalid)
+    @params("", invalid)
+    @params([], {})
+    function _(method, url)
+      expectedResult = new mc.net.NetResult(-1, invalid, invalid, invalid)
+      result = m.request.executeRequest(method, url)
+      m.assertEqual(result, expectedResult)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("_execute")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -158,7 +176,7 @@ namespace tests
     @params("GET", "u", { id: "h" }, invalid, 100)
     @params("GET", "u", { id: "h" }, invalid, 200)
     @params("GET", "u", { id: "h" }, invalid, 299)
-    function _(method, url, headers, data, repsonseCode)
+    function _(method, url, headers, data, responseCode)
       transfer = { "id": "transfer" }
       m.expectOnce(m.request, "createUrlTransfer", [true, true, "crt"], transfer)
 
@@ -168,7 +186,7 @@ namespace tests
       event = { "id": "event" }
       m.expectOnce(m.request, "sendTransfer", [transfer, 30, method, data], event)
 
-      m.expectOnce(event, "getResponseCode", [], repsonseCode)
+      m.expectOnce(event, "getResponseCode", [], responseCode)
 
       netResult = { "id": "netResult" }
 
@@ -186,7 +204,7 @@ namespace tests
     @params("POST", "u", { id: "h" }, "data", 200)
     @params("PUT", "u", { id: "h" }, invalid, 200)
     @params("PUT", "u", { id: "h" }, "data", 200)
-    function _(method, url, headers, data, repsonseCode)
+    function _(method, url, headers, data, responseCode)
       transfer = { "id": "transfer" }
       m.expectOnce(m.request, "createUrlTransfer", [true, true, "crt"], transfer)
 
@@ -199,7 +217,7 @@ namespace tests
       'time out doubles each time
       event = { "id": "event" }
       m.expectOnce(m.request, "sendTransfer", [transfer, 60, method, data], event)
-      m.expectOnce(event, "getResponseCode", [], repsonseCode)
+      m.expectOnce(event, "getResponseCode", [], responseCode)
 
 
       netResult = { "id": "netResult" }
@@ -242,7 +260,7 @@ namespace tests
 
     @it("executes request and logs as curl if isLoggingAsCurl set to true")
     @params("GET", "u", { id: "h" }, { id: "data" }, 100)
-    function _(method, url, headers, data, repsonseCode)
+    function _(method, url, headers, data, responseCode)
       m.request.isLoggingAsCurl = true
       transfer = { "id": "transfer" }
 
@@ -255,7 +273,7 @@ namespace tests
       event = { "id": "event" }
       m.expectCalled(m.request.sendTransfer(transfer, 30, method, data), event)
 
-      m.expectCalled(event.getResponseCode(), repsonseCode)
+      m.expectCalled(event.getResponseCode(), responseCode)
 
       netResult = { "id": "netResult" }
 
