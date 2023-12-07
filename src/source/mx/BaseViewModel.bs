@@ -116,7 +116,7 @@ namespace mx
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as roSGNodeNode, parent = invalid as roSGNodeNode, id = invalid as string, args = invalid as roAssociativeArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGNodeNode
+    protected function createSGNode(nodeType as roSGNodeNode, parent = invalid as roSGNodeNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGNodeNode
       return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
@@ -166,8 +166,15 @@ namespace mx
 
       if result and press
 
+        longPressInterval = 0.0
         'bs:disable-next-line
-        if mc.isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
+        if mc.isFunction(m.getLongPressIntervalForKey)
+          'bs:disable-next-line
+          longPressInterval = m.getLongPressIntervalForKey(key) as float
+        else
+          longPressInterval = 0
+        end if
+
         if longPressInterval > 0
           m.log.info("entering long press for key ", key)
           m.longPressKey = key
@@ -214,10 +221,11 @@ namespace mx
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as roSGNodeNode, animated = true as boolean)
+    protected function push(view as roSGNodeNode or string, animated = true as boolean)
 
+      'TODO IS THIS STILL SUPPORTED?
       if mc.isString(view)
-        view = m.getViewById(view)
+        view = m.getViewById(view as string)
       end if
       'bs:disable-next-line
       push(view, animated)

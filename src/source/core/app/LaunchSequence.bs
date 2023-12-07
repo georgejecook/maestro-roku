@@ -175,7 +175,7 @@ namespace mc.app
 
       version = styleManager@.getStyle("version")
       if version = invalid
-        m.failCommand("loadStyles", "Style json could not be parsed.")
+        m.failCommand(command, "Style json could not be parsed.")
         return
       end if
       m.log.info("using style version", version)
@@ -203,6 +203,7 @@ namespace mc.app
     end function
 
     protected function showErrorDialog(title as string, message as string) as roSGNodeNode
+      'THERE IS NO DIALOG TYPE!
       dialog = m.createSGNode("Dialog")
       dialog.title = title
       dialog.message = message
@@ -210,7 +211,11 @@ namespace mc.app
 
       m.top.getScene().dialog = dialog
 
+      'FIXME
+      'bs:disable-next-line
       m.observe(dialog.buttonSelected, m.onErrorDialogClose, "none")
+      'FIXME
+      'bs:disable-next-line
       m.observe(dialog.wasClosed, m.onErrorDialogClose, "none")
       return dialog
     end function

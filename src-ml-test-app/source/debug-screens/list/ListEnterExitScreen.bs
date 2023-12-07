@@ -65,7 +65,7 @@ class ListEnterExitScreen extends mv.BaseScreen
       color: "#6a307d"
     })
     m.listHolder = m.createSGNode("Group", m.top, "listHolder")
-    m.componentPool = m.global.componentPool
+    m.componentPool = (m.global as dynamic).componentPool
 
     m.list = m.createSGNode("ml_List", m.listHolder, "list", {
       translation: translation
@@ -419,8 +419,8 @@ class ListEnterExitScreen extends mv.BaseScreen
     super.onShow()
     m.list.isHidden = false
     m.updateInfoTimeout = m.setInterval(function()
-      ' pool = m.global.componentPool@.getComponentPool("PosterCellEfficient")
-      pool = m.global.componentPool@.getComponentPool("RowListCellForMaestroList")
+      ' pool = (m.global as dynamic).componentPool@.getComponentPool("PosterCellEfficient")
+      pool = (m.global as dynamic).componentPool@.getComponentPool("RowListCellForMaestroList")
       m.label.text = `cells created: ${pool.numberOfComponentsInPool} in use: ${pool.usedComponentsById.count()} RI: ${m.list.focusedRowIndex} CI ${m.list.focusedCellIndex} SRI ${m.list.focusedSubRowIndex}`
     end function, 0.1)
   end function
