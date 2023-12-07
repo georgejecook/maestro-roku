@@ -15,7 +15,7 @@ namespace ml
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = true
-    public list as roSGnode
+    public list as roSGNodeNode
     public isFocusing = false
     public _isContentUpdating = false
 
@@ -44,17 +44,17 @@ namespace ml
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private focusPoint as roSGnode
-    private focusIndicator as roSGnode
-    private activeFocusView as roSGnode
-    private nextFocusView as roSGnode
+    private focusPoint as roSGNodeNode
+    private focusIndicator as roSGNodeNode
+    private activeFocusView as roSGNodeNode
+    private nextFocusView as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Animations
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPointAnim
-    private _list as roSGnode
+    private _list as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -64,12 +64,12 @@ namespace ml
     private isIndicatorOnTop = true
     private direction = 0
 
-    private flowFocusDelegate as roSGnode
+    private flowFocusDelegate as roSGNodeNode
 
     private nextConfig as object
 
-    private nextFocusSettings as roSGnode
-    private previousFocusSettings as roSGnode
+    private nextFocusSettings as roSGNodeNode
+    private previousFocusSettings as roSGNodeNode
     private previousSize = [0, 0]
     private previousTranslation = [0, 0]
     private rowHasIndicator = true
@@ -339,7 +339,7 @@ namespace ml
       return m.nextConfig
     end function
 
-    private function setActiveFocusSettings(newSettings as roSGnode)
+    private function setActiveFocusSettings(newSettings as roSGNodeNode)
       m.previousFocusSettings = m.nextFocusSettings
       m.nextFocusSettings = newSettings
       m.previousSize = m.focusIndicator.size
@@ -436,7 +436,7 @@ namespace ml
     '++ Flow Focus Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as roSGnode) as void
+    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as roSGNodeNode) as void
 
       if not m.isActive()
         return

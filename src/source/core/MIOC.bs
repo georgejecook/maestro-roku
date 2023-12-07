@@ -31,6 +31,7 @@ namespace mioc
     m.__mioc = mc.getGlobal().__mioc
     if m.__mioc = invalid
       'in some cases (like tests, the global reference can get screwed up - fall back to scene)
+      'bs:disable-next-line
       m.__mioc = mc.getScene().__mioc
     end if
     if m.__mioc = invalid
@@ -144,7 +145,7 @@ namespace mioc
   function setInstanceField(field as string, instanceField as string, value as dynamic)
     instance = mioc.getInstance(field)
     if instance <> invalid
-      mc.setOrAddNodeField(instanceField, value)
+      mc.setOrAddNodeField(instance, instanceField, value)
       mioc.setInstance(field, instance)
     end if
   end function
@@ -197,7 +198,7 @@ namespace mioc
   '  * @param {boolean}  storeInstance - defaults to true
   '  * @returns {any|invalid} resource, or invalid if not found
   '  */
-  function getClassInstance(clazz as dynamic, args = [] as roAssociativeArray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+  function getClassInstance(clazz as dynamic, args = [] as roArray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
     if mc.isFunction(clazz)
       instance = mioc.createClassInstance(clazz, args)
       if storeInstance and instance <> invalid

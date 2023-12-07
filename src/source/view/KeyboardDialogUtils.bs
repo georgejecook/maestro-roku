@@ -21,7 +21,7 @@ namespace mv
     private callback
 
     @inject("styleManager")
-    private styleManager as roSGnode
+    private styleManager as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -39,7 +39,7 @@ namespace mv
     ' @param {string} callback - function to call with updated text
     ' @param {boolean} isSecure - true if it's a password
     ' @param {array} buttons - buttons to show
-    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as roArray, buttonRoles = { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" } as roAssociativeArray) as roSGnode
+    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as roArray, buttonRoles = { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" } as roAssociativeArray) as roSGNodeNode
       m.dialog = createObject("roSGNode", "StandardKeyboardDialog")
       if isSecure
         m.dialog.textEditBox.secureMode = true
@@ -72,7 +72,7 @@ namespace mv
     '++ Keyboard Dialog Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onKeyboardDialogButtonSelected(selectedButton as integer, dialog as roSGnode)
+    private function onKeyboardDialogButtonSelected(selectedButton as integer, dialog as roSGNodeNode)
       selectedButtonText = dialog.buttons[selectedButton]
       m.log.info("keyboard button selected: ", selectedButtonText, ", text ", dialog.text)
       isClosing = false

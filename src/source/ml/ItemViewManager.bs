@@ -9,7 +9,7 @@ namespace ml
 
     public screenRect = { translation: [0, 0], size: [1920, 1080] }
     public componentBufferMode = "none"
-    private componentPool as roSGnode
+    private componentPool as roSGNodeNode
 
     'owning views
     'we wrap the container to make it very easy to reason about content offsets
@@ -57,7 +57,7 @@ namespace ml
 
     protected placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
 
-    function new(name as string, owner as roSGnode, container as roSGnode, componentPool as roSGnode, axes as roArray, minPos as integer, maxPos as integer)
+    function new(name as string, owner as roSGNodeNode, container as roSGNodeNode, componentPool as roSGNodeNode, axes as roArray, minPos as integer, maxPos as integer)
       super(name)
       m.container = container
       m.contentGroup = container.getParent()
@@ -103,7 +103,7 @@ namespace ml
       m._updateLayout(fullUpdate)
     end function
 
-    function setContent(content as roSGnode)
+    function setContent(content as roSGNodeNode)
       m.log.verbose("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
@@ -123,7 +123,7 @@ namespace ml
       end if
     end function
 
-    function _createRenderers(content as roSGnode) as boolean
+    function _createRenderers(content as roSGNodeNode) as boolean
       m.visibleItems = []
 
       return m.createRenderers(content)
@@ -227,7 +227,7 @@ namespace ml
     end function
 
     'FIXME - this is expensive
-    function getCellInfoForContent(content as roSGnode) as ml.CellInfo
+    function getCellInfoForContent(content as roSGNodeNode) as ml.CellInfo
       info = invalid
       if content <> invalid and m.cellInfos <> invalid
         ' ? "getCellInfoForContentIndex" ; contentIndex
@@ -318,7 +318,7 @@ namespace ml
       return cell
     end function
 
-    protected function updateCell(cell as roSGnode, index as integer, item as roSGnode)
+    protected function updateCell(cell as roSGNodeNode, index as integer, item as roSGNodeNode)
       if cell <> invalid
         ' ? " updating rendered cell IDX" cell.index " CT " asString(item.title) " index " index " ID " asString(item.id)
         m.previousRendereredByContentId.delete(item.id)
@@ -356,7 +356,7 @@ namespace ml
       end if
     end function
 
-    protected function getCellForCreation(item as roSGnode, index as integer, compName as string, isRendered as boolean, force as boolean)
+    protected function getCellForCreation(item as roSGNodeNode, index as integer, compName as string, isRendered as boolean, force as boolean)
       ' ? " GETTING CELL FOR CREATION "; index; " isRendered "; isRendered
       ' if not isRendered and not force'index > 10 and not force
       ' if false and not isRendered and not force'index > 10 and not force
@@ -390,7 +390,7 @@ namespace ml
       end if
     end function
 
-    function releaseCell(cell as roSGnode)
+    function releaseCell(cell as roSGNodeNode)
       m.log.verbose("releasing cell")
 
       if cell <> invalid and cell.id <> "#_#phc"
@@ -412,7 +412,7 @@ namespace ml
       end if
     end function
 
-    function cleanupCell(cell as roSGnode)
+    function cleanupCell(cell as roSGNodeNode)
       if cell <> invalid and cell.id <> "#_#phc"
         m.log.verbose("releasing cell at index ", cell.index)
         m.componentPool@.releaseComponent(cell)
@@ -601,7 +601,7 @@ namespace ml
       return true
     end function
 
-    function createRenderers(content as roSGnode, forceSync = false as boolean) as boolean
+    function createRenderers(content as roSGNodeNode, forceSync = false as boolean) as boolean
       m.log.error("You must override this method")
       return false
     end function

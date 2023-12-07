@@ -2,6 +2,12 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/NodeClass.bs"
 import "pkg:/source/core/Command.bs"
 
+namespace mc.internal.commands
+  interface ICommandTask extends roSGNodeNode
+    __commandName as string
+  end interface
+end namespace
+
 namespace mc
   @node("mc_CommandSequence", "Group")
   class CommandSequence extends mv.NodeClass
@@ -28,7 +34,7 @@ namespace mc
     private commands = {}
     private taskCommands = {}
 
-    protected firstCommand as mc.SequentialCommand
+    protected firstCommand as SequentialCommand
 
     function new()
       super("CommandSequence")
@@ -37,8 +43,8 @@ namespace mc
     private function begin()
       m.log.info("starting CommandSequence")
 
-      m.firstCommand = new mc.SequentialCommand("First Command", m.createCommands())
-      m.startCommand(m.firstCommand)
+      m.firstCommand = new SequentialCommand("First Command", m.createCommands())
+      m.startCommand(m.firstCommand as ICommand)
     end function
 
     protected function createCommands()
@@ -49,11 +55,11 @@ namespace mc
     '++ Loading command Management
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function startCommand(command as mc.Command) as void
+    protected function startCommand(command as ICommand) as void
       m.log.info("starting command", command.name)
 
       if command = invalid
-        m.failCommand({ name: invalid }, "received invalid command")
+        m.failCommand({ name: invalid } as ICommand, "received invalid command")
         return
       end if
 
@@ -128,7 +134,7 @@ namespace mc
       end try
     end function
 
-    private function onTaskCommandCallback(value as mc.Result, task as roSGnode)
+    private function onTaskCommandCallback(value as mc.Result, task as mc.internal.commands.ICommandTask)
       command = m.taskCommands[task.__commandName]
       if command <> invalid
         m.taskCommands.delete(task.__commandName)
@@ -154,7 +160,7 @@ namespace mc
       end if
     end function
 
-    protected function finishCommand(command as mc.Command)
+    protected function finishCommand(command as ICommand)
 
 
 
@@ -189,23 +195,24 @@ namespace mc
       return m.runningCommands.keys().count()
     end function
 
-    private function finishSequentialCommand(command as mc.Command)
+    private function finishSequentialCommand(command as SequentialCommand)
       m.log.verbose("this command is a sequence, seeing if it has a next command")
-      command.parentCommand.moveNext()
+      parentCommand = command.parentCommand as SequentialCommand
+      parentCommand.moveNext()
 
-      if command.parentCommand.currentCommand <> invalid
-        m.log.verbose("has next command", command.parentCommand.currentCommand.name, "starting it")
-        m.startCommand(command.parentCommand.currentCommand)
+      if parentCommand.currentCommand <> invalid
+        m.log.verbose("has next command", parentCommand.currentCommand.name, "starting it")
+        m.startCommand(parentCommand.currentCommand as ICommand)
       end if
-      command.parentCommand.completeCommand(command)
+      parentCommand.completeCommand(command)
     end function
 
-    private function finishParallelCommand(command as mc.Command)
+    private function finishParallelCommand(command as ParallelCommand)
       m.log.verbose("this command is a parallel command, seeing if all commands are now finished")
-      command.parentCommand.completeCommand(command)
+      (command.parentCommand as ParallelCommand).completeCommand(command)
     end function
 
-    private function startSequentialCommand(command as mc.SequentialCommand)
+    private function startSequentialCommand(command as SequentialCommand)
       command.moveNext()
       if command.isFinished
         m.log.verbose("parent command is finished on very first task")
@@ -224,7 +231,7 @@ namespace mc
       end for
     end function
 
-    protected function failCommand(command as mc.Command, message as string)
+    protected function failCommand(command as ICommand, message as string)
       m.log.error(`command ${command.name} failed with message: `, message)
       if command.ignoreFailure = true
         m.log.warn("Ignoring failure")

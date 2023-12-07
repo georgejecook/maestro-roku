@@ -21,11 +21,11 @@ namespace mv
     private delegate
     private channelStore
     private callback
-    private dialogContainer as roSGnode
+    private dialogContainer as roSGNodeNode
     private text as roAssociativeArray
 
     @inject("styleManager")
-    private styleManager as roSGnode
+    private styleManager as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -51,7 +51,7 @@ namespace mv
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function showDialog(title as string, message as string, buttonTitles = m.text.showDialog.buttonTitles as roArray, callback = invalid as function, additionalArgs = {} as roAssociativeArray) as roSGnode
+    function showDialog(title as string, message as string, buttonTitles = m.text.showDialog.buttonTitles as roArray, callback = invalid as function, additionalArgs = {} as roAssociativeArray) as roSGNodeNode
       if additionalArgs = invalid
         additionalArgs = {}
       end if
@@ -66,7 +66,7 @@ namespace mv
       return dialog
     end function
 
-    function showDialogFromJson(json as roAssociativeArray, callback = invalid as function, additionalArgs = {} as roAssociativeArray) as roSGnode
+    function showDialogFromJson(json as roAssociativeArray, callback = invalid as function, additionalArgs = {} as roAssociativeArray) as roSGNodeNode
       if additionalArgs = invalid
         additionalArgs = {}
       end if
@@ -82,7 +82,7 @@ namespace mv
     end function
 
     'show any screen as a dialog. Must have a buttonSelected: integer field
-    function showDialogScreen(dialog as roSGnode, callback = invalid as function, lockFocus = true as boolean) as roSGnode
+    function showDialogScreen(dialog as roSGNodeNode, callback = invalid as function, lockFocus = true as boolean) as roSGNodeNode
       container = m.getDialogContainer()
       if not container.getParent().isSameNode(dialog.getParent())
         m.log.info("this dialog is not in the dialog containers, adding it now")
@@ -104,7 +104,7 @@ namespace mv
       return dialog
     end function
 
-    function dismissDialog(dialog as roSGnode)
+    function dismissDialog(dialog as roSGNodeNode)
       if dialog <> invalid
         dialog.buttonSelected = -1
       end if
@@ -118,7 +118,7 @@ namespace mv
     '++ Dialog Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function ondDialogButtonSelected(selectedButton as integer, dialog as roSGnode)
+    private function ondDialogButtonSelected(selectedButton as integer, dialog as roSGNodeNode)
       selectedButtonText = dialog.buttons[selectedButton]
       m.log.info("keyboard button selected: ", selectedButtonText, ", text ", dialog.text)
       isClosing = false
@@ -154,7 +154,7 @@ namespace mv
       m.dialog = invalid
     end function
 
-    private function getDialogContainer() as roSGnode
+    private function getDialogContainer() as roSGNodeNode
       scene = mc.getScene()
       container = scene.findNode("_dialogContainer")
 
@@ -164,12 +164,12 @@ namespace mv
       return container
     end function
 
-    private function setFocus(control as roSGnode)
+    private function setFocus(control as roSGNodeNode)
       'bs:disable-next-line
       mv.setFocus(control)
     end function
 
-    protected function setFocusLocked(control as roSGnode, reason as string)
+    protected function setFocusLocked(control as roSGNodeNode, reason as string)
       'bs:disable-next-line
       mv.setFocusLocked(control, reason)
     end function
@@ -189,7 +189,7 @@ namespace mv
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onDialogDismiss(selectedIndex as integer, dialog as roSGnode)
+    private function onDialogDismiss(selectedIndex as integer, dialog as roSGNodeNode)
       m.log.info("onDialogDismiss", selectedIndex, mc.dv(dialog))
       'future enhancement - bare in mind that we could have out of order dialogs in future
       dialogContainer = m.getDialogContainer()

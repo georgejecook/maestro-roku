@@ -62,7 +62,7 @@ namespace mc.collections
         'is an aa
         for each key in array
           if isClass
-            transformed = mapper.transform(key, array[key])
+            transformed = mapper.transform(array[key])
             if transformed <> invalid
               items.push(transformed)
             end if
@@ -361,7 +361,7 @@ namespace mc.collections
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns the first item that matches, or invalid
   @injectLocalM
-  function find(array as roArray, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as roArray)
+  function find(array as roArray, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as roAssociativeArray) as dynamic
     items = mc.collections.filter(array, predicate, false, mTarget)
     if items.count() = 0
       return default
@@ -374,7 +374,7 @@ namespace mc.collections
   ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
   ' @returns {boolean} returns true if the array matches the predicate
   @injectLocalM
-  function contains(array as roArray, predicate as dynamic, mTarget = invalid as roArray) as boolean
+  function contains(array as roArray, predicate as dynamic, mTarget = invalid as roAssociativeArray) as boolean
     items = mc.collections.filter(array, predicate, true, mTarget)
     return items.count() > 0
   end function

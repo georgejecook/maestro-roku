@@ -5,7 +5,7 @@ import "pkg:/source/ml/ListContentManager.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
-    private batchTimer as roSGnode
+    private batchTimer as roSGNodeNode
     private visibleComponents = []
 
     private isUpdating = false
@@ -43,7 +43,7 @@ namespace ml
     private batchSize = 3
     private batchDelay = 3
 
-    function new(list as roSGnode, container as roSGnode, minPos as integer, maxPos as integer, componentPool as roSGnode)
+    function new(list as roSGNodeNode, container as roSGNodeNode, minPos as integer, maxPos as integer, componentPool as roSGNodeNode)
       super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
     end function
 
@@ -65,7 +65,7 @@ namespace ml
       m.cancelWaitTimer(m.batchTimer)
     end function
 
-    override function createRenderers(content as roSGnode, forceSync = false as boolean) as boolean
+    override function createRenderers(content as roSGNodeNode, forceSync = false as boolean) as boolean
 
       m.owner._isRenderingUpdate = true
       m.log.verbose(">>> LIST CREATE RENDERERS _isRenderingUpdate", mc.dv(m.owner), m.owner._isRenderingUpdate)
@@ -187,7 +187,7 @@ namespace ml
       'm.log.decreaseIndent()
     end function
 
-    function createRow(rowContent as roSGnode, index as integer, settings as roSGnode, rect as roAssociativeArray)
+    function createRow(rowContent as roSGNodeNode, index as integer, settings as roSGNodeNode, rect as roAssociativeArray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'm.log.increaseIndent()Indent("CREATE ROW " + index.toStr() + " " + compName)
       'TODO - measure height to ascertain how many
@@ -358,7 +358,7 @@ namespace ml
     end function
 
     ' @params{ml_RowSettings} settings for the current row
-    private function calculateRowHeight(settings as roSGnode) as integer
+    private function calculateRowHeight(settings as roSGNodeNode) as integer
       height = 300
       if settings = invalid
         return height
@@ -376,7 +376,7 @@ namespace ml
       return height
     end function
 
-    private function calculateGridRowHeight(row as roSGnode, settings as roSGnode) as integer
+    private function calculateGridRowHeight(row as roSGNodeNode, settings as roSGNodeNode) as integer
       numItems = row.length
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols

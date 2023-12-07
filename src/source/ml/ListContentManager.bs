@@ -6,30 +6,30 @@ import "pkg:/source/ml/List.bs"
 
 namespace ml
   interface RowContentInfo
-    row as roSGnode
+    row as roSGNodeNode
     version as integer
     isHidden as boolean
     isFocusEnabled as boolean
   end interface
 
   class ListContentManager extends mc.BaseClass
-    public content as roSGnode
+    public content as roSGNodeNode
 
     private list as ml.List
-    private listNode as roSGnode
+    private listNode as roSGNodeNode
     private isUpdateEnabled = true
 
     private viewManager as ml.ListItemViewManager
     private itemScroller as ml.ListItemScroller
-    private focusIndicatorManager as roSGnode
+    private focusIndicatorManager as roSGNodeNode
     private rowContentInfoByContentId = {}
     private previousFocusedRowInfo as ml.CellInfo
     private previousFocusedCellInfo as ml.CellInfo
-    private previousRowContent as roSGnode
-    private previousCellContent as roSGnode
+    private previousRowContent as roSGNodeNode
+    private previousCellContent as roSGNodeNode
     private isForcingUpdateAll = false
 
-    function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as roSGnode)
+    function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as roSGNodeNode)
       super("ListContentManager")
       m.list = list
       m.listNode = list.top
@@ -39,7 +39,7 @@ namespace ml
       m.focusIndicatorManager = focusIndicatorManager
     end function
 
-    public function setContent(content as roSGnode, forceUpdate = false as boolean) as void
+    public function setContent(content as roSGNodeNode, forceUpdate = false as boolean) as void
 
       if content = invalid
         m.log.info("listContent set to invalid. Resetting list")
@@ -150,7 +150,7 @@ namespace ml
       end if
     end function
 
-    private function isListLayoutRequired(changes as roSGnode) as boolean
+    private function isListLayoutRequired(changes as roSGNodeNode) as boolean
       m.log.info("ascertaining if layout updates are required")
       'TODO..
       return true
@@ -366,7 +366,7 @@ namespace ml
       end if
     end function
 
-    private function updateContentOnRow(row as roSGnode, content as roSGnode, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
+    private function updateContentOnRow(row as roSGNodeNode, content as roSGNodeNode, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
         m.log.verbose("applyRowContentUpdate cannot set content on invalid row")
         return
@@ -387,7 +387,7 @@ namespace ml
       end if
     end function
 
-    public function setContentOnRow(row as roSGnode, content as roSGnode, isRecycled = false as boolean, result = invalid as ml.ListChangeResult) as void
+    public function setContentOnRow(row as roSGNodeNode, content as roSGNodeNode, isRecycled = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
         m.log.verbose("setContentOnRow cannot set content on invalid row")
         return
@@ -416,7 +416,7 @@ namespace ml
     '++ Row Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function applyRowContentChange(row as roSGnode, content as roSGnode, result as ml.ListChangeResult)
+    private function applyRowContentChange(row as roSGNodeNode, content as roSGNodeNode, result as ml.ListChangeResult)
       ' ? " APPLYING ROW " mc.dv(row) " content " mc.dv(content)
 
       rowResult = row@.setContent(content, m.isForcingUpdateAll)
@@ -431,7 +431,7 @@ namespace ml
       end if
     end function
 
-    private function applyRowContentUpdate(row as roSGnode, content as roSGnode, result as ml.ListChangeResult)
+    private function applyRowContentUpdate(row as roSGNodeNode, content as roSGNodeNode, result as ml.ListChangeResult)
       rowResult = row@.onContentItemsChange(content)
 
       if result <> invalid
@@ -444,7 +444,7 @@ namespace ml
       end if
     end function
 
-    private function updateRowContentInfo(row as roSGnode, content as roSGnode, result as ml.ListChangeResult) as boolean
+    private function updateRowContentInfo(row as roSGNodeNode, content as roSGNodeNode, result as ml.ListChangeResult) as boolean
       m.log.verbose("updateRowContentInfo")
 
       if row = invalid
@@ -462,7 +462,7 @@ namespace ml
       return isChanged
     end function
 
-    private function getRowContentInfoForRow(row as roSGnode) as ml.RowContentInfo
+    private function getRowContentInfoForRow(row as roSGNodeNode) as ml.RowContentInfo
       content = row.content
       if content <> invalid
         return m.rowContentInfoByContentId[content.id]
@@ -476,7 +476,7 @@ namespace ml
       end if
     end function
 
-    private function getNewRowContentInfo(row as roSGnode, content as roSGnode) as ml.RowContentInfo
+    private function getNewRowContentInfo(row as roSGNodeNode, content as roSGNodeNode) as ml.RowContentInfo
       if content <> invalid
         ' store pertinent info about the content a given row
         newRowContentInfo = {

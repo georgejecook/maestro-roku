@@ -23,7 +23,7 @@ namespace mv.debug
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private subScreen as roSGnode
+    private subScreen as roSGNodeNode
     private isBusy = false
     private pageIndex = 0
     private numberOfPages = 0
@@ -201,7 +201,7 @@ namespace mv.debug
       ]
     end function
 
-    private function setButtonFunctions(control as roSGnode, buttons as roArray)
+    private function setButtonFunctions(control as roSGNodeNode, buttons as roArray)
       control.buttons = mc.collections.map(buttons, function(item as string)
         return item[0]
       end function)
@@ -210,7 +210,7 @@ namespace mv.debug
       m.observeNodeField(control, "buttonSelected", m.onButtonGroupSelectedChange, "both")
     end function
 
-    function onButtonGroupSelectedChange(index as integer, node as roSGnode) as void
+    function onButtonGroupSelectedChange(index as integer, node as roSGNodeNode) as void
       if m.isBusy
         m.log.info("ignoring - screen is still busy")
         return
@@ -218,7 +218,7 @@ namespace mv.debug
       m.activeButtons[index][1]()
     end function
 
-    private function showScreen(screen as roSGnode)
+    private function showScreen(screen as roSGNodeNode)
       m.subScreen = screen
       m.observeNodeField(screen, "state", m.onScreenStateChange)
       m.navController@.push(screen)

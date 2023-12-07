@@ -20,7 +20,7 @@ namespace mc
     private log
 
     function new()
-      m.log = new log.Logger("ComponentPool")
+      m.log = new rlog.Logger("ComponentPool")
       m.reset()
     end function
 
@@ -75,7 +75,7 @@ namespace mc
       end for
     end function
 
-    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as roSGnode
+    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as roSGNodeNode
 
       pool = m.getComponentPool(componentType)
 
@@ -123,7 +123,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponent(component as roSGnode)
+    function releaseComponent(component as roSGNodeNode)
       if component <> invalid
         ' ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid

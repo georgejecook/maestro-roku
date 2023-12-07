@@ -8,6 +8,10 @@ namespace mc
     data as dynamic
   end interface
 
+  interface _Assignable
+    __cb as function
+  end interface
+
   function isUndefined(value as dynamic) as boolean
     return type(value) = "<uninitialized>"
   end function
@@ -134,6 +138,7 @@ namespace mc
 
     if target <> invalid
       if mc.isFunction(func)
+        target = target as mc._Assignable
         target.__cb = func
         count = args.count()
         if count = 0
@@ -428,14 +433,14 @@ namespace mc
     return content
   end function
 
-  function setOrAddNodeField(node as roSGnode, field as string, value = invalid as dynamic)
+  function setOrAddNodeField(node as roSGNodeNode or roAssociativeArray, field as string, value = invalid as dynamic)
     if type(node) = "roSGNode"
       if node.doesExist(field)
         node[field] = value
       else
         info = {}
         info[field] = value
-        node.addFields(info)
+        (node as roSGNodeNode).addFields(info)
       end if
     else if mc.isAACompatible(node)
       node[field] = value
@@ -444,7 +449,7 @@ namespace mc
     end if
   end function
 
-  function setNodeAAValue(node as roSGnode, field as string, key as string, value = invalid as dynamic)
+  function setNodeAAValue(node as roSGNodeNode, field as string, key as string, value = invalid as dynamic)
     v = node[field]
     if v = invalid
       v = {}
@@ -453,7 +458,7 @@ namespace mc
     mc.setOrAddNodeField(node, field, v)
   end function
 
-  function setNodeArrayValue(node as roSGnode, field as string, index as integer, value = invalid as dynamic)
+  function setNodeArrayValue(node as roSGNodeNode, field as string, index as integer, value = invalid as dynamic)
     v = node[field]
     if v = invalid
       v = []
@@ -462,13 +467,13 @@ namespace mc
     mc.setOrAddNodeField(node, field, v)
   end function
 
-  function setOrAddNodeFields(node as roSGnode, fields as roAssociativeArray)
+  function setOrAddNodeFields(node as roSGNodeNode, fields as roAssociativeArray)
     for each field in fields
       mc.setOrAddNodeField(node, field, fields[field])
     end for
   end function
 
-  function getChildAtDepth(node as roSGnode, depth as integer) as dynamic
+  function getChildAtDepth(node as roSGNodeNode, depth as integer) as dynamic
     currentDepth = 0
 
     while node <> invalid and currentDepth < depth
@@ -504,7 +509,7 @@ namespace mc
     return a&
   end function
 
-  function getIndexOfItem(parent as roSGnode, item as roSGnode) as integer
+  function getIndexOfItem(parent as roSGNodeNode, item as roSGNodeNode) as integer
     if item <> invalid
       for index = 0 to parent.getChildCount() - 1
         node = parent.getChild(index)
@@ -520,7 +525,7 @@ namespace mc
   ' @param {node} parent - parent to append created node to
   ' @param {string} id - id of new node
   ' @param {assocarray|array of assocarray} args - if assocarray, fields that are applied to the node on creation, if array of assoarray, will iterate over the fields applying them all
-  function createSGNode(nodeType as dynamic, parent = invalid as roSGnode, id = invalid as string, args = invalid as roAssociativeArray, isCallingInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGnode
+  function createSGNode(nodeType as dynamic, parent = invalid as roSGNodeNode, id = invalid as string, args = invalid as roAssociativeArray, isCallingInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGNodeNode
 
     if mc.isAACompatible(nodeType)
       id = nodeType.id
@@ -608,7 +613,7 @@ namespace mc
     return node
   end function
 
-  function createNode(nodeType as string) as roSGnode
+  function createNode(nodeType as string) as roSGNodeNode
     node = createObject(nodeType)
     return node
   end function
@@ -672,11 +677,11 @@ namespace mc
     return m.global
   end function
 
-  function getTop() as roSGnode
+  function getTop() as roSGNodeNode
     return m.top
   end function
 
-  function getScene() as roSGnode
+  function getScene() as roSGNodeNode
     return m.top.getScene()
   end function
 

@@ -5,13 +5,13 @@ namespace mc
   @node("mc_Selection", "ContentNode")
   class Selection
     'item that started the selection
-    initialItem as roSGnode
+    initialItem as roSGNodeNode
 
     'parentCollection where this item came from
-    parentCollection as roSGnode
+    parentCollection as roSGNodeNode
 
     'current item, if changed since initial Item
-    currentItem as roSGnode
+    currentItem as roSGNodeNode
 
     'e.g. play or display
     action as string
@@ -20,7 +20,7 @@ namespace mc
     actionInfo = {}
 
     'screen where selection occurred
-    originScreen as roSGnode
+    originScreen as roSGNodeNode
 
     ' kind of screen to create, to execute the selection
     targetScreen as string
@@ -37,11 +37,11 @@ namespace mc
     ' info pertaining to state changes
     result = {}
 
-    function getNextItem(args = invalid as dynamic) as roSGnode
+    function getNextItem(args = invalid as dynamic) as roSGNodeNode
       return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, 1, invalid, false, false)
     end function
 
-    function getPreviousItem(args = invalid as dynamic) as roSGnode
+    function getPreviousItem(args = invalid as dynamic) as roSGNodeNode
       return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, -1, invalid, false, false)
     end function
 
@@ -53,7 +53,7 @@ namespace mc
       m.currentItem = m.getPreviousItem()
     end function
 
-    function getItemIndex(item as roSGnode) as integer
+    function getItemIndex(item as roSGNodeNode) as integer
       return mc.collections.getArrayIndex(m.parentCollection, item)
     end function
 

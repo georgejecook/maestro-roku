@@ -7,6 +7,10 @@ import "pkg:/source/ml/FocusIndicatorConfig.bs"
 import "pkg:/source/ml/CommonListApi.bs"
 
 namespace ml
+  interface RowOwner
+    optional delegate as roSGNodeNode
+  end interface
+
   @node("ml_BaseRow", "mv_BaseView")
   class BaseRow extends mv.BaseView
 
@@ -15,7 +19,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'Instance of RowContent
-    public content as roSGnode
+    public content as roSGNodeNode
 
     public index = -1
     public renderState = "none"
@@ -27,15 +31,18 @@ namespace ml
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
-    public owner as roSGnode
+    'FIXME - check node classes work
+    public owner as ml.RowOwner
+    '// cspell:disable-next-line
+    ' public owner as roSGNodeml_List
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected backgroundGroup as roSGnode
-    protected contentGroup as roSGnode
-    protected foregroundGroup as roSGnode
+    protected backgroundGroup as roSGNodeNode
+    protected contentGroup as roSGNodeNode
+    protected foregroundGroup as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -48,7 +55,7 @@ namespace ml
     '++ Header Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected header as roSGnode
+    protected header as roSGNodeNode
     protected currentHeaderType = invalid
 
     function new()
@@ -85,7 +92,8 @@ namespace ml
       end if
 
       m.log.info("This content has changed in some way")
-      changes = m.content.changes
+      'FIXME(bsc)
+      changes = (m.content as dynamic).changes as roArray
       if changes <> invalid and changes.count() > 0
         m.log.info("doing a content update, in case this is important for the row, itself")
         m.onContentUpdate(m.content)
@@ -123,8 +131,9 @@ namespace ml
       }
     end function
 
-    function setContent(content as roSGnode, isForced = false as boolean) as ml.ListChangeResult
-      m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
+    function setContent(content as roSGNodeNode, isForced = false as boolean) as ml.ListChangeResult
+      'FIXME - use real node type
+      m.settings = ml.listMixin.getRowSettings((m.owner as dynamic).content, content)
       m._content = content
       m.log.verbose(" SET CONTENT ", mc.dv(m.top))
       if isForced
@@ -149,7 +158,9 @@ namespace ml
       if m.owner = invalid or m._content = invalid
         return
       end if
-      m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
+
+      'FIXME - use real node type
+      m.settings = ml.listMixin.getRowSettings((m.owner as dynamic).content, m._content)
       m.log.verbose(" forceUPdate ", mc.dv(m.top))
       m.onContentChange(m._content)
 
@@ -226,6 +237,7 @@ namespace ml
         focusSettings = m.settings.focusSettings
 
         screenPos = m.settings.screenPos
+        'bs:disable-next-line
         yOffset = m.top.translation[1]
 
         positions = [
@@ -271,7 +283,7 @@ namespace ml
     protected function sendRowData(data as roAssociativeArray)
       if m.owner <> invalid and m.owner.delegate <> invalid
         m.owner.delegate@._apply("onRowData", [{
-          rowIndex: m.top.index
+          rowIndex: (m.top as dynamic).index
           data: data
         }], false)
       end if
@@ -281,7 +293,7 @@ namespace ml
     '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function onContentChange(content as roSGnode) as ml.ListChangeResult
+    protected function onContentChange(content as roSGNodeNode) as ml.ListChangeResult
       ? "ON CONTENT CHANGE"
       return {
         isLayoutRequired: false
@@ -289,12 +301,12 @@ namespace ml
       }
     end function
 
-    protected function onContentUpdate(content as roSGnode)
+    protected function onContentUpdate(content as roSGNodeNode)
       ? "ON CONTENT UPDATED"
       m.configureHeader(false)
     end function
 
-    protected function onRecycle(newContent as roSGnode)
+    protected function onRecycle(newContent as roSGNodeNode)
       m.log.verbose("recycling row", mc.dv(m.top), "content", mc.dv(newContent))
       m.isInViewport = false
     end function
@@ -330,7 +342,7 @@ namespace ml
       return m.contentGroup
     end function
 
-    function recycle(newContent as roSGnode)
+    function recycle(newContent as roSGNodeNode)
       m.onRecycle(newContent)
     end function
 
@@ -346,7 +358,7 @@ namespace ml
         if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.currentHeaderType = headerSettings.compName
-          m.header = m.global.componentPool@.getComponent(headerSettings.compName, 1)
+          m.header = (m.global as dynamic).componentPool@.getComponent(headerSettings.compName, 1)
 
           if m.header <> invalid
             if headerSettings.position = "onTop"

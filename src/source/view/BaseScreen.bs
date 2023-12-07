@@ -16,10 +16,11 @@ namespace mv
     public state as string
 
     'the selection object that lead to this view being created
-    public originSelection as roSGnode
+    public originSelection as roSGNodeNode
 
     function new(name as string)
       super(name)
+      m.grandParentFunction()
     end function
 
     protected override function initialize()
@@ -42,12 +43,12 @@ namespace mv
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as roSGnode, animated = true as boolean)
+    protected function push(view as roSGNodeNode, animated = true as boolean)
       'bs:disable-next-line
       push(view, animated)
     end function
 
-    protected function pop(animated = true as boolean) as roSGnode
+    protected function pop(animated = true as boolean) as roSGNodeNode
       'bs:disable-next-line
       return(pop(animated))
     end function
@@ -62,7 +63,7 @@ namespace mv
       return getNavController()
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as roSGnode, endIndex = -1 as integer, animated = false as boolean)
+    protected function resetNavController(newFirstScreen = invalid as roSGNodeNode, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex, animated)
     end function
@@ -80,7 +81,7 @@ namespace mv
       end if
     end function
 
-    protected function replaceNavControllerScreen(targetScreen as roSGnode, animated = false as boolean)
+    protected function replaceNavControllerScreen(targetScreen as roSGNodeNode, animated = false as boolean)
       'bs:disable-next-line
       replaceNavControllerScreen(targetScreen, animated)
     end function
@@ -110,7 +111,7 @@ namespace mv
       end if
     end function
 
-    protected override function onRemovedFromAggregateView(view as roSGnode)
+    protected override function onRemovedFromAggregateView(view as roSGNodeNode)
       super.onRemovedFromAggregateView(view)
       m.cleanup()
     end function

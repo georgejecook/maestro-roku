@@ -1,26 +1,44 @@
 import "pkg:/source/core/DebugTimer.bs"
 namespace mc
+  interface ICommand
+    name as string
+    func as function
+    ignoreFailure as boolean
+    parentCommand as ICommand
+    childCommands as roArray
+    isFinished as boolean
+    commandCount as integer
+    isOk as boolean
+    timer as mc.utils.DebugTimer
+  end interface
+
+  interface CommandOptions
+    optional ignoreFailure as boolean
+    optional isWaitingResult as boolean
+    optional onComplete as function
+  end interface
+
   class Command
     name as string
     func as function
     ignoreFailure = false
-    parentCommand as mc.Command
+    parentCommand as ICommand
     childCommands = []
     isFinished = false
     commandCount = 0
     isOk = true
     timer as mc.utils.DebugTimer
 
-    function new(name as string, func as function, options = {} as roAssociativeArray)
+    function new(name as string, func as function, options = {} as CommandOptions)
       m.name = name
       m.func = func
       m.timer = mc.utils.DebugTimer(name)
-      m.ignoreFailure = asBoolean(options.ignoreFailure)
+      m.ignoreFailure = asBoolean((options as dynamic).ignoreFailure)
     end function
 
     function configureChildCommands(commands as roArray)
       m.childCommands = []
-      if mc.isArray(commands)
+      if isArray(commands)
         for each command in commands
           if command <> invalid and not (command.isOptional = true and command.isActive = false)
             command.parentCommand = m
@@ -35,15 +53,15 @@ namespace mc
     end function
   end class
 
-  class TaskCommand extends mc.Command
+  class TaskCommand extends Command
     isTask = true
     taskArgs as roAssociativeArray
     taskName as string
     onComplete as function
-    parentCommant as mc.Command
+    parentCommant as ICommand
     isWaitingResult = true
 
-    function new(name as string, taskName as string, taskArgs as roAssociativeArray, options = {} as roAssociativeArray)
+    function new(name as string, taskName as string, taskArgs as roAssociativeArray, options = {} as CommandOptions)
       super(name, invalid, options)
       m.isWaitingResult = asBoolean(options.isWaitingResult, true)
       m.isTask = true
@@ -53,13 +71,13 @@ namespace mc
     end function
   end class
 
-  class SequentialCommand extends mc.Command
+  class SequentialCommand extends Command
     commandIndex = -1
     completeCount = 0
-    currentCommand as mc.Command
+    currentCommand as ICommand
     isSequence = true
 
-    function new(name as string, commands = [] as roArray, options = {} as roAssociativeArray)
+    function new(name as string, commands = [] as roArray, options = {} as CommandOptions)
       super(name, invalid, options)
       m.configureChildCommands(commands)
     end function
@@ -73,58 +91,58 @@ namespace mc
       m.currentCommand = nextCommand
     end function
 
-    function completeCommand(command as mc.Command)
+    function completeCommand(command as Command)
       m.completeCount++
       m.isFinished = m.completeCount = m.commandCount
     end function
 
   end class
-  class OptionalCommand extends mc.Command
+  class OptionalCommand extends Command
     isOptional = true
     isActive = false
 
-    function new(name as string, isActive as boolean, func as function, options = {} as roAssociativeArray)
+    function new(name as string, isActive as boolean, func as function, options = {} as CommandOptions)
       super(name, func, options)
       m.isActive = isActive
     end function
   end class
-  class OptionalSequentialCommand extends mc.SequentialCommand
+  class OptionalSequentialCommand extends SequentialCommand
     isOptional = true
     isActive = false
 
-    function new(name as string, isActive as boolean, commands = [] as roArray, options = {} as roAssociativeArray)
+    function new(name as string, isActive as boolean, commands = [] as roArray, options = {} as CommandOptions)
       super(name, isActive ? commands : [], options)
       m.isActive = isActive
     end function
   end class
 
-  class ParallelCommand extends mc.Command
+  class ParallelCommand extends Command
     completeCount = 0
-    currentCommand as mc.Command
+    currentCommand as Command
     isParallel = true
 
-    function new(name as string, commands = [] as roArray, options = {} as roAssociativeArray)
+    function new(name as string, commands = [] as roArray, options = {} as CommandOptions)
       super(name, invalid, options)
       m.configureChildCommands(commands)
     end function
 
-    function completeCommand(command as mc.Command)
+    function completeCommand(command as ICommand)
       m.completeCount++
       m.isFinished = m.completeCount = m.commandCount
     end function
   end class
 
-  class OptionalParallelCommand extends mc.ParallelCommand
+  class OptionalParallelCommand extends ParallelCommand
     isOptional = true
     isActive = false
 
-    function new(name as string, isActive as boolean, commands = [] as roArray, options = {} as roAssociativeArray)
+    function new(name as string, isActive as boolean, commands = [] as roArray, options = {} as CommandOptions)
       super(name, isActive ? commands : [], options)
       m.isActive = isActive
     end function
   end class
 
-  class CommandProvider extends mc.Command
+  class CommandProvider extends Command
     isProvider = true
 
     function new(name as string, builderFunction as function)

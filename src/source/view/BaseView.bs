@@ -3,7 +3,7 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/view/NodeClass.bs"
 import "pkg:/components/view/mixin/FocusMixin.bs"
-
+import "pkg:/source/view/Animation.bs"
 namespace mv
   ' /**
   '  * @module BaseView
@@ -34,13 +34,14 @@ namespace mv
 
     function new(name as string)
       super(name)
+      a = createObject("roSGnode", "mv_NavController") as roSGNodeNodelog_HTTPTransport
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ View Helpers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function initializeView(view as roSGnode, args = invalid as roArray)
+    protected function initializeView(view as roSGNodeNode, args = invalid as roArray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -48,13 +49,13 @@ namespace mv
       end if
     end function
 
-    protected function setFocus(target as roSGnode, forceSet = false as boolean)
+    protected function setFocus(target as roSGNodeNode, forceSet = false as boolean)
       m.focusedControl = target
       'bs:disable-next-line
       mv.setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as roSGnode, message = "" as string)
+    protected function setFocusLocked(target as roSGNodeNode, message = "" as string)
       if target <> invalid
         m.focusedControl = target
       end if
@@ -67,7 +68,7 @@ namespace mv
       mv.setFocusUnlocked(reason)
     end function
 
-    protected function isControlFocused(control as roSGnode)
+    protected function isControlFocused(control as roSGNodeNode)
       return m.focusedControl <> invalid and control <> invalid and m.focusedControl.id = control.id
     end function
 
@@ -233,7 +234,7 @@ namespace mv
     '++ Selection Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSelection(initialItem as roSGnode, action = "display" as string, actionInfo = {} as roAssociativeArray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
+    protected function createSelection(initialItem as roSGNodeNode, action = "display" as string, actionInfo = {} as roAssociativeArray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
       id = `${m.name}-${mc.getString(initialItem, "id")}-${action}`
       selection = mc.createSGNode(selectionCompName, invalid, id, {
         initialItem: initialItem
@@ -248,7 +249,7 @@ namespace mv
       return selection
     end function
 
-    protected function executeSelection(selection as roSGnode, observeIfPendingAfterExecution = true as boolean)
+    protected function executeSelection(selection as roSGNodeNode, observeIfPendingAfterExecution = true as boolean)
       'assumes that you have an appController instance that will handle the selection
       appController = m.getInstance("appController")
       if appController <> invalid
@@ -267,7 +268,7 @@ namespace mv
       end if
     end function
 
-    protected function cancelPendingSelection(selection as roSGnode)
+    protected function cancelPendingSelection(selection as roSGNodeNode)
       m.unobserveNodeField(selection, "state")
       m.unobserveNodeField(selection, "itemCompletionState")
     end function
@@ -306,18 +307,18 @@ namespace mv
       m.isFocused = false
     end function
 
-    protected function onSelectionStateChange(state as string, selection as roSGnode)
+    protected function onSelectionStateChange(state as string, selection as roSGNodeNode)
       m.log.info("selection", mc.dv(selection), "changed state to", state)
     end function
 
-    protected function onSelectionCompletionStateChange(completionState as string, selection as roSGnode)
+    protected function onSelectionCompletionStateChange(completionState as string, selection as roSGNodeNode)
       m.log.info("selection", mc.dv(selection), "changed completionState to", completionState)
     end function
 
-    protected function onAddedToAggregateView(view as roSGnode)
+    protected function onAddedToAggregateView(view as roSGNodeNode)
     end function
 
-    protected function onRemovedFromAggregateView(view as roSGnode)
+    protected function onRemovedFromAggregateView(view as roSGNodeNode)
     end function
 
   end class

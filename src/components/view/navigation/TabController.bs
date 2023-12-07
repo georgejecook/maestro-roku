@@ -3,6 +3,11 @@
 '  * @description IOS style tab controller component for managing tabbed views
 '  */
 
+interface TabControllerMenuItemNode extends roSGNodeNode
+  screenType as string
+  optional fields as roAssociativeArray
+end interface
+
 function init()
   m.log.method("init")
   m.top.currentItem = invalid
@@ -23,12 +28,12 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function changeCurrentItem(item as roSGnode)
+function changeCurrentItem(item as roSGNodeNode)
   m.log.info("changeCurrentItem", item)
 
   if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
     m.top.currentItem = item
-    view = getViewForMenuItemContent(m.top.currentItem, item.screenType <> "DeepLinkingController")
+    view = getViewForMenuItemContent(m.top.currentItem, ((item as dynamic).screenType as string) <> "DeepLinkingController")
     if view = invalid
       m.log.error("no view for item", m.top.currentItem)
     end if
@@ -40,7 +45,7 @@ end function
 '++ View management
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function getViewForMenuItemContent(menuItemContent as roSGnode, useCache = true as boolean)
+function getViewForMenuItemContent(menuItemContent as roSGNodeNode, useCache = true as boolean)
   if menuItemContent = invalid
     return invalid
   end if
@@ -67,7 +72,7 @@ function addExistingView(existingView as boolean)
   existingView.visible = false
 end function
 
-function _createView(menuItemContent as roSGnode)
+function _createView(menuItemContent as TabControllerMenuItemNode)
   m.log.method("createView menuItemContent.screenType", menuItemContent.screenType)
   childView = createView(menuItemContent)
 
@@ -100,7 +105,7 @@ end function
 '  * @param {node} a selected menu item
 '  * @returns {BaseScreen} a screen to display in a TabChildScreen
 '  */
-function createView(menuItemContent as roSGnode)
+function createView(menuItemContent as TabControllerMenuItemNode)
   view = invalid
 
   if menuItemContent.screenType <> "none"

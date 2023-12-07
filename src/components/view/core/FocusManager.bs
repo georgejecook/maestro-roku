@@ -9,7 +9,7 @@ import "pkg:/source/core/Utils.bs"
 
 function init() as void
   m.top.observeFieldScoped("_debugM", "onDebugMChange")
-  m.log = new log.Logger("FocusManager")
+  m.log = new rlog.Logger("FocusManager")
   m.wasShown = false
   m.isKeyPressLocked = false
   m.lockedNode = invalid
@@ -24,7 +24,7 @@ end function
 '++ Protected api - only call from mixin
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOn(node as roSGnode, isForced = false as boolean) as void
+function _setFocusOn(node as roSGNodeNode, isForced = false as boolean) as void
   m.log.verbose("setFocusOn", mc.dv(node))
 
   if m.top.enabled = false
@@ -64,7 +64,7 @@ function _setFocusOn(node as roSGnode, isForced = false as boolean) as void
 
 end function
 
-function isChildOfLockedNode(node as roSGnode) as boolean
+function isChildOfLockedNode(node as roSGNodeNode) as boolean
   parents = getParents(node)
   for each parent in parents
     if parent.isSameNode(m.lockedNode)
@@ -74,7 +74,7 @@ function isChildOfLockedNode(node as roSGnode) as boolean
   return false
 end function
 
-function _unsetFocusOn(node as roSGnode)
+function _unsetFocusOn(node as roSGNodeNode)
   m.log.info("manually unsetting focus on node")
   if m.top.enabled = true
     node.setFocus(false)
@@ -83,7 +83,7 @@ function _unsetFocusOn(node as roSGnode)
   end if
 end function
 
-function _setFocusLocked(node as roSGnode, reason = "" as string) as void
+function _setFocusLocked(node as roSGNodeNode, reason = "" as string) as void
 
   if m.top.enabled = false
     m.log.error("DISBALED: cannot set focuslocked on", mc.dv(node))
@@ -120,7 +120,7 @@ end function
 '++ private impl
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOnImpl(node as roSGnode, parents as roArray) as void
+function _setFocusOnImpl(node as roSGNodeNode, parents as roArray) as void
 
   currentNode = m.top.focusedNode
   isCurrentNode = false
@@ -154,6 +154,7 @@ function _setFocusOnImpl(node as roSGnode, parents as roArray) as void
   if node <> invalid
     previousDrawFocusFeedback = false
     if node.doesExist("drawFocusFeedback")
+      'bs:disable-next-line
       previousDrawFocusFeedback = node.drawFocusFeedback
       node.drawFocusFeedback = false
     end if
@@ -161,7 +162,7 @@ function _setFocusOnImpl(node as roSGnode, parents as roArray) as void
     node.setFocus(true)
 
     if node.doesExist("drawFocusFeedback")
-      node.drawFocusFeedback = previousDrawFocusFeedback
+      node.drawFocusFeedback = previousDrawFocusFeedback as boolean
     end if
 
     if node.doesExist("isFocused")
@@ -178,7 +179,7 @@ function _setFocusOnImpl(node as roSGnode, parents as roArray) as void
   end if
 end function
 
-function getParents(node as roSGnode)
+function getParents(node as roSGNodeNode)
   if type(node) <> "roSGNode"
     return []
   end if
@@ -216,7 +217,7 @@ function getParents(node as roSGnode)
   return parents
 end function
 
-function isValid(node as roSGnode)
+function isValid(node as roSGNodeNode)
 
   if mc.isUndefined(node)
     m.log.error("asked to focus on undefined node")

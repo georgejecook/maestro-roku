@@ -71,8 +71,13 @@ function onKeyEvent(key as string, press as boolean) as boolean
 
   if result and press
 
+    longPressInterval = 0
     'bs:disable-next-line
-    if mc.isFunction(getLongPressIntervalForKey) then longPressInterval = getLongPressIntervalForKey(key) else longPressInterval = 0
+    if mc.isFunction(getLongPressIntervalForKey)
+      'bs:disable-next-line
+      longPressInterval = getLongPressIntervalForKey(key) as integer
+    end if
+
     if longPressInterval > 0
       m.log.info("entering long press for key ", key)
       m.longPressKey = key

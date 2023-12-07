@@ -16,10 +16,10 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'must be of type ListContent
-    public content as roSGnode
+    public content as roSGNodeNode
 
     'view that will respond to events
-    public delegate as roSGnode
+    public delegate as roSGNodeNode
 
     public _isRenderingUpdate = false
     public _timeSinceLastKeypress = 0
@@ -66,14 +66,14 @@ namespace ml
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private contentGroup as roSGnode
-    private rowsGroup as roSGnode
+    private contentGroup as roSGNodeNode
+    private rowsGroup as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Shared managers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public focusIndicatorManager as roSGnode
+    public focusIndicatorManager as roSGNodeNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ internal event tracking
@@ -96,10 +96,10 @@ namespace ml
     private isInitialized = false
     private isDoingFlowFocus = false
 
-    private focusedRowContent as roSGnode
-    private focusedCellContent as roSGnode
+    private focusedRowContent as roSGNodeNode
+    private focusedCellContent as roSGNodeNode
 
-    private preHiddenContent as roSGnode
+    private preHiddenContent as roSGNodeNode
 
     private keyTimer = createObject("roTimespan")
 
@@ -157,7 +157,7 @@ namespace ml
     private function initManagers()
       m.rowsGroup = m.top.findNode("rowsGroup")
 
-      m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, m.global.componentPool)
+      m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, (m.global as dynamic).componentPool)
 
       m.itemScroller = new ml.ListItemScroller(m.viewManager, m.focusIndicatorManager)
       m.itemScroller.offsetContainer = m.contentGroup
@@ -176,6 +176,8 @@ namespace ml
     private function resetState()
       m.log.info("resetState")
 
+      'FIXME - should not be needed
+      'bs:disable-next-line
       m.wasFocused = m.top.isFocused or m.top.isChildFocused
       if m.contentManager.content <> invalid
         m.log.info("new content is present")
@@ -191,7 +193,7 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function setContent(content as roSGnode, forceUpdate = false as boolean) as void
+    function setContent(content as roSGNodeNode, forceUpdate = false as boolean) as void
       m.contentManager.setContent(content, forceUpdate)
     end function
 
@@ -238,6 +240,7 @@ namespace ml
 
     function forceUpdate(fullUpdate = false as boolean) as void
       ' cellInfo = m.itemScroller.getCellInfoForContentIndex(m.focusedRowIndex)
+      'bs:disable-next-line
       if m.top.state = "rendering"
         m.log.verbose("cannot forceUpdate list while rendering is taking place")
         return
@@ -271,6 +274,7 @@ namespace ml
         '   ' m.focusIndicatorManager@.setFocusComplete()
         ' end if
         ' ? " SETTING FOCUS IN LIST BBB FORCE UPDATE" m.top.isChildFocused m.top.isFocused
+        'bs:disable-next-line
         m.setFocusIndicatorManagerHidden(not (m.top.isChildFocused and m.top.isFocused))
       else
         m.log.verbose("LIST HAS NO COMPONENTS ")
@@ -323,6 +327,9 @@ namespace ml
     function moveToRow(index as integer, animated as boolean, animSpeedIndex = 0 as integer, direction = invalid as integer)
       if m.contentManager.content <> invalid
         animated = animated = true
+
+        'FIXME - should not be needed
+        'bs:disable-next-line
         isDisablingFocus = not animated and not m.focusIndicatorManager._isContentUpdating
         if isDisablingFocus
           ' ? " >>>>>>>>>>>>>>>>>>> DISABLED"
@@ -347,6 +354,9 @@ namespace ml
       ' m.log.verbose(" MTRI  ", rowIndex, index, animated)
       'm.log.increaseIndent()Indent()
       animated = animated = true
+
+      'FIXME
+      'bs:disable-next-line
       isDisablingFocus = not animated and not m.focusIndicatorManager._isContentUpdating
       if m.contentManager.content <> invalid and rowIndex <> -1 and index <> -1
         row = m.getRowRenderer(rowIndex)
@@ -485,6 +495,8 @@ namespace ml
         return false
       end if
 
+      'FIXME
+      'bs:disable-next-line
       if m.focusIndicatorManager.isFocusing
         'TODO - improve this
         m.log.info("ignoring press", key, "because the focus indiciator is moving")
@@ -542,6 +554,7 @@ namespace ml
       end if
 
       'FIXME - add ability to change of direction, mid-animation
+      'bs:disable-next-line
       isScrolling = m.viewManager.isScrolling or m.focusIndicatorManager.isDoingFlowFocus or m.isScrolling
       if isScrolling
         m.log.info("Cannot select while scrolling")
@@ -603,8 +616,12 @@ namespace ml
 
     private function isAlreadyScrolling(isUpDown as boolean) as boolean
       ' ? "VIEW MANAGER IS SCROLLING", m.viewManager.isScrolling ; " Doing FF " ; m.isDoingFlowFocus
+      'FIXME
+      'bs:disable-next-line
       m.log.info("isAlreadyScrolling? ", m.focusIndicatorManager.isFocusing)
 
+      'FIXME
+      'bs:disable-next-line
       return m.focusIndicatorManager.isFocusing or m.viewManager.isScrolling or (isUpDown and m.isDoingFlowFocus)
     end function
 

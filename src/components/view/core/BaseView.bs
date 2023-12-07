@@ -12,7 +12,7 @@ import "pkg:/source/core/MIOC.bs"
 '  * @description BaseView class for all controls or screens
 '  */
 function init() as void
-  m.log = new log.Logger(getViewName())
+  m.log = new rlog.Logger(getViewName())
   m.isManagingVisibilityCallbacks = true
   mioc.initialize()
   m.top.observeFieldScoped("isFocused", "onIsFocusedChange")
@@ -46,7 +46,7 @@ end function
 '  * @description initializes the passed in View
 '  * @param {BaseView} the view to initialize
 '  */
-function initializeView(view as roSGnode, args = invalid as roAssociativeArray) as void
+function initializeView(view as roSGNodeNode, args = invalid as roAssociativeArray) as void
   if view <> invalid
     view@._initialize(args)
   else
@@ -171,7 +171,7 @@ function _observeVisibilityIfRequired()
   end if
 end function
 
-function onAddedToAggregateView(view as roSGnode)
+function onAddedToAggregateView(view as roSGNodeNode)
   if not m.isInAggregateView
     m.isInAggregateView = true
     _observeVisibilityIfRequired()
@@ -183,7 +183,7 @@ function onAddedToAggregateView(view as roSGnode)
   end if
 end function
 
-function onRemovedFromAggregateView(view as roSGnode)
+function onRemovedFromAggregateView(view as roSGNodeNode)
   if m.isInAggregateView
     m.isInAggregateView = false
 

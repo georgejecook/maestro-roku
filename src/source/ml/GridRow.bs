@@ -1,14 +1,13 @@
-import "pkg:/source/ml/ListMixin.bs"
-import "pkg:/source/ml/GridRowItemScroller.bs"
-import "pkg:/source/ml/GridRowItemViewManager.bs"
-import "pkg:/source/ml/BaseRow.bs"
-import "pkg:/source/ml/CellInfo.bs"
+' import "pkg:/source/ml/ListMixin.bs"
+' import "pkg:/source/ml/GridRowItemScroller.bs"
+' import "pkg:/source/ml/GridRowItemViewManager.bs"
+' import "pkg:/source/ml/BaseRow.bs"
+' import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   ' displays items in a grid, with:
   ' - floating focus scrolling left and right
   ' - TBD fixed focus vertical
-  @node("ml_GridRow", "ml_BaseRow")
   class GridRow extends ml.BaseRow
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -45,7 +44,7 @@ namespace ml
     '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function onRecycle(newContent as roSGnode)
+    protected override function onRecycle(newContent as roSGNodeNode)
       super.onRecycle(newContent)
 
       m.cleanHeader()
@@ -55,7 +54,7 @@ namespace ml
       m.itemScroller.reset()
     end function
 
-    protected override function onContentChange(content as roSGnode, keepOldFocusIfPossible = false as boolean)
+    protected override function onContentChange(content as roSGNodeNode, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       ' ? " GRID CHANGE ========================================"
       m.configureHeader()

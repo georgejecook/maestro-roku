@@ -1,5 +1,5 @@
 namespace ml.listMixin
-  function createListContent(focusSettings = invalid as roSGnode, rowSettings = invalid as roSGnode, listSettings = invalid as roSGnode)
+  function createListContent(focusSettings = invalid as roSGNodeNode, rowSettings = invalid as roSGNodeNode, listSettings = invalid as roSGNodeNode)
     content = createObject("roSGNode", "ml_ListContent")
 
     if rowSettings = invalid
@@ -23,14 +23,14 @@ namespace ml.listMixin
     return content
   end function
 
-  function createRowSettings(cellSettings = invalid as roSGnode, focusSettings = invalid as roSGnode, space = 30 as integer, headerSettings = invalid as roSGnode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function createRowSettings(cellSettings = invalid as roSGNodeNode, focusSettings = invalid as roSGNodeNode, space = 30 as integer, headerSettings = invalid as roSGNodeNode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
     settings = createObject("roSGNode", "ml_RowSettings")
     settings.isHiddenWhenEmpty = true
     ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
     return settings
   end function
 
-  function createGridRowSettings(cellSettings = invalid as roSGnode, focusSettings = invalid as roSGnode, space = 30 as integer, headerSettings = invalid as roSGnode, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
+  function createGridRowSettings(cellSettings = invalid as roSGNodeNode, focusSettings = invalid as roSGNodeNode, space = 30 as integer, headerSettings = invalid as roSGNodeNode, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
     settings = createObject("roSGNode", "ml_GridRowSettings")
     settings.isHiddenWhenEmpty = true
     if numRows = invalid or numRows < 1
@@ -60,7 +60,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function configureRowSettings(settings as roSGnode, cellSettings = invalid as roSGnode, focusSettings = invalid as roSGnode, space = 30 as integer, headerSettings = invalid as roSGnode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function configureRowSettings(settings as roSGNodeNode, cellSettings = invalid as roSGNodeNode, focusSettings = invalid as roSGNodeNode, space = 30 as integer, headerSettings = invalid as roSGNodeNode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
 
     if cellSettings = invalid
       m.log.warn("there were no cell settings - this is probably a mistake - using defaults!")
@@ -176,7 +176,7 @@ namespace ml.listMixin
   function setTileSettings(compName = "ml_Cell" as string, cellSize = [300, 500] as roArray)
   end function
 
-  function getRowSettings(listContent as roSGnode, rowContent = invalid as roSGnode)
+  function getRowSettings(listContent as roSGNodeNode, rowContent = invalid as roSGNodeNode)
     if rowContent <> invalid and rowContent.settings <> invalid
       ' ? " USING ROW SETTINGS " ; rowContent.settings.screenPos
       return rowContent.settings
@@ -190,7 +190,7 @@ namespace ml.listMixin
     end if
   end function
 
-  function getCellSettings(listContent as roSGnode, rowContent = invalid as roSGnode, itemContent = invalid as roSGnode)
+  function getCellSettings(listContent as roSGNodeNode, rowContent = invalid as roSGNodeNode, itemContent = invalid as roSGNodeNode)
     if itemContent <> invalid and itemContent.settings <> invalid
       return itemContent.settings
     else if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.cellSettings <> invalid
@@ -203,7 +203,7 @@ namespace ml.listMixin
     end if
   end function
 
-  function getFocusSettings(listContent as roSGnode, rowContent = invalid as roSGnode)
+  function getFocusSettings(listContent as roSGNodeNode, rowContent = invalid as roSGNodeNode)
     if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.focusSettings <> invalid
       return rowContent.settings.focusSettings
     else if listContent <> invalid and listContent.rowSettings <> invalid and listContent.rowSettings.focusSettings <> invalid

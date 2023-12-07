@@ -25,7 +25,7 @@ namespace mv
     private log
 
     function new()
-      m.log = new log.Logger("cellTracker")
+      m.log = new rlog.Logger("cellTracker")
       m.reset()
     end function
 
@@ -54,13 +54,13 @@ namespace mv
       return trackers
     end function
 
-    function getCell(cellId as string, scope = "all" as string) as roSGnode
+    function getCell(cellId as string, scope = "all" as string) as roSGNodeNode
       trackers = m.getTrackers(scope)
 
       return trackers.cellsById[cellId]
     end function
 
-    function getCellForContentId(id as string, scope = "all" as string) as roSGnode
+    function getCellForContentId(id as string, scope = "all" as string) as roSGNodeNode
       trackers = m.getTrackers(scope)
       cellId = trackers.cellIdsByContentId[id]
 
@@ -71,7 +71,7 @@ namespace mv
       end if
     end function
 
-    function bindCellToContent(cell as roSGnode, content as roSGnode, scope = "all" as string) as void
+    function bindCellToContent(cell as roSGNodeNode, content as roSGNodeNode, scope = "all" as string) as void
 
       trackers = m.getTrackers(scope)
 
@@ -106,7 +106,7 @@ namespace mv
       trackers.cellsById[cell.trackingId] = cell
     end function
 
-    function unbindCell(cell as roSGnode, scope = "all" as string)
+    function unbindCell(cell as roSGNodeNode, scope = "all" as string)
       trackers = m.getTrackers(scope)
       contentId = trackers.contentIdsByCellId[cell.trackingId]
 
