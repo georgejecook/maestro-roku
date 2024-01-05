@@ -15,8 +15,8 @@ namespace mv
 
     'Node fields
     'FIXME - should be a base view type
-    protected top as roSGNodeNode
-    protected global as roSGNodeNode
+    protected top as roSGNode
+    protected global as roSGNode
     protected id as string
 
     function new(name as string)
@@ -57,7 +57,7 @@ namespace mv
           matches = regex.match(text)
           name = matches[1]
           args = parseJson("[" + matches[2] + "]")
-          if not m.doesExist(name)
+          if not (m as roAssociativeArray).doesExist(name)
             m.log.error("function does not exist on:", m.__classname)
             return
           end if

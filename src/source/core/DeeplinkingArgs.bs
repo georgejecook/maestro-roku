@@ -2,6 +2,11 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mc
 
+  interface IComponentTypeArgs
+    contentId as string
+    mediaType as string
+  end interface
+
   @strict
   @node("mc_DeeplinkingArgs", "Node")
   class DeeplinkingArgs
@@ -9,14 +14,16 @@ namespace mc
     public mediaType = "none"
     public contentId = ""
     private log = new rlog.Logger("DeeplinkingArgs")
+    private top as roSGNode
+
     'updates the args with the passed in AA, and updates the version count
 
     'returns the required action to fulfil the current deeplinking
     '(none|play|display)
 
-    function configure(args as roAssociativeArray)
-      m.top.contentId = ""
-      m.top.mediaType = "none"
+    function configure(args as IComponentTypeArgs)
+      m.contentId = ""
+      m.mediaType = "none"
       m.log.info("configuring with args", args)
 
       supportedTypes = {
@@ -30,13 +37,14 @@ namespace mc
       }
 
       if args <> invalid and args.mediaType <> invalid and args.mediaType.trim() <> "" and args.contentId <> invalid and args.contentId.trim() <> "" and supportedTypes[args.mediaType] = true
-        m.top.contentId = args.contentId.DecodeUriComponent()
-        m.top.mediaType = args.mediaType
+        m.contentId = args.contentId.DecodeUriComponent()
+        m.mediaType = args.mediaType
       end if
     end function
 
     function getAction(args = invalid as roAssociativeArray) as string
-      m.log.info("getAction mediaType", m.top.mediaType)
+      'bs:disable-next-line
+      m.log.info("getAction mediaType", m.mediaType)
 
       action = "none"
 
@@ -56,11 +64,11 @@ namespace mc
         "series": true
       }
 
-      if playAndDisplayActions[m.top.mediaType.trim()] = true
+      if playAndDisplayActions[m.mediaType.trim()] = true
         action = "playAndDisplay"
-      else if displayActions[m.top.mediaType.trim()] = true
+      else if displayActions[m.mediaType.trim()] = true
         action = "display"
-      else if playActions[m.top.mediaType.trim()] = true
+      else if playActions[m.mediaType.trim()] = true
         action = "play"
       end if
 

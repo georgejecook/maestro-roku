@@ -17,7 +17,7 @@ namespace mv
   '  * @description creates the FocusManager, used by the FocusMixin. This method should be called early on in your app initializatoin (e.g in the init method of your AppController, or similar class)
   '  * @param {global} - globalNode pointer to globalNode (i.e. m.global)
   '  */
-  function initializeFocusManager(globalNode as roSGNodeNode, isLogging = false as boolean)
+  function initializeFocusManager(globalNode as roSGNode, isLogging = false as boolean)
     focusManager = createObject("roSGNode", "mv_FocusManager")
     globalNode.addFields({ "focusManager": focusManager })
     focusManager.isLogging = isLogging
@@ -32,14 +32,14 @@ namespace mv
   '  * @param {roSGNode} node - node to set focus on
   '  * @param {boolean} forceSet - will set focus, even if the focus lock is on
   '  */
-  function setFocus(node as roSGNodeNode, forceSet = false as boolean)
+  function setFocus(node as roSGNode, forceSet = false as boolean)
     m.global.focusManager@._setFocusOn(node, forceSet)
   end function
 
   '*************************************************************
   '** unsetFocus
   '** abstracts focus un setting to make it easier to debug
-  '** @param node as roSGNodeNode - to set focus to
+  '** @param node as roSGNode - to set focus to
   '*************************************************************
   ' /**
   '  * @member unsetFocus
@@ -49,7 +49,7 @@ namespace mv
   '  * @description there are rare; but valid occasions where one might call node.setFocus. This method is provided as a abstraction, to facilitate better debugging
   '  * @param {roSGNode} node - node to unset focus on
   '  */
-  function unsetFocus(node as roSGNodeNode)
+  function unsetFocus(node as roSGNode)
     m.global.focusManager@._unsetFocusOn(node)
   end function
 
@@ -62,7 +62,7 @@ namespace mv
   '  * @param {boolean} - isLocked
   '  * @param {string} - focusLockReason - the reason for locking - this will appear in m.log.ging output
   '  */
-  function setFocusLocked(node as roSGNodeNode, focusLockReason = "" as string)
+  function setFocusLocked(node as roSGNode, focusLockReason = "" as string)
     m.global.focusManager@._setFocusLocked(node, focusLockReason)
   end function
 

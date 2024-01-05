@@ -3,6 +3,17 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mc
 
+  interface IComponentPooledNode extends roSGNode
+    optional _mComponentType as string
+  end interface
+
+  interface IComponentPoolItem
+    usedComponentsById as roAssociativeArray
+    allComponents as roArray
+    freeComponentsById as roAssociativeArray
+    numberOfComponentsInPool as integer
+  end interface
+
   ' all purpose component pool that can store any kind of components for reuse
   @node("mc_ComponentPool", "Group")
   class ComponentPool
@@ -18,6 +29,7 @@ namespace mc
 
     private poolsByComponentType = {}
     private log
+    private top as roSGNode
 
     function new()
       m.log = new rlog.Logger("ComponentPool")
@@ -40,10 +52,11 @@ namespace mc
       m.numberOfComponentsInUse = 0
     end function
 
-    function getComponentPool(componentType as string) as roAssociativeArray
+    function getComponentPool(componentType as string) as IComponentPoolItem
       pool = m.poolsByComponentType[componentType]
       if pool = invalid
-        pool = { usedComponentsById: {}
+        pool = {
+          usedComponentsById: {}
           allComponents: []
           freeComponentsById: {}
           numberOfComponentsInPool: 0
@@ -75,7 +88,7 @@ namespace mc
       end for
     end function
 
-    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as roSGNodeNode
+    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as roSGNode
 
       pool = m.getComponentPool(componentType)
 
@@ -123,7 +136,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponent(component as roSGNodeNode)
+    function releaseComponent(component as IComponentPooledNode)
       if component <> invalid
         ' ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid

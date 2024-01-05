@@ -3,13 +3,20 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/core/Request.bs"
 
 namespace mc
+  interface IRequestArgs
+    url as string
+    params as roAssociativeArray
+    headers as roAssociativeArray
+    otherArgs as roAssociativeArray
+  end interface
+
   @task("mc_RequestTask", "Task")
   @strict
   class RequestTask
     public url = ""
     private log = new rlog.Logger("RequestTask")
 
-    public function nodeRun(args as roAssociativeArray)
+    public function nodeRun(args as IRequestArgs)
       instance = new mc.RequestTask()
       return instance.execute(args)
     end function
@@ -17,7 +24,7 @@ namespace mc
     function new()
     end function
 
-    private function execute(args as roAssociativeArray) as dynamic
+    private function execute(args as IRequestArgs) as dynamic
       request = m.makeRequest()
       method = lcase(mc.getPath(args, "method", ""))
 

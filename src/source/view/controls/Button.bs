@@ -1,6 +1,14 @@
 import "pkg:/source/view/BaseView.bs"
 
 namespace mv.controls
+  interface IButtonStyle extends roAssociativeArray
+    optional iconStyle as roAssociativeArray
+    optional normal as roAssociativeArray
+    optional focused as roAssociativeArray
+    optional disabled as roAssociativeArray
+    optional selected as roAssociativeArray
+  end interface
+
   @observersWaitInitialize
   @node("mv_Button", "mv_BaseView")
   class Button extends mv.BaseView
@@ -77,7 +85,7 @@ namespace mv.controls
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private _style as roAssociativeArray
+    private _style as IButtonStyle
     private loadedStyleKey = "none"
     private isStyleSet = false
 
@@ -85,10 +93,10 @@ namespace mv.controls
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private label as roSGNodeNode
-    private subTextLabel as roSGNodeNode
-    private backgroundPoster as roSGNodeNode
-    private iconPoster as roSGNodeNode
+    private label as roSGNodemv_Label
+    private subTextLabel as roSGNodemv_Label
+    private backgroundPoster as roSGNodemv_Poster
+    private iconPoster as roSGNodemv_Poster
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ initialization
@@ -282,10 +290,11 @@ namespace mv.controls
       m.backgroundPoster.size = asPoint(m.size)
       m.label.vertAlign = "top"
       m.label.horizAlign = "left"
-      m.label.translation = asPoint(m.customLayout.labelTranslation)
-      m.subTextLabel.translation = asPoint(m.customLayout.subTextLabelTranslation)
-      m.iconPoster.size = asPoint(m.customLayout.iconSize)
-      m.iconPoster.translation = asPoint(m.customLayout.iconTranslation)
+      layout = m.customLayout as dynamic
+      m.label.translation = asPoint(layout.labelTranslation)
+      m.subTextLabel.translation = asPoint(layout.subTextLabelTranslation)
+      m.iconPoster.size = asPoint(layout.iconSize)
+      m.iconPoster.translation = asPoint(layout.iconTranslation)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -296,18 +305,20 @@ namespace mv.controls
 
       m.updateViewsWithStyleJson(asAA(m._style.normal))
 
-      normalIconStyle = asAA(m.iconStyle.normal, m.iconStyle)
+      iconStyle = m.iconStyle as IButtonStyle
+
+      normalIconStyle = asAA(iconStyle.normal, m.iconStyle)
       m.iconPoster.setFields(normalIconStyle)
 
       if m.isDisabled
         m.updateViewsWithStyleJson(asAA(m._style.disabled))
-        m.iconPoster.setFields(asAA(m.iconStyle.disabled, normalIconStyle))
+        m.iconPoster.setFields(asAA(iconStyle.disabled, normalIconStyle))
       else if m.isSelected
         m.updateViewsWithStyleJson(asAA(m._style.selected))
-        m.iconPoster.setFields(asAA(m.iconStyle.selected, normalIconStyle))
+        m.iconPoster.setFields(asAA(iconStyle.selected, normalIconStyle))
       else if m.isFocused
         m.updateViewsWithStyleJson(asAA(m._style.focused))
-        m.iconPoster.setFields(asAA(m.iconStyle.focused, normalIconStyle))
+        m.iconPoster.setFields(asAA(iconStyle.focused, normalIconStyle))
       end if
     end function
 

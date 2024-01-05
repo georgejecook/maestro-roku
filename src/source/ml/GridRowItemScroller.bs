@@ -4,9 +4,11 @@ import "pkg:/source/ml/GridRowItemViewManager.bs"
 namespace ml
   class GridRowItemScroller extends ml.ItemScroller
 
+    public viewManager as ml.GridRowItemViewManager
+
     public currentRowIndex = 0
 
-    function new(viewManager as ml.GridRowItemViewManager, focusManager as roSGNodeNode)
+    function new(viewManager as ml.GridRowItemViewManager, focusManager as roSGNodeml_FocusIndicatorManager)
       super("GridRowItemScroller", viewManager, focusManager)
       m.isOnlyFloatingFocus = true
     end function
@@ -16,7 +18,9 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     override function getFocusSettings()
-      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
+      'MARK
+      'FIXME: why is this cast needed?
+      return ml.listMixin.getFocusSettings(m.viewManager.owner.content as roSGNodeml_ListContent, m.viewManager.content)
     end function
 
     'For a grid row, we can only move to the end of the current row
@@ -71,8 +75,13 @@ namespace ml
       end if
     end function
 
+    public focusManager as roSGNodeml_FocusIndicatorManager
+
+
     private function chooseAppropriateCellToScrollTo(cellInfo as ml.CellInfo) as ml.CellInfo
       ' ? " GRID CHOOSING INDEX CURRENT INDEX IS " ; m.index ; " CI  " ;cellInfo.componentIndex ; " is List scroll? "; isFromListScroll
+      'MARK
+      'FIXME- why does this not get found
       focusX = m.focusManager.focusScreenPosition[0] + m.viewManager.settings.contentOffset[0]
       cellInfosInRow = m.viewManager.getCellInfosInRow(cellInfo.componentIndex)
       nextInfo = invalid
@@ -162,7 +171,7 @@ namespace ml
         ' ? " is float"
         'replace with actual screen location
 
-        'FIXME - probs wants to be true here
+        'FIXME - probably wants to be true here
         cell = m.viewManager.getRenderer(info.contentIndex)
         if cell <> invalid
           'bs:disable-next-line

@@ -30,437 +30,437 @@ namespace mc.collections
   ' @returns {outputType} items mapped by the mapper
   '  */
   @injectLocalM
-  function map(array as roArray, mapper as mc.collections.BaseMapper, mTarget = invalid as roAssociativeArray)
-    items = []
-    if mTarget = invalid
-      mTarget = m
-    end if
-    if array <> invalid
-      isClass = mc.isClass(mapper)
-      if mc.isArray(array) or type(array) = "roSGNode"
-        if type(array) = "roSGNode"
-          if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-            array = array@.getChildren()
-          else
-            array = array.getChildren(-1, 0)
-          end if
-        end if
-        for each item in array
-          if isClass
-            transformed = mapper.transform(item)
-            if transformed <> invalid
-              items.push(transformed)
-            end if
-          else
-            transformed = mc.apply(mapper, [item], mTarget)
-            if transformed <> invalid
-              items.push(transformed)
-            end if
-          end if
-        end for
-      else
-        'is an aa
-        for each key in array
-          if isClass
-            transformed = mapper.transform(array[key])
-            if transformed <> invalid
-              items.push(transformed)
-            end if
-          else
-            transformed = mc.apply(mapper, [key, array[key]], mTarget)
-            if transformed <> invalid
-              items.push(transformed)
-            end if
-          end if
-        end for
+  function map(array as roArray or roSGNode, mapper as mc.collections.BaseMapper or function, mTarget = invalid as roAssociativeArray) as roArray
+      items = []
+      if mTarget = invalid
+        mTarget = m
       end if
-    end if
-    return items
-  end function
-
-  ' sorts array of items, with unique value at keyPath
-  ' @params{array} array - array to sort
-  ' @params{keyPath} string - path to value to sort on
-  ' @params{boolean} ascending
-  function getSortedArrayByKey(array as roArray, keyPath as string, ascending = true as boolean) as roArray
-    result = []
-    if type(array) = "roSGNode"
-      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-        array = array@.getChildren()
-      else
-        array = array.getChildren(-1, 0)
-      end if
-    end if
-    if mc.isArray(array) and mc.isString(keyPath) and keyPath <> ""
-      dict = {}
-      i = 0
-      for i = 0 to array.count() - 1
-        item = array[i]
-        key = mc.getPath(item, keyPath, "")
-        if mc.isString(key)
-          dict[key] = i
-        end if
-      end for
-      keys = dict.keys()
-      if not ascending
-        keys.reverse()
-      end if
-      for each key in keys
-        result.push(array[dict[key]])
-      end for
-    end if
-    return result
-  end function
-
-  @injectLocalM
-  function getSortedArrayByFunction(array as roArray, func as function, ascending = true as boolean, mTarget = invalid as roAssociativeArray) as roArray
-    if mTarget = invalid
-      mTarget = m
-    end if
-    result = []
-    if type(array) = "roSGNode"
-      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-        array = array@.getChildren()
-      else
-        array = array.getChildren(-1, 0)
-      end if
-    end if
-    if mc.isArray(array) and mc.isFunction(func)
-      dict = {}
-      for each item in array
-        key = mc.apply(func, [item], mTarget)
-        if mc.isString(key)
-          dict[key] = item
-        end if
-      end for
-      keys = dict.keys()
-      if not ascending
-        keys.reverse()
-      end if
-      for each key in keys
-        result.push(dict[key])
-      end for
-    end if
-    return result
-  end function
-
-  function getSortedArrayByCallFunc(array as roArray, funcName as string, ascending = true as boolean) as roArray
-    result = []
-    if type(array) = "roSGNode"
-      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-        array = array@.getChildren()
-      else
-        array = array.getChildren(-1, 0)
-      end if
-    end if
-    if mc.isArray(array) and mc.isString(funcName)
-      dict = {}
-      for each item in array
-        key = item.callFunc(funcName)
-        if mc.isString(key)
-          dict[key] = item
-        end if
-      end for
-      keys = dict.keys()
-      if not ascending
-        keys.reverse()
-      end if
-      for each key in keys
-        result.push(dict[key])
-      end for
-    end if
-    return result
-  end function
-
-  function getItemAtOffset(array as roArray, item as dynamic, offset as integer, key = invalid as string, wrap = false as boolean, limitBounds = true as boolean)
-    if array = invalid or array.count() = 0
-      return invalid
-    end if
-    index = mc.collections.getArrayIndex(array, item, key)
-    if type(array) = "roSGNode"
-      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-        array = array@.getChildren()
-      else
-        array = array.getChildren(-1, 0)
-      end if
-    end if
-    if limitBounds
-      return array[mc.clamp(index + offset, 0, array.count() - 1, wrap)]
-    else
-      return array[index + offset]
-    end if
-  end function
-
-  function getArrayIndex(array as roArray, item as dynamic, key = invalid as string)
-
-    if type(array) = "roSGNode"
-      if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-        array = array@.getChildren()
-      else
-        array = array.getChildren(-1, 0)
-      end if
-    end if
-
-    if array = invalid or array.count() = 0
-      return -1
-    end if
-
-    itemKey = invalid
-    isNode = false
-    if key <> invalid
-      if item <> invalid
-        itemKey = item[key]
-      else
-        return -1
-      end if
-    else if type(item) = "roAssociativeArray"
-      'use id as default key
-      key = "id"
-      itemKey = item[key]
-    else if type(item) = "roSGNode"
-      isNode = true
-    end if
-
-    for i = 0 to array.count() - 1
-      if isNode
-        if item.isSamenode(array[i])
-          return i
-        end if
-      else if itemKey <> invalid
-        if array[i] <> invalid and array[i][key] = itemKey
-          return i
-        end if
-      else if array[i] = item
-        return i
-      end if
-    end for
-    return -1
-  end function
-
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ mappers
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  class BaseMapper
-    function transform(item as dynamic)
-    end function
-  end class
-
-  class CallFuncMapper extends mc.collections.BaseMapper
-    private funcName as string
-    private args as roAssociativeArray
-
-    function new(funcName as string, args as roAssociativeArray)
-      super()
-      m.funcName = funcName
-      m.args = args
-    end function
-
-    override function transform(item as dynamic)
-      if item = invalid
-        return invalid
-      end if
-      return item.callFunc(m.funcName, m.args)
-    end function
-  end class
-
-  class FuncMapper extends mc.collections.BaseMapper
-    private funcName as string
-
-    function new(funcName as string)
-      super()
-      m.funcName = funcName
-    end function
-
-    override function transform(item as dynamic)
-      if item = invalid
-        return invalid
-      end if
-      if item[m.funcName] = invalid
-        return invalid
-      end if
-      return item[m.funcName]()
-    end function
-  end class
-
-  class FieldMapper extends mc.collections.BaseMapper
-    private fieldName as string
-
-    function new(fieldName as string)
-      super()
-      m.fieldName = fieldName
-    end function
-
-    override function transform(item as dynamic)
-      if item = invalid
-        return invalid
-      end if
-      return item[m.fieldName]
-    end function
-  end class
-
-  ' @param {array} array of items to filter
-  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
-  ' @param {boolean} findAll, boolean to filter all occurrences
-  ' @returns {array} items that match the predicate
-  @injectLocalM
-  function filter(array as roArray, predicate as dynamic, findAll = true as boolean, mTarget = invalid as roAssociativeArray)
-    items = []
-    if mTarget = invalid
-      mTarget = m
-    end if
-    try
       if array <> invalid
-        if type(array) = "roSGNode"
-          if array.isSubType("mc_Node") or array.subType() = "mc_Node"
-            array = array@.getChildren()
-          else
-            array = array.getChildren(-1, 0)
-          end if
-        end if
-        if mc.isAACompatible(predicate)
-          for each item in array
-            if predicate.isMatch(item)
-              items.push(item)
-              if not findAll
-                exit for
-              end if
+        isClass = mc.isClass(mapper)
+        if mc.isArray(array) or type(array) = "roSGNode"
+          if type(array) = "roSGNode"
+            if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+              array = array@.getChildren()
+            else
+              array = array.getChildren(-1, 0)
             end if
-          end for
-        else if mc.isFunction(predicate)
+          end if
           for each item in array
-            if mc.apply(predicate, [item], mTarget)
-              items.push(item)
-              if not findAll
-                exit for
+            if isClass
+              transformed = mapper.transform(item)
+              if transformed <> invalid
+                items.push(transformed)
+              end if
+            else
+              transformed = mc.apply(mapper, [item], mTarget)
+              if transformed <> invalid
+                items.push(transformed)
               end if
             end if
           end for
         else
-          for each item in array
-            if item = predicate
-              items.push(item)
-              if not findAll
-                exit for
+          'is an aa
+          for each key in array
+            if isClass
+              transformed = mapper.transform(array[key])
+              if transformed <> invalid
+                items.push(transformed)
+              end if
+            else
+              transformed = mc.apply(mapper, [key, array[key]], mTarget)
+              if transformed <> invalid
+                items.push(transformed)
               end if
             end if
           end for
         end if
       end if
-    catch error
-      'bs:disable-next-line
-      mc.private.logError("error while filtering items", error)
-      return []
-    end try
-
-    return items
-  end function
-
-  ' @param {array} array of items to filter
-  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
-  ' @returns {boolean} returns the first item that matches, or invalid
-  @injectLocalM
-  function find(array as roArray, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as roAssociativeArray) as dynamic
-    items = mc.collections.filter(array, predicate, false, mTarget)
-    if items.count() = 0
-      return default
-    else
-      return items[0]
-    end if
-  end function
-
-  ' @param {array} array of items to filter
-  ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
-  ' @returns {boolean} returns true if the array matches the predicate
-  @injectLocalM
-  function contains(array as roArray, predicate as dynamic, mTarget = invalid as roAssociativeArray) as boolean
-    items = mc.collections.filter(array, predicate, true, mTarget)
-    return items.count() > 0
-  end function
-
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  '++ filter predicates
-  '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-  class AbstractPredicate
-    private expected as dynamic
-
-    function new(expected as dynamic)
-      m.expected = expected
-    end function
-    function isMatch(expected as dynamic) as boolean
-      return false
-    end function
-  end class
-
-  class ValuePredicate extends mc.collections.AbstractPredicate
-    function new(expected as dynamic)
-      super(expected)
+      return items
     end function
 
-    override function isMatch(item as dynamic) as boolean
-      return item = m.expected
-    end function
-  end class
-
-  class FieldPredicate extends mc.collections.AbstractPredicate
-    private fieldName as string
-
-    function new(fieldName as string, expected as dynamic)
-      super(expected)
-      m.fieldName = fieldName
-    end function
-
-    override function isMatch(item as dynamic) as boolean
-      if item = invalid
-        return false
+    ' sorts array of items, with unique value at keyPath
+    ' @params{array} array - array to sort
+    ' @params{keyPath} string - path to value to sort on
+    ' @params{boolean} ascending
+    function getSortedArrayByKey(array as roArray or roSGNode, keyPath as string, ascending = true as boolean) as roArray
+      result = []
+      if type(array) = "roSGNode"
+        if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+          array = array@.getChildren()
+        else
+          array = array.getChildren(-1, 0)
+        end if
       end if
-      return item[m.fieldName] = m.expected
-    end function
-  end class
-
-  class FuncPredicate extends mc.collections.AbstractPredicate
-    private funcName as string
-
-    function new(funcName as string, expected as dynamic)
-      super(expected)
-      m.funcName = funcName
-    end function
-
-    override function isMatch(item as dynamic) as boolean
-      if item = invalid
-        return false
+      if mc.isArray(array) and mc.isString(keyPath) and keyPath <> ""
+        dict = {}
+        i = 0
+        for i = 0 to array.count() - 1
+          item = array[i]
+          key = mc.getPath(item, keyPath, "")
+          if mc.isString(key)
+            dict[key] = i
+          end if
+        end for
+        keys = dict.keys()
+        if not ascending
+          keys.reverse()
+        end if
+        for each key in keys
+          result.push(array[dict[key]])
+        end for
       end if
-      if item[m.funcName] = invalid
-        return false
+      return result
+    end function
+
+    @injectLocalM
+    function getSortedArrayByFunction(array as roArray or roSGNode, func as function, ascending = true as boolean, mTarget = invalid as roAssociativeArray) as roArray
+      if mTarget = invalid
+        mTarget = m
       end if
-      compareTo = item[m.funcName]()
-      return compareTo = m.expected
-    end function
-  end class
-
-  class CallFuncPredicate extends mc.collections.AbstractPredicate
-    private funcName as string
-    private args as roAssociativeArray
-
-    function new(funcName as string, args as roAssociativeArray, expected as dynamic)
-      super(expected)
-      m.funcName = funcName
-      m.args = args
-    end function
-
-    override function isMatch(item as dynamic) as boolean
-      if item = invalid
-        return false
+      result = []
+      if type(array) = "roSGNode"
+        if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+          array = array@.getChildren()
+        else
+          array = array.getChildren(-1, 0)
+        end if
       end if
-      compareTo = item.callFunc(m.funcName, m.args)
-      return m.expected = compareTo
+      if mc.isArray(array) and mc.isFunction(func)
+        dict = {}
+        for each item in array
+          key = mc.apply(func, [item], mTarget)
+          if mc.isString(key)
+            dict[key] = item
+          end if
+        end for
+        keys = dict.keys()
+        if not ascending
+          keys.reverse()
+        end if
+        for each key in keys
+          result.push(dict[key])
+        end for
+      end if
+      return result
     end function
-  end class
 
-  function arrayContains(array as roArray, value as dynamic) as boolean
-    return mc.collections.getArrayIndex(array, value) <> -1
-  end function
+    function getSortedArrayByCallFunc(array as roArray or roSGNode, funcName as string, ascending = true as boolean) as roArray
+      result = []
+      if type(array) = "roSGNode"
+        if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+          array = array@.getChildren()
+        else
+          array = array.getChildren(-1, 0)
+        end if
+      end if
+      if mc.isArray(array) and mc.isString(funcName)
+        dict = {}
+        for each item in array
+          key = item.callFunc(funcName)
+          if mc.isString(key)
+            dict[key] = item
+          end if
+        end for
+        keys = dict.keys()
+        if not ascending
+          keys.reverse()
+        end if
+        for each key in keys
+          result.push(dict[key])
+        end for
+      end if
+      return result
+    end function
 
-end namespace
+    function getItemAtOffset(array as roArray or roSGnode, item as dynamic, offset as integer, key = invalid as string, wrap = false as boolean, limitBounds = true as boolean)
+      if array = invalid or array.count() = 0
+        return invalid
+      end if
+      index = mc.collections.getArrayIndex(array, item, key)
+      if type(array) = "roSGNode"
+        if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+          array = array@.getChildren()
+        else
+          array = array.getChildren(-1, 0)
+        end if
+      end if
+      if limitBounds
+        return array[mc.clamp(index + offset, 0, array.count() - 1, wrap)]
+      else
+        return array[index + offset]
+      end if
+    end function
+
+    function getArrayIndex(array as roArray or roSGNode, item as dynamic, key = invalid as string)
+
+      if type(array) = "roSGNode"
+        if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+          array = array@.getChildren()
+        else
+          array = array.getChildren(-1, 0)
+        end if
+      end if
+
+      if array = invalid or array.count() = 0
+        return -1
+      end if
+
+      itemKey = invalid
+      isNode = false
+      if key <> invalid
+        if item <> invalid
+          itemKey = item[key]
+        else
+          return -1
+        end if
+      else if type(item) = "roAssociativeArray"
+        'use id as default key
+        key = "id"
+        itemKey = item[key]
+      else if type(item) = "roSGNode"
+        isNode = true
+      end if
+
+      for i = 0 to array.count() - 1
+        if isNode
+          if item.isSamenode(array[i])
+            return i
+          end if
+        else if itemKey <> invalid
+          if array[i] <> invalid and array[i][key] = itemKey
+            return i
+          end if
+        else if array[i] = item
+          return i
+        end if
+      end for
+      return -1
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ mappers
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    class BaseMapper
+      function transform(item as dynamic)
+      end function
+    end class
+
+    class CallFuncMapper extends mc.collections.BaseMapper
+      private funcName as string
+      private args as roAssociativeArray
+
+      function new(funcName as string, args as roAssociativeArray)
+        super()
+        m.funcName = funcName
+        m.args = args
+      end function
+
+      override function transform(item as dynamic)
+        if item = invalid
+          return invalid
+        end if
+        return item.callFunc(m.funcName, m.args)
+      end function
+    end class
+
+    class FuncMapper extends mc.collections.BaseMapper
+      private funcName as string
+
+      function new(funcName as string)
+        super()
+        m.funcName = funcName
+      end function
+
+      override function transform(item as dynamic)
+        if item = invalid
+          return invalid
+        end if
+        if item[m.funcName] = invalid
+          return invalid
+        end if
+        return item[m.funcName]()
+      end function
+    end class
+
+    class FieldMapper extends mc.collections.BaseMapper
+      private fieldName as string
+
+      function new(fieldName as string)
+        super()
+        m.fieldName = fieldName
+      end function
+
+      override function transform(item as dynamic)
+        if item = invalid
+          return invalid
+        end if
+        return item[m.fieldName]
+      end function
+    end class
+
+    ' @param {array} array of items to filter
+    ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+    ' @param {boolean} findAll, boolean to filter all occurrences
+    ' @returns {array} items that match the predicate
+    @injectLocalM
+    function filter(array as roArray or roSGNode, predicate as dynamic, findAll = true as boolean, mTarget = invalid as roAssociativeArray)
+      items = []
+      if mTarget = invalid
+        mTarget = m
+      end if
+      try
+        if array <> invalid
+          if type(array) = "roSGNode"
+            if array.isSubType("mc_Node") or array.subType() = "mc_Node"
+              array = array@.getChildren()
+            else
+              array = array.getChildren(-1, 0)
+            end if
+          end if
+          if mc.isAACompatible(predicate)
+            for each item in array
+              if predicate.isMatch(item)
+                items.push(item)
+                if not findAll
+                  exit for
+                end if
+              end if
+            end for
+          else if mc.isFunction(predicate)
+            for each item in array
+              if mc.apply(predicate, [item], mTarget)
+                items.push(item)
+                if not findAll
+                  exit for
+                end if
+              end if
+            end for
+          else
+            for each item in array
+              if item = predicate
+                items.push(item)
+                if not findAll
+                  exit for
+                end if
+              end if
+            end for
+          end if
+        end if
+      catch error
+        'bs:disable-next-line
+        mc.private.logError("error while filtering items", error)
+        return []
+      end try
+
+      return items
+    end function
+
+    ' @param {array} array of items to filter
+    ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+    ' @returns {boolean} returns the first item that matches, or invalid
+    @injectLocalM
+    function find(array as roArray, predicate as dynamic, default = invalid as dynamic, mTarget = invalid as roAssociativeArray) as dynamic
+      items = mc.collections.filter(array, predicate, false, mTarget)
+      if items.count() = 0
+        return default
+      else
+        return items[0]
+      end if
+    end function
+
+    ' @param {array} array of items to filter
+    ' @param {class} predicate, function (item):bool, or class with a isMatch(item):bool function
+    ' @returns {boolean} returns true if the array matches the predicate
+    @injectLocalM
+    function contains(array as roArray, predicate as dynamic, mTarget = invalid as roAssociativeArray) as boolean
+      items = mc.collections.filter(array, predicate, true, mTarget)
+      return items.count() > 0
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ filter predicates
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    class AbstractPredicate
+      private expected as dynamic
+
+      function new(expected as dynamic)
+        m.expected = expected
+      end function
+      function isMatch(expected as dynamic) as boolean
+        return false
+      end function
+    end class
+
+    class ValuePredicate extends mc.collections.AbstractPredicate
+      function new(expected as dynamic)
+        super(expected)
+      end function
+
+      override function isMatch(item as dynamic) as boolean
+        return item = m.expected
+      end function
+    end class
+
+    class FieldPredicate extends mc.collections.AbstractPredicate
+      private fieldName as string
+
+      function new(fieldName as string, expected as dynamic)
+        super(expected)
+        m.fieldName = fieldName
+      end function
+
+      override function isMatch(item as dynamic) as boolean
+        if item = invalid
+          return false
+        end if
+        return item[m.fieldName] = m.expected
+      end function
+    end class
+
+    class FuncPredicate extends mc.collections.AbstractPredicate
+      private funcName as string
+
+      function new(funcName as string, expected as dynamic)
+        super(expected)
+        m.funcName = funcName
+      end function
+
+      override function isMatch(item as dynamic) as boolean
+        if item = invalid
+          return false
+        end if
+        if item[m.funcName] = invalid
+          return false
+        end if
+        compareTo = item[m.funcName]()
+        return compareTo = m.expected
+      end function
+    end class
+
+    class CallFuncPredicate extends mc.collections.AbstractPredicate
+      private funcName as string
+      private args as roAssociativeArray
+
+      function new(funcName as string, args as roAssociativeArray, expected as dynamic)
+        super(expected)
+        m.funcName = funcName
+        m.args = args
+      end function
+
+      override function isMatch(item as dynamic) as boolean
+        if item = invalid
+          return false
+        end if
+        compareTo = item.callFunc(m.funcName, m.args)
+        return m.expected = compareTo
+      end function
+    end class
+
+    function arrayContains(array as roArray, value as dynamic) as boolean
+      return mc.collections.getArrayIndex(array, value) <> -1
+    end function
+
+  end namespace

@@ -1,6 +1,12 @@
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/core/Utils.bs"
 
+namespace mv.cells.private
+  interface ICellTop extends roSGNode
+    optional index as integer
+    optional rowIndex as integer
+  end interface
+end namespace
 namespace mv.cells
 
   @strict
@@ -15,7 +21,7 @@ namespace mv.cells
     @rootOnly
     @alwaysnotify
     @observer("onContentChange")
-    public itemContent as roSGNodeNode
+    public itemContent as roSGNode
 
     public index = -1
 
@@ -34,10 +40,12 @@ namespace mv.cells
     public rowFocusPercent = 0.0
 
     private owner
+    'TODO maestro should be able to add the top field itself
+    private top as mv.cells.private.ICellTop
 
     private willChangeFocusReported = false
 
-    protected function onContentChange(content as roSGNodeNode)
+    protected function onContentChange(content as roSGNode)
       if m.top.index = 0
         'let's store the owning markup grid for this row
         rowList = m.top.getParent().getParent().getParent()
@@ -116,11 +124,11 @@ namespace mv.cells
     protected function _createView()
     end function
 
-    function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNodeNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+    function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
       return mv.createFragment(fragmentJson, targetNode, dataBindingContext, assignViewsToM)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNodeNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if

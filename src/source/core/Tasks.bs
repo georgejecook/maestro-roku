@@ -21,23 +21,23 @@ namespace mc.tasks.private
 end namespace
 namespace mc.tasks
 
-  function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as roSGNodeNode) as roSGNodeNode
+  function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as roSGNode) as roSGNode
     return mc.tasks.waitAFrame(callback, duration, sendMode, scope, parent)
   end function
 
-  function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as roSGNodeNode) as roSGNodeNode
+  function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as roSGNode) as roSGNode
     return mc.tasks.waitAFrame(callback, duration, sendMode, scope, parent, true)
   end function
 
-  function cancelTimeout(timer as roSGNodeNode)
+  function cancelTimeout(timer as roSGNode)
     mc.tasks.cancelWaitTimer(timer)
   end function
 
-  function cancelInterval(timer as roSGNodeNode)
+  function cancelInterval(timer as roSGNode)
     mc.tasks.cancelWaitTimer(timer)
   end function
 
-  function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as roSGNodeNode, repeat = false as boolean) as roSGNodeNode
+  function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string, scope = invalid as object, parent = invalid as roSGNode, repeat = false as boolean) as roSGNode
     callbackName = mc.getFunctionName(callback)
     if callbackName = invalid
       m.log.error("function ", callback, "does not exist, or is not in scope")
@@ -67,7 +67,7 @@ namespace mc.tasks
     return frameTimer
   end function
 
-  function cancelWaitTimer(timer as roSGNodeNode)
+  function cancelWaitTimer(timer as roSGNode)
     if timer <> invalid
       if (timer as mc.tasks.private.ITimerTask).isReleased <> true
         mc.tasks.cleanNodeObserver(timer, "fire")
@@ -153,7 +153,7 @@ namespace mc.tasks
   '  * @param {object|invalid} scope - scope on which to execute the callback (default to node's m)
   '  * @returns {boolean} true if set, false otherwise
   '  */
-  function observeNodeField(node as roSGNodeNode, fieldName as string, callback as function or string, sendMode = "value" as string, once = false as boolean, scope = invalid as object, fieldAndValueTargetField = invalid as string) as boolean
+  function observeNodeField(node as roSGNode, fieldName as string, callback as function or string, sendMode = "value" as string, once = false as boolean, scope = invalid as object, fieldAndValueTargetField = invalid as string) as boolean
     targetField = invalid
     context = {}
     if mc.isInvalid(callback)
@@ -219,7 +219,7 @@ namespace mc.tasks
     return true
   end function
 
-  function _getContextKey(node as roSGNodeNode, fieldName as string, callback as function, targetField as string, instance = invalid as object) as string
+  function _getContextKey(node as roSGNode, fieldName as string, callback as function, targetField as string, instance = invalid as object) as string
     if callback <> invalid
       cb = mc.getFunctionName(callback)
     else
@@ -299,7 +299,7 @@ namespace mc.tasks
           end if
           context.instance.delete("__cb")
         else
-          executeInScope = function(this as object, callback as function, value as dynamic, sendMode as string, node = invalid as roSGNodeNode)
+          executeInScope = function(this as object, callback as function, value as dynamic, sendMode as string, node = invalid as roSGNode)
             m = this
             if sendMode = "both"
               callback(value, node)
@@ -320,7 +320,7 @@ namespace mc.tasks
     end for
   end function
 
-  function unobserveNodeField(node as roSGNodeNode, fieldName as string, callback as function or string, scope = invalid as object)
+  function unobserveNodeField(node as roSGNode, fieldName as string, callback as function or string, scope = invalid as object)
     targetField = invalid
     if mc.isInvalid(callback)
       if mc.isUndefined(callback)
@@ -358,7 +358,7 @@ namespace mc.tasks
     return true
   end function
 
-  function cleanNodeObserver(node as roSGNodeNode, fieldName as string)
+  function cleanNodeObserver(node as roSGNode, fieldName as string)
     if node <> invalid and fieldName <> invalid and m._nodeContexts <> invalid
       m._nodeContexts.delete(`${(node as mc.tasks.private.IObservedNode)._oid}_${fieldName}`)
       node.unobserveFieldScoped(fieldName)
@@ -377,14 +377,14 @@ namespace mc.tasks
     m._nodeContexts = {}
   end function
 
-  function cancelTask(task as roSGNodeNode)
+  function cancelTask(task as roSGNode)
     if task <> invalid
       mc.tasks.cleanNodeObserver(task, (task as mc.tasks.private.IManagedTask)._observedField)
       task.control = "stop"
     end if
   end function
 
-  function onTaskStateChange(state as string, task as roSGNodeNode)
+  function onTaskStateChange(state as string, task as roSGNode)
     isRunning = state = "run"
     wasRunning = asBoolean((task as mc.tasks.private.IManagedTask)._mIsRunning) = true
     if not wasRunning and state = "run"
@@ -437,7 +437,7 @@ namespace mc.tasks
     private pendingComparators = {}
     private comparators = {}
 
-    function new(node as roSGNodeNode, field as string, target as object)
+    function new(node as roSGNode, field as string, target as object)
       m.target = target
       m.node = node
       m.field = field
@@ -468,7 +468,7 @@ namespace mc.tasks
       m.pendingComparators[key] = c
     end function
 
-    function valueCallback(value as dynamic, node as roSGNodeNode)
+    function valueCallback(value as dynamic, node as roSGNode)
       if m.pendingComparators.count() > 0
         for each id in m.pendingComparators
           o = m.pendingComparators[id]
@@ -612,7 +612,7 @@ namespace mc.tasks
       end if
     end function
 
-    private function onTaskComplete(value as dynamic, task as roSGNodeNode) as void
+    private function onTaskComplete(value as dynamic, task as roSGNode) as void
       m.taskResults[(task as mc.tasks.private.IManagedTask)._oid] = value
       if not mc.getBoolean(value, "isOK")
         m.failCount++

@@ -18,13 +18,13 @@ namespace ml
     public index = 0
     public contentIndex = 0
     public componentIndex = 0
-    public component as roSGNodeNode
-    public focusSettings as roSGNodeNode
+    public component as roSGNode
+    public focusSettings as roSGNode
     public direction = 0
     public positions = []
     public isFlowFocusAllowed = false
 
-    public function new(size as roArray, focusSettings as roSGNodeNode, positions as roArray, isFlowFocusAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
+    public function new(size as roArray, focusSettings as roSGNode, positions as roArray, isFlowFocusAllowed = false as boolean, componentIndex = 0 as integer, contentIndex = 0 as integer)
       m.size = size
       m.focusSettings = focusSettings
       m.positions = positions
@@ -82,7 +82,7 @@ namespace ml
 end namespace
 
 namespace ml.CellInfoUtils
-  function cellInfoFromAA(otherInfo as roAssociativeArray)
+  function cellInfoFromAA(otherInfo as ml.ICellInfo)
     if otherInfo <> invalid
       info = new ml.CellInfo(otherInfo.size, otherInfo.focusSettings, otherInfo.positions, otherInfo.isFlowFocusAllowed, otherInfo.componentIndex, otherInfo.contentIndex)
       info.index = otherInfo.index

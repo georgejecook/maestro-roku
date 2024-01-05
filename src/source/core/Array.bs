@@ -39,6 +39,7 @@ namespace mc.collections
     private pendingChanges = []
     private notifyChanges = true
     protected log
+    protected top
 
     function new()
       m.log = new rlog.Logger("mc_Map")
@@ -129,7 +130,7 @@ namespace mc.collections
       m.top.changes = [{ type: "add", item: value, index: 0 }]
     end function
 
-    function append(other as roAssociativeArray)
+    function append(other as roArray)
       index = m.top.length - 1
       m.data.append(other)
       m.top.length = m.data.count()
@@ -198,7 +199,8 @@ namespace mc.collections
     function serialize() as roAssociativeArray
       serialized = {
         items: []
-      }
+      } as roAssociativeArray
+
       for each item in m.data
         data = mc.utils.Serialization.serialize(item)
         if data <> invalid

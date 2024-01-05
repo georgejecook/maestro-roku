@@ -8,18 +8,20 @@ import "pkg:/source/ml/FocusIndicatorConfig.bs"
 import "pkg:/source/ml/ListContentManager.bs"
 
 namespace ml
+
   @node("ml_List", "mv_BaseView")
   class List extends mv.BaseView
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Content
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'must be of type ListContent
-    public content as roSGNodeNode
+    public content as roSGNodeml_ListContent
 
     'view that will respond to events
-    public delegate as roSGNodeNode
+    public delegate as roSGNode
 
     public _isRenderingUpdate = false
     public _timeSinceLastKeypress = 0
@@ -66,14 +68,14 @@ namespace ml
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private contentGroup as roSGNodeNode
-    private rowsGroup as roSGNodeNode
+    private contentGroup as roSGNodeGroup
+    private rowsGroup as roSGNodeGroup
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Shared managers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public focusIndicatorManager as roSGNodeNode
+    public focusIndicatorManager as roSGNodeml_FocusIndicatorManager
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ internal event tracking
@@ -96,10 +98,10 @@ namespace ml
     private isInitialized = false
     private isDoingFlowFocus = false
 
-    private focusedRowContent as roSGNodeNode
-    private focusedCellContent as roSGNodeNode
+    private focusedRowContent as roSGNode
+    private focusedCellContent as roSGNode
 
-    private preHiddenContent as roSGNodeNode
+    private preHiddenContent as roSGNode
 
     private keyTimer = createObject("roTimespan")
 
@@ -146,18 +148,18 @@ namespace ml
 
     private function createViews()
       'TODO - might still end up needing this... depends on how floating focus lands
-      m.contentGroup = m.createSGNode("Group", m.top, "contentGroup")
-      m.rowsGroup = m.createSGNode("Group", m.contentGroup, "rowsGroup")
+      m.contentGroup = m.createSGNode("Group", m.top, "contentGroup") as roSGNodeGroup
+      m.rowsGroup = m.createSGNode("Group", m.contentGroup, "rowsGroup") as roSGNodeGroup
       m.focusIndicatorManager = m.createSGNode("ml_FocusIndicatorManager", m.top, "focusIndicator", {
         list: m.top
-      })
+      }) as roSGNodeml_FocusIndicatorManager
 
     end function
 
     private function initManagers()
       m.rowsGroup = m.top.findNode("rowsGroup")
 
-      m.viewManager = new ml.ListItemViewManager(m.top, m.rowsGroup, 0, m.height, (m.global as dynamic).componentPool)
+      m.viewManager = new ml.ListItemViewManager(m.top as dynamic, m.rowsGroup, 0, m.height, (m.global as dynamic).componentPool)
 
       m.itemScroller = new ml.ListItemScroller(m.viewManager, m.focusIndicatorManager)
       m.itemScroller.offsetContainer = m.contentGroup
@@ -193,7 +195,7 @@ namespace ml
     '++ callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function setContent(content as roSGNodeNode, forceUpdate = false as boolean) as void
+    function setContent(content as roSGNodeml_ListContent, forceUpdate = false as boolean) as void
       m.contentManager.setContent(content, forceUpdate)
     end function
 

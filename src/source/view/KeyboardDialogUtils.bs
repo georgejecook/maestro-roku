@@ -4,14 +4,26 @@ import "pkg:/source/core/Date.bs"
 import "pkg:/source/view/Animation.bs"
 
 namespace mv
-  ' utility for creating various keyboards. Only works with brighterscript classes, and only allows for one keeyboard at a time
+  ' utility for creating various keyboards. Only works with brighterscript classes, and only allows for one keyboard at a time
+
+  interface IDialogScreen extends roSGNode
+    optional title as string
+    optional text as string
+    optional keyColor as string
+    optional focusedKeyColor as string
+    optional buttons as roArray
+    optional textEditBox as roSGNode
+    optional buttonRoles as roAssociativeArray
+    optional close as boolean
+  end interface
+
   class KeyboardDialogUtil extends mc.BaseClass
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public dialog
+    public dialog as IDialogScreen
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -21,7 +33,7 @@ namespace mv
     private callback
 
     @inject("styleManager")
-    private styleManager as roSGNodeNode
+    private styleManager as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -39,7 +51,7 @@ namespace mv
     ' @param {string} callback - function to call with updated text
     ' @param {boolean} isSecure - true if it's a password
     ' @param {array} buttons - buttons to show
-    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as roArray, buttonRoles = { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" } as roAssociativeArray) as roSGNodeNode
+    function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as roArray, buttonRoles = { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" } as roAssociativeArray) as IDialogScreen
       m.dialog = createObject("roSGNode", "StandardKeyboardDialog")
       if isSecure
         m.dialog.textEditBox.secureMode = true
@@ -57,8 +69,8 @@ namespace mv
       m.dialog.keyColor = "0x878686"
       m.dialog.focusedKeyColor = "#000000"
 
-      m.observeNodeField(m.dialog, "buttonSelected", m.onKeyboardDialogButtonSelected, "both")
-      m.observeNodeField(m.dialog, "wasClosed", m.closeDialog, "none")
+      m.observeNodeField(m.dialog as roSGNode, "buttonSelected", m.onKeyboardDialogButtonSelected, "both")
+      m.observeNodeField(m.dialog as roSGNode, "wasClosed", m.closeDialog, "none")
 
       m.dialog.text = text
       m.dialog.textEditBox.cursorPosition = len(text)
@@ -72,7 +84,7 @@ namespace mv
     '++ Keyboard Dialog Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onKeyboardDialogButtonSelected(selectedButton as integer, dialog as roSGNodeNode)
+    private function onKeyboardDialogButtonSelected(selectedButton as integer, dialog as IDialogScreen)
       selectedButtonText = dialog.buttons[selectedButton]
       m.log.info("keyboard button selected: ", selectedButtonText, ", text ", dialog.text)
       isClosing = false
@@ -80,6 +92,7 @@ namespace mv
       buttonRoles = asAA(dialog.buttonRoles, { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" })
 
       if selectedButtonText = buttonRoles.showHide
+        'bs:disable-next-line
         dialog.textEditBox.secureMode = not dialog.textEditBox.secureMode
       else if selectedButtonText = buttonRoles.continue
         isClosing = true

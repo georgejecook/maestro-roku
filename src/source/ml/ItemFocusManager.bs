@@ -6,15 +6,17 @@ import "pkg:/source/ml/ListDelegateManager.bs"
 
 namespace ml
   interface InternalListEvent
-    name as string
-    index as integer
-    rowIndex as integer
-    subRowIndex as integer
-    direction as integer
-    fraction as float
-    isRowEvent as boolean
-    cell as roSGNodeNode
-    row as roSGNodeNode
+    optional name as string
+    optional index as integer
+    optional rowIndex as integer
+    optional subRowIndex as integer
+    optional direction as integer
+    optional fraction as float
+    optional isRowEvent as boolean
+    optional isSendingCell as boolean
+    optional isSendingRow as boolean
+    optional cell as roSGNode
+    optional row as roSGNode
   end interface
 
   class ItemFocusManager extends mc.BaseClass
@@ -42,7 +44,7 @@ namespace ml
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function new(name as string, focusIndicatorManager as roSGNodeNode)
+    function new(name as string, focusIndicatorManager as ml.FocusIndicatorManager)
       super("ItemFocusManager")
       m.name = name
       m.focusIndicatorManager = focusIndicatorManager
@@ -61,9 +63,9 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private list as roSGNodeNode
+    private list as roSGNodeml_List
 
-    function setList(list as roSGNodeNode)
+    function setList(list as roSGNodeml_List)
       m.list = list
       m.delegateManager = new ml.ListDelegateManager(list)
     end function
@@ -206,13 +208,13 @@ namespace ml
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
-        m.focusIndicatorManager.setFocusComplete(m.focusIndicatorConfig)
+        m.focusIndicatorManager@.setFocusComplete(m.focusIndicatorConfig)
       else
         name = "losingFocus"
         nextName = "gainingFocus"
       end if
 
-      m.focusIndicatorManager.setFocusedFraction(fraction)
+      m.focusIndicatorManager@.setFocusedFraction(fraction)
 
       m.sendEvents(name, nextName, fraction)
     end function

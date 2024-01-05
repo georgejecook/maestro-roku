@@ -57,7 +57,7 @@ namespace mx
       m.state = "destroyed"
     end function
 
-    protected function onAddedToAggregateView(view as roSGNodeNode)
+    protected function onAddedToAggregateView(view as roSGNode)
     end function
 
     protected function onFirstShow()
@@ -68,7 +68,7 @@ namespace mx
       m.isShown = true
     end function
 
-    protected function onRemovedFromAggregateView(view as roSGNodeNode)
+    protected function onRemovedFromAggregateView(view as roSGNode)
     end function
 
     protected function onHide()
@@ -94,7 +94,7 @@ namespace mx
       end if
     end function
 
-    protected function initializeView(view as roSGNodeNode, args = invalid as roAssociativeArray)
+    protected function initializeView(view as roSGNode, args = invalid as roAssociativeArray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -102,12 +102,12 @@ namespace mx
       end if
     end function
 
-    protected function setFocus(target as roSGNodeNode, forceSet = false as boolean)
+    protected function setFocus(target as roSGNode, forceSet = false as boolean)
       'bs:disable-next-line
       mv_setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as roSGNodeNode, message = "" as string)
+    protected function setFocusLocked(target as roSGNode, message = "" as string)
       'bs:disable-next-line
       mv_setFocusLocked(target, message)
     end function
@@ -116,15 +116,15 @@ namespace mx
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as roSGNodeNode, parent = invalid as roSGNodeNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as roSGNodeNode
+    protected function createSGNode(nodeType as roSGNode, parent = invalid as roSGNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as dynamic
       return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
-    protected function createNode(nodeType as string) as roSGNodeNode
+    protected function createNode(nodeType as string) as dynamic
       return mc.createNode(nodeType)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNodeNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -221,7 +221,7 @@ namespace mx
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as roSGNodeNode or string, animated = true as boolean)
+    protected function push(view as roSGNode or string, animated = true as boolean)
 
       'TODO IS THIS STILL SUPPORTED?
       if mc.isString(view)
@@ -231,7 +231,7 @@ namespace mx
       push(view, animated)
     end function
 
-    protected function pop(animated = true as boolean) as roSGNodeNode
+    protected function pop(animated = true as boolean) as roSGNode
       'bs:disable-next-line
       return(pop(animated))
     end function
@@ -247,7 +247,7 @@ namespace mx
       end if
     end function
 
-    protected function getViewById(id as string) as roSGNodeNode
+    protected function getViewById(id as string) as roSGNode
       view = mc.getMField(id)
 
       if view = invalid
@@ -262,12 +262,12 @@ namespace mx
       resetNavControllerToRoot(animated)
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as roSGNodeNode, endIndex = -1 as integer, animated = false as boolean)
+    protected function resetNavController(newFirstScreen = invalid as roSGNode, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex, animated)
     end function
 
-    protected function replaceNavControllerScreen(targetScreen as roSGNodeNode, animated = false as boolean)
+    protected function replaceNavControllerScreen(targetScreen as roSGNode, animated = false as boolean)
       'bs:disable-next-line
       replaceNavControllerScreen(targetScreen, animated)
     end function
@@ -276,11 +276,11 @@ namespace mx
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as roSGNodeNode, fieldName as string, callback as function or string, sendMode = "value" as string, once = false as boolean)
+    protected function observeNodeField(node as roSGNode, fieldName as string, callback as function or string, sendMode = "value" as string, once = false as boolean)
       mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
     end function
 
-    protected function unobserveNodeField(node as roSGNodeNode, fieldName as string, callback = invalid as function)
+    protected function unobserveNodeField(node as roSGNode, fieldName as string, callback = invalid as function)
       'TODO - we need to be a bitmore clever about observing things, as they might be going to various callbacks
       mc.tasks.cleanNodeObserver(node, fieldName)
     end function
@@ -293,19 +293,19 @@ namespace mx
       'substituted by plugin
     end function
 
-    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as roSGNodeNode
+    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as roSGNode
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as roSGNodeNode)
+    protected function cancelWaitTimer(timer as roSGNode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as roSGNodeNode
+    protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as roSGNode
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as roSGNodeNode)
+    protected function cancelTask(task as roSGNode)
       mc.tasks.cancelTask(task)
     end function
 

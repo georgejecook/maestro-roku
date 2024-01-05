@@ -2,6 +2,15 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/BaseView.bs"
 
 namespace mv.controls
+  interface ITextInputStyle extends roAssociativeArray
+    optional normal as roAssociativeArray
+    optional focused as roAssociativeArray
+    optional disabled as roAssociativeArray
+    optional selected as roAssociativeArray
+    optional error as roAssociativeArray
+  end interface
+
+
   @observersWaitInitialize
   @node("mv_TextInput", "mv_BaseView")
   class TextInput extends mv.BaseView
@@ -69,16 +78,16 @@ namespace mv.controls
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private label as roSGNodeNode
-    private subTextLabel as roSGNodeNode
-    private errorLabel as roSGNodeNode
-    private divider as roSGNodeNode
+    private label as roSGNodemv_Label
+    private subTextLabel as roSGNodemv_Label
+    private errorLabel as roSGNodemv_Label
+    private divider as roSGNodemv_Rectangle
 
-    private inputImage as roSGNodeNode
-    private backgroundColor as roSGNodeNode
-    private errorBackgroundPoster as roSGNodeNode
+    private inputImage as roSGNodemv_Poster
+    private backgroundColor as roSGNodemv_Poster
+    private errorBackgroundPoster as roSGNodemv_Poster
 
-    private style as roAssociativeArray
+    private style as mv.controls.ITextInputStyle
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ initialization
@@ -142,6 +151,8 @@ namespace mv.controls
       m.subTextLabel.wrap = true
 
       m.errorLabel.text = m.errorText
+      ? m.errorLabel.size[0]
+      ? m.inputImage.size[0]
       m.errorLabel.translation = [m.inputImage.translation[0] + m.inputImage.size[0] * 2, m.inputImage.translation[1] + m.inputImage.size[1] / 2 - m.errorLabel.boundingRect()["height"] / 2]
       m.errorLabel.visible = m.errorText <> invalid and m.errorText.trim() <> "" and m.hasError
 

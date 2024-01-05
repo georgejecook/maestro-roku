@@ -15,7 +15,7 @@ namespace ml
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = true
-    public list as roSGNodeNode
+    public list as roSGNodeml_List
     public isFocusing = false
     public _isContentUpdating = false
 
@@ -37,24 +37,24 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public isDoingFlowFocus = false
-    public focusScreenPosition = [0, 0]
+    public focusScreenPosition as float[] = [0.0, 0.0]
     public listIsMoving = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private focusPoint as roSGNodeNode
-    private focusIndicator as roSGNodeNode
-    private activeFocusView as roSGNodeNode
-    private nextFocusView as roSGNodeNode
+    private focusPoint as roSGNodemv_Poster
+    private focusIndicator as roSGNodemv_Poster
+    private activeFocusView as roSGNodemv_Poster
+    private nextFocusView as roSGNodemv_Poster
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Animations
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPointAnim
-    private _list as roSGNodeNode
+    private _list as roSGNodeml_List
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -64,12 +64,12 @@ namespace ml
     private isIndicatorOnTop = true
     private direction = 0
 
-    private flowFocusDelegate as roSGNodeNode
+    private flowFocusDelegate as roSGNode
 
     private nextConfig as object
 
-    private nextFocusSettings as roSGNodeNode
-    private previousFocusSettings as roSGNodeNode
+    private nextFocusSettings as roSGNodeml_FocusSettings
+    private previousFocusSettings as roSGNodeml_FocusSettings
     private previousSize = [0, 0]
     private previousTranslation = [0, 0]
     private rowHasIndicator = true
@@ -94,7 +94,7 @@ namespace ml
       super.initialize()
       m.createViews()
       m.createAnims()
-      m._list = m.list
+      m._list = m.list as roSGNodeml_List
       m.itemFocusManager.setList(m._list)
     end function
 
@@ -339,9 +339,11 @@ namespace ml
       return m.nextConfig
     end function
 
-    private function setActiveFocusSettings(newSettings as roSGNodeNode)
+    private function setActiveFocusSettings(newSettings as roSGNodeml_FocusSettings)
       m.previousFocusSettings = m.nextFocusSettings
       m.nextFocusSettings = newSettings
+      'FIXME: should work
+      'bs:disable-next-line
       m.previousSize = m.focusIndicator.size
       m.previousTranslation = m.focusIndicator.translation
       m.focusScreenPosition = m.nextConfig.indicatorTranslation
@@ -436,7 +438,7 @@ namespace ml
     '++ Flow Focus Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as roSGNodeNode) as void
+    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as roSGNode) as void
 
       if not m.isActive()
         return

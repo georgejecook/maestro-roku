@@ -45,7 +45,7 @@ namespace mc.net
 
     function formPost(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
       if mc.isAACompatible(otherArgs) and mc.isAACompatible(params)
-        json = asAA(otherArgs.json)
+        json = asAA((otherArgs as dynamic).json)
         json.append(params)
         otherArgs.json = json
       end if

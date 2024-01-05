@@ -41,7 +41,7 @@ namespace mv
     '++ View Helpers
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function initializeView(view as roSGNodeNode, args = invalid as roArray)
+    protected function initializeView(view as roSGNode, args = invalid as roArray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -49,13 +49,13 @@ namespace mv
       end if
     end function
 
-    protected function setFocus(target as roSGNodeNode, forceSet = false as boolean)
+    protected function setFocus(target as roSGNode, forceSet = false as boolean)
       m.focusedControl = target
       'bs:disable-next-line
       mv.setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as roSGNodeNode, message = "" as string)
+    protected function setFocusLocked(target as roSGNode, message = "" as string)
       if target <> invalid
         m.focusedControl = target
       end if
@@ -68,7 +68,7 @@ namespace mv
       mv.setFocusUnlocked(reason)
     end function
 
-    protected function isControlFocused(control as roSGNodeNode)
+    protected function isControlFocused(control as roSGNode)
       return m.focusedControl <> invalid and control <> invalid and m.focusedControl.id = control.id
     end function
 
@@ -234,7 +234,7 @@ namespace mv
     '++ Selection Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSelection(initialItem as roSGNodeNode, action = "display" as string, actionInfo = {} as roAssociativeArray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
+    protected function createSelection(initialItem as roSGNode, action = "display" as string, actionInfo = {} as roAssociativeArray, targetScreen = "" as string, selectionCompName = "mc_Selection" as string)
       id = `${m.name}-${mc.getString(initialItem, "id")}-${action}`
       selection = mc.createSGNode(selectionCompName, invalid, id, {
         initialItem: initialItem
@@ -249,7 +249,7 @@ namespace mv
       return selection
     end function
 
-    protected function executeSelection(selection as roSGNodeNode, observeIfPendingAfterExecution = true as boolean)
+    protected function executeSelection(selection as roSGNode, observeIfPendingAfterExecution = true as boolean)
       'assumes that you have an appController instance that will handle the selection
       appController = m.getInstance("appController")
       if appController <> invalid
@@ -268,7 +268,7 @@ namespace mv
       end if
     end function
 
-    protected function cancelPendingSelection(selection as roSGNodeNode)
+    protected function cancelPendingSelection(selection as roSGNode)
       m.unobserveNodeField(selection, "state")
       m.unobserveNodeField(selection, "itemCompletionState")
     end function
@@ -307,18 +307,18 @@ namespace mv
       m.isFocused = false
     end function
 
-    protected function onSelectionStateChange(state as string, selection as roSGNodeNode)
+    protected function onSelectionStateChange(state as string, selection as roSGNode)
       m.log.info("selection", mc.dv(selection), "changed state to", state)
     end function
 
-    protected function onSelectionCompletionStateChange(completionState as string, selection as roSGNodeNode)
+    protected function onSelectionCompletionStateChange(completionState as string, selection as roSGNode)
       m.log.info("selection", mc.dv(selection), "changed completionState to", completionState)
     end function
 
-    protected function onAddedToAggregateView(view as roSGNodeNode)
+    protected function onAddedToAggregateView(view as roSGNode)
     end function
 
-    protected function onRemovedFromAggregateView(view as roSGNodeNode)
+    protected function onRemovedFromAggregateView(view as roSGNode)
     end function
 
   end class

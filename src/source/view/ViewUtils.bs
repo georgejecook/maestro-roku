@@ -14,7 +14,7 @@ namespace mv
     end if
   end function
 
-  function getFirstParentWithType(node as roSGNodeNode, parentType as string) as roSGNodeNode
+  function getFirstParentWithType(node as roSGNode, parentType as string) as roSGNode
     currentNode = node
 
     while currentNode <> invalid
@@ -28,7 +28,7 @@ namespace mv
     return invalid
   end function
 
-  function getFieldInParent(content as roSGNodeNode, fieldName as string, maxIterations = 3 as integer, defaultValue = {} as dynamic) as dynamic
+  function getFieldInParent(content as roSGNode, fieldName as string, maxIterations = 3 as integer, defaultValue = {} as dynamic) as dynamic
     currentNode = content
     value = invalid
 
@@ -45,7 +45,7 @@ namespace mv
     return defaultValue
   end function
 
-  function destroyView(view as roSGNodeNode)
+  function destroyView(view as roSGNode)
     p = view.getParent()
 
     if p <> invalid
@@ -53,7 +53,7 @@ namespace mv
     end if
   end function
 
-  function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNodeNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+  function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
     mTarget = m
     if targetNode = invalid
       targetNode = m.top
@@ -136,7 +136,7 @@ namespace mv
     return firstView
   end function
 
-  function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNodeNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
+  function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
     if mTarget = invalid
       mTarget = m
     end if
@@ -404,7 +404,7 @@ namespace mv
 
   ' params {node} control
   ' params {node|assocarray|invalid} datasource
-  function applyDataMap(control as roSGNodeNode, dataSource = invalid as dynamic)
+  function applyDataMap(control as roSGNode, dataSource = invalid as dynamic)
     dataMaps = mc.getAA(control, "_dataMap")
     for each field in dataMaps
       dataMap = dataMaps[field]

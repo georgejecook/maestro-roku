@@ -7,12 +7,14 @@ class RowHeader
   public height = 0.0
   public width = 0.0
 
-  private content
-  private isInitialized
+  private content as roSGNodeml_RowContent
+  private isInitialized = false
 
-  'views
-  private bgRect
-  private label
+  private bgRect as roSGNodemv_Rectangle
+  private label as roSGNodemv_Label
+
+  'FIXME: remove this
+  private top as roSGNodeGroup
 
   function new()
   end function
@@ -27,7 +29,7 @@ class RowHeader
     end if
   end function
 
-  public function setContent(rowContent as roSGNodeNode, settings as roSGNodeNode)
+  public function setContent(rowContent as roSGNodeml_RowContent, settings as roSGNodeml_HeaderSettings)
     m.content = rowContent
     m.createViews()
     if m.content <> invalid

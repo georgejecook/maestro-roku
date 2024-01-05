@@ -60,7 +60,7 @@ namespace mv.controls
 
     private originalChildren = []
     private visibleChildren = []
-    private _focusedControl as roSGNodeNode
+    private _focusedControl as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -153,7 +153,7 @@ namespace mv.controls
       return m.visibleChildren[m.selectedIndex]
     end function
 
-    function setFocusedControl(control as roSGNodeNode)
+    function setFocusedControl(control as roSGNode)
       if type(control) = "roSGNode"
         for i = 0 to m.visibleChildren.count() - 1
           if m.visibleChildren[i].id = control.id
@@ -169,11 +169,11 @@ namespace mv.controls
       end if
     end function
 
-    function getIsFocusedControl(control as roSGNodeNode) as boolean
+    function getIsFocusedControl(control as roSGNode) as boolean
       return m._focusedControl <> invalid and m._focusedControl.isSameNode(control)
     end function
 
-    function getFocusedControl() as roSGNodeNode
+    function getFocusedControl() as roSGNode
       return m._focusedControl
     end function
 
@@ -188,14 +188,14 @@ namespace mv.controls
     '++ Callbacks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onChildVisibleChange(visible as boolean, node as roSGNodeNode)
+    private function onChildVisibleChange(visible as boolean, node as roSGNode)
       if not visible
         m.top.removeChild(node)
       else
         i = 0
         for i = m.top.getChildCount() - 1 to 0 step -1
           child = m.top.getChild(i)
-          if child.layoutIndex < node.layoutIndex
+          if child.layoutIndex < (node as dynamic).layoutIndex
             i++
             exit for
           end if

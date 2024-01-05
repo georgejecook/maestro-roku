@@ -21,8 +21,8 @@ namespace mc
     end function
 
     private function execute(args as roAssociativeArray)
-      m.bundleId = args.bundleId
-      m.baseBundleUrl = args.baseBundleUrl
+      m.bundleId = (args as dynamic).bundleId
+      m.baseBundleUrl = (args as dynamic).baseBundleUrl
 
       m.registry = new mc.Registry()
       m.request = m.makeRequest()
@@ -55,7 +55,7 @@ namespace mc
         assetsToLoad.append(currentBundle.getChangedAssets(latestBundle))
       end if
 
-      '4. also load any assets thare are missing from cachefs
+      '4. also load any assets there are missing from cachefs
       assetsToLoad.append(latestBundle.getMissingAssets())
 
       if assetsToLoad.count() > 0

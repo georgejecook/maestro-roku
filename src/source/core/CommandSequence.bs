@@ -3,7 +3,7 @@ import "pkg:/source/view/NodeClass.bs"
 import "pkg:/source/core/Command.bs"
 
 namespace mc.internal.commands
-  interface ICommandTask extends roSGNodeNode
+  interface ICommandTask extends roSGNode
     __commandName as string
   end interface
 end namespace
@@ -70,7 +70,7 @@ namespace mc
 
       if command.isProvider = true
         m.log.verbose("this command is a provider, using the provided command")
-        providedCommand = mc.apply(command.func, [command], m)
+        providedCommand = mc.apply(command.func, [command], m as roAssociativeArray)
         if providedCommand = invalid
           m.log.warn("command", command.name, "did not provide a command. skipping")
           if command.parentCommand <> invalid
@@ -140,7 +140,7 @@ namespace mc
         m.taskCommands.delete(task.__commandName)
 
         if command.onComplete <> invalid
-          updatedOk = mc.apply(command.onComplete, [value], m)
+          updatedOk = mc.apply(command.onComplete, [value], m as roAssociativeArray)
           isOk = asBoolean(updatedOk, asBoolean(value.isOk))
         else
           isOk = asBoolean(value.isOk)
@@ -162,19 +162,17 @@ namespace mc
 
     protected function finishCommand(command as ICommand)
 
-
-
       if command.parentCommand <> invalid
         if command.parentCommand.isParallel = true
-          m.finishParallelCommand(command)
+          m.finishParallelCommand(command as ParallelCommand)
         end if
         if command.parentCommand.isSequence = true
-          m.finishSequentialCommand(command)
+          m.finishSequentialCommand(command as SequentialCommand)
         end if
 
         if command.parentCommand.isFinished
           m.log.verbose("parent command", command.parentCommand.name, "is finished")
-          m.finishCommand(command.parentCommand)
+          m.finishCommand(command.parentCommand as ICommand)
         end if
       end if
 
@@ -235,7 +233,8 @@ namespace mc
       m.log.error(`command ${command.name} failed with message: `, message)
       if command.ignoreFailure = true
         m.log.warn("Ignoring failure")
-        m.finishCommand(command)
+        'FIXME should work!
+        m.finishCommand(command as ICommand)
       else
         m.log.error("cannot continue from command failure")
 

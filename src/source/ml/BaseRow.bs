@@ -8,7 +8,7 @@ import "pkg:/source/ml/CommonListApi.bs"
 
 namespace ml
   interface RowOwner
-    optional delegate as roSGNodeNode
+    optional delegate as roSGNode
   end interface
 
   @node("ml_BaseRow", "mv_BaseView")
@@ -19,7 +19,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'Instance of RowContent
-    public content as roSGNodeNode
+    public content as roSGNode
 
     public index = -1
     public renderState = "none"
@@ -32,7 +32,10 @@ namespace ml
     public alwaysNotifyContentChange = false
 
     'FIXME - check node classes work
-    public owner as ml.RowOwner
+    ' public owner as ml.RowOwner
+    'FIXME - this should work
+    public owner as roSGNodeml_List
+    ' public owner as roSGNodemv_BaseView
     '// cspell:disable-next-line
     ' public owner as roSGNodeml_List
 
@@ -40,9 +43,9 @@ namespace ml
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected backgroundGroup as roSGNodeNode
-    protected contentGroup as roSGNodeNode
-    protected foregroundGroup as roSGNodeNode
+    protected backgroundGroup as roSGNode
+    protected contentGroup as roSGNode
+    protected foregroundGroup as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -55,7 +58,7 @@ namespace ml
     '++ Header Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected header as roSGNodeNode
+    protected header as roSGNode
     protected currentHeaderType = invalid
 
     function new()
@@ -131,7 +134,7 @@ namespace ml
       }
     end function
 
-    function setContent(content as roSGNodeNode, isForced = false as boolean) as ml.ListChangeResult
+    function setContent(content as roSGNodeml_RowContent, isForced = false as boolean) as ml.ListChangeResult
       'FIXME - use real node type
       m.settings = ml.listMixin.getRowSettings((m.owner as dynamic).content, content)
       m._content = content
@@ -258,7 +261,7 @@ namespace ml
         'bs:disable-next-line
         return m.itemScroller.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, isFromListScroll)
       else
-        return ml.createFocusIndicatorConfig(m.top, invalid, direction)
+        return ml.createFocusIndicatorConfig(m.top as dynamic, invalid, direction)
       end if
     end function
 
@@ -281,8 +284,8 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as roAssociativeArray)
-      if m.owner <> invalid and m.owner.delegate <> invalid
-        m.owner.delegate@._apply("onRowData", [{
+      if m.owner <> invalid and (m.owner as dynamic).delegate <> invalid
+        (m.owner as dynamic).delegate@._apply("onRowData", [{
           rowIndex: (m.top as dynamic).index
           data: data
         }], false)
@@ -293,7 +296,7 @@ namespace ml
     '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function onContentChange(content as roSGNodeNode) as ml.ListChangeResult
+    protected function onContentChange(content as roSGNode) as ml.ListChangeResult
       ? "ON CONTENT CHANGE"
       return {
         isLayoutRequired: false
@@ -301,12 +304,12 @@ namespace ml
       }
     end function
 
-    protected function onContentUpdate(content as roSGNodeNode)
+    protected function onContentUpdate(content as roSGNode)
       ? "ON CONTENT UPDATED"
       m.configureHeader(false)
     end function
 
-    protected function onRecycle(newContent as roSGNodeNode)
+    protected function onRecycle(newContent as roSGNode)
       m.log.verbose("recycling row", mc.dv(m.top), "content", mc.dv(newContent))
       m.isInViewport = false
     end function
@@ -342,7 +345,7 @@ namespace ml
       return m.contentGroup
     end function
 
-    function recycle(newContent as roSGNodeNode)
+    function recycle(newContent as roSGNode)
       m.onRecycle(newContent)
     end function
 

@@ -4,7 +4,7 @@ import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/view/ViewUtils.bs"
 
 namespace mv.animations.utils
-  function colorTo(target as roSGNodeNode, duration as float, toValue as integer, start = true as boolean, delay = 0 as float) as mv.animations.Color
+  function colorTo(target as roSGNodeGroup, duration as float, toValue as integer, start = true as boolean, delay = 0 as float) as mv.animations.Color
     'FIXME
     'bs:disable-next-line
     anim = new mv.animations.Color(target, duration, target.opacity, toValue, delay)
@@ -13,7 +13,7 @@ namespace mv.animations.utils
     end if
     return anim
   end function
-  function fadeTo(target as roSGNodeNode, duration as float, toValue as float, start = true as boolean, delay = 0 as float) as mv.animations.Fade
+  function fadeTo(target as roSGNodeGroup, duration as float, toValue as float, start = true as boolean, delay = 0 as float) as mv.animations.Fade
 
     'FIXME
     'bs:disable-next-line
@@ -24,7 +24,7 @@ namespace mv.animations.utils
     return anim
   end function
 
-  function scaleTo(target as roSGNodeNode, duration as float, toValue as roArray, start = true as boolean, delay = 0 as float) as mv.animations.Scale
+  function scaleTo(target as roSGNodeGroup, duration as float, toValue as roArray, start = true as boolean, delay = 0 as float) as mv.animations.Scale
     'FIXME
     'bs:disable-next-line
     anim = new mv.animations.Scale(target, duration, target.scale, toValue, delay)
@@ -34,7 +34,7 @@ namespace mv.animations.utils
     return anim
   end function
 
-  function moveTo(target as roSGNodeNode, duration as float, toValue as roArray, start = true as boolean, delay = 0 as float) as mv.animations.Move
+  function moveTo(target as roSGNodeGroup, duration as float, toValue as roArray, start = true as boolean, delay = 0 as float) as mv.animations.Move
     'FIXME
     'bs:disable-next-line
     anim = new mv.animations.Move(target, duration, target.translation, toValue, delay)
@@ -172,9 +172,9 @@ namespace mv.animations
 
     protected parentAnimation as mv.animations.AnimationBase
     protected log as rLog.Logger
-    protected target as roSGNodeNode
+    protected target as roSGNodeGroup
 
-    function new(name as string, target as roSGNodeNode)
+    function new(name as string, target as roSGNodeGroup)
       m.log = new rlog.Logger(name)
       if target = invalid or target.id = invalid or target.id = ""
         m.log.error("target must be a valid node with an id")
@@ -230,7 +230,7 @@ namespace mv.animations
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
 
-    function new(target as roSGNodeNode, field as string, duration as float, fromValue as dynamic, toValue as dynamic, name = "AbstractAnimation" as string, delay = 0 as float)
+    function new(target as roSGNodeGroup, field as string, duration as float, fromValue as dynamic, toValue as dynamic, name = "AbstractAnimation" as string, delay = 0 as float)
       super(name, target)
       if field = "#ga_random"
         field = "ga_" + rnd(2147483647).toStr()
@@ -438,7 +438,7 @@ namespace mv.animations
     public delay = 0
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
-    function new(target as roSGNodeNode, animations = invalid as roArray, repeat = false as boolean, delay = 0 as float)
+    function new(target as roSGNodeGroup, animations = invalid as roArray, repeat = false as boolean, delay = 0 as float)
       super("ParallelAnimation", target)
       m.node = createObject("roSGNode", "ParallelAnimation")
       animId = mv.animations.getAnimationKeyId()
@@ -526,7 +526,7 @@ namespace mv.animations
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   class Scale extends mv.animations.AbstractAnimation
-    function new(target as roSGNodeNode, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
       super(target, "scale", duration, fromValue, toValue, "ScaleAnimation", delay)
     end function
 
@@ -545,7 +545,7 @@ namespace mv.animations
   end class
 
   class Fade extends mv.animations.AbstractAnimation
-    function new(target as roSGNodeNode, duration as float, fromValue as float, toValue as float, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, fromValue as float, toValue as float, delay = 0 as float)
       super(target, "opacity", duration, fromValue, toValue, "FadeAnimation", delay)
     end function
 
@@ -563,7 +563,7 @@ namespace mv.animations
   end class
 
   class Color extends mv.animations.AbstractAnimation
-    function new(target as roSGNodeNode, duration as float, fromValue as float, toValue as float, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, fromValue as float, toValue as float, delay = 0 as float)
       super(target, "opacity", duration, fromValue, toValue, "ColorAnimation", delay)
     end function
 
@@ -582,7 +582,7 @@ namespace mv.animations
   end class
 
   class Move extends mv.animations.AbstractAnimation
-    function new(target as roSGNodeNode, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
       super(target, "translation", duration, fromValue, toValue, "MoveAnimation", delay)
     end function
 
@@ -601,11 +601,11 @@ namespace mv.animations
   end class
 
   class Size extends mv.animations.AbstractAnimation
-    private wAnim as roSGNodeNode
-    private hAnim as roSGNodeNode
-    private pAnim as roSGNodeNode
+    private wAnim as FloatValue
+    private hAnim as FloatValue
+    private pAnim as Parallel
 
-    function new(target as roSGNodeNode, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
       super(target, "size", duration, fromValue, toValue, "SizeAnimation", delay)
       m.wAnim = new mv.animations.FloatValue(target, "width", duration, fromValue[0], toValue[0])
       m.hAnim = new mv.animations.FloatValue(target, "height", duration, fromValue[1], toValue[1])
@@ -686,11 +686,11 @@ namespace mv.animations
 
   class KenBurns extends mv.animations.AbstractAnimation
     private maxScale = 0.0
-    private mAnim as roSGNodeNode
-    private sAnim as roSGNodeNode
-    private pAnim as roSGNodeNode
+    private mAnim as Move
+    private sAnim as Scale
+    private pAnim as Parallel
 
-    function new(target as roSGNodeNode, duration as float, maxScale as float, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, maxScale as float, delay = 0 as float)
       super(target, "size", duration, invalid, invalid, "SizeAnimation", delay)
       m.maxScale = maxScale
       m.sAnim = mv.animations.utils.scaleTo(target, duration, target.scale, false, delay)
@@ -825,7 +825,7 @@ namespace mv.animations
 
 
   class FloatValue extends mv.animations.AbstractAnimation
-    function new(target as roSGNodeNode, field as string, duration as float, fromValue as float, toValue as float, delay = 0 as float)
+    function new(target as roSGNodeGroup, field as string, duration as float, fromValue as float, toValue as float, delay = 0 as float)
       super(target, field, duration, fromValue, toValue, "FloatAnimation", delay)
     end function
 
@@ -838,14 +838,14 @@ namespace mv.animations
     end function
 
     public override function clone()
-      return new mv.animations.FloatValue(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+      return new mv.animations.FloatValue(m.target, m.field, m.duration, m.fromValue, m.toValue, m.delay)
     end function
 
   end class
 
 
   class VectorValue extends mv.animations.AbstractAnimation
-    function new(target as roSGNodeNode, field as string, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
+    function new(target as roSGNodeGroup, field as string, duration as float, fromValue as roArray, toValue as roArray, delay = 0 as float)
       super(target, field, duration, fromValue, toValue, "VectorValueAnimation", delay)
     end function
 
@@ -858,7 +858,7 @@ namespace mv.animations
     end function
 
     public override function clone()
-      return new mv.animations.VectorValue(m.target, m.duration, m.fromValue, m.toValue, m.delay)
+      return new mv.animations.VectorValue(m.target, m.field, m.duration, m.fromValue, m.toValue, m.delay)
     end function
 
   end class
@@ -867,7 +867,7 @@ namespace mv.animations
   'achieves it by adding a float field to the target node
   class Generic extends mv.animations.AbstractAnimation
 
-    function new(target as roSGNodeNode, duration as float, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, delay = 0 as float)
       super(target, "#ga_random", duration, 0, 1, "Generic", delay)
     end function
 
@@ -895,8 +895,8 @@ namespace mv.animations
     private targetM as roAssociativeArray
     private isObserving = false
 
-    function new(fromJson as roAssociativeArray, toJson as roArray, duration as float, delay = 0 as float)
-      super(mc.getTop(), "#ga_random", duration, 0, 1, "ViewJson", delay)
+    function new(fromJson as roAssociativeArray, toJson as roAssociativeArray, duration as float, delay = 0 as float)
+      super(mc.getTop() as roSGNodeGroup, "#ga_random", duration, 0, 1, "ViewJson", delay)
       m.fromJson = fromJson
       m.toJson = toJson
       m.targetM = mc.getTopM()
@@ -983,7 +983,7 @@ namespace mv.animations
     public delay = 0
     public animateFromCurrentValue = false 'if true, the animation will always take the current value, irrespective of from value
 
-    function new(target as roSGNodeNode, animations = invalid as roArray, repeat = false as boolean, delay = 0 as float)
+    function new(target as roSGNodeGroup, animations = invalid as roArray, repeat = false as boolean, delay = 0 as float)
       super("SequenceAnimation", target)
       m.node = createObject("roSGNode", "SequentialAnimation")
       animId = mv.animations.getAnimationKeyId()
@@ -1074,15 +1074,16 @@ namespace mv.animations
   end class
 
   class SimpleKenBurns extends mv.animations.AbstractAnimation
-    private sAnim as roSGNodeNode
-    private mAnim as roSGNodeNode
-    private pAnim as roSGNodeNode
-    private scale = [1, 1]
+    private sAnim as Scale
+    private mAnim as Move
+    private pAnim as Parallel
+    private scale = [1.0, 1.0]
     private movement = [0, 0]
 
-    function new(target as roSGNodeNode, duration as float, scale as roArray, movement as roArray, delay = 0 as float)
+    function new(target as roSGNodeGroup, duration as float, scale as float, movement as roArray, delay = 0 as float)
       super(target, "scale", duration, invalid, invalid, "SimpleKenBurnsAnimation", delay)
       m.scale = [scale, scale]
+      'bs:disable-next-line
       m.movement = [target.width * movement[0], target.height * movement[1]]
       m.sAnim = mv.animations.utils.scaleTo(target, duration, m.scale, false, delay)
       m.sAnim.easeFunction = "inQuad"
@@ -1096,7 +1097,7 @@ namespace mv.animations
     end function
 
     public override function clone()
-      return new mv.animations.SimpleKenBurns(m.target, m.duration, m.scale, m.movement, m.delay)
+      return new mv.animations.SimpleKenBurns(m.target, m.duration, m.scale[0], m.movement, m.delay)
     end function
 
     private override function createAnimationNode()

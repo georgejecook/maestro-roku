@@ -7,15 +7,16 @@
 namespace ml
   ' displays items in a grid, with:
   ' - floating focus scrolling left and right
-  ' - TBD fixed focus vertical
+  ' - TBD fixed focus vertical\
+  @node("ml_GridRow", "ml_BaseRow")
   class GridRow extends ml.BaseRow
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ managers and private state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private viewManager
-    private itemScroller
+    private viewManager as ml.ItemViewManager
+    private itemScroller as ml.ItemScroller
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ view tracking
@@ -44,7 +45,7 @@ namespace ml
     '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function onRecycle(newContent as roSGNodeNode)
+    protected override function onRecycle(newContent as roSGNode)
       super.onRecycle(newContent)
 
       m.cleanHeader()
@@ -54,7 +55,7 @@ namespace ml
       m.itemScroller.reset()
     end function
 
-    protected override function onContentChange(content as roSGNodeNode, keepOldFocusIfPossible = false as boolean)
+    protected override function onContentChange(content as roSGNode, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       ' ? " GRID CHANGE ========================================"
       m.configureHeader()

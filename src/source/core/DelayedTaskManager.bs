@@ -80,8 +80,9 @@ namespace mc.tasks
       end if
     end function
 
-    private function onDelayedTaskTimerFire(timer as roSGNodeNode)
-      taskInfo = timer.taskInfo
+    private function onDelayedTaskTimerFire(timer as roSGNode)
+      'bs:disable-next-line
+      taskInfo = timer.taskInfo as dynamic
       if taskInfo <> invalid
         m.activeTimers.delete(timer.id)
         m.delayedTasks[timer.id] = m.createTask(taskInfo.nodeType, taskInfo.fields)

@@ -6,6 +6,7 @@
 '  * @description light node wrapper around a Set to stop copies
 '  */
 namespace mc.collections
+  'FIXME - this needs updating - it's not a very good set implementation!!
   @node("mc_Set", "Node")
   class Set
 
@@ -19,9 +20,9 @@ namespace mc.collections
     public __contents as roArray
 
     public function clear()
-      m.data = {}
-      m.top.length = 0
-      m.top._debug = invalid
+      m.data = []
+      m.length = 0
+      m._debug = invalid
     end function
 
     public function add(value as dynamic)
@@ -30,12 +31,13 @@ namespace mc.collections
         m.data.remove(index)
       end if
       m.data.push(value)
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
-    public function append(other as roSGNodeNode)
-      m.data.append(other)
-      m.top.length = m.data.count()
+    public function append(other as roSGNode)
+      'TODO should enforce it's a set
+      m.data.append(other@.getValues())
+      m.length = m.data.count()
     end function
 
     public function get(index as integer) as dynamic
@@ -44,7 +46,7 @@ namespace mc.collections
 
     public function remove(index as integer)
       m.data.delete(index)
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function hasValue(value as dynamic) as boolean
@@ -65,7 +67,7 @@ namespace mc.collections
     end function
 
     private function onDebugChange(value as dynamic)
-      m.top.__contents = m.data
+      m.__contents = m.data
     end function
   end class
 end namespace

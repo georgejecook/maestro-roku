@@ -23,13 +23,13 @@ namespace mv.debug
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private subScreen as roSGNodeNode
+    private subScreen as roSGNode
     private isBusy = false
     private pageIndex = 0
     private numberOfPages = 0
     private registry = new mc.Registry()
     private pageBuilderFunctions = []
-    private activeButtons = {}
+    private activeButtons = []
     private previousMenuIndex = 0
     private subMenuButtonFunction = invalid
 
@@ -140,7 +140,7 @@ namespace mv.debug
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-    private function showSubMenu(buttonFunction as roArray)
+    private function showSubMenu(buttonFunction as function)
       m.previousMenuIndex = m.buttonGroup.buttonSelected
       m.subMenuButtonFunction = buttonFunction
       m.updateButtons()
@@ -201,7 +201,7 @@ namespace mv.debug
       ]
     end function
 
-    private function setButtonFunctions(control as roSGNodeNode, buttons as roArray)
+    private function setButtonFunctions(control as roSGNode, buttons as roArray)
       control.buttons = mc.collections.map(buttons, function(item as string)
         return item[0]
       end function)
@@ -210,7 +210,7 @@ namespace mv.debug
       m.observeNodeField(control, "buttonSelected", m.onButtonGroupSelectedChange, "both")
     end function
 
-    function onButtonGroupSelectedChange(index as integer, node as roSGNodeNode) as void
+    function onButtonGroupSelectedChange(index as integer, node as roSGNode) as void
       if m.isBusy
         m.log.info("ignoring - screen is still busy")
         return
@@ -218,7 +218,7 @@ namespace mv.debug
       m.activeButtons[index][1]()
     end function
 
-    private function showScreen(screen as roSGNodeNode)
+    private function showScreen(screen as roSGNode)
       m.subScreen = screen
       m.observeNodeField(screen, "state", m.onScreenStateChange)
       m.navController@.push(screen)
@@ -329,7 +329,7 @@ namespace mv.debug
     end function
 
     function onKeyPressOptions() as boolean
-      poster = mc.getScene()._debugOverlayPoster
+      poster = (mc.getScene() as dynamic)._debugOverlayPoster as roSGNodePoster
       if poster = invalid
         poster = mc.createSGNode("mv_Poster", mc.getScene(), "_debugOverlayPoster", {
           size: [1920, 1080]

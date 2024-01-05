@@ -4,7 +4,11 @@ import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   class GridRowItemViewManager extends ml.ItemViewManager
-    public row = invalid
+
+    public content as roSGNodeml_RowContent
+
+
+
     public numRows = 0
     public numCols = 1
     public componentBufferMode = "rendered"
@@ -22,7 +26,7 @@ namespace ml
     private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
     private renderedRows = {}
 
-    function new(list as roSGNodeNode, row as roSGNodeNode, container as roSGNodeNode, componentPool as roSGNodeNode, minPos as integer, maxPos as integer)
+    function new(list as roSGNodeml_List, row as roSGNode, container as roSGNode, componentPool as roSGNodemc_ComponentPool, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
     end function
@@ -151,7 +155,7 @@ namespace ml
       super.reset()
     end function
 
-    override function createRenderers(content as roSGNodeNode, forceSync = false as boolean) as boolean
+    override function createRenderers(content as roSGNode, forceSync = false as boolean) as boolean
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
@@ -178,6 +182,7 @@ namespace ml
 
       x = 0
       y = 0
+      'bs:disable-next-line
       numItems = m.content.length
       children = m.content@.getChildren(-1, 0)
       m.numCols = m.settings.numColumns
@@ -203,7 +208,7 @@ namespace ml
           end if
           renderedIds[item.id] = true
           ' ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
-          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
+          settings = ml.listMixin.getCellSettings(m.owner.content as roSGNodeml_ListContent, m.content as roSGNodeml_RowContent, item)
           m.rects.push({
             translation: [x, y]
             size: settings.size

@@ -5,13 +5,13 @@ namespace mc
   @node("mc_Selection", "ContentNode")
   class Selection
     'item that started the selection
-    initialItem as roSGNodeNode
+    initialItem as roSGNode
 
     'parentCollection where this item came from
-    parentCollection as roSGNodeNode
+    parentCollection as roSGNode
 
     'current item, if changed since initial Item
-    currentItem as roSGNodeNode
+    currentItem as roSGNode
 
     'e.g. play or display
     action as string
@@ -20,7 +20,7 @@ namespace mc
     actionInfo = {}
 
     'screen where selection occurred
-    originScreen as roSGNodeNode
+    originScreen as roSGNode
 
     ' kind of screen to create, to execute the selection
     targetScreen as string
@@ -37,11 +37,13 @@ namespace mc
     ' info pertaining to state changes
     result = {}
 
-    function getNextItem(args = invalid as dynamic) as roSGNodeNode
+    private top as roSGNode
+
+    function getNextItem(args = invalid as dynamic) as roSGNode
       return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, 1, invalid, false, false)
     end function
 
-    function getPreviousItem(args = invalid as dynamic) as roSGNodeNode
+    function getPreviousItem(args = invalid as dynamic) as roSGNode
       return mc.collections.getItemAtOffset(m.parentCollection, m.currentItem, -1, invalid, false, false)
     end function
 
@@ -53,8 +55,8 @@ namespace mc
       m.currentItem = m.getPreviousItem()
     end function
 
-    function getItemIndex(item as roSGNodeNode) as integer
-      return mc.collections.getArrayIndex(m.parentCollection, item)
+    function getItemIndex(item as roSGNode) as integer
+      return mc.collections.getArrayIndex(m.parentCollection as roSGNode, item)
     end function
 
     function clone(resetState = true as boolean)

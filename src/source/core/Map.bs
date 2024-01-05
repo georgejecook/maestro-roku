@@ -32,7 +32,7 @@ namespace mc.collections
 
     public function clear()
       m.data = {}
-      m.top.length = 0
+      m.length = 0
     end function
 
     public function remove(key as string) as void
@@ -40,7 +40,7 @@ namespace mc.collections
         return
       end if
       m.data.delete(key)
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function set(key as string, value as dynamic) as void
@@ -48,7 +48,7 @@ namespace mc.collections
         return
       end if
       m.data[key] = value
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function append(other as dynamic)
@@ -56,7 +56,7 @@ namespace mc.collections
         other = other@.getValues()
       end if
       m.data.append(other)
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function get(key as string) as dynamic
@@ -126,7 +126,7 @@ namespace mc.collections
           end if
         end if
       end for
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -135,7 +135,7 @@ namespace mc.collections
 
     private function onDebugChange(value as dynamic)
       ' ? "dumping contents"
-      m.top.__contents = m.data
+      m.__contents = m.data
     end function
   end class
 end namespace

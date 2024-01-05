@@ -12,13 +12,14 @@ import "pkg:/source/core/DebugTimer.bs"
 namespace ml
   class ItemScroller extends mc.BaseClass
 
-    public container as roSGNodeNode
-    public offsetContainer as roSGNodeNode
+    public container as roSGNodeGroup
+    public offsetContainer as roSGNodeGroup
 
-    public viewManager
-    public focusManager
+    public viewManager as ml.ItemViewManager
+
+    public focusManager as roSGNodeml_FocusIndicatorManager
     public viewPortEventNotifier
-    private settings
+    private settings as roSGNodeml_FocusSettings
 
     public isMovingMultiple = false
 
@@ -29,7 +30,7 @@ namespace ml
     public nextFocusIndicatorConfig as ml.FocusIndicatorConfig
     public targetCellInfo as ml.CellInfo
 
-    public focusedItem as roSGNodeNode
+    public focusedItem as roSGNode
 
     public index = 0
     public nextIndex = 0
@@ -63,7 +64,7 @@ namespace ml
     private isMultiMoveFinished = false
     private disableNonAnimatedFocusUpdates = false
 
-    function new(name as string, viewManager as ml.ItemViewManager, focusManager as roSGNodeNode)
+    function new(name as string, viewManager as ml.ItemViewManager, focusManager as roSGNodeml_FocusIndicatorManager)
       super(name)
       m.viewManager = viewManager
       viewManager.itemScroller = m
