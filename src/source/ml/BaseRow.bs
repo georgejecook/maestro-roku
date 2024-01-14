@@ -44,9 +44,9 @@ namespace ml
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected backgroundGroup as roSGNode
-    protected contentGroup as roSGNode
-    protected foregroundGroup as roSGNode
+    protected backgroundGroup as roSGNodeGroup
+    protected contentGroup as roSGNodeGroup
+    protected foregroundGroup as roSGNodeGroup
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -59,7 +59,7 @@ namespace ml
     '++ Header Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected header as roSGNode
+    protected header as roSGNodeGroup
     protected currentHeaderType = invalid
 
     function new()
@@ -375,8 +375,8 @@ namespace ml
 
         if m.header <> invalid
           m.header.translation = [-m.settings.contentOffset[0], 0] 'cancel out this row's offset
-          m.header.width = m.width
-          m.header.height = headerSettings.height
+          (m.header as dynamic).width = m.width
+          (m.header as dynamic).height = headerSettings.height
           m.header@.setContent(m._content, headerSettings)
           m.contentGroup.translation = [0, headerSettings.height]
         else

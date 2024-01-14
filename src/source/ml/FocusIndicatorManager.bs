@@ -80,7 +80,7 @@ namespace ml
     private manualMode = false
     private enabled = false
 
-    private itemFocusManager = new ml.ItemFocusManager("FocusIndicatorManager", m)
+    private itemFocusManager = new ml.ItemFocusManager("FocusIndicatorManager", m.top as roSGNodeml_FocusIndicatorManager)
 
     function new()
       super("ml_FocusIndicatorManager")
@@ -392,6 +392,8 @@ namespace ml
       end if
 
       if not m.manualMode
+        'FIXME: should be able to set blendColor to string
+        'bs:disable-next-line
         m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
         m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
       end if

@@ -23,28 +23,29 @@ namespace ml
 
     public isNotifyingListDelegate = true
 
+    delegateManager
+    didStart = false
+    didFinish = false
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ PrivateFields
+    '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusIndicatorConfig = ml.createFocusIndicatorConfig(invalid, invalid)
     private previousFocusIndicatorConfig = ml.createFocusIndicatorConfig(invalid, invalid)
-    private delegateManager
-    private didStart = false
-    private didFinish = false
     private lastSentFraction = -1
     private direction = 0
 
     private fromEvent as ml.InternalListEvent
     private toEvent as ml.InternalListEvent
 
-    private focusIndicatorManager as ml.FocusIndicatorManager
+    private focusIndicatorManager as roSGNodeml_FocusIndicatorManager
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function new(name as string, focusIndicatorManager as ml.FocusIndicatorManager)
+    function new(name as string, focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
       super("ItemFocusManager")
       m.name = name
       m.focusIndicatorManager = focusIndicatorManager

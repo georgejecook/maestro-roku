@@ -58,11 +58,11 @@ namespace mc.tasks
       if (timer as ITrackedTimer).isReleased <> true
         mc.tasks.cleanNodeObserver(timer as roSGNode, "fire")
         timer.isFrameTimer = false
-        timer.control = "stop"
+        (timer as roSGNodeTimer).control = "stop"
         mc.setOrAddNodeField(timer as roSGNode, "isReleased", true)
         mc.private.releaseMaestroPooledComponent(timer)
-        if timer.getParent() <> invalid
-          timer.getParent().removeChild(timer)
+        if (timer as roSGNodeTimer).getParent() <> invalid
+          (timer as roSGNodeTimer).getParent().removeChild(timer)
         end if
       else
         mc.private.logError("attempted to cancel previously cancelled timeout", mc.dv(timer))

@@ -7,57 +7,57 @@ import "pkg:/source/ml/CellInfo.bs"
 namespace ml
   class ItemViewManager extends mc.BaseClass
 
-    public screenRect = { translation: [0, 0], size: [1920, 1080] }
-    public componentBufferMode = "none"
-    private componentPool as roSGNodemc_ComponentPool
+    screenRect = { translation: [0, 0], size: [1920, 1080] }
+    componentBufferMode = "none"
+    protected componentPool as roSGNodemc_ComponentPool
 
-    public numRows = 0
-    public numCols = 1
+    numRows = 0
+    numCols = 1
 
     'owning views
     'we wrap the container to make it very easy to reason about content offsets
-    public container = invalid
-    public owner as roSGNodeml_List 'TODO make list content
-    public delegate = invalid
-    public contentGroup = invalid
-    public cellInfos = [] as ml.CellInfo[]
-    private rowInfos = [] as roArray
-    private renderersByContentId = {}
-    private rendereredCellInfosByIndex = {}
+    container = invalid
+    owner as roSGNodeml_List 'TODO make list content
+    delegate = invalid
+    contentGroup = invalid
+    cellInfos = [] as ml.CellInfo[]
+    rowInfos = []
+    renderersByContentId = {}
+    rendereredCellInfosByIndex = {}
 
 
     'tracking used for reusing cells during multi-render batches
-    private previousRendereredByContentId = {}
-    private reusedRenderers = []
+    protected previousRendereredByContentId = {}
+    protected reusedRenderers = []
 
     'content
-    public content as roSGNodemc_Node
-    public rects = []
-    public settings = invalid
-    public listSettings = invalid
+    content as roSGNodemc_Node
+    rects = []
+    settings = invalid
+    listSettings = invalid
 
     'tracking
-    public direction = 0
-    public visibleItems = []
-    public numberOfItems = 0
-    public numberOfVisibleItems = 0
-    public row as roSGNodeml_BaseRow
+    direction = 0
+    visibleItems = []
+    numberOfItems = 0
+    numberOfVisibleItems = 0
+    row as roSGNodeml_BaseRow
 
     ' 0 - x, 1 - y, 2 - both
-    public axes = 0
-    public minPos = 0
-    public maxPos = 1080
-    public lastScrollIndex = 0
-    public lastScrollDirection = 0
-    public isScrolling = false
-    public scrollingStartIndex = -1
-    private isRendering = false
+    axes = 0
+    minPos = 0
+    maxPos = 1080
+    lastScrollIndex = 0
+    lastScrollDirection = 0
+    isScrolling = false
+    scrollingStartIndex = -1
+    protected isRendering = false
 
     'TODO - move into settings or calculate this
-    private renderedIndexUpdateInterval = 10
+    protected renderedIndexUpdateInterval = 10
 
     'stored so we can send it with initialstate
-    public itemScroller as ml.ItemScroller
+    itemScroller as ml.ItemScroller
 
     protected placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
 
@@ -82,7 +82,7 @@ namespace ml
       m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.owner.height] }
     end function
 
-    public function reset()
+    function reset()
       m.log.info ("resetting itemViewManager", m.__classname)
 
       m.content = invalid
@@ -107,7 +107,7 @@ namespace ml
       m._updateLayout(fullUpdate)
     end function
 
-    function setContent(content as roSGNodemc_Node)
+    function setContent(content as roSGNodeml_RowContent)
       m.log.verbose("setContent")
       m.content = content
       m.settings = ml.listMixin.getRowSettings((m.owner.content as roSGNodeml_ListContent), m.content as roSGNodeml_RowContent)
@@ -217,7 +217,7 @@ namespace ml
       ' end if
     end function
 
-    private function getCellInfoForContentIndex(contentIndex as integer) as ml.CellInfo
+    function getCellInfoForContentIndex(contentIndex as integer) as ml.CellInfo
       info = invalid
       ' ? "getCellInfoForContentIndex" ; contentIndex
       for each info in m.cellInfos
@@ -322,7 +322,7 @@ namespace ml
       return cell
     end function
 
-    protected function updateCell(cell as roSGNode, index as integer, item as roSGNode)
+    protected function updateCell(cell as roSGNodeml_BaseCell, index as integer, item as roSGNode)
       if cell <> invalid
         ' ? " updating rendered cell IDX" cell.index " CT " asString(item.title) " index " index " ID " asString(item.id)
         m.previousRendereredByContentId.delete(item.id)
@@ -693,7 +693,7 @@ namespace ml
       end for
     end function
 
-    protected function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
+    function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
       if previousInfo = invalid or previousInfo.index = -1
         return 0
       end if

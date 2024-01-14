@@ -14,6 +14,7 @@ namespace ml
 
     private viewManager
     private itemScroller
+    protected top as roSGNodeml_HorizontalRow
 
     function new()
       super()
@@ -31,7 +32,8 @@ namespace ml
     private function createManagers()
       m.log.info("createManagers")
       m.viewManager = new ml.RowItemViewManager(m.owner, m.top, m.contentGroup, (m.global as dynamic).componentPool, 0, m.width)
-      m.itemScroller = new ml.RowItemScroller(m.viewManager, m.owner.focusIndicatorManager)
+      'FIXME - why is cast to roSGNodeml_FocusIndicatorManager needed?
+      m.itemScroller = new ml.RowItemScroller(m.viewManager, m.owner.focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

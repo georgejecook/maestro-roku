@@ -19,7 +19,7 @@ namespace ml
 
     public focusManager as roSGNodeml_FocusIndicatorManager
     public viewPortEventNotifier
-    private settings as roSGNodeml_FocusSettings
+    protected settings as roSGNodeml_FocusSettings
 
     public isMovingMultiple = false
 
@@ -49,20 +49,21 @@ namespace ml
 
     public moveAnimation
 
-    private animSpeed = 0.05
-    private animSpeedIndex = 0.05
+    protected animSpeed = 0.05
+    protected animSpeedIndex = 0.05
 
-    private activeScrollLocation = 0
-    private lastScrollOffsetFraction = 0
-    private nextScrollLocation = 0
-    private postHopIndex = 0
-    private isScrollCancelled = false
-    private keyPressIndex = 0
+    protected activeScrollLocation = 0
+    protected lastScrollOffsetFraction = 0
+    protected nextScrollLocation = 0
+    protected postHopIndex = 0
+    protected isScrollCancelled = false
+    protected keyPressIndex = 0
 
     protected previousScreenPos = 0
+    protected disableScrollOffsetAnim = false
 
-    private isMultiMoveFinished = false
-    private disableNonAnimatedFocusUpdates = false
+    protected isMultiMoveFinished = false
+    disableNonAnimatedFocusUpdates = false
 
     function new(name as string, viewManager as ml.ItemViewManager, focusManager as roSGNodeml_FocusIndicatorManager)
       super(name)
@@ -180,7 +181,6 @@ namespace ml
       return false
     end function
 
-    private disableScrollOffsetAnim = false
 
     function moveFromPress(offset as integer, forceSequential = true as boolean, isPage = false as boolean) as boolean
       m.isScrollCancelled = false
@@ -707,7 +707,7 @@ namespace ml
       end if
     end function
 
-    protected function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
+    function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
       if isFloatingFocus
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, true)
       else
@@ -900,7 +900,8 @@ namespace ml
         end function)
       end if
     end function
-    protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
+
+    function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       'bs:disable-next-line
       isInViewPort = m.viewManager.row = invalid or m.viewManager.row.isInViewPort
 

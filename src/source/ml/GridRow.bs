@@ -15,8 +15,8 @@ namespace ml
     '++ managers and private state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private viewManager as ml.ItemViewManager
-    private itemScroller as ml.ItemScroller
+    private viewManager as ml.GridRowItemViewManager
+    private itemScroller as ml.GridRowItemScroller
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ view tracking
@@ -37,8 +37,10 @@ namespace ml
 
     private function createManagers()
       m.log.info("createManagers")
-      m.viewManager = new ml.GridRowItemViewManager(m.owner, m.top, m.contentGroup, (m.global as dynamic).componentPool, 0, m.width)
-      m.itemScroller = new ml.GridRowItemScroller(m.viewManager, m.owner.focusIndicatorManager)
+      m.viewManager = new ml.GridRowItemViewManager(m.owner, m.top as roSGNodeml_BaseRow, m.contentGroup, (m.global as dynamic).componentPool, 0, m.width)
+
+      'FIXME: why is the case needed on roSGNodeml_FocusIndicatorManager?
+      m.itemScroller = new ml.GridRowItemScroller(m.viewManager, m.owner.focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -51,11 +53,12 @@ namespace ml
       m.cleanHeader()
       m.viewManager.owner = m.owner
       m.viewManager.setContent(invalid)
-      m.itemScroller.focusManager = m.owner.focusIndicatorManager
+      'FIXME: why is the case needed on roSGNodeml_FocusIndicatorManager?
+      m.itemScroller.focusManager = m.owner.focusIndicatorManager as roSGNodeml_FocusIndicatorManager
       m.itemScroller.reset()
     end function
 
-    protected override function onContentChange(content as roSGNode, keepOldFocusIfPossible = false as boolean)
+    protected override function onContentChange(content as roSGNodeml_RowContent, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       ' ? " GRID CHANGE ========================================"
       m.configureHeader()

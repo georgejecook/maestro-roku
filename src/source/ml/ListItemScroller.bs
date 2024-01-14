@@ -11,7 +11,11 @@ import "pkg:/source/ml/ItemScroller.bs"
 namespace ml
   class ListItemScroller extends ml.ItemScroller
 
-    public viewManager as ml.ListItemViewManager
+    viewManager as ml.ListItemViewManager
+    isDoingFlowFocus as boolean
+    isDoingLongPress as boolean
+    previousFocusedRow as roSGNodeml_BaseRow
+    previousFocusedIndex as integer
 
     function new(viewManager as ml.ItemViewManager, focusManager as roSGNodeml_FocusIndicatorManager)
       super("ListItemScroller", viewManager, focusManager)
@@ -22,7 +26,7 @@ namespace ml
     '++ Component Info
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
+    override function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
       m.log.info(" LIST setFocusManagerInfo ", m.viewManager.isScrolling)
       if m.viewManager.isScrolling and nextCellInfo <> invalid
         m.log.info("choosing info for scrolling into")
@@ -117,7 +121,7 @@ namespace ml
       end if
     end function
 
-    protected override function notifyViewportEvents(direction as integer, forceAll = false as boolean)
+    override function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       m.viewPortEventNotifier.notifyListViewportEvents(m.cellInfo, m.nextCellInfo, m.direction, forceAll)
     end function
 

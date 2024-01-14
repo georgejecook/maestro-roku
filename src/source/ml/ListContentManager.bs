@@ -8,38 +8,30 @@ namespace ml
   class ListContentManager extends mc.BaseClass
     public content as roSGNodeml_ListContent
 
-    private list as ml.List
-
-
-
+    private list as ml.IListClassPrivate
     private listNode as roSGNodeml_List
-
-
-
     private isUpdateEnabled = true
 
     private viewManager as ml.ListItemViewManager
     private itemScroller as ml.ListItemScroller
-    private focusIndicatorManager as roSGNodeGroup
-    'FIXME - doesn't work
-    ' private focusIndicatorManager as roSGNodeml_FocusIndicatorManager
+    private focusIndicatorManager as roSGNodeml_FocusIndicatorManager
     private rowContentInfoByContentId = {}
     private previousFocusedRowInfo as ml.CellInfo
     private previousFocusedCellInfo as ml.CellInfo
     private previousRowContent as roSGNode
     private previousCellContent as roSGNode
-    private isForcingUpdateAll = false
+    isForcingUpdateAll = false
 
-    function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as roSGNode)
+    function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
       super("ListContentManager")
       m.list = list
-      m.listNode = list.top as roSGNodeml_List
+      m.listNode = (list as dynamic).top as roSGNodeml_List
       m.viewManager = viewManager
       viewManager.contentManager = m
       m.itemScroller = itemScroller
 
       'FIXME - type not working
-      m.focusIndicatorManager = focusIndicatorManager as roSGNodeGroup
+      m.focusIndicatorManager = focusIndicatorManager
     end function
 
     public function setContent(content as roSGNodeml_ListContent, forceUpdate = false as boolean) as void
@@ -50,12 +42,14 @@ namespace ml
         content.id = "invalidContent"
         m.content = content
         m.listNode.content = content
+        'bs:disable-next-line
         m.list.cleanup()
         ' ? " LCM RENDERING SET CONTENT INVALID"
         m.setListRendering(false)
         return
       end if
 
+      'bs:disable-next-line
       m.list.contentGroup.visible = false
 
       m.setListRendering(true)
@@ -71,6 +65,8 @@ namespace ml
         if forceUpdate
           m.ascertainPreviousFocusInfo()
         end if
+
+        'bs:disable-next-line
         m.list.resetState()
         m.updateListFocusAfterApplyingChanges()
       else if forceUpdate

@@ -9,6 +9,51 @@ import "pkg:/source/ml/ListContentManager.bs"
 
 namespace ml
 
+  interface IListClassPrivate
+    _lastKeyPress as string
+    contentGroup as roSGNodeGroup
+    rowsGroup as roSGNodeGroup
+    viewManager as ml.ListItemViewManager
+    itemScroller as ml.ListItemScroller
+    contentManager as ml.ListContentManager
+    sourceFocusRect as object
+    targetFocusRect as object
+    isInitialized as boolean
+    isDoingFlowFocus as boolean
+    focusedRowContent as roSGNode
+    focusedCellContent as roSGNode
+    preHiddenContent as roSGNode
+    keyTimer as roSGNode
+    wasFocused as boolean
+    createViews as function
+    initManagers as function
+    createEventsBroker as function
+    resetState as function
+    cleanup as function
+    onIsHiddenChange as function
+    setFocusIndicatorManagerHidden as function
+    canMoveFromKeyPress as function
+    onRowKeyPress as function
+    isOkPressAllowedNow as function
+    isAnyKeyPressLocked as function
+    onKeyPressFastForward as function
+    onKeyPressRewind as function
+    onKeyPressLeft as function
+    onKeyPressRight as function
+    canScroll as function
+    isAlreadyScrolling as function
+    onKeyPressOptions as function
+    onKeyPressUp as function
+    onKeyPressOk as function
+    onKeyPressDown as function
+    getLongPressIntervalForKey as function
+    onLongPressStart as function
+    onLongPressFinish as function
+    _setIndices as function
+    moveToRowItemIndex as function
+  end interface
+
+
   @node("ml_List", "mv_BaseView")
   class List extends mv.BaseView
 
@@ -184,7 +229,9 @@ namespace ml
       if m.contentManager.content <> invalid
         m.log.info("new content is present")
         m.viewManager.setContent(m.contentManager.content)
-        m.top.clippingrect = [0, 0, m.width, m.height]
+
+        'FIXME - should not be needed
+        (m.top as dynamic).clippingRect = [0, 0, m.width, m.height]
       else
         m.log.info("content is being set to invalid - resetting view manager")
         m.viewManager.reset()

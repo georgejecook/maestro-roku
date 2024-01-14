@@ -298,8 +298,10 @@ namespace mx
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as roSGNode)
-      mc.tasks.cancelWaitTimer(timer)
+    'FIXME - should not need the or here
+    protected function cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
+      'FIXME: why is this cast needed?
+      mc.tasks.cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
     end function
 
     protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as roSGNode

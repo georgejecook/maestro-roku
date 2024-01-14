@@ -23,14 +23,14 @@ namespace ml.listMixin
     return content
   end function
 
-  function createRowSettings(cellSettings = invalid as roSGNode, focusSettings = invalid as roSGNode, space = 30 as integer, headerSettings = invalid as roSGNode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function createRowSettings(cellSettings = invalid as roSGNodeml_CellSettings, focusSettings = invalid as roSGNodeml_FocusSettings, space = 30 as integer, headerSettings = invalid as roSGNodeml_HeaderSettings, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
     settings = createObject("roSGNode", "ml_RowSettings")
     settings.isHiddenWhenEmpty = true
     ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
     return settings
   end function
 
-  function createGridRowSettings(cellSettings = invalid as roSGNode, focusSettings = invalid as roSGNode, space = 30 as integer, headerSettings = invalid as roSGNode, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
+  function createGridRowSettings(cellSettings = invalid as roSGNodeml_CellSettings, focusSettings = invalid as roSGNodeml_FocusSettings, space = 30 as integer, headerSettings = invalid as roSGNodeml_HeaderSettings, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
     settings = createObject("roSGNode", "ml_GridRowSettings")
     settings.isHiddenWhenEmpty = true
     if numRows = invalid or numRows < 1
@@ -60,7 +60,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function configureRowSettings(settings as roSGNode, cellSettings = invalid as roSGNode, focusSettings = invalid as roSGNode, space = 30 as integer, headerSettings = invalid as roSGNode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function configureRowSettings(settings as roSGNodeml_RowSettings, cellSettings = invalid as roSGNodeml_CellSettings, focusSettings = invalid as roSGNodeml_FocusSettings, space = 30 as integer, headerSettings = invalid as roSGNodeml_HeaderSettings, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
 
     if cellSettings = invalid
       m.log.warn("there were no cell settings - this is probably a mistake - using defaults!")

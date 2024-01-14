@@ -5,17 +5,19 @@ import "pkg:/source/ml/ListContentManager.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
-    private batchTimer as roSGNode
-    private visibleComponents = []
+    isUpdating = false
+    componentBufferMode = "none"
+    contentManager as ml.ListContentManager
 
-    private isUpdating = false
+    private batchTimer as mc.tasks.ITrackedTimer
+    visibleComponents = []
+
     private isShowingAllComps = false
-    ' public componentBufferMode = "rendered"
-    public componentBufferMode = "none"
-    public contentManager as ml.ListContentManager
-    protected content as roSGNodeml_ListContent
 
-    public override function reset()
+    ' public componentBufferMode = "rendered"
+    content as roSGNodeml_ListContent
+
+    override function reset()
       m.log.info("resetting LIST. numItems: ", m.numberOfItems)
 
       if m.isRendering
@@ -63,7 +65,8 @@ namespace ml
       for each id in allComponents
         m.visibleComponents.push(allComponents[id])
       end for
-      m.cancelWaitTimer(m.batchTimer)
+      'FIXME why is this needed?
+      m.cancelWaitTimer(m.batchTimer as mc.tasks.ITrackedTimer)
     end function
 
     override function createRenderers(content as roSGNodeml_ListContent, forceSync = false as boolean) as boolean
