@@ -1,6 +1,10 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
 
+interface focusableNode extends roSGNode
+  optional isFocused as boolean
+  optional drawFocusFeedback as boolean
+end interface
 
 ' /**
 '  * @module FocusManager
@@ -24,7 +28,7 @@ end function
 '++ Protected api - only call from mixin
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOn(node as roSGNode, isForced = false as boolean) as void
+function _setFocusOn(node as focusableNode, isForced = false as boolean) as void
   m.log.verbose("setFocusOn", mc.dv(node))
 
   if m.top.enabled = false
@@ -64,7 +68,7 @@ function _setFocusOn(node as roSGNode, isForced = false as boolean) as void
 
 end function
 
-function isChildOfLockedNode(node as roSGNode) as boolean
+function isChildOfLockedNode(node as focusableNode) as boolean
   parents = getParents(node)
   for each parent in parents
     if parent.isSameNode(m.lockedNode)
@@ -74,7 +78,7 @@ function isChildOfLockedNode(node as roSGNode) as boolean
   return false
 end function
 
-function _unsetFocusOn(node as roSGNode)
+function _unsetFocusOn(node as focusableNode)
   m.log.info("manually unsetting focus on node")
   if m.top.enabled = true
     node.setFocus(false)
@@ -83,7 +87,7 @@ function _unsetFocusOn(node as roSGNode)
   end if
 end function
 
-function _setFocusLocked(node as roSGNode, reason = "" as string) as void
+function _setFocusLocked(node as focusableNode, reason = "" as string) as void
 
   if m.top.enabled = false
     m.log.error("DISBALED: cannot set focuslocked on", mc.dv(node))
@@ -120,7 +124,7 @@ end function
 '++ private impl
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOnImpl(node as roSGNode, parents as roArray) as void
+function _setFocusOnImpl(node as focusableNode, parents as roArray) as void
 
   currentNode = m.top.focusedNode
   isCurrentNode = false
@@ -179,7 +183,7 @@ function _setFocusOnImpl(node as roSGNode, parents as roArray) as void
   end if
 end function
 
-function getParents(node as roSGNode)
+function getParents(node as focusableNode)
   if type(node) <> "roSGNode"
     return []
   end if
@@ -217,7 +221,7 @@ function getParents(node as roSGNode)
   return parents
 end function
 
-function isValid(node as roSGNode)
+function isValid(node as focusableNode)
 
   if mc.isUndefined(node)
     m.log.error("asked to focus on undefined node")

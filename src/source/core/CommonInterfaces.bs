@@ -1,0 +1,35 @@
+namespace mc
+  namespace tasks
+    interface ITrackedTimer extends roSGNodeTimer
+      optional isReleased as boolean
+      optional isFrameTimer as boolean
+    end interface
+
+    interface IObservedNode
+      optional _oid as string
+    end interface
+
+    interface IManagedTask
+      optional _oid as string
+      optional _observedField as string
+      optional _mIsRunning as string
+    end interface
+  end namespace
+
+  interface IBaseClass
+    createSGNode as function
+    createNode as function
+    observeNodeField as function
+    unobserveNodeField as function
+    observe as function
+    unobserve as function
+    createTask as function
+    cancelTask as function
+    sendNotification as function
+    isNotificationObservingSupported as function
+    observeNotification as function
+    unobserveNotification as function
+    _onNotification as function
+    optional _dataMappedControlIds as roAssociativeArray
+  end interface
+end namespace

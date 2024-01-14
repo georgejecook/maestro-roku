@@ -1,5 +1,7 @@
 import "pkg:/source/core/Utils.bs"
 
+import "pkg:/source/core/CommonInterfaces.bs"
+
 namespace mv
   function findNodes(nodeIds as roArray) as void
     if type(nodeIds) = "roArray"
@@ -54,7 +56,7 @@ namespace mv
   end function
 
   function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
-    mTarget = m
+    mTarget = m as mc.IBaseClass
     if targetNode = invalid
       targetNode = m.top
     end if
@@ -136,7 +138,7 @@ namespace mv
     return firstView
   end function
 
-  function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
+  function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as mc.IBaseClass, updateDataMappedIds = false as boolean, dataBindingContext = invalid as dynamic)
     if mTarget = invalid
       mTarget = m
     end if
@@ -163,7 +165,7 @@ namespace mv
             nodeJson.delete("_type")
             nodeJson.delete("_children")
             nodeJson.delete("_dataMap")
-            view = mc.createSGNode(nodeType, targetNode, id, nodeJson, not _initializeAfterCreatingChildren, mTarget)
+            view = mc.createSGNode(nodeType, targetNode, id, nodeJson, not _initializeAfterCreatingChildren, mTarget as mc.IBaseClass)
             nodeJson.id = id
             nodeJson._type = _type
             nodeJson._children = _children

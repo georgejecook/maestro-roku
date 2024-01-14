@@ -3,6 +3,7 @@ import "pkg:/source/core/Utils.bs"
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Notification.bs"
+import "pkg:/source/core/CommonInterfaces.bs"
 
 namespace mc
   class BaseClass
@@ -70,7 +71,7 @@ namespace mc
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function createSGNode(nodeType as string, parent = invalid as roSGNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as dynamic
-      return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
+      return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget as IBaseClass)
     end function
 
     function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
@@ -82,10 +83,7 @@ namespace mc
         mTarget = m
       end if
       if targetNode = invalid
-        'FIXME
-        'CHECK THIS!!!!!! - seems odd..
-        'bs:disable-next-line
-        targetNode = mTarget.m
+        targetNode = mTarget
       end if
       'FIXME - maestro-bsc needs to understand overloaded namespaces
       'bs:disable-next-line
@@ -129,16 +127,16 @@ namespace mc
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+    protected function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.tasks.ITrackedTimer
       return mc.tasks.setTimeout(callback, duration, sendMode, m)
     end function
 
-    protected function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+    protected function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.tasks.ITrackedTimer
       return mc.tasks.setInterval(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as roSGNode)
-      mc.tasks.cancelWaitTimer(timer)
+    protected function cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
+      mc.tasks.cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
     end function
 
     protected function cancelTimeout(timer as roSGNode)
@@ -153,7 +151,7 @@ namespace mc
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as roSGNode)
+    protected function cancelTask(task as roSGNodeTask)
       mc.tasks.cancelTask(task)
     end function
 

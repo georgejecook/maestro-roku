@@ -54,7 +54,7 @@ namespace mv
     function showKeyboardDialog(title as string, text as string, callback as function, isSecure as boolean, buttons as roArray, buttonRoles = { continue: "Continue", clear: "Clear", back: "Back", showHide: "Show/Hide password" } as roAssociativeArray) as IDialogScreen
       m.dialog = createObject("roSGNode", "StandardKeyboardDialog")
       if isSecure
-        m.dialog.textEditBox.secureMode = true
+        (m.dialog.textEditBox as dynamic).secureMode = true
       end if
       m.dialog.buttons = buttons
 
@@ -73,9 +73,9 @@ namespace mv
       m.observeNodeField(m.dialog as roSGNode, "wasClosed", m.closeDialog, "none")
 
       m.dialog.text = text
-      m.dialog.textEditBox.cursorPosition = len(text)
+      (m.dialog.textEditBox as dynamic).cursorPosition = len(text)
 
-      mc.getScene().dialog = m.dialog
+      (mc.getScene() as dynamic).dialog = m.dialog
 
       return m.dialog
     end function
@@ -119,7 +119,7 @@ namespace mv
 
       if m.dialog <> invalid and m.dialog.close = false
         m.dialog.close = true
-        mc.getScene().dialog = invalid
+        (mc.getScene() as dynamic).dialog = invalid
       end if
 
       m.dialog = invalid

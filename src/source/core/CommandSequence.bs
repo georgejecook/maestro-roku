@@ -102,11 +102,11 @@ namespace mc
 
         else if command.isParallel = true
           m.log.verbose(`command ${command.name} is a parallel command - starting commands now`)
-          m.startParallelCommands(command)
+          m.startParallelCommands(command as ParallelCommand)
 
         else if command.isSequence = true
           m.log.verbose(`command ${command.name} is a sequential command - starting commands now`)
-          m.startSequentialCommand(command)
+          m.startSequentialCommand(command as SequentialCommand)
 
         else if command.isTask = true
           task = m.createTask(command.taskName, command.taskArgs, m.onTaskCommandCallback, true, "both")

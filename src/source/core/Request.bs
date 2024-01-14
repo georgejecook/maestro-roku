@@ -7,12 +7,18 @@ import "pkg:/source/core/QueryStringBuilder.bs"
 
 namespace mc.net
 
+  interface IRequestArgs
+    optional json as roAssociativeArray
+    optional headers as roAssociativeArray
+    optional params as roAssociativeArray
+  end interface
+
   class Request
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private log
+    protected log
     private isLogAsCurlEnabled = mc.getGlobal().isRequestLoggingAsCurl = true
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -27,32 +33,32 @@ namespace mc.net
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function get(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
+    function get(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
       return m.executeRequest("GET", url, params, headers, otherArgs)
     end function
 
-    function post(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
+    function post(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function delete(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
+    function delete(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
       return m.executeRequest("DELETE", url, params, headers, otherArgs)
     end function
 
-    function put(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
+    function put(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
-    function formPost(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
+    function formPost(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
       if mc.isAACompatible(otherArgs) and mc.isAACompatible(params)
         json = asAA((otherArgs as dynamic).json)
         json.append(params)
-        otherArgs.json = json
+        (otherArgs as dynamic).json = json
       end if
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function executeRequest(method as string, url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as roAssociativeArray) as mc.net.NetResult
+    function executeRequest(method as string, url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
 
       if mc.isAACompatible(otherArgs)
         args = otherArgs

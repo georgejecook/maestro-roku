@@ -111,7 +111,7 @@ namespace mv
 
     function dismissDialog(dialog as roSGNode)
       if dialog <> invalid
-        dialog.buttonSelected = -1
+        (dialog as dynamic).buttonSelected = -1
       end if
     end function
 
@@ -134,7 +134,7 @@ namespace mv
       buttons = (m.text as dynamic).onKeyboardDialogButtonSelected as dynamic
 
       if selectedButtonText = buttons.password
-        dialog.textEditBox.secureMode = not (dialog.textEditBox as dynamic).secureMode
+        (dialog.textEditBox as dynamic).secureMode = not (dialog.textEditBox as dynamic).secureMode
       else if selectedButtonText = buttons.continue
         isClosing = true
         m.delegate.__cb = m.callback
@@ -156,7 +156,7 @@ namespace mv
 
       if m.dialog <> invalid and m.dialog.close = false
         m.dialog.close = true
-        mc.getScene().dialog = invalid
+        (mc.getScene() as dynamic).dialog = invalid
       end if
 
       m.dialog = invalid

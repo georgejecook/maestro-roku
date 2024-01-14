@@ -9,7 +9,7 @@ end function
 '++ public api
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function push(view as roSGNode, animated = true as boolean, transition = invalid as roSGNode) as void
+function push(view as roSGNodemv_BaseScreen, animated = true as boolean, transition = invalid as roSGNode) as void
   m.log.method("push")
   if view = invalid
     m.log.warn(" push invalid view passed in : ignoring")
@@ -28,7 +28,7 @@ function push(view as roSGNode, animated = true as boolean, transition = invalid
   transitionToView(view, animated)
 end function
 
-function reset(newFirstScreen = invalid as roSGNode, endIndex = -1 as integer, animated = false as boolean, transition = invalid as roSGNode)
+function reset(newFirstScreen = invalid as roSGNodemv_BaseScreen, endIndex = -1 as integer, animated = false as boolean, transition = invalid as roSGNode)
   m.log.info(" reset ", m.top.numberOfViews)
   if endIndex < -1
     endIndex = -1
@@ -87,7 +87,7 @@ function pop(animated = true as boolean, transition = invalid as roSGNode)
   return previousView
 end function
 
-function replace(newView = invalid as roSGNode, animated = false as boolean, transition = invalid as roSGNode) as object
+function replace(newView = invalid as roSGNodemv_BaseScreen, animated = false as boolean, transition = invalid as roSGNode) as object
   m.log.method("replace ", m.top.numberOfViews)
   previousView = m.top.currentView
   m.tempTransition = transition

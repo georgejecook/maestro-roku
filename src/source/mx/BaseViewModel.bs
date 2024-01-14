@@ -4,6 +4,7 @@ import "pkg:/source/core/Tasks.bs"
 import "BaseObservable.bs"
 import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/view/ViewUtils.bs"
+import "pkg:/source/core/CommonInterfaces.bs"
 
 namespace mx
   ' /**
@@ -116,7 +117,7 @@ namespace mx
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as roSGNode, parent = invalid as roSGNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as dynamic
+    protected function createSGNode(nodeType as roSGNode, parent = invalid as roSGNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as mc.IBaseClass) as dynamic
       return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
@@ -305,7 +306,7 @@ namespace mx
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as roSGNode)
+    protected function cancelTask(task as roSGNodeTask)
       mc.tasks.cancelTask(task)
     end function
 

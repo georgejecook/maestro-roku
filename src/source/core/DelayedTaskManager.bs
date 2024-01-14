@@ -45,10 +45,10 @@ namespace mc.tasks
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function createTimer(nodeType as string, id as string, delay as float, fields as roAssociativeArray, resultField = "output" as string)
-      fields.id = id
+      (fields as dynamic).id = id
 
       timer = m.setTimeout(m.onDelayedTaskTimerFire, delay, "node")
-      mc.setOrAddNodeFields(timer, {
+      mc.setOrAddNodeFields(timer as roSGNode, {
         id: id
         taskInfo: {
           fields: fields

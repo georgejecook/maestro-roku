@@ -33,7 +33,7 @@ namespace mv
     public numberOfCells = 0
 
     private trackers = {}
-    private log
+    protected log
     private top as dynamic
 
     function new()
@@ -66,13 +66,13 @@ namespace mv
       return trackers
     end function
 
-    function getCell(cellId as string, scope = "all" as string) as roSGNode
+    function getCell(cellId as string, scope = "all" as string) as roSGNodeml_BaseCell
       trackers = m.getTrackers(scope)
 
       return trackers.cellsById[cellId]
     end function
 
-    function getCellForContentId(id as string, scope = "all" as string) as roSGNode
+    function getCellForContentId(id as string, scope = "all" as string) as roSGNodeml_BaseCell
       trackers = m.getTrackers(scope)
       cellId = trackers.cellIdsByContentId[id]
 
@@ -134,24 +134,6 @@ namespace mv
           trackers.cellsById.delete(cell.trackingId)
         end if
       end if
-    end function
-
-    function setViewStates(states as roAssociativeArray, scope = "all" as string)
-
-      trackers = m.getTrackers(scope)
-
-      for each id in states
-        dynamicCell = m.getCellForContentId(id)
-        trackers.viewStatesByContentId[id] = states[id]
-        if dynamicCell <> invalid
-          dynamicCell.viewState = states[id]
-          ' ? " setting cell view state"; id ; states[id]
-        else
-          'FIXME
-          ' ? " could not find cell for id " ; id
-        end if
-      end for
-
     end function
 
     function getStateForContentId(id as string, scope = "all" as string) as string
