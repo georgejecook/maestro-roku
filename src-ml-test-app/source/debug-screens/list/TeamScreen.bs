@@ -15,15 +15,15 @@ namespace ml.sample
     private defaultCellType = "ml_SimpleCell"
 
     'state
-    public componentPool as mc.types.node
+    public componentPool as roSGNodemc_ComponentPool
     private contentId = 0
     private rowSettings
     private focusSettings
     private cellSettings
     private loadingIndicator
-    private favoriteModule as mc.types.node
-    private followingModule as mc.types.node
-    private teamsModule as mc.types.node
+    private favoriteModule as roSGNode
+    private followingModule as roSGNode
+    private teamsModule as roSGNode
     private scrollSpeed = 0.75
     private numberItemsToRenderAfter = 5
     private numberItemsToRenderBefore = 2
@@ -43,7 +43,7 @@ namespace ml.sample
         color: "#6a307d"
       })
       m.listHolder = m.createSGNode("Group", m.top, "listHolder")
-      m.componentPool = m.global.componentPool
+      m.componentPool = (m.global as dynamic).componentPool
 
       m.list = m.createSGNode("ml_List", m.listHolder, "list", {
         translation: translation
@@ -159,7 +159,7 @@ namespace ml.sample
       return items
     end function
 
-    private function makeItem(cellType as string, title as string) as mc.types.node
+    private function makeItem(cellType as string, title as string) as roSGNode
       child = createObject("roSGNode", "ContentNode")
       id = str(m.contentId).trim()
       ' child.id = rnd(2147483647).toStr()

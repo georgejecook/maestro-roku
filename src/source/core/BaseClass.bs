@@ -1,8 +1,9 @@
 import "pkg:/source/core/Tasks.bs"
 import "pkg:/source/core/Utils.bs"
-import "Types-Polyfill.bs"
 import "pkg:/source/view/ViewUtils.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/core/Notification.bs"
+import "pkg:/source/core/CommonInterfaces.bs"
 
 namespace mc
   class BaseClass
@@ -10,13 +11,14 @@ namespace mc
     public state = "none"
     protected name
     protected log
+    protected __classname as string
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function new(name as string)
-      m.log = new log.Logger(name)
+      m.log = new rlog.Logger(name)
       m.name = name
     end function
 
@@ -39,8 +41,8 @@ namespace mc
     '++ Internal Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function _apply(funcName as string, args as mc.types.array, warnIfNoFunction = true as boolean)
-      return mc.apply(funcName, args, m, warnIfNoFunction)
+    function _apply(funcName as string, args as roArray, warnIfNoFunction = true as boolean)
+      return mc.apply(funcName, args, m as roAssociativeArray, warnIfNoFunction)
     end function
 
     private function _addIOCObserver(fieldName as string, instanceName as string, path as string, observedPath as string, observedField as string, callback = invalid as function)
@@ -68,27 +70,27 @@ namespace mc
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as string, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
-      return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
+    protected function createSGNode(nodeType as string, parent = invalid as roSGNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as roAssociativeArray) as dynamic
+      return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget as IBaseClass)
     end function
 
-    function createFragment(fragmentJson as dynamic, targetNode = invalid as mc.types.node, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
+    function createFragment(fragmentJson as dynamic, targetNode = invalid as roSGNode, dataBindingContext = invalid as dynamic, assignViewsToM = false as boolean)
       return mv.createFragment(fragmentJson, targetNode, dataBindingContext, assignViewsToM)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
       if targetNode = invalid
-        targetNode = mTarget.m
+        targetNode = mTarget
       end if
       'FIXME - maestro-bsc needs to understand overloaded namespaces
       'bs:disable-next-line
       return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget, true)
     end function
 
-    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -105,11 +107,11 @@ namespace mc
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean, fieldAndValueTargetField = invalid as string)
+    protected function observeNodeField(node as roSGNode, fieldName as string, callback as function or string, sendMode = "value" as string, once = false as boolean, fieldAndValueTargetField = invalid as string)
       mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m, fieldAndValueTargetField)
     end function
 
-    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
+    protected function unobserveNodeField(node as roSGNode, fieldName as string, callback = invalid as function or string)
       mc.tasks.unobserveNodeField(node, fieldName, callback, m)
     end function
 
@@ -125,31 +127,32 @@ namespace mc
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+    protected function setTimeout(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.tasks.ITrackedTimer
       return mc.tasks.setTimeout(callback, duration, sendMode, m)
     end function
 
-    protected function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string)
+    protected function setInterval(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.tasks.ITrackedTimer
       return mc.tasks.setInterval(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as mc.types.node)
+    protected function cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
+      'FIXME why is this cast needed
+      mc.tasks.cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
+    end function
+
+    protected function cancelTimeout(timer as roSGNode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function cancelTimeout(timer as mc.types.node)
+    protected function cancelInterval(timer as roSGNode)
       mc.tasks.cancelWaitTimer(timer)
     end function
 
-    protected function cancelInterval(timer as mc.types.node)
-      mc.tasks.cancelWaitTimer(timer)
-    end function
-
-    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as float, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
+    protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string)
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as mc.types.node)
+    protected function cancelTask(task as roSGNodeTask)
       mc.tasks.cancelTask(task)
     end function
 
@@ -214,7 +217,7 @@ namespace mc
         callbacks = m["_notificationCallbacks"]
         if callbacks <> invalid
           callback = m["_notificationCallbacks"][notification.name]
-          mc.apply(callback, [notification], m)
+          mc.apply(callback, [notification], m as roAssociativeArray)
         end if
       catch error
         m.log.error("error handling notification", error)

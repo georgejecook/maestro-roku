@@ -14,12 +14,12 @@ This is the constructor for the ViewJson class. It creates a new instance of the
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| fromJson | mc.types.assocarray |  | A JSON object containing the starting values for the animation. |
-| toJson | mc.types.assocarray |  | A JSON object containing the ending values for the animation. |
-| duration | float |  | The duration of the animation, in seconds. |
-| delay | float | 0 | The delay before the animation starts, in seconds. |
+| argument name | type               | default value | description                                                     |
+|---------------|--------------------|---------------|-----------------------------------------------------------------|
+| fromJson      | roAssociativeArray |               | A JSON object containing the starting values for the animation. |
+| toJson        | roAssociativeArray |               | A JSON object containing the ending values for the animation.   |
+| duration      | float              |               | The duration of the animation, in seconds.                      |
+| delay         | float              | 0             | The delay before the animation starts, in seconds.              |
 
 <br />
 
@@ -28,10 +28,10 @@ This method starts the animation. If the `useCurrentState` argument is `true`, t
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| resume | boolean | false | If `true`, the animation will resume from the point it was paused. |
-| useCurrentState | boolean | false | If `true`, the current values of the nodes will be used as the starting values for the animation. |
+| argument name   | type    | default value | description                                                                                       |
+|-----------------|---------|---------------|---------------------------------------------------------------------------------------------------|
+| resume          | boolean | false         | If `true`, the animation will resume from the point it was paused.                                |
+| useCurrentState | boolean | false         | If `true`, the current values of the nodes will be used as the starting values for the animation. |
 
 <br />
 
@@ -40,10 +40,10 @@ This method changes the ending values for the animation and optionally the durat
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| toValue | dynamic |  | A JSON object containing the new ending values for the animation. |
-| duration | float | invalid | The new duration for the animation, in seconds. If not provided, the duration will not be changed. |
+| argument name | type    | default value | description                                                                                        |
+|---------------|---------|---------------|----------------------------------------------------------------------------------------------------|
+| toValue       | dynamic |               | A JSON object containing the new ending values for the animation.                                  |
+| duration      | float   | invalid       | The new duration for the animation, in seconds. If not provided, the duration will not be changed. |
 
 <br />
 
@@ -54,10 +54,10 @@ This method is not supported in the ViewJson animation and will log an error if 
 This method sets the starting and ending values for the animation.
 
 ### Arguments
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| fromValue | dynamic |  | A JSON object containing the new starting values for the animation. |
-| toValue | dynamic |  | A JSON object containing the new ending values for the animation. |
+| argument name | type    | default value | description                                                         |
+|---------------|---------|---------------|---------------------------------------------------------------------|
+| fromValue     | dynamic |               | A JSON object containing the new starting values for the animation. |
+| toValue       | dynamic |               | A JSON object containing the new ending values for the animation.   |
 
 <br />
 

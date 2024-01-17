@@ -8,6 +8,17 @@ import "pkg:/source/core/Utils.bs"
 '  * or change it's contents.
 '  */
 
+namespace mv.private
+  interface ICellTrackerRegistry
+    contentIdsByCellId as roAssociativeArray
+    viewStatesByContentId as roAssociativeArray
+    cellIdsByContentId as roAssociativeArray
+    cellsById as roAssociativeArray
+  end interface
+  interface ITrackedNode extends roSGNode
+    trackingId as string
+  end interface
+end namespace
 namespace mv
   @strict
   @node("mv_CellTracker", "Group")
@@ -22,10 +33,11 @@ namespace mv
     public numberOfCells = 0
 
     private trackers = {}
-    private log
+    protected log
+    private top as dynamic
 
     function new()
-      m.log = new log.Logger("cellTracker")
+      m.log = new rlog.Logger("cellTracker")
       m.reset()
     end function
 
@@ -40,7 +52,7 @@ namespace mv
       m.top.numberOfCellsInUse = 0
     end function
 
-    function getTrackers(scope = "all" as string) as mc.types.assocarray
+    function getTrackers(scope = "all" as string) as mv.private.ICellTrackerRegistry
       trackers = m.trackers[scope]
       if trackers = invalid
         trackers = {
@@ -54,13 +66,13 @@ namespace mv
       return trackers
     end function
 
-    function getCell(cellId as string, scope = "all" as string) as mc.types.node
+    function getCell(cellId as string, scope = "all" as string) as roSGNodeml_BaseCell
       trackers = m.getTrackers(scope)
 
       return trackers.cellsById[cellId]
     end function
 
-    function getCellForContentId(id as string, scope = "all" as string) as mc.types.node
+    function getCellForContentId(id as string, scope = "all" as string) as roSGNodeml_BaseCell
       trackers = m.getTrackers(scope)
       cellId = trackers.cellIdsByContentId[id]
 
@@ -71,7 +83,7 @@ namespace mv
       end if
     end function
 
-    function bindCellToContent(cell as mc.types.node, content as mc.types.node, scope = "all" as string) as void
+    function bindCellToContent(cell as mv.private.ITrackedNode, content as roSGNode, scope = "all" as string) as void
 
       trackers = m.getTrackers(scope)
 
@@ -90,7 +102,9 @@ namespace mv
             return
           else
             'unbind it from what it was bound to
-            m.unbindCell(cell)
+            'MARK
+            'FIXME: why is this cast needed?
+            m.unbindCell(cell as mv.private.ITrackedNode)
           end if
         end if
 
@@ -106,7 +120,7 @@ namespace mv
       trackers.cellsById[cell.trackingId] = cell
     end function
 
-    function unbindCell(cell as mc.types.node, scope = "all" as string)
+    function unbindCell(cell as mv.private.ITrackedNode, scope = "all" as string)
       trackers = m.getTrackers(scope)
       contentId = trackers.contentIdsByCellId[cell.trackingId]
 
@@ -120,24 +134,6 @@ namespace mv
           trackers.cellsById.delete(cell.trackingId)
         end if
       end if
-    end function
-
-    function setViewStates(states as mc.types.assocarray, scope = "all" as string)
-
-      trackers = m.getTrackers(scope)
-
-      for each id in states
-        dynamicCell = m.getCellForContentId(id)
-        trackers.viewStatesByContentId[id] = states[id]
-        if dynamicCell <> invalid
-          dynamicCell.viewState = states[id]
-          ' ? " setting cell view state"; id ; states[id]
-        else
-          'FIXME
-          ' ? " could not find cell for id " ; id
-        end if
-      end for
-
     end function
 
     function getStateForContentId(id as string, scope = "all" as string) as string

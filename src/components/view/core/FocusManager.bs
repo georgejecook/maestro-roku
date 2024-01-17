@@ -1,6 +1,10 @@
 import "pkg:/source/roku_modules/log/LogMixin.brs"
 import "pkg:/source/core/Utils.bs"
-import "pkg:/source/core/Types-Polyfill.bs"
+
+interface focusableNode extends roSGNode
+  optional isFocused as boolean
+  optional drawFocusFeedback as boolean
+end interface
 
 ' /**
 '  * @module FocusManager
@@ -9,7 +13,7 @@ import "pkg:/source/core/Types-Polyfill.bs"
 
 function init() as void
   m.top.observeFieldScoped("_debugM", "onDebugMChange")
-  m.log = new log.Logger("FocusManager")
+  m.log = new rlog.Logger("FocusManager")
   m.wasShown = false
   m.isKeyPressLocked = false
   m.lockedNode = invalid
@@ -24,7 +28,7 @@ end function
 '++ Protected api - only call from mixin
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
+function _setFocusOn(node as focusableNode, isForced = false as boolean) as void
   m.log.verbose("setFocusOn", mc.dv(node))
 
   if m.top.enabled = false
@@ -64,7 +68,7 @@ function _setFocusOn(node as mc.types.node, isForced = false as boolean) as void
 
 end function
 
-function isChildOfLockedNode(node as mc.types.node) as boolean
+function isChildOfLockedNode(node as focusableNode) as boolean
   parents = getParents(node)
   for each parent in parents
     if parent.isSameNode(m.lockedNode)
@@ -74,7 +78,7 @@ function isChildOfLockedNode(node as mc.types.node) as boolean
   return false
 end function
 
-function _unsetFocusOn(node as mc.types.node)
+function _unsetFocusOn(node as focusableNode)
   m.log.info("manually unsetting focus on node")
   if m.top.enabled = true
     node.setFocus(false)
@@ -83,7 +87,7 @@ function _unsetFocusOn(node as mc.types.node)
   end if
 end function
 
-function _setFocusLocked(node as mc.types.node, reason = "" as string) as void
+function _setFocusLocked(node as focusableNode, reason = "" as string) as void
 
   if m.top.enabled = false
     m.log.error("DISBALED: cannot set focuslocked on", mc.dv(node))
@@ -120,7 +124,7 @@ end function
 '++ private impl
 '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as void
+function _setFocusOnImpl(node as focusableNode, parents as roArray) as void
 
   currentNode = m.top.focusedNode
   isCurrentNode = false
@@ -154,6 +158,7 @@ function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as vo
   if node <> invalid
     previousDrawFocusFeedback = false
     if node.doesExist("drawFocusFeedback")
+      'bs:disable-next-line
       previousDrawFocusFeedback = node.drawFocusFeedback
       node.drawFocusFeedback = false
     end if
@@ -161,7 +166,7 @@ function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as vo
     node.setFocus(true)
 
     if node.doesExist("drawFocusFeedback")
-      node.drawFocusFeedback = previousDrawFocusFeedback
+      node.drawFocusFeedback = previousDrawFocusFeedback as boolean
     end if
 
     if node.doesExist("isFocused")
@@ -178,7 +183,7 @@ function _setFocusOnImpl(node as mc.types.node, parents as mc.types.array) as vo
   end if
 end function
 
-function getParents(node as mc.types.node)
+function getParents(node as focusableNode)
   if type(node) <> "roSGNode"
     return []
   end if
@@ -216,7 +221,7 @@ function getParents(node as mc.types.node)
   return parents
 end function
 
-function isValid(node as mc.types.node)
+function isValid(node as focusableNode)
 
   if mc.isUndefined(node)
     m.log.error("asked to focus on undefined node")
@@ -232,7 +237,7 @@ function isValid(node as mc.types.node)
   return true
 end function
 
-function isInScene(parents as mc.types.array)
+function isInScene(parents as roArray)
 
   if parents.count() = 0
     m.log.error("asked to focus on node with no parents")
@@ -249,7 +254,7 @@ function isInScene(parents as mc.types.array)
   return true
 end function
 
-function setFieldOnNodes(nodes as mc.types.array, field as string, value as dynamic, excludeParents = invalid as mc.types.array)
+function setFieldOnNodes(nodes as roArray, field as string, value as dynamic, excludeParents = invalid as roArray)
   ' ? "--------------------------------START"
 
   for i = 0 to nodes.count() - 1
@@ -267,7 +272,7 @@ function setFieldOnNodes(nodes as mc.types.array, field as string, value as dyna
 
 end function
 
-function excludeContains(array as mc.types.array, value as dynamic) as boolean
+function excludeContains(array as roArray, value as dynamic) as boolean
   for each item in array
     if item.isSameNode(value)
       return true

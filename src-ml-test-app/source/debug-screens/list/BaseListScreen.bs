@@ -9,13 +9,13 @@ class SuperFastScrollScreen extends mv.BaseScreen
   '++ Views
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private list as mc.types.node
+  private list as roSGNodeml_List
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  public componentPool as mc.types.node
+  public componentPool as roSGNodemc_ComponentPool
   private contentId = 0
   private rowSettings
   private focusSettings
@@ -27,14 +27,14 @@ class SuperFastScrollScreen extends mv.BaseScreen
 
   private firstItem = invalid
   private dataIndex = 0
-  private selectedRow as mc.types.node
+  private selectedRow as roSGNode
   private selectedevent as ml.ListEvent
   private selectedItemIndex as integer
-  private selectedItem as mc.types.node
+  private selectedItem as roSGNode
 
   private rows = []
-  private label as mc.types.node
-  private updateInfoTimeout as mc.types.node
+  private label as roSGNode
+  private updateInfoTimeout as roSGNode
 
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -156,8 +156,8 @@ class SuperFastScrollScreen extends mv.BaseScreen
   end function
 
 
-  private liveRow as mc.types.node
-  private upcomingRow as mc.types.node
+  private liveRow as roSGNode
+  private upcomingRow as roSGNode
 
   protected function onListRenderState(state as string)
     m.log.info("onListRenderState", state)
@@ -206,7 +206,7 @@ class SuperFastScrollScreen extends mv.BaseScreen
     return items
   end function
 
-  protected function makeItem(cellType as string, title as string) as mc.types.node
+  protected function makeItem(cellType as string, title as string) as roSGNode
     id = str(m.contentId).trim()
     child = m.createSGNode("Item", invalid, id, {
       title: title
@@ -334,7 +334,7 @@ class SuperFastScrollScreen extends mv.BaseScreen
     m.list.isHidden = false
     m.setFocus(m.list)
     m.updateInfoTimeout = m.setInterval(function()
-      pool = m.global.componentPool
+      pool = (m.global as dynamic).componentPool
       m.label.text = `cells created: ${pool.numberOfComponents} in use: ${pool.numberOfComponentsInUse}`
     end function, 1)
   end function

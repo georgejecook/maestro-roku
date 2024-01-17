@@ -18,12 +18,12 @@ This is the constructor method for the `KenBurns` class. It initializes a new in
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The node that the animation will be applied to. |
-| duration | float |  | The length of time in seconds that the animation will take to complete. |
-| maxScale | float |  | The maximum amount of scaling that should be applied to the node during the animation. |
-| delay | float | 0 | The amount of time in seconds to wait before starting the animation. |
+| argument name | type     | defaultValue | description                                                                            |
+|---------------|----------|--------------|----------------------------------------------------------------------------------------|
+| target        | roSGnode |              | The node that the animation will be applied to.                                        |
+| duration      | float    |              | The length of time in seconds that the animation will take to complete.                |
+| maxScale      | float    |              | The maximum amount of scaling that should be applied to the node during the animation. |
+| delay         | float    | 0            | The amount of time in seconds to wait before starting the animation.                   |
 
 In this constructor method, the `scaleTo` and `moveTo` utility functions are called to create `Scale` and `Move` animation instances, respectively. These animations are added to a `Parallel` animation, which allows them to be run simultaneously. The `node` property of the `Parallel` animation is then set as the `node` property for the `KenBurns` instance.
 
@@ -46,9 +46,9 @@ This method sets the easing function for the animation. The easing function dete
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| easeFunction | dynamic |  | The easing function to use for the animation. |
+| argument name | type    | defaultValue | description                                   |
+|---------------|---------|--------------|-----------------------------------------------|
+| easeFunction  | dynamic |              | The easing function to use for the animation. |
 
 <br/>
 
@@ -58,9 +58,9 @@ This method sets the duration of the animation.
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| duration | float |  | The new duration of the animation, in seconds. |
+| argument name | type  | defaultValue | description                                    |
+|---------------|-------|--------------|------------------------------------------------|
+| duration      | float |              | The new duration of the animation, in seconds. |
 
 <br/>
 
@@ -70,9 +70,9 @@ This method sets the delay for the animation.
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| delay | float |  | The amount of time in seconds to wait before starting the animation. |
+| argument name | type  | defaultValue | description                                                          |
+|---------------|-------|--------------|----------------------------------------------------------------------|
+| delay         | float |              | The amount of time in seconds to wait before starting the animation. |
 
 <br/>
 
@@ -82,10 +82,10 @@ This method starts the animation and animates the node to the specified size and
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| toValue | dynamic |  | The final size and position of the node, in the form `[scale, translation]`. |
-| duration | float | invalid | The length of time in seconds that the animation should take to complete. If not provided, the existing duration of the animation will be used. |
+| argument name | type    | defaultValue | description                                                                                                                                     |
+|---------------|---------|--------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| toValue       | dynamic |              | The final size and position of the node, in the form `[scale, translation]`.                                                                    |
+| duration      | float   | invalid      | The length of time in seconds that the animation should take to complete. If not provided, the existing duration of the animation will be used. |
 
 <br/>
 
@@ -95,11 +95,11 @@ This method starts the animation and animates the node to the specified size and
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| toValue | dynamic |  | The final size and position of the node, in the form `[scale, translation]`. |
-| stepSpeed | float |  | The speed at which the animation should progress, in units per second. |
-| stepUnit | string | "pixel" | The unit of measure for the step speed. |
+| argument name | type    | defaultValue | description                                                                  |
+|---------------|---------|--------------|------------------------------------------------------------------------------|
+| toValue       | dynamic |              | The final size and position of the node, in the form `[scale, translation]`. |
+| stepSpeed     | float   |              | The speed at which the animation should progress, in units per second.       |
+| stepUnit      | string  | "pixel"      | The unit of measure for the step speed.                                      |
 
 <br/>
 
@@ -109,10 +109,10 @@ This method sets a callback function to be called at every step of the animation
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| callback | function |  | The callback function to be called at every step of the animation. |
-| scope | dynamic | invalid | The scope in which the callback function should be called. |
+| argument name | type     | defaultValue | description                                                        |
+|---------------|----------|--------------|--------------------------------------------------------------------|
+| callback      | function |              | The callback function to be called at every step of the animation. |
+| scope         | dynamic  | invalid      | The scope in which the callback function should be called.         |
 
 <br/>
 

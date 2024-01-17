@@ -15,12 +15,12 @@ Performs a GET request to the specified `url` with the optional `params` and `he
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `url` | `string` |  | The URL to make the GET request to. |
-| `params` | `mc.types.assocarray` | `invalid` | An optional associative array of query string parameters to include in the request. |
-| `headers` | `mc.types.assocarray` | `invalid` | An optional associative array of HTTP headers to include in the request. |
-| `otherArgs` | `mc.types.assocarray` | `invalid` | An optional associative array of additional arguments to pass to the request. |
+| Argument    | Type                 | Default Value | Description                                                                         |
+|-------------|----------------------|---------------|-------------------------------------------------------------------------------------|
+| `url`       | `string`             |               | The URL to make the GET request to.                                                 |
+| `params`    | `roAssociativeArray` | `invalid`     | An optional associative array of query string parameters to include in the request. |
+| `headers`   | `roAssociativeArray` | `invalid`     | An optional associative array of HTTP headers to include in the request.            |
+| `otherArgs` | `roAssociativeArray` | `invalid`     | An optional associative array of additional arguments to pass to the request.       |
 
 ### Returns `NetResult`
 
@@ -31,12 +31,12 @@ Performs a POST request to the specified `url` with the optional `params` and `h
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `url` | `string` |  | The URL to make the POST request to. |
-| `params` | `mc.types.assocarray` | `invalid` | An optional associative array of data to include in the request body. |
-| `headers` | `mc.types.assocarray` | `invalid` | An optional associative array of HTTP headers to include in the request. |
-| `otherArgs` | `mc.types.assocarray` | `invalid` | An optional associative array of additional arguments to pass to the request. |
+| Argument    | Type                 | Default Value | Description                                                                   |
+|-------------|----------------------|---------------|-------------------------------------------------------------------------------|
+| `url`       | `string`             |               | The URL to make the POST request to.                                          |
+| `params`    | `roAssociativeArray` | `invalid`     | An optional associative array of data to include in the request body.         |
+| `headers`   | `roAssociativeArray` | `invalid`     | An optional associative array of HTTP headers to include in the request.      |
+| `otherArgs` | `roAssociativeArray` | `invalid`     | An optional associative array of additional arguments to pass to the request. |
 
 ### Returns `NetResult`
 
@@ -47,12 +47,12 @@ Performs a DELETE request to the specified `url` with the optional `params` and 
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `url` | `string` |  | The URL to make the POST request to. |
-| `params` | `mc.types.assocarray` | `invalid` | An optional associative array of data to include in the request body. |
-| `headers` | `mc.types.assocarray` | `invalid` | An optional associative array of HTTP headers to include in the request. |
-| `otherArgs` | `mc.types.assocarray` | `invalid` | An optional associative array of additional arguments to pass to the request. |
+| Argument    | Type                 | Default Value | Description                                                                   |
+|-------------|----------------------|---------------|-------------------------------------------------------------------------------|
+| `url`       | `string`             |               | The URL to make the POST request to.                                          |
+| `params`    | `roAssociativeArray` | `invalid`     | An optional associative array of data to include in the request body.         |
+| `headers`   | `roAssociativeArray` | `invalid`     | An optional associative array of HTTP headers to include in the request.      |
+| `otherArgs` | `roAssociativeArray` | `invalid`     | An optional associative array of additional arguments to pass to the request. |
 
 ### Returns `NetResult`
 
@@ -63,12 +63,12 @@ Performs a PUT request to the specified `url` with the optional `params` and `he
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `url` | `string` |  | The URL to make the PUT request to. |
-| `params` | `mc.types.assocarray` | `invalid` | An optional associative array of data to include in the request body. |
-| `headers` | `mc.types.assocarray` | `invalid` | An optional associative array of HTTP headers to include in the request. |
-| `otherArgs` | `mc.types.assocarray` | `invalid` | An optional associative array of additional arguments to pass to the request. |
+| Argument    | Type                 | Default Value | Description                                                                   |
+|-------------|----------------------|---------------|-------------------------------------------------------------------------------|
+| `url`       | `string`             |               | The URL to make the PUT request to.                                           |
+| `params`    | `roAssociativeArray` | `invalid`     | An optional associative array of data to include in the request body.         |
+| `headers`   | `roAssociativeArray` | `invalid`     | An optional associative array of HTTP headers to include in the request.      |
+| `otherArgs` | `roAssociativeArray` | `invalid`     | An optional associative array of additional arguments to pass to the request. |
 
 ### Returns `NetResult`
 
@@ -79,13 +79,13 @@ Performs an HTTP request of the specified `method` to the specified `url` with t
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `method` | `string` |  | The HTTP method to use for the request (e.g. "GET", "POST", "DELETE", "PUT"). |
-| `url` | `string` |  | The URL to make the request to. |
-| `params` | `mc.types.assocarray` | `invalid` | An optional associative array of query string parameters or data to include in the request, depending on the HTTP method. |
-| `headers` | `mc.types.assocarray` | `invalid` | An optional associative array of HTTP headers to include in the request. |
-| `otherArgs` | `mc.types.assocarray` | `invalid` | An optional associative array of additional arguments to pass to the request. |
+| Argument    | Type                 | Default Value | Description                                                                                                               |
+|-------------|----------------------|---------------|---------------------------------------------------------------------------------------------------------------------------|
+| `method`    | `string`             |               | The HTTP method to use for the request (e.g. "GET", "POST", "DELETE", "PUT").                                             |
+| `url`       | `string`             |               | The URL to make the request to.                                                                                           |
+| `params`    | `roAssociativeArray` | `invalid`     | An optional associative array of query string parameters or data to include in the request, depending on the HTTP method. |
+| `headers`   | `roAssociativeArray` | `invalid`     | An optional associative array of HTTP headers to include in the request.                                                  |
+| `otherArgs` | `roAssociativeArray` | `invalid`     | An optional associative array of additional arguments to pass to the request.                                             |
 
 ### Returns `NetResult object`
 
@@ -96,12 +96,12 @@ Logs the specified HTTP `method`, `url`, `headers`, and `data` as a cURL command
 
 ### Arguments
 
-| Argument | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `method` | `string` |  | The HTTP method to use for the request (e.g. "GET", "POST", "DELETE", "PUT"). |
-| `url` | `string` |  | The URL to make the request to. |
-| `headers` | `mc.types.assocarray` |  | An associative array of HTTP headers to include in the request. |
-| `data` | `string` |  | The data to include in the request body, if applicable. |
+| Argument  | Type                 | Default Value | Description                                                                   |
+|-----------|----------------------|---------------|-------------------------------------------------------------------------------|
+| `method`  | `string`             |               | The HTTP method to use for the request (e.g. "GET", "POST", "DELETE", "PUT"). |
+| `url`     | `string`             |               | The URL to make the request to.                                               |
+| `headers` | `roAssociativeArray` |               | An associative array of HTTP headers to include in the request.               |
+| `data`    | `string`             |               | The data to include in the request body, if applicable.                       |
 
 
 

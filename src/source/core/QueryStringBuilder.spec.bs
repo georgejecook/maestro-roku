@@ -7,7 +7,7 @@ namespace tests
     private qs
     protected override function beforeEach()
       super.beforeEach()
-      m.qs = new mc.net.QueryStringBuilder()
+      m.qs = new mc.network.QueryStringBuilder()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -22,7 +22,7 @@ namespace tests
     @params("t?f=b&x=y", { "a": 1, "b": 2 }, "t?f=b&x=y&a=1&b=2")
     @params("t?f=b&", { "a": 1, "b": 2 }, "t?f=b&a=1&b=2")
     function _(url, params, expected)
-      m.qs = new mc.net.QueryStringBuilder(params)
+      m.qs = new mc.network.QueryStringBuilder(params)
       m.assertEqual(m.qs.appendToUrl(url), expected)
     end function
 

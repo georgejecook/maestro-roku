@@ -42,9 +42,9 @@ This method initializes the focus manager and creates a timer node.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `command` | `mc.Command` | N/A | A command object that is passed to the method. |
+| Argument Name | Type         | Default Value | Description                                    |
+|---------------|--------------|---------------|------------------------------------------------|
+| `command`     | `mc.Command` | N/A           | A command object that is passed to the method. |
 
 ### Returns
 
@@ -57,9 +57,9 @@ This method creates an IOC container and loads the manifest file. It also create
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `command` | `mc.Command` | N/A | A command object that is passed to the method. |
+| Argument Name | Type         | Default Value | Description                                    |
+|---------------|--------------|---------------|------------------------------------------------|
+| `command`     | `mc.Command` | N/A           | A command object that is passed to the method. |
 
 ### Returns
 
@@ -73,10 +73,10 @@ This method is called when a command in the sequence fails. It logs an error mes
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `command` | `mc.Command` | N/A | The command that has failed. |
-| `message` | `string` | N/A | The error message to be displayed. |
+| Argument Name | Type         | Default Value | Description                        |
+|---------------|--------------|---------------|------------------------------------|
+| `command`     | `mc.Command` | N/A           | The command that has failed.       |
+| `message`     | `string`     | N/A           | The error message to be displayed. |
 
 ### Returns
 
@@ -90,14 +90,14 @@ This method displays an error dialog with a given title and message.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `title` | `string` | N/A | The title of the error dialog. |
-| `message` | `string` | N/A | The message to be displayed in the error dialog. |
+| Argument Name | Type     | Default Value | Description                                      |
+|---------------|----------|---------------|--------------------------------------------------|
+| `title`       | `string` | N/A           | The title of the error dialog.                   |
+| `message`     | `string` | N/A           | The message to be displayed in the error dialog. |
 
 ### Returns
 
-*   `mc.types.node`: The `Dialog` node that was created.
+*   `roSGnode`: The `Dialog` node that was created.
 
 ### Events
 

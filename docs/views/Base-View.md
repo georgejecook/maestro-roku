@@ -19,9 +19,9 @@ This method is a constructor for the BaseView class. It initializes a new instan
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| name | string | n/a | The name of the instance. |
+| argument name | type   | default value | description               |
+|---------------|--------|---------------|---------------------------|
+| name          | string | n/a           | The name of the instance. |
 
 <br/>
 
@@ -31,10 +31,10 @@ This method initializes a view with a given set of arguments.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| view | mc.types.node | invalid | The view to initialize. |
-| args | mc.types.array | invalid | The arguments to pas
+| argument name | type     | default value | description             |
+|---------------|----------|---------------|-------------------------|
+| view          | roSGnode | invalid       | The view to initialize. |
+| args | roArray | invalid | The arguments to pas
 
 <br />
 
@@ -44,10 +44,10 @@ This method sets focus on a given target node.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| target | mc.types.node | n/a | The node to set focus on. |
-| forceSet | boolean | false | A flag indicating whether to force the focus to be set, even if the node is not focusable. |
+| argument name | type     | default value | description                                                                                |
+|---------------|----------|---------------|--------------------------------------------------------------------------------------------|
+| target        | roSGnode | n/a           | The node to set focus on.                                                                  |
+| forceSet      | boolean  | false         | A flag indicating whether to force the focus to be set, even if the node is not focusable. |
 
 <br />
 
@@ -57,10 +57,10 @@ This method sets focus on a given target node and locks focus on that node until
 Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| target | mc.types.node | invalid | The node to set focus on. |
-| message | string | n/a | A message to display when focus is locked. |
+| argument name | type     | default value | description                                |
+|---------------|----------|---------------|--------------------------------------------|
+| target        | roSGnode | invalid       | The node to set focus on.                  |
+| message       | string   | n/a           | A message to display when focus is locked. |
 
 <br/>
 
@@ -70,9 +70,9 @@ This method checks if a given control is currently focused.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| control | mc.types.node | invalid | The control to check focus on. |
+| argument name | type     | default value | description                    |
+|---------------|----------|---------------|--------------------------------|
+| control       | roSGnode | invalid       | The control to check focus on. |
 
 <br/>
 
@@ -82,10 +82,10 @@ This method applies a data map to a set of controls. A data map specifies the pa
 Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| dataSource | dynamic | invalid | The data source to apply the data map to. |
-| controls | mc.types.array | invalid | The controls to apply the data map to. |
+| argument name | type    | default value | description                               |
+|---------------|---------|---------------|-------------------------------------------|
+| dataSource    | dynamic | invalid       | The data source to apply the data map to. |
+| controls      | roArray | invalid       | The controls to apply the data map to.    |
 
 <br/>
 
@@ -95,9 +95,9 @@ This method toggles a timer for long press events. If the interval is greater th
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| interval | float | n/a | The interval at which the timer should fire, in seconds. |
+| argument name | type  | default value | description                                              |
+|---------------|-------|---------------|----------------------------------------------------------|
+| interval      | float | n/a           | The interval at which the timer should fire, in seconds. |
 
 <br />
 
@@ -115,13 +115,13 @@ This method creates a selection node with a given set of properties.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| initialItem | mc.types.node | n/a | The initial item in the selection. |
-| action | string | "display" | The action to perform on the selection. |
-| actionInfo | mc.types.assocarray | {} | Additional information about the action to perform. |
-| targetScreen | string | "" | The name of the target screen for the action. |
-| selectionCompName | string | "mc\_Selection" | The name of the component to use for the selection node. |
+| argument name     | type               | default value   | description                                              |
+|-------------------|--------------------|-----------------|----------------------------------------------------------|
+| initialItem       | roSGnode           | n/a             | The initial item in the selection.                       |
+| action            | string             | "display"       | The action to perform on the selection.                  |
+| actionInfo        | roAssociativeArray | {}              | Additional information about the action to perform.      |
+| targetScreen      | string             | ""              | The name of the target screen for the action.            |
+| selectionCompName | string             | "mc\_Selection" | The name of the component to use for the selection node. |
 
 <br/>
 
@@ -131,10 +131,10 @@ This method executes a selection node. It assumes that there is an "appControlle
 Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| selection | mc.types.node | n/a | The selection node to execute. |
-| observeIfPendingAfterExecution | boolean | true | A flag indicating whether to observe the selection node if it requires async resolution. |
+| argument name                  | type     | default value | description                                                                              |
+|--------------------------------|----------|---------------|------------------------------------------------------------------------------------------|
+| selection                      | roSGnode | n/a           | The selection node to execute.                                                           |
+| observeIfPendingAfterExecution | boolean  | true          | A flag indicating whether to observe the selection node if it requires async resolution. |
 
 <br/>
 
@@ -144,9 +144,9 @@ This method cancels a pending selection node.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| selection | mc.types.node | n/a | The selection node to cancel. |
+| argument name | type     | default value | description                   |
+|---------------|----------|---------------|-------------------------------|
+| selection     | roSGnode | n/a           | The selection node to cancel. |
 
 <br/>
 
@@ -192,9 +192,9 @@ This method is called when the view gains focus.
 Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| isSelfFocused | boolean | n/a | A flag indicating whether the focus was gained by the view itself or a child of the view. |
+| argument name | type    | default value | description                                                                               |
+|---------------|---------|---------------|-------------------------------------------------------------------------------------------|
+| isSelfFocused | boolean | n/a           | A flag indicating whether the focus was gained by the view itself or a child of the view. |
 
 <br/>
 
@@ -212,10 +212,10 @@ This method is called when the state of a selection node changes.
 
 ### Arguments
 ---------
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| state | string | n/a | The new state of the selection node. |
-| selection | mc.types.node | n/a | The selection node whose state has changed. |
+| argument name | type     | default value | description                                 |
+|---------------|----------|---------------|---------------------------------------------|
+| state         | string   | n/a           | The new state of the selection node.        |
+| selection     | roSGnode | n/a           | The selection node whose state has changed. |
 
 <br/>
 
@@ -225,10 +225,10 @@ This method is called when the completion state of a selection node changes.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| completionState | string | n/a | The new completion state of the selection node. |
-| selection | mc.types.node | n/a | The selection node whose completion state has changed. |
+| argument name   | type     | default value | description                                            |
+|-----------------|----------|---------------|--------------------------------------------------------|
+| completionState | string   | n/a           | The new completion state of the selection node.        |
+| selection       | roSGnode | n/a           | The selection node whose completion state has changed. |
 
 <br/>
 
@@ -238,9 +238,9 @@ This method is called when the view is added to an aggregate view.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| view | mc.types.node | n/a | The aggregate view that the view was added to. |
+| argument name | type     | default value | description                                    |
+|---------------|----------|---------------|------------------------------------------------|
+| view          | roSGnode | n/a           | The aggregate view that the view was added to. |
 
 <br/>
 
@@ -250,6 +250,6 @@ This method is called when the view is removed from an aggregate view.
 ### Arguments
 ---------
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| view | mc.types.node | n/a | The aggregate view that the view was removed from. |
+| argument name | type     | default value | description                                        |
+|---------------|----------|---------------|----------------------------------------------------|
+| view          | roSGnode | n/a           | The aggregate view that the view was removed from. |

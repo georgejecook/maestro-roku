@@ -37,7 +37,7 @@ class ProgressBar
   public size = [0, 0]
 
   @observer("onStyleChange")
-  public style as mc.types.AssocArray
+  public style as roAssociativeArray
 
   @observer("onIsHighlightedChange")
   @alwaysNotify

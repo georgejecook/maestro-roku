@@ -13,26 +13,27 @@ namespace mc.sample
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Debug Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    public _rLog as mc.types.node
-    public _appController as mc.types.node
-    public _global as mc.types.node
+    public _rLog as roSGNode
+    public _appController as roSGNode
+    public _global as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private loadingBackground as mc.types.node
-    private loadingIndicator as mc.types.node
-    private loadingPoster as mc.types.node
-    private developerScreen as mc.types.node
+    private loadingBackground as roSGNode
+    private loadingIndicator as roSGNode
+    private loadingPoster as roSGNode
+    private developerScreen as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private log as log.Logger
+    protected log as rLog.Logger
     private args = {}
-    private launchSequence as mc.types.node
+    private launchSequence as roSGNode
+    protected top as dynamic
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialize
@@ -65,20 +66,24 @@ namespace mc.sample
         "translation": [0, 0]
       })
     end function
+
+    function getNode(node as roSGNodeRowList)
+      node.
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Log
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function configureLogger()
-      rLog = log.initializeLogManager(["log_PrintTransport"], 5)
-      m.log = new log.Logger("MainScene")
+      logger = rLog.initializeLogManager(["log_PrintTransport"], 5)
+      m.log = new rlog.Logger("MainScene")
       m.log.info("Configuring log")
-      rLog.includeFilters = {
+      logger.includeFilters = {
         ' "mv_TabController": true
         ' "mv_SimpleTransition": true
         ' "ButtonScreen": true
       }
-      rLog.excludeFilters = {
+      logger.excludeFilters = {
         "__ml_FocusIndicatorManager": true
         "FocusIndicatorManager": true
       }

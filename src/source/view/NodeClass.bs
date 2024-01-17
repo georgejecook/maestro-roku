@@ -13,6 +13,12 @@ namespace mv
     @observer("onDebugMChange")
     public __debugM = false
 
+    'Node fields
+    'FIXME - should be a base view type
+    protected top as roSGNode
+    protected global as roSGNode
+    protected id as string
+
     function new(name as string)
       super(name)
     end function
@@ -51,7 +57,7 @@ namespace mv
           matches = regex.match(text)
           name = matches[1]
           args = parseJson("[" + matches[2] + "]")
-          if not m.doesExist(name)
+          if not (m as roAssociativeArray).doesExist(name)
             m.log.error("function does not exist on:", m.__classname)
             return
           end if
@@ -82,11 +88,11 @@ namespace mv
       mioc.updateInstance(instanceName, path, value)
     end function
 
-    protected function getClassInstance(className as string, args = [] as mc.types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
+    protected function getClassInstance(className as string, args = [] as roArray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as dynamic
       return mioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
     end function
 
-    protected function createClassInstance(className as string, args = [] as mc.types.array) as dynamic
+    protected function createClassInstance(className as string, args = [] as roArray) as dynamic
       return mioc.createClassInstance(className, args)
     end function
 
