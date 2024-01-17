@@ -5,7 +5,7 @@ import "pkg:/source/core/QueryStringBuilder.bs"
 
 'adapted from https://github.com/bvisin/roku-requests
 
-namespace mc.net
+namespace mc.network
 
   interface IRequestArgs
     optional json as roAssociativeArray
@@ -33,23 +33,23 @@ namespace mc.net
     '++ public API
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function get(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
+    function get(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.network.NetResult
       return m.executeRequest("GET", url, params, headers, otherArgs)
     end function
 
-    function post(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
+    function post(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.network.NetResult
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function delete(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
+    function delete(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.network.NetResult
       return m.executeRequest("DELETE", url, params, headers, otherArgs)
     end function
 
-    function put(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
+    function put(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.network.NetResult
       return m.executeRequest("PUT", url, params, headers, otherArgs)
     end function
 
-    function formPost(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
+    function formPost(url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.network.NetResult
       if mc.isAACompatible(otherArgs) and mc.isAACompatible(params)
         json = asAA((otherArgs as dynamic).json)
         json.append(params)
@@ -58,7 +58,7 @@ namespace mc.net
       return m.executeRequest("POST", url, params, headers, otherArgs)
     end function
 
-    function executeRequest(method as string, url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.net.NetResult
+    function executeRequest(method as string, url as string, params = invalid as roAssociativeArray, headers = invalid as roAssociativeArray, otherArgs = invalid as IRequestArgs) as mc.network.NetResult
 
       if mc.isAACompatible(otherArgs)
         args = otherArgs
@@ -112,9 +112,9 @@ namespace mc.net
     '  * @param {string} method
     '  * @param {string} url
     '  * @param {assocarray} args - args for the request
-    '  * @returns {mc.net.NetResult} response object
+    '  * @returns {mc.network.NetResult} response object
     '  */
-    private function runRequest(method as string, url as string, args as object) as mc.net.NetResult
+    private function runRequest(method as string, url as string, args as object) as mc.network.NetResult
       headers = {}
       params = {}
       data = invalid
@@ -151,7 +151,7 @@ namespace mc.net
         end if
       end if
 
-      queryStringBuilder = new mc.net.QueryStringBuilder(params)
+      queryStringBuilder = new mc.network.QueryStringBuilder(params)
       url = queryStringBuilder.appendToUrl(url)
 
       return m._execute(method, url, headers, data, timeout, retryCount, certificatePath)
@@ -254,7 +254,7 @@ namespace mc.net
       end if
     end function
 
-    private function createNetResult(responseEvent as object) as mc.net.NetResult
+    private function createNetResult(responseEvent as object) as mc.network.NetResult
       data = invalid
       headers = invalid
       statusCode = -1
@@ -273,7 +273,7 @@ namespace mc.net
         data = parseJson(data)
       end if
 
-      return new mc.net.NetResult(statusCode, data, invalid, headers)
+      return new mc.network.NetResult(statusCode, data, invalid, headers)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

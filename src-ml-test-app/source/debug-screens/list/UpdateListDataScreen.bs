@@ -10,17 +10,17 @@ class UpdateListDataScreen extends mv.BaseScreen
   '++ Views
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private list as roSGNode
-  private menu as roSGNode
+  private list as roSGNodeml_List
+  private menu as roSGNodemv_ControlsGroup
 
   'buttons
-  private resetButton as roSGNode
-  private reloadTodayButton as roSGNode
-  private moveItemUpButton as roSGNode
-  private dayBackButton as roSGNode
-  private dayForwardButton as roSGNode
-  private moveItemDownButton as roSGNode
-  private useGridButton as roSGNode
+  private resetButton as roSGNodemv_Button
+  private reloadTodayButton as roSGNodemv_Button
+  private moveItemUpButton as roSGNodemv_Button
+  private dayBackButton as roSGNodemv_Button
+  private dayForwardButton as roSGNodemv_Button
+  private moveItemDownButton as roSGNodemv_Button
+  private useGridButton as roSGNodemv_Button
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
@@ -344,7 +344,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
   private function onItemSelected(event as ml.ListEvent)
-    ? ">>>onItemSelected" ; event.rowIndex ; "," ; event.itemIndex
+    ? ">>>onItemSelected" ; event.rowIndex ; "," ; event.cellIndex
   end function
 
   private function onRowData(event as ml.ListEvent)
@@ -408,6 +408,7 @@ class UpdateListDataScreen extends mv.BaseScreen
   end function
 
   protected override function onKeyPressBack() as boolean
+    'bs:disable-next-line
     if m.top.isRoot <> true
       m.list.isHidden = true
       m.dismiss("success")

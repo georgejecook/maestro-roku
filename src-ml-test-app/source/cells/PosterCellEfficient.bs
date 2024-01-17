@@ -4,8 +4,8 @@ import "pkg:/source/ml/cells/BaseCell.bs"
 @node("PosterCellEfficient", "ml_BaseCell")
 class PosterCellEfficient extends ml.BaseCell
 
-  private poster as roSGNode
-  private label as roSGNode
+  private poster as roSGNodemv_Poster
+  private label as roSGNodemv_Label
 
   function new()
     super()
@@ -48,7 +48,10 @@ class PosterCellEfficient extends ml.BaseCell
   protected override function onShowWithContent(content as roSGNode)
     ' ? ">>  SHOW  onShowWithContent"
     m.setFocusState(1, false)
+
+    'bs:disable-next-line
     m.poster.uri = m.content.HDGRIDPOSTERURL
+    'bs:disable-next-line
     m.label.text = `${m.index} ${content.title}`
   end function
 

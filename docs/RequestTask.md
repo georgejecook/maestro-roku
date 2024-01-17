@@ -21,7 +21,7 @@ This method is the entry point for the task when it is executed. It creates an i
 
 ### Returns - `dynamic`
 
-The return type of this method is `dynamic`, mc.net.NetResult or invalid
+The return type of this method is `dynamic`, mc.network.NetResult or invalid
 
 <br />
 
@@ -54,5 +54,5 @@ This method is responsible for making an HTTP request based on the provided `met
 
 ### Returns - `dynamic`
 
-The return type of this method is `dynamic`, which means that it can return any type of value. It will return the result of the HTTP request, a `mc.net.NetResult`
+The return type of this method is `dynamic`, which means that it can return any type of value. It will return the result of the HTTP request, a `mc.network.NetResult`
 , unless an unknown `method` is provided, in which case it will return the value `invalid`.

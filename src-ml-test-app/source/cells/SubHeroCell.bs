@@ -8,10 +8,10 @@ import "pkg:/source/ml/cells/BaseCell.bs"
 @node("SubHeroCell", "ml_BaseCell")
 class SubHeroCell extends ml.BaseCell
 
-  private poster
-  private rectangle
-  private label
-  private bgRect
+  private poster as roSGNodemv_Poster
+  private rectangle as roSGNodemv_Rectangle
+  private bgRect as roSGNodemv_Rectangle
+  private label as roSGNodemv_Label
 
   private isViewCreated = false
   private posterSize = [450, 320.0]
@@ -51,8 +51,10 @@ class SubHeroCell extends ml.BaseCell
   end function
 
   protected override function onContentChange(content as roSGNode)
+    'bs:disable-next-line
     m.label.text = "C:" + content.title
     m.label.visible = true
+    'bs:disable-next-line
     m.poster.uri = content.HDGRIDPOSTERURL
   end function
 

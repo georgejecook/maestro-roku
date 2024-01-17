@@ -218,14 +218,14 @@ namespace mv.debug
       m.activeButtons[index][1]()
     end function
 
-    private function showScreen(screen as roSGNode)
+    protected function showScreen(screen as roSGNode)
       m.subScreen = screen
       m.observeNodeField(screen, "state", m.onScreenStateChange)
       m.navController@.push(screen)
       m.setFocus(m.navController)
     end function
 
-    private function hideSubScreen()
+    protected function hideSubScreen()
       m.unobserveNodeField(m.subScreen, "state", m.onScreenStateChange)
       if m.subScreen.getParent() <> invalid
         m.navController@.pop()

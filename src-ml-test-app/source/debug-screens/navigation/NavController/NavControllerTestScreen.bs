@@ -7,10 +7,10 @@ class NavControllerTestScreen extends mv.BaseScreen
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-  private bgRect as roSGNode
-  private navController as roSGNode
+  private bgRect as roSGNodemv_Rectangle
+  private navController as roSGNodemv_NavController
   private lastPoppedView as roSGNode
-  private transition as roSGNode
+  private transition as roSGNodemv_FadeTransition
   private childId = 0
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -53,7 +53,7 @@ class NavControllerTestScreen extends mv.BaseScreen
 
   protected override function onKeyPressLeft() as boolean
     m.log.info("Pushing a screen")
-    childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, m.childId)
+    childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, `${m.childId}`)
     m.navController@.push(childScreen)
     m.childId++
     return true

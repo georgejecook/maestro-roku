@@ -8,9 +8,9 @@ import "pkg:/source/view/Animation.bs"
 
 @node("LongCell", "ml_BaseCell")
 class LongCell extends ml.BaseCell
-  private poster as roSGNode
-  private bgRect as roSGNode
-  private label as roSGNode
+  private poster as roSGNodemv_Poster
+  private bgRect as roSGNodemv_Rectangle
+  private label as roSGNodemv_Label
 
   function new()
     super()
@@ -44,15 +44,21 @@ class LongCell extends ml.BaseCell
 
   protected override function onShowWithContent(content as roSGNode)
     ' ? " ON SHOW WITH CONTENT " m.index
+    'bs:disable-next-line
     m.poster.uri = content.HDGRIDPOSTERURL
+    'bs:disable-next-line
     m.label.text = `${m.index} ${content.title}`
     m.label.fontKey = "medium,30"
+    'FIXME: add color string support
+    'bs:disable-next-line
     m.label.color = "#aaaaaa"
   end function
 
   protected override function onHide()
     ' ? " ON HIDE " m.index
     m.label.fontKey = "medium,30"
+    'FIXME: add color string support
+    'bs:disable-next-line
     m.label.color = "#aaaaaa"
   end function
 
@@ -81,6 +87,8 @@ class LongCell extends ml.BaseCell
     ? "LC: onCellWillLoseFocus " m.index " " event.direction
 
     m.label.fontKey = "medium,30"
+    'FIXME: add color string support
+    'bs:disable-next-line
     m.label.color = "#aaaaaa"
 
   end function
@@ -90,6 +98,8 @@ class LongCell extends ml.BaseCell
 
     m.setScale(1, true)
     m.label.fontKey = "mediumBold,40"
+    'FIXME: add color string support
+    'bs:disable-next-line
     m.label.color = "#ffffff"
   end function
 
@@ -97,6 +107,8 @@ class LongCell extends ml.BaseCell
     ? "LC: onCellDidLoseFocus " m.index " " event.direction
 
     m.label.fontKey = "medium,30"
+    'FIXME: add color string support
+    'bs:disable-next-line
     m.label.color = "#aaaaaa"
     m.setScale(1, false)
   end function
@@ -107,6 +119,8 @@ class LongCell extends ml.BaseCell
     m.setScale(event.fraction, true)
     if event.fraction > 0.8
       m.label.fontKey = "mediumBold,40"
+      'FIXME: add color string support
+      'bs:disable-next-line
       m.label.color = "#ffffff"
     end if
   end function
@@ -117,6 +131,8 @@ class LongCell extends ml.BaseCell
     m.setScale(event.fraction, false)
     if event.fraction > 0.8
       m.label.fontKey = "mediumBold,30"
+      'FIXME: add color string support
+      'bs:disable-next-line
       m.label.color = "#aaaaaa"
     end if
 

@@ -9,10 +9,10 @@ class TaskRunnerScreen extends mv.BaseScreen
   '++ Views
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private startButton as roSGNode
-  private cancelButton as roSGNode
-  private resetButton as roSGNode
-  private outputLabel as roSGNode
+  private startButton as roSGNodemv_Button
+  private cancelButton as roSGNodemv_Button
+  private resetButton as roSGNodemv_Button
+  private outputLabel as roSGNodemv_Label
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
@@ -55,7 +55,11 @@ class TaskRunnerScreen extends mv.BaseScreen
   private function onStartButtonSelected(selected as boolean)
     m.outputLabel.text += `\n Starting..`
     m.taskRunner = new mc.tasks.TaskRunner(m)
+    'FIXME - should be an addTask method
+    'bs:disable-next-line
     m.taskRunner.createTask("WaitTask", { args: { delay: 5, isOK: true } }, m.onTaskResult, "both")
+    'FIXME - should be an addTask method
+    'bs:disable-next-line
     m.taskRunner.createTask("WaitTask", { args: { delay: 2, isOK: true } }, m.onTaskResult, "both")
     m.taskRunner.run(m.onTasksComplete)
   end function
