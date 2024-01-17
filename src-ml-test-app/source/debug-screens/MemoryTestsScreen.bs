@@ -16,7 +16,9 @@ namespace debug.screens
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private buttonsGroup as mc.types.node
-    private addButton as mc.types.node
+    private navControllerAddButton as mc.types.node
+    private tabControllerAddButton as mc.types.node
+    private dynamicContainerAddButton as mc.types.node
     private destroyButton as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -24,6 +26,13 @@ namespace debug.screens
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private views = []
+
+    private tabController as mc.types.node
+    private tabControllerItem as mc.types.node
+    private navController as mc.types.node
+    private dynamicContainer as mc.types.node
+
+    private transition as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -51,8 +60,14 @@ namespace debug.screens
     private function onButtonsGroupSelectedIndex(index as integer)
       m.log.info("selected", index)
       button = m.buttonsGroup@.getSelectedButton()
-      if m.addButton.isSameNode(button)
-      else if m.addButton.isSameNode(button)
+      if m.dynamicContainerAddButton.isSameNode(button)
+        m.addScreenToDynamicContainer()
+      else if m.navControllerAddButton.isSameNode(button)
+        m.addScreenToNavController()
+      else if m.tabControllerAddButton.isSameNode(button)
+        m.addScreenToTabController()
+      else if m.destroyButton.isSameNode(button)
+        m.removeViews()
       end if
     end function
 
@@ -91,6 +106,39 @@ namespace debug.screens
       m.views = []
     end function
 
+    private function addScreenToDynamicContainer()
+      m.log.info("add screen to dynamic container")
+
+      view = m.createSgNode("NavControllerTestChildScreen", invalid, `dynamicNavControllerChildScreen`)
+      transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+        color: "#ffff00"
+      })
+      m.dynamicContainer.transition = transition
+      m.dynamicContainer@.setNextView(view)
+    end function
+
+    private function addScreenToNavController()
+      m.log.info("add screen to nav controller")
+      transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+        color: "#ffff00"
+      })
+      childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, "navControllerChildScreen")
+      m.navController.transition = transition
+      m.navController@.push(childScreen)
+    end function
+
+    private function addScreenToTabController()
+      m.log.info("add screen to tab controller")
+
+      m.tabControllerItem = m.createSGNode({
+        type: "ContentNode"
+        name: "tab1"
+        "screenType": "TabControllerChildTestScreen"
+      })
+      m.tabController@.changeCurrentItem(item)
+      m.setFocus(m.tabController)
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Key Presses
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -102,6 +150,36 @@ namespace debug.screens
     protected override function onKeyPressBack() as boolean
       m.log.info("onKeyPressBack")
       return false
+    end function
+
+    protected override function onKeyPressLeft() as boolean
+      m.log.info("Pop screen from nav controller")
+      m.navController@.pop(true)
+      return true
+    end function
+
+    protected override function onKeyPressRight() as boolean
+      m.log.info("on key press right, setting next view to dynamic container")
+      view = m.createSgNode("NavControllerTestChildScreen", invalid, `dynamicNavControllerChildScreen2`)
+      m.dynamicContainer@.setNextView(view)
+      return true
+    end function
+
+    protected override function onKeyPressUp() as boolean
+      m.log.info("On key press up, adding another tab to tab controller")
+      item = m.createSGNode({
+        type: "ContentNode"
+        name: "tab2"
+        "screenType": "TabControllerChildTestScreen"
+      })
+      m.tabController@.changeCurrentItem(item)
+      return true
+    end function
+
+    private function onKeyPressDown() as boolean
+      m.log.info("On key press down showing tab1 from tab controller")
+      m.tabController@.changeCurrentItem(m.tabControllerItem)
+      return true
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

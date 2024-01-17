@@ -23,9 +23,9 @@ namespace mc.internal.destroyUtils
     mc.internal.destroyUtils.processFields(target.top)
   end function
 
-  function processFields(target as mc.types.assocarray)
+  function processFields(target as dynamic)
     if type(target) = "roSGNode"
-      fields = node.getFields()
+      fields = target.getFields()
     else
       fields = target
     end if
@@ -41,25 +41,33 @@ namespace mc.internal.destroyUtils
         end for
         target[key] = []
       else
+        if type(value) = "roSGNode" and type(target) = "roSGNode" and value.isSameNode(target)
+          continue for
+        end if
         mc.internal.destroyUtils.processValue(value)
-        target[key] = invalid
+        if mc.isAACompatible(value) and value.rlog <> invalid
+          continue for
+        else
+          target[key] = invalid
+        end if
       end if
     end for
+    target.isDestroyed = true
   end function
 
   function processValue(value as dynamic)
 
     if type(value) = "roSGNode"
       'destroy node items
-      if value.isDestroyable and not value.isDestroyed
+      if asBoolean(value.isDestroyable) and not asBoolean(value.isDestroyed)
         value@.destroy()
       end if
 
     else if mc.isAACompatible(value)
       'class or dictionary
-      if value.isDestroyable = true
+      if asBoolean(value.isDestroyable)
         'this means it's a destroyable class
-        if not value.isDestroyed
+        if not asBoolean(value.isDestroyed)
           value.destroy()
         end if
       else
@@ -67,13 +75,12 @@ namespace mc.internal.destroyUtils
         mc.internal.destroyUtils.processFields(value)
       end if
     end if
-
   end function
 
   function processChildren(target as dynamic)
     children = target.getChildren(-1, 0)
     for each child in children
-      if child.isDestroyable = true and not child.isDestroyed
+      if asBoolean(child.isDestroyable) and not asBoolean(child.isDestroyed)
         child@.destroy()
       end if
     end for

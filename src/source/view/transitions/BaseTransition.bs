@@ -58,6 +58,9 @@ namespace mv.transitions
       m.top.state = "finished"
 
       if m.source <> invalid and m.owner.shouldRemoveFromAggregateView
+        if asBoolean(m.source.isDestroyable) and asBoolean(m.owner.isDestroyingChildViewsOnRemoval)
+          m.source@.destroy()
+        end if
         m.source@.onRemovedFromAggregateView(m.owner)
         if m.owner.pushedView <> invalid
           m.owner.pushedView = invalid
