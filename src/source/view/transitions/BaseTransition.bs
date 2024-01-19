@@ -11,8 +11,10 @@ namespace mv.transitions
   '  */
   class BaseTransition extends mv.NodeClass
 
+    progress = 0.0
+    isDestroyable = true
+
     private top
-    public progress = 0.0
 
     protected source
     protected target
@@ -58,10 +60,12 @@ namespace mv.transitions
       m.top.state = "finished"
 
       if m.source <> invalid and m.owner.shouldRemoveFromAggregateView
-        if asBoolean(m.source.isDestroyable) and asBoolean(m.owner.isDestroyingChildViewsOnRemoval)
-          m.source@.destroy()
-        end if
         m.source@.onRemovedFromAggregateView(m.owner)
+        if asBoolean(m.owner.isDestroyingChildViewsOnRemoval) and asBoolean(m.source.isDestroyable) and not asBoolean(m.source.isDestroyed)
+          m.source@.destroy()
+          m.owner.transition@.destroy()
+          m.owner.transition = invalid
+        end if
         if m.owner.pushedView <> invalid
           m.owner.pushedView = invalid
         end if

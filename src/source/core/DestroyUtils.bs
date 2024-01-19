@@ -20,7 +20,7 @@ namespace mc.internal.destroyUtils
     mc.internal.destroyUtils.processChildren(target.top)
     'fields
     mc.internal.destroyUtils.processFields(target)
-    mc.internal.destroyUtils.processFields(target.top)
+    target.isDestroyed = true
   end function
 
   function processFields(target as dynamic)
@@ -41,18 +41,9 @@ namespace mc.internal.destroyUtils
         end for
         target[key] = []
       else
-        if type(value) = "roSGNode" and type(target) = "roSGNode" and value.isSameNode(target)
-          continue for
-        end if
-        mc.internal.destroyUtils.processValue(value)
-        if mc.isAACompatible(value) and value.rlog <> invalid
-          continue for
-        else
-          target[key] = invalid
-        end if
+        target[key] = invalid
       end if
     end for
-    target.isDestroyed = true
   end function
 
   function processValue(value as dynamic)
@@ -78,14 +69,15 @@ namespace mc.internal.destroyUtils
   end function
 
   function processChildren(target as dynamic)
-    children = target.getChildren(-1, 0)
-    for each child in children
-      if asBoolean(child.isDestroyable) and not asBoolean(child.isDestroyed)
-        child@.destroy()
-      end if
-    end for
-
-    target.removeChildren(children)
+    if type(target) = "roSGNode"
+      children = target.getChildren(-1, 0)
+      for each child in children
+        if asBoolean(child.isDestroyable) and not asBoolean(child.isDestroyed)
+          child@.destroy()
+        end if
+      end for
+      target.removeChildren(children)
+    end if
   end function
 
 end namespace

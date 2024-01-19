@@ -57,8 +57,8 @@ class NavControllerTestChildScreen extends mv.BaseScreen
 
   protected override function onFirstShow()
     m.log.info("On first show", m.top.id)
-    pushedView = m.top.navController.pushedView
-    poppedView = m.top.navController.poppedView
+    pushedView = asNode(m.top.navController.pushedView)
+    poppedView = asNode(m.top.navController.poppedView)
 
     m.log.info("Pushed view", mc.dv(pushedView))
     m.log.info("Popped view", mc.dv(poppedView))
@@ -68,8 +68,8 @@ class NavControllerTestChildScreen extends mv.BaseScreen
 
   protected override function onShow()
     super.onShow()
-    pushedView = m.top.navController.pushedView
-    poppedView = m.top.navController.poppedView
+    pushedView = asNode(m.top.navController.pushedView)
+    poppedView = asNode(m.top.navController.poppedView)
 
     m.log.info("On show", m.top.id, "pushed", mc.dv(pushedView), "popped", mc.dv(poppedView))
   end function
@@ -78,8 +78,8 @@ class NavControllerTestChildScreen extends mv.BaseScreen
     super.onHide()
     m.log.info("On hide", m.top.id, mc.dv(m.top.navController))
     if m.top.navController <> invalid
-      pushedView = m.top.navController.pushedView
-      poppedView = m.top.navController.poppedView
+      pushedView = asNode(m.top.navController.pushedView)
+      poppedView = asNode(m.top.navController.poppedView)
       m.log.info("pushed", mc.dv(pushedView), "popped", mc.dv(poppedView))
     end if
   end function
