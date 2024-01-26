@@ -45,12 +45,14 @@ namespace debug.screens
     protected override function initialize()
       super.initialize()
       m.createViews()
-      ' m.addViews()
     end function
 
     private function createViews()
       bundle = m.styleManager@.loadBundle("pkg:/source/debug-screens/MemoryTestsScreen.json")
       m.createViewsFromStyleJson(bundle.views, m.top)
+      m.transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
+        color: "#ffff00"
+      })
       m.focusedControl = m.buttonsGroup
     end function
 
@@ -68,7 +70,8 @@ namespace debug.screens
       else if m.tabControllerAddButton.isSameNode(button)
         m.addScreenToTabController()
       else if m.destroyButton.isSameNode(button)
-        m.removeViews()
+        m.destroy()
+        m.dismiss("destroyed")
       end if
     end function
 
@@ -100,37 +103,37 @@ namespace debug.screens
       timer.log("finished")
     end function
 
-    private function removeViews()
-      for each view in m.views
-        view.getParent().removeChild(view)
-      end for
-      m.views = []
-    end function
-
     private function addScreenToDynamicContainer()
       m.log.info("add screen to dynamic container")
 
+      m.tabController.visible = false
+      m.navController.visible = false
+      m.dynamicContainer.visible = true
+
       view = m.createSgNode("NavControllerTestChildScreen", m.top, `dynamicNavControllerChildScreen`)
-      transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
-        color: "#ffff00"
-      })
-      m.dynamicContainer.transition = transition
+
+      m.dynamicContainer.transition = m.transition
       m.dynamicContainer@.setNextView(view)
     end function
 
     private function addScreenToNavController()
       m.log.info("add screen to nav controller")
-      transition = m.createSGNode("mv_FadeTransition", m.top, "fadeTransition", {
-        color: "#ffff00"
-      })
+
+      m.tabController.visible = false
+      m.dynamicContainer.visible = false
+      m.navController.visible = true
+
       childScreen = m.createSGNode("NavControllerTestChildScreen", invalid, `navControllerChildScreen-${rnd(2323532)}`)
-      m.navController.transition = transition
-      m.tabController.removeChildren(m.tabController.getChildren(-1, 0))
+      ' m.navController.transition = m.transition
       m.navController@.push(childScreen)
     end function
 
     private function addScreenToTabController()
       m.log.info("add screen to tab controller")
+
+      m.tabController.visible = true
+      m.dynamicContainer.visible = false
+      m.navController.visible = false
 
       m.previousTabItem = m.createSGNode({
         _type: "ContentNode"
@@ -162,7 +165,7 @@ namespace debug.screens
 
     protected override function onKeyPressRight() as boolean
       m.log.info("on key press right, setting next view to dynamic container")
-      view = m.createSgNode("NavControllerTestChildScreen", invalid, `dynamicNavControllerChildScreen2`)
+      view = m.createSgNode("NavControllerTestChildScreen", invalid, `dynamicContainerChildScreen-${rnd(2323532)}`)
       m.dynamicContainer@.setNextView(view)
       return true
     end function
@@ -180,9 +183,14 @@ namespace debug.screens
     end function
 
     private function onKeyPressDown() as boolean
-      m.log.info("On key press down showing tab1 from tab controller")
+      m.log.info("On key press down showing previous from tab controller")
       m.tabController@.changeCurrentItem(m.previousTabItem)
       m.setFocus(m.buttonsGroup)
+      return true
+    end function
+
+    private function onKeyPressOptions() as boolean
+      m.addViews()
       return true
     end function
 

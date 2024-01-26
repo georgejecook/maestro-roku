@@ -24,6 +24,8 @@ function transitionToView(view as mc.types.node, animated = true as boolean)
   if m.tempTransition <> invalid
     m.log.info("using temporary transition")
     m.tempTransition@.execute(m.top, m.top.currentView, view, animated)
+    m.top.removeChild(m.tempTransition)
+    m.tempTransition@.destroy()
     m.tempTransition = invalid
   else
     if m.top.transition = invalid
