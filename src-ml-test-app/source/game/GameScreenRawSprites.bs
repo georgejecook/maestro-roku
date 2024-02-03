@@ -1,0 +1,234 @@
+import "pkg:/source/view/BaseScreen.bs"
+import "../view/Animation.bs"
+
+namespace mg
+
+  @observersWaitInitialize
+  @node("GameScreenRawSprites", "mv_BaseView")
+  class GameScreen extends mv.BaseScreen
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private holder
+    private bg1
+    private bg2
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private animatedPosters
+    private gameAnim
+    private spriteSpeed = 20
+    private bgSpeed = 20
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("GameScreen")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+      m.createViews()
+      ' m.setInterval(m.updateBackground, 3)
+    end function
+
+    private function createViews()
+      bundle = m.styleManager@.loadBundle("pkg:/source/game/GameScreen.json")
+      m.createViewsFromStyleJson(bundle.views, m.top)
+      m.createBackground("bg1", 0)
+      m.createBackground("bg2", 1919)
+      m.holder = m.createSGNode("Group", m.top)
+      m.gameAnim = new mv.animations.Generic(m.holder, 999999)
+      m.gameAnim.observeFraction(m.onGameAnimFraction)
+      m.gameAnim.start()
+      m.createAnimatedPosters()
+    end function
+
+    private function createBackground(id as string, offset as float)
+      m[id] = m.createSGNode({
+        "_type": "mv_Poster"
+        "id": id
+        "uri": "pkg:/images/roku-city.jpeg"
+        "translation": [offset, 0]
+        "size": [1920, 1080]
+      }, m.top)
+    end function
+
+    private deltaTime = 0.0
+    private lastAnimTime = 0.0
+    private frameTimer = createObject("roTimespan")
+
+    private function onGameAnimFraction(fraction as float)
+      m.updateFrameTimer()
+      ' ? "DELTA " m.deltaTime
+      m.runGameLoop()
+    end function
+
+    private function runGameLoop()
+      m.updateBackground()
+      m.onInput()
+      m.resetKeyStates()
+    end function
+
+    private function updateFrameTimer()
+      time = m.frameTimer.totalMilliseconds()
+      if m.lastAnimTime > 0
+        ' Calculate delta time in seconds
+        m.deltaTime = (time - m.lastAnimTime) / 1000.0
+      end if
+      m.lastAnimTime = time
+    end function
+
+    private function createAnimatedPosters()
+      m.animatedPosters = []
+      cols = 6
+      rows = 10
+      x = 0
+      scale = 0.75
+      m.animatedPosters = []
+      for i = 0 to cols - 1
+        for j = 0 to rows - 1
+          p = m.holder.createChild("ap_AnimatedPoster")
+          p.translation = [(x * 900 * scale) + (i * 400 * scale) + (j * 40 * scale), j * 150 * scale]
+          p.width = 240
+          p.height = 240
+          p.scale = [scale, scale]
+          p.spriteSheetUri = "pkg:/images/sprites/player-run-fhd.png"
+
+          p.frameOffsets = [
+            [0, 0]
+            [240, 0]
+            [480, 0]
+            [720, 0]
+            [960, 0]
+            [1200, 0]
+          ]
+          m.animatedPosters.push(p)
+          p.duration = (rnd(0) / 3.0) + 0.05
+          p.control = "start"
+        end for
+      end for
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Key Presses
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private pressedKey = ""
+    private isKeyDown = false
+    private isPressStart = false
+    private isLongPress = false
+    private isPressFinish = false
+
+    private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
+      m.pressedKey = key
+
+      m.isPressStart = press and not m.isKeyDown
+      m.isPressFinish = not m.isKeyDown and not m.isPressFinish
+      m.isKeyDown = press
+      return key <> "back"
+    end function
+
+    private function resetKeyStates()
+      m.isPressStart = false
+      m.isPressFinish = false
+      m.isLongPress = m.isKeyDown
+    end function
+
+    private function onInput()
+      ' ? "KD " m.isKeyDown " K " m.pressedKey " start " m.isPressStart " LP " m.isLongPress
+      if m.isPressStart
+        if m.pressedKey = "OK"
+          ' ? "BOOST!"
+          m.bgSpeed += 80
+          if m.bgSpeed > 1300
+            m.bgSpeed = 50
+          end if
+
+          m.spriteSpeed += 50
+          if m.spriteSpeed > 300
+            m.spriteSpeed = 150
+          end if
+        end if
+      else if m.isKeyDown
+        ' ? "long press start" m.pressedKey
+        speed = m.spriteSpeed
+        xOffset = 0
+        yOffset = 0
+        if m.pressedKey = "left"
+          xOffset = -speed
+        else if m.pressedKey = "right"
+          xOffset = speed
+        else if m.pressedKey = "up"
+          yOffset = -speed
+        else if m.pressedKey = "down"
+          yOffset = speed
+        end if
+
+        if xOffset <> 0 or yOffset <> 0
+          m.moveView(m.holder, xOffset, yOffset)
+        end if
+      end if
+    end function
+
+    private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)
+      target.translation = [target.translation[0] + (xSpeed * m.deltaTime), target.translation[1] + (ySpeed * m.deltaTime)]
+    end function
+
+    private function updateBackground() as boolean
+      m.moveBackground(m.bg1, -m.bgSpeed)
+      m.moveBackground(m.bg2, -m.bgSpeed)
+      return true
+    end function
+
+    private function moveBackground(target as mc.types.node, speed as float)
+      newPos = [target.translation[0] + (speed * m.deltaTime), target.translation[1]]
+      if target.id = "bg1" and newPos[0] <= -1919
+        newPos = [0, 0]
+      else if target.id = "bg2" and newPos[0] <= -0
+        newPos = [1919, 0]
+      end if
+      target.translation = newPos
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onFirstShow()
+      super.onFirstShow()
+    end function
+
+    protected override function onShow()
+      m.log.info("onShow")
+      super.onShow()
+    end function
+
+  end class
+end namespace
