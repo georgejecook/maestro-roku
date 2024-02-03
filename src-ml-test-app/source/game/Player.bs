@@ -1,0 +1,252 @@
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/game/GameEnums.bs"
+
+namespace mg
+
+  enum PlayerState
+    Walking = "Walking"
+    Falling = "Falling"
+    Jumping = "Jumping"
+    Dead = "Dead"
+    Idle = "Idle"
+  end enum
+
+  enum PlayerAnimState
+    Walking = "Walking"
+    Running = "Running"
+  end enum
+
+  @observersWaitInitialize
+  @node("Player", "mv_BaseView")
+  class Player extends mv.BaseView
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    platformsGroup as mc.types.node
+    currentFloor as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private sprite as mc.types.node
+    private feetCollider as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private speed = 300
+    private xSpeed = 0
+    private friction = 0.98
+    private acceleration = 1
+    private maxYSpeed = 2000
+    private maxXSpeed = 1000
+    private stopSpeed = 10
+
+    @inject("gameState")
+    private gameState as mc.types.node
+    private deltaTime as float
+
+    private playerState = mg.PlayerState.Idle
+    private spriteScale = 0.75
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialization
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new()
+      super("Player")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+      m.createPlayerSprite()
+      m.feetCollider = m.createSGNode({
+        "_type": "mv_Rectangle"
+        "width": 100
+        "height": 5
+        color: "#ff0000"
+        translation: [50, 180]
+      }, m.top)
+      m.currentFloor = invalid
+      m.playerState = mg.PlayerState.Falling
+    end function
+
+    private function createPlayerSprite()
+      m.sprite = m.top.createChild("ap_AnimatedPoster")
+      m.sprite.width = 240
+      m.sprite.height = 240
+      m.sprite.scale = [m.spriteScale, m.spriteScale]
+      m.sprite.spriteSheetUri = "pkg:/images/sprites/player-run-fhd.png"
+
+      m.sprite.frameOffsets = [
+        [0, 0]
+        [240, 0]
+        [480, 0]
+        [720, 0]
+        [960, 0]
+        [1200, 0]
+      ]
+      m.sprite.duration = 0.3
+      m.sprite.control = "start"
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    function tick()
+      ' Update deltaTime in each tick
+      m.deltaTime = m.gameState.deltaTime
+
+      m.onInput()
+      m.applyGravity()
+      m.updateMovement()
+    end function
+
+
+    private jumpHoldTime as float = 0
+    minJumpHoldTime as float = 0.1 ' Min time that we ignore it
+    maxJumpHoldTime as float = 1 ' Maximum time the jump force is applied when holding the "up" key
+
+    initialJumpSpeed as float = 800 ' Increase for a faster initial jump
+    gravity as float = 1800 ' Adjust based on testing for desired jump arc
+    jumpHoldForce as float = 1000 ' Increase this force for a stronger sustained jump when holding the button
+
+    private ySpeed = 0
+
+    private function applyGravity()
+      ' Apply gravity if in the air
+      if m.playerState = mg.PlayerState.Jumping or m.playerState = mg.PlayerState.Falling
+        m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
+        ' Move vertically based on ySpeed
+        m.currentFloor = m.getFloor()
+        if m.currentFloor <> invalid
+          m.top.translation[1] = m.currentFloor.translation[1] - m.feetCollider.translation[1]
+          m.ySpeed = 0
+          m.playerState = mg.PlayerState.Idle ' Or Walking, depending on context
+        end if
+      else
+        m.currentFloor = m.getFloor()
+        if m.currentFloor = invalid
+          m.startFalling()
+        end if
+      end if
+
+    end function
+
+    private function startFalling()
+      m.playerState = mg.PlayerState.Falling
+      m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
+    end function
+
+    private function getFloor()
+      if m.ySpeed < 0
+        ? "Rising"
+      else
+        ? "Falling"
+        for each platform in m.platformsGroup.getChildren(-1, 0)
+          collisionType = platform@.getFloorCollision(m.feetCollider)
+          if collisionType = mg.FloorCollision.OnFloor
+            return platform
+          end if
+        end for
+      end if
+      return invalid
+    end function
+
+    private function onInput()
+      if m.gameState.isKeyDown
+        pressedKey = m.gameState.pressedKey
+
+        if pressedKey = "play"
+          m.top.translation = [300, 300]
+          m.playerState = mg.PlayerState.Idle
+          m.currentFloor = invalid
+          m.ySpeed = 0
+        else if pressedKey = "up"
+          ? "UP"
+
+          ? " m.playerState " m.playerState
+          ? " floor is " m.currentFloor?.id
+          if m.currentFloor <> invalid
+            m.playerState = mg.PlayerState.Jumping
+            m.currentFloor = invalid
+            m.ySpeed = -m.initialJumpSpeed
+            m.jumpHoldTime = 0 ' Reset jump hold time
+          else if m.playerState = mg.PlayerState.Jumping and m.jumpHoldTime < m.maxJumpHoldTime
+            ' Continue applying jump hold force if in jumping state and holding "up"
+            m.jumpHoldTime = m.jumpHoldTime + m.deltaTime
+            ' Only apply additional force if within the max jump hold time
+            if m.jumpHoldTime <= m.maxJumpHoldTime and m.jumpHoldTime >= m.minJumpHoldTime
+              m.ySpeed -= (m.jumpHoldForce * m.deltaTime) ' Apply additional upward force
+            end if
+          end if
+        else
+          ' Calculate speed change based on current input
+          speedDelta = m.speed * m.deltaTime * m.acceleration
+
+          ' Determine direction change for immediate response
+          if pressedKey = "left" or pressedKey = "right"
+            directionMultiplier = 1
+            if (pressedKey = "left" and m.xSpeed > 0) or (pressedKey = "right" and m.xSpeed < 0)
+              ' Increase direction change impact when switching directions
+              directionMultiplier = 10
+            end if
+
+            ' Update xSpeed with direction change consideration
+            if pressedKey = "left"
+              m.xSpeed -= speedDelta * directionMultiplier
+            else if pressedKey = "right"
+              m.xSpeed += speedDelta * directionMultiplier
+            end if
+          end if
+        end if
+      else
+        m.jumpHoldTime = 0
+
+        'friction comes from floor!!
+        if m.currentFloor <> invalid
+          ' Apply friction to gradually stop the movement when no key is pressed
+          m.xSpeed = m.xSpeed * (1 - m.friction * m.deltaTime)
+          if abs(m.xSpeed) < m.stopSpeed
+            m.xSpeed = 0
+          end if
+        end if
+      end if
+    end function
+
+    private function updateMovement()
+
+      ' Ensure xSpeed and ySpeed do not exceed the maximum speed
+      m.xSpeed = mc.Clamp(m.xSpeed, -m.maxXSpeed, m.maxXSpeed)
+      m.ySpeed = mc.Clamp(m.ySpeed, -m.maxYSpeed, m.maxYSpeed)
+
+      ' Move the view based on current speeds
+      m.moveView(m.top, m.xSpeed, m.ySpeed)
+    end function
+
+    private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)
+      target.translation = [target.translation[0] + (xSpeed * m.deltaTime), target.translation[1] + (ySpeed * m.deltaTime)]
+    end function
+
+    function max(value1 as float, value2 as float) as float
+      if value1 > value2
+        return value1
+      else
+        return value2
+      end if
+    end function
+
+    function min(value1 as float, value2 as float) as float
+      if value1 < value2
+        return value1
+      else
+        return value2
+      end if
+    end function
+  end class
+
+end namespace

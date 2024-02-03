@@ -1,0 +1,46 @@
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/game/GameEnums.bs"
+
+namespace mg
+  @observersWaitInitialize
+  @node("Floor", "mv_Rectangle")
+  class Floor extends mv.BaseView
+
+    function new()
+      super("Player")
+    end function
+
+    protected override function initialize()
+      super.initialize()
+    end function
+
+    function getFloorCollision(target as mc.types.node) as object
+      translation = m.top.translation
+      size = m.top.size
+      targetSize = [target.width, target.height]
+      targetTranslation = target.translation
+      parentTranslation = target.getParent().translation
+
+      ' Calculate the absolute position of the target in the scene
+      collisionTranslation = [
+        targetTranslation[0] + parentTranslation[0],
+        targetTranslation[1] + parentTranslation[1]
+      ]
+
+      ' Check for horizontal overlap
+      horizontalOverlap = (translation[0] < collisionTranslation[0] + targetSize[0]) and (translation[0] + size[0] > collisionTranslation[0])
+
+      ' Check for vertical overlap considering the size of both the player and the target
+      verticalOverlap = (translation[1] < collisionTranslation[1] + targetSize[1]) and (translation[1] + size[1] > collisionTranslation[1])
+
+      ' Determine if the player is on the floor or has collided with the ceiling of the target
+      if horizontalOverlap and verticalOverlap
+        return mg.FloorCollision.OnFloor
+      end if
+
+      return mg.FloorCollision.None
+    end function
+
+  end class
+
+end namespace

@@ -1,5 +1,6 @@
 import "pkg:/source/view/BaseScreen.bs"
 import "../view/Animation.bs"
+import "pkg:/source/game/MapBuilder.bs"
 
 namespace mg
 
@@ -15,9 +16,11 @@ namespace mg
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private holder
-    private bg1
-    private bg2
+    private levelGroup as mc.types.node
+    private bg1 as mc.types.node
+    private player as mc.types.node
+    private bg2 as mc.types.node
+    private bgScale as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -25,8 +28,13 @@ namespace mg
 
     private animatedPosters
     private gameAnim
-    private spriteSpeed = 20
-    private bgSpeed = 20
+    private bgSpeed = 80
+
+    @gameEngine
+    private gameState as mc.types.node
+    @gameEngine
+    private frameTimer = createObject("roTimespan")
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -38,8 +46,16 @@ namespace mg
 
     protected override function initialize()
       super.initialize()
+      m.createGameState()
       m.createViews()
       ' m.setInterval(m.updateBackground, 3)
+    end function
+
+    private function createGameState()
+      m.gameState = m.createSGNode({
+        "_type": "GameState"
+      }, m.top)
+      m.setInstance("gameState", m.gameState)
     end function
 
     private function createViews()
@@ -47,11 +63,11 @@ namespace mg
       m.createViewsFromStyleJson(bundle.views, m.top)
       m.createBackground("bg1", 0)
       m.createBackground("bg2", 1919)
-      m.holder = m.createSGNode("Group", m.top)
-      m.gameAnim = new mv.animations.Generic(m.holder, 999999)
+      m.levelGroup = m.createSGNode("Group", m.top)
+      m.gameAnim = new mv.animations.Generic(m.levelGroup, 999999)
       m.gameAnim.observeFraction(m.onGameAnimFraction)
       m.gameAnim.start()
-      m.createAnimatedPosters()
+      m.createLevel()
     end function
 
     private function createBackground(id as string, offset as float)
@@ -59,148 +75,123 @@ namespace mg
         "_type": "mv_Poster"
         "id": id
         "uri": "pkg:/images/roku-city.jpeg"
-        "translation": [offset, 0]
+        "translation": [offset * m.bgScale, 0]
         "size": [1920, 1080]
+        "scale": [m.bgScale, m.bgScale]
       }, m.top)
     end function
 
-    private deltaTime = 0.0
-    private lastAnimTime = 0.0
-    private frameTimer = createObject("roTimespan")
 
+    @gameEngine
     private function onGameAnimFraction(fraction as float)
       m.updateFrameTimer()
       ' ? "DELTA " m.deltaTime
       m.runGameLoop()
     end function
 
+    @gameEngine
     private function runGameLoop()
       m.updateBackground()
       m.onInput()
+      m.tick()
+      m.updateCamera()
       m.resetKeyStates()
     end function
 
+    private function tick()
+      m.player@.tick()
+    end function
+
+    private function updateCamera()
+      playerTranslation = m.player.translation
+      screenSize = [1920, 1080]
+      levelSize = [4000, 2000]
+
+      ' Calculate the desired camera position
+      ' This example centers the player on the screen, adjust the values as needed
+      desiredX = - (playerTranslation[0] - screenSize[0] / 2)
+      desiredY = - (playerTranslation[1] - screenSize[1] / 2)
+
+      ' Optional: Set limits to prevent showing areas outside your game world
+      ' For example, if your level is 4000 pixels wide:
+      minX = - (levelSize[0] - screenSize[0])
+      maxX = 0
+      minY = - (levelSize[1] - screenSize[1]) ' Assuming the level height is 2000 pixels
+      maxY = 0
+
+      ' Apply limits
+      desiredX = mc.clamp(desiredX, minX, maxX)
+      desiredY = mc.clamp(desiredY, minY, maxY)
+
+      ' Update the levelGroup translation to move the camera
+      m.levelGroup.translation = [desiredX, desiredY]
+    end function
+
+    @gameEngine
     private function updateFrameTimer()
       time = m.frameTimer.totalMilliseconds()
-      if m.lastAnimTime > 0
+      if m.gameState.lastAnimTime > 0
         ' Calculate delta time in seconds
-        m.deltaTime = (time - m.lastAnimTime) / 1000.0
+        m.gameState.deltaTime = (time - m.gameState.lastAnimTime) / 1000.0
       end if
-      m.lastAnimTime = time
+      m.gameState.lastAnimTime = time
     end function
 
-    private function createAnimatedPosters()
-      m.animatedPosters = []
-      cols = 6
-      rows = 10
-      x = 0
-      scale = 0.75
-      m.animatedPosters = []
-      for i = 0 to cols - 1
-        for j = 0 to rows - 1
-          p = m.holder.createChild("ap_AnimatedPoster")
-          p.translation = [(x * 900 * scale) + (i * 400 * scale) + (j * 40 * scale), j * 150 * scale]
-          p.width = 240
-          p.height = 240
-          p.scale = [scale, scale]
-          p.spriteSheetUri = "pkg:/images/sprites/player-run-fhd.png"
+    private function createLevel()
+      m.createMap()
 
-          p.frameOffsets = [
-            [0, 0]
-            [240, 0]
-            [480, 0]
-            [720, 0]
-            [960, 0]
-            [1200, 0]
-          ]
-          m.animatedPosters.push(p)
-          p.duration = (rnd(0) / 3.0) + 0.05
-          p.control = "start"
-        end for
-      end for
+      m.player = m.createSGNode({
+        "_type": "Player"
+        translation: [300, 300]
+        platformsGroup: m.platformsGroup
+      }, m.levelGroup)
     end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Public Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private platformsGroup as mc.types.node
+    private platforms = []
+    private mapBuilder
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Overridden Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    private function createMap()
+      m.platformsGroup = m.createSGNode("Group", m.levelGroup)
+      m.mapBuilder = new mg.MapBuilder(m.platformsGroup)
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Callbacks
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      level = [
+        ["0000000XXXXXXXXX00000000XXXXXXXXXXX000000000XXXXXXXXXXX000000XXXXX"]
+        ["000000000000000000000000000000000000000000000000000000000000000000"]
+        ["0000000XXXXXXXXX00000000XXXXXXXXXXX000000000XXXXXXXXXXX000000XXXXX"]
+      ]
+    end function
 
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Private Methods
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Key Presses
-    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private pressedKey = ""
-    private isKeyDown = false
-    private isPressStart = false
-    private isLongPress = false
-    private isPressFinish = false
-
+    @gameEngine
     private function isCapturingAnyKeyPress(key as string, press as boolean) as boolean
-      m.pressedKey = key
-
-      m.isPressStart = press and not m.isKeyDown
-      m.isPressFinish = not m.isKeyDown and not m.isPressFinish
-      m.isKeyDown = press
+      m.gameState.pressedKey = key
+      m.gameState.isPressStart = press and not m.gameState.isKeyDown
+      m.gameState.isPressFinish = not m.gameState.isKeyDown and not m.gameState.isPressFinish
+      m.gameState.isKeyDown = press
       return key <> "back"
     end function
 
+    @gameEngine
     private function resetKeyStates()
-      m.isPressStart = false
-      m.isPressFinish = false
-      m.isLongPress = m.isKeyDown
+      m.gameState.isPressStart = false
+      m.gameState.isPressFinish = false
+      m.gameState.isLongPress = m.gameState.isKeyDown
     end function
 
     private function onInput()
-      ' ? "KD " m.isKeyDown " K " m.pressedKey " start " m.isPressStart " LP " m.isLongPress
-      if m.isPressStart
-        if m.pressedKey = "OK"
+      ' ? "KD " m.gameState.isKeyDown " K " m.pressedKey " start " m.gameState.isPressStart " LP " m.gameState.isLongPress
+      if m.gameState.isPressStart
+        if m.gameState.pressedKey = "OK"
           ' ? "BOOST!"
           m.bgSpeed += 80
           if m.bgSpeed > 1300
             m.bgSpeed = 50
           end if
-
-          m.spriteSpeed += 50
-          if m.spriteSpeed > 300
-            m.spriteSpeed = 150
-          end if
-        end if
-      else if m.isKeyDown
-        ' ? "long press start" m.pressedKey
-        speed = m.spriteSpeed
-        xOffset = 0
-        yOffset = 0
-        if m.pressedKey = "left"
-          xOffset = -speed
-        else if m.pressedKey = "right"
-          xOffset = speed
-        else if m.pressedKey = "up"
-          yOffset = -speed
-        else if m.pressedKey = "down"
-          yOffset = speed
-        end if
-
-        if xOffset <> 0 or yOffset <> 0
-          m.moveView(m.holder, xOffset, yOffset)
         end if
       end if
     end function
 
-    private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)
-      target.translation = [target.translation[0] + (xSpeed * m.deltaTime), target.translation[1] + (ySpeed * m.deltaTime)]
-    end function
-
+    'this is for parallax scrolling/bg effects
     private function updateBackground() as boolean
       m.moveBackground(m.bg1, -m.bgSpeed)
       m.moveBackground(m.bg2, -m.bgSpeed)
@@ -208,7 +199,7 @@ namespace mg
     end function
 
     private function moveBackground(target as mc.types.node, speed as float)
-      newPos = [target.translation[0] + (speed * m.deltaTime), target.translation[1]]
+      newPos = [target.translation[0] + (speed * m.gameState.deltaTime), target.translation[1]]
       if target.id = "bg1" and newPos[0] <= -1919
         newPos = [0, 0]
       else if target.id = "bg2" and newPos[0] <= -0
