@@ -48,6 +48,35 @@ namespace mg
     '   return invalid
     ' end function
 
+    ' function getFloor(target as mc.types.node, ySpeed as float)
+    '   feetCollider = target.feetCollider
+    '   feetTranslation = feetCollider.translation
+    '   targetTranslation = target.translation
+    '   targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
+
+    '   currentRow = int(targetTranslation[1] / m.screenTileHeight)
+
+    '   ' Calculate the number of rows to check based on the fall speed.
+    '   ' This accounts for the possibility of falling through multiple rows in a single frame.
+    '   fallSpeedRows = abs(ySpeed) / m.screenTileHeight
+    '   rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
+
+    '   ' Check for collision in a range from the current row to the number of rows the player could have fallen through.
+    '   for rowIndex = currentRow to currentRow + rowsToCheck
+    '     if rowIndex < m.platformsByRow.count() and rowIndex >= 0
+    '       for each platform in m.platformsByRow[rowIndex]
+    '         collisionType = platform@.getFloorCollision(feetCollider)
+    '         if collisionType = mg.FloorCollision.OnFloor
+    '           return platform
+    '         end if
+    '       end for
+    '     end if
+    '   end for
+
+    '   return invalid
+    ' end function
+
+
     function getFloor(target as mc.types.node, ySpeed as float)
       feetCollider = target.feetCollider
       feetTranslation = feetCollider.translation
@@ -55,19 +84,28 @@ namespace mg
       targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
 
       currentRow = int(targetTranslation[1] / m.screenTileHeight)
+      currentCol = int(targetTranslation[0] / m.screenTileWidth)
 
       ' Calculate the number of rows to check based on the fall speed.
       ' This accounts for the possibility of falling through multiple rows in a single frame.
       fallSpeedRows = abs(ySpeed) / m.screenTileHeight
       rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
+      rowsToCheck = 0
 
       ' Check for collision in a range from the current row to the number of rows the player could have fallen through.
       for rowIndex = currentRow to currentRow + rowsToCheck
         if rowIndex < m.platformsByRow.count() and rowIndex >= 0
           for each platform in m.platformsByRow[rowIndex]
-            collisionType = platform@.getFloorCollision(feetCollider)
-            if collisionType = mg.FloorCollision.OnFloor
-              return platform
+            'limit the colliders we look at
+            platformStartCol = platform.startIndex - 1
+            platformEndCol = platformStartCol + platform.length
+
+            ' Determine if the target's current column intersects with the platform's column range
+            if currentCol >= platformStartCol and currentCol <= platformEndCol
+              collisionType = platform@.getFloorCollision(feetCollider)
+              if collisionType = mg.FloorCollision.OnFloor
+                return platform
+              end if
             end if
           end for
         end if
@@ -156,10 +194,15 @@ namespace mg
       end for
     end function
 
+    function updateVisibility(playerPosition as mc.types.array)
+
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    'TODO - we should have a finite amount of tiles.. and then reuse them as we scroll
     ' Define a function to parse TMX JSON and create platforms
     private function parseTMXandCreatePlatforms(tmxData as mc.types.assocarray)
       ' Loop through each layer (assuming single layer for simplicity)
@@ -169,6 +212,7 @@ namespace mg
         rowLength = tmxData.width
         numberOfRows = tmxData.height
         m.mapSize = [tmxData.width * m.screenTileWidth, tmxData.height * m.screenTileHeight]
+        platformUri = ""
 
         ' Process each row
         for rowIndex = 0 to numberOfRows - 1
@@ -182,7 +226,7 @@ namespace mg
             tileValue = rowData[tileIndex]
 
             ' Check if tile is not empty and start index is not set
-            if tileValue <> 0 and startIndex = -1
+            if tileValue <> 1 and startIndex = -1
               if tileValue = 23
                 m.createCoin(rowIndex, tileIndex - rowStartIndex, "coin" + str(tileIndex))
                 startIndex = -1
@@ -190,15 +234,34 @@ namespace mg
                 ? "BAD GUY"
                 m.createBadGuy(rowIndex, tileIndex - rowStartIndex, "badGuy" + str(tileIndex))
                 startIndex = -1
-              else if tileValue > 0 and tileValue < 20 and tileValue <> 5 and tileValue <> tileValue <> 9 and tileValue <> 4
+              else if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12
+                'repeated tiles for efficienccy
                 startIndex = tileIndex - rowStartIndex
+                platformUri = `pkg:/images/tiles/${tileValue}.png`
+                length = 1
+              else if tileValue = 17 or tileValue = 19 or tileValue = 2 or tileValue = 4 or tileValue = 7 or tileValue = 9
+                ? " MAKING A CAP " tileValue
+                startIndex = tileIndex - rowStartIndex
+                platform = m.createPlatform(rowIndex, startIndex, 1, "platform" + str(startIndex))
+                ' platform.visible = false
+                platform.uri = `pkg:/images/tiles/${tileValue}.png`
+                ? " making platform " platformUri
+                startIndex = -1
+                length = 1
+              else
+                if tileValue <> 0 and tileValue <> 5 and tileValue <> 10 and tileValue <> 6
+                  ? " UKNOWNO TILE " tileValue
+                end if
+                length = 0
               end if
-              length = 1
-            else if tileValue <> 0
+            else if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12
+              'repeated tiles
               length += 1
             else if length > 0 and startIndex > -1
               ' Create a platform for the sequence of non-zero tiles
-              m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
+              platform = m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
+              platform.uri = platformUri
+              ? " making platform " platformUri
               startIndex = -1
               length = 0
             end if
@@ -207,7 +270,9 @@ namespace mg
           ' Check if the row ends with a platform
           if length > 0 and startIndex > -1
 
-            m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
+            ? " making platform " platformUri
+            platform = m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
+            platform.uri = platformUri
           end if
         next
       next
