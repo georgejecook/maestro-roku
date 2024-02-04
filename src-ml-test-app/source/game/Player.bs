@@ -24,15 +24,15 @@ namespace mg
     '++ Public Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    platformsGroup as mc.types.node
+    mapManager as mc.types.node
     currentFloor as mc.types.node
+    feetCollider as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private sprite as mc.types.node
-    private feetCollider as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -142,17 +142,29 @@ namespace mg
       m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
     end function
 
+    ' private function getFloor()
+    '   if m.ySpeed < 0
+    '     ' ? "Rising"
+    '   else
+    '     ' ? "Falling"
+    '     for each platform in m.mapManager.platformsGroup.getChildren(-1, 0)
+    '       collisionType = platform@.getFloorCollision(m.feetCollider)
+    '       if collisionType = mg.FloorCollision.OnFloor
+    '         return platform
+    '       end if
+    '     end for
+    '   end if
+    '   return invalid
+    ' end function
+
     private function getFloor()
       if m.ySpeed < 0
-        ? "Rising"
+        ' ? "Rising"
       else
-        ? "Falling"
-        for each platform in m.platformsGroup.getChildren(-1, 0)
-          collisionType = platform@.getFloorCollision(m.feetCollider)
-          if collisionType = mg.FloorCollision.OnFloor
-            return platform
-          end if
-        end for
+        ' ? "Falling"
+        ' Calculate current row based on the character's feet Y position and platform height.
+        ' Assuming platformHeight is a constant that you have defined somewhere.
+        return m.mapManager@.getFloor(m.top)
       end if
       return invalid
     end function
@@ -167,10 +179,6 @@ namespace mg
           m.currentFloor = invalid
           m.ySpeed = 0
         else if pressedKey = "up"
-          ? "UP"
-
-          ? " m.playerState " m.playerState
-          ? " floor is " m.currentFloor?.id
           if m.currentFloor <> invalid
             m.playerState = mg.PlayerState.Jumping
             m.currentFloor = invalid

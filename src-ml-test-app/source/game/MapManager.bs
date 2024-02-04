@@ -1,0 +1,128 @@
+import "pkg:/source/core/Utils.bs"
+
+namespace mg
+  @node("MapManager", "Group")
+  class MapManager
+    mapSize = [0, 0]
+    private platforms = []
+    private levelGroup as mc.types.node
+    private platformWidth = 128
+    private platformHeight = 128
+    private platformsByRow = []
+    function new()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function loadMap(levelGroup as mc.types.node, file as string)
+      m.levelGroup = levelGroup
+      text = readAsciiFile(file)
+      json = text = invalid ? invalid : parseJson(text)
+      m.parseTMXandCreatePlatforms(json)
+    end function
+
+    function getFloor(target as mc.types.node)
+      feetCollider = target.feetCollider
+      feetTranslation = feetCollider.translation
+      targetTranslation = target.translation
+      targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
+
+      currentRow = int(targetTranslation[1] / m.platformHeight)
+
+      ' Check for collision in the current row and possibly the row below.
+      ' Adjust the range (e.g., -1 to 1) if the character can fall through more than one row per frame.
+      for rowIndex = currentRow to currentRow + 1
+        if rowIndex < m.platformsByRow.count() and rowIndex >= 0
+          for each platform in m.platformsByRow[rowIndex]
+            collisionType = platform@.getFloorCollision(feetCollider)
+            if collisionType = mg.FloorCollision.OnFloor
+              return platform
+            end if
+          end for
+        end if
+      end for
+
+      return invalid
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    ' Define a function to parse TMX JSON and create platforms
+    private function parseTMXandCreatePlatforms(tmxData as mc.types.assocarray)
+      ' Parse the JSON string into a BrightScript object
+
+
+      platforms = []
+
+      ' Loop through each layer (assuming single layer for simplicity)
+      for each layer in tmxData.layers
+        ' Assuming a single layer for simplicity, process its data
+        rowData = layer.data
+        rowLength = tmxData.width
+        numberOfRows = tmxData.height
+        m.mapSize = [tmxData.width * m.platformWidth, tmxData.height * m.platformHeight]
+
+        ' Process each row
+        for rowIndex = 0 to numberOfRows - 1
+          rowStartIndex = rowIndex * rowLength
+          rowEndIndex = (rowIndex + 1) * rowLength - 1
+          startIndex = -1
+          length = 0
+
+          ' Process each tile in the row
+          for tileIndex = rowStartIndex to rowEndIndex
+            tileValue = rowData[tileIndex]
+
+            ' Check if tile is not empty and start index is not set
+            if tileValue <> 0 and startIndex = -1
+              startIndex = tileIndex - rowStartIndex ' Relative start index in the row
+              length = 1
+            else if tileValue <> 0
+              length += 1
+            else if length > 0
+              ' Create a platform for the sequence of non-zero tiles
+              platforms.push(m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex)))
+              startIndex = -1
+              length = 0
+            end if
+          next
+
+          ' Check if the row ends with a platform
+          if length > 0
+
+            platforms.push(m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex)))
+          end if
+        next
+      next
+
+      return platforms
+    end function
+
+    private function createPlatform(rowIndex as integer, startIndex as integer, length as integer, id as string)
+      yPos = rowIndex * m.platformHeight
+      platform = mc.createSGNode({
+        "_type": "Floor"
+        "id": id
+        translation: [startIndex * m.platformWidth, yPos]
+        size: [length * m.platformWidth, m.platformHeight]
+        startIndex: startIndex
+        length: length
+        rowIndex: rowIndex
+        color: "#000000"
+      }, m.levelGroup)
+      rows = m.platformsByRow[rowIndex]
+      if rows = invalid
+        rows = []
+        m.platformsByRow.push(rows)
+      end if
+      rows.push(platform)
+      return platform
+    end function
+
+
+  end class
+end namespace

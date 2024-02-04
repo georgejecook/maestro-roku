@@ -6,6 +6,10 @@ namespace mg
   @node("Floor", "mv_Rectangle")
   class Floor extends mv.BaseView
 
+    startIndex as integer
+    length as integer
+    rowIndex as integer
+
     function new()
       super("Player")
     end function
@@ -17,6 +21,7 @@ namespace mg
     function getFloorCollision(target as mc.types.node) as object
       translation = m.top.translation
       size = m.top.size
+      size[1] = 20 'only first 20 pixels of floor count
       targetSize = [target.width, target.height]
       targetTranslation = target.translation
       parentTranslation = target.getParent().translation
@@ -33,7 +38,6 @@ namespace mg
       ' Check for vertical overlap considering the size of both the player and the target
       verticalOverlap = (translation[1] < collisionTranslation[1] + targetSize[1]) and (translation[1] + size[1] > collisionTranslation[1])
 
-      ' Determine if the player is on the floor or has collided with the ceiling of the target
       if horizontalOverlap and verticalOverlap
         return mg.FloorCollision.OnFloor
       end if

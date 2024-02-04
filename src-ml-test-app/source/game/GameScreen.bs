@@ -1,6 +1,6 @@
 import "pkg:/source/view/BaseScreen.bs"
 import "../view/Animation.bs"
-import "pkg:/source/game/MapBuilder.bs"
+import "pkg:/source/game/MapManager.bs"
 
 namespace mg
 
@@ -17,10 +17,12 @@ namespace mg
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private levelGroup as mc.types.node
-    private bg1 as mc.types.node
+    private backgroundGroup as mc.types.node
+    private midGroundGroup as mc.types.node
     private player as mc.types.node
+    private bg1 as mc.types.node
     private bg2 as mc.types.node
-    private bgScale as mc.types.node
+    private bgScale = 2
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -29,6 +31,7 @@ namespace mg
     private animatedPosters
     private gameAnim
     private bgSpeed = 80
+    private levelSize = 80
 
     @gameEngine
     private gameState as mc.types.node
@@ -61,8 +64,10 @@ namespace mg
     private function createViews()
       bundle = m.styleManager@.loadBundle("pkg:/source/game/GameScreen.json")
       m.createViewsFromStyleJson(bundle.views, m.top)
+      m.backgroundGroup = m.createSGNode("Group", m.top)
+      m.midGroundGroup = m.createSGNode("Group", m.top)
       m.createBackground("bg1", 0)
-      m.createBackground("bg2", 1919)
+      m.createBackground("bg2", 1919 * m.bgScale)
       m.levelGroup = m.createSGNode("Group", m.top)
       m.gameAnim = new mv.animations.Generic(m.levelGroup, 999999)
       m.gameAnim.observeFraction(m.onGameAnimFraction)
@@ -78,7 +83,7 @@ namespace mg
         "translation": [offset * m.bgScale, 0]
         "size": [1920, 1080]
         "scale": [m.bgScale, m.bgScale]
-      }, m.top)
+      }, m.backgroundGroup)
     end function
 
 
@@ -91,12 +96,40 @@ namespace mg
 
     @gameEngine
     private function runGameLoop()
-      m.updateBackground()
+      ' m.updateBackground()
       m.onInput()
       m.tick()
       m.updateCamera()
+      m.updateParallax()
+
       m.resetKeyStates()
     end function
+
+    private function updateParallax()
+      ' Get the current camera position from the level group's translation
+      cameraX = m.levelGroup.translation[0]
+      cameraY = m.levelGroup.translation[1]
+
+      ' Define the parallax factors for the midground and background
+      ' The background moves slower than the midground to create depth
+      ' Adjust these values as needed to get the desired effect
+      midParallaxFactor = 0.3 ' Midground moves at 30% of camera speed
+      backParallaxFactor = 0.15 ' Background moves at 15% of camera speed
+
+      ' Calculate the midground and background positions
+      ' The original position should be considered if the backgrounds have a starting offset
+      ' For simplicity, this example assumes they start at [0,0]
+      midX = cameraX * midParallaxFactor
+      midY = cameraY * midParallaxFactor
+      backX = cameraX * backParallaxFactor
+      backY = cameraY * backParallaxFactor
+
+      ' Update the midground and background layer positions
+      ' Assuming you have m.midgroundLayer and m.backgroundLayer to represent your layers
+      m.midGroundGroup.translation = [midX, midY]
+      m.backgroundGroup.translation = [backX, backY]
+    end function
+
 
     private function tick()
       m.player@.tick()
@@ -105,7 +138,7 @@ namespace mg
     private function updateCamera()
       playerTranslation = m.player.translation
       screenSize = [1920, 1080]
-      levelSize = [4000, 2000]
+
 
       ' Calculate the desired camera position
       ' This example centers the player on the screen, adjust the values as needed
@@ -114,9 +147,9 @@ namespace mg
 
       ' Optional: Set limits to prevent showing areas outside your game world
       ' For example, if your level is 4000 pixels wide:
-      minX = - (levelSize[0] - screenSize[0])
+      minX = - (m.levelSize[0] - screenSize[0])
       maxX = 0
-      minY = - (levelSize[1] - screenSize[1]) ' Assuming the level height is 2000 pixels
+      minY = - (m.levelSize[1] - screenSize[1]) ' Assuming the level height is 2000 pixels
       maxY = 0
 
       ' Apply limits
@@ -143,23 +176,19 @@ namespace mg
       m.player = m.createSGNode({
         "_type": "Player"
         translation: [300, 300]
-        platformsGroup: m.platformsGroup
+        mapManager: m.mapManager
       }, m.levelGroup)
     end function
 
     private platformsGroup as mc.types.node
     private platforms = []
-    private mapBuilder
+    private mapManager as mc.types.node
 
     private function createMap()
       m.platformsGroup = m.createSGNode("Group", m.levelGroup)
-      m.mapBuilder = new mg.MapBuilder(m.platformsGroup)
-
-      level = [
-        ["0000000XXXXXXXXX00000000XXXXXXXXXXX000000000XXXXXXXXXXX000000XXXXX"]
-        ["000000000000000000000000000000000000000000000000000000000000000000"]
-        ["0000000XXXXXXXXX00000000XXXXXXXXXXX000000000XXXXXXXXXXX000000XXXXX"]
-      ]
+      m.mapManager = m.createSGNode("MapManager")
+      m.mapManager@.loadMap(m.platformsGroup, "pkg:/images/map/map.json")
+      m.levelSize = m.mapManager.mapSize
     end function
 
     @gameEngine
@@ -192,21 +221,21 @@ namespace mg
     end function
 
     'this is for parallax scrolling/bg effects
-    private function updateBackground() as boolean
-      m.moveBackground(m.bg1, -m.bgSpeed)
-      m.moveBackground(m.bg2, -m.bgSpeed)
-      return true
-    end function
+    ' private function updateBackground() as boolean
+    '   m.moveBackground(m.bg1, -m.bgSpeed)
+    '   m.moveBackground(m.bg2, -m.bgSpeed)
+    '   return true
+    ' end function
 
-    private function moveBackground(target as mc.types.node, speed as float)
-      newPos = [target.translation[0] + (speed * m.gameState.deltaTime), target.translation[1]]
-      if target.id = "bg1" and newPos[0] <= -1919
-        newPos = [0, 0]
-      else if target.id = "bg2" and newPos[0] <= -0
-        newPos = [1919, 0]
-      end if
-      target.translation = newPos
-    end function
+    ' private function moveBackground(target as mc.types.node, speed as float)
+    '   newPos = [target.translation[0] + (speed * m.gameState.deltaTime), target.translation[1]]
+    '   if target.id = "bg1" and newPos[0] <= -1919
+    '     newPos = [0, 0]
+    '   else if target.id = "bg2" and newPos[0] <= -0
+    '     newPos = [1919, 0]
+    '   end if
+    '   target.translation = newPos
+    ' end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Lifecycle Methods
