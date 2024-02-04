@@ -124,8 +124,9 @@ namespace mg
 
     private function updateParallax()
       ' Get the current camera position from the level group's translation
-      cameraX = m.levelGroup.translation[0]
-      cameraY = m.levelGroup.translation[1]
+      levelTranslation = m.levelGroup.translation
+      cameraX = levelTranslation[0] * 0.8
+      cameraY = levelTranslation[1] * 0.8
 
       foregroundarallaxFactor = 0.3
       midParallaxFactor = 0.25
@@ -152,6 +153,8 @@ namespace mg
 
     private function updateCamera()
       playerTranslation = m.player.translation
+      playerTranslation[0] = playerTranslation[0] * 0.8
+      playerTranslation[1] = playerTranslation[1] * 0.8
       screenSize = [1920, 1080]
 
 
@@ -187,6 +190,7 @@ namespace mg
 
     private function createLevel()
       m.levelGroup = m.createSGNode("Group", m.top)
+      m.levelGroup.scale = [0.8, 0.8]
 
       m.createMap()
 

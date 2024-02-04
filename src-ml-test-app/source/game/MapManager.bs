@@ -59,12 +59,16 @@ namespace mg
 
       ' Check for collision in the current row and possibly the row below.
       ' Adjust the range (e.g., -1 to 1) if the character can fall through more than one row per frame.
-      for rowIndex = currentRow to currentRow + 1
+      for rowIndex = currentRow - 1 to currentRow
         if rowIndex < m.collectablesByRow.count() and rowIndex >= 0
           for each item in m.collectablesByRow[rowIndex]
             if not item.isCollected and item.startIndex = currentCol
-              item.visible = false
-              item.isCollected = true
+              if item.effect = "kill"
+                target@.onHit(item)
+              else
+                item.visible = false
+                item.isCollected = true
+              end if
             end if
           end for
         end if
@@ -115,6 +119,15 @@ namespace mg
     end function
 
 
+    function resetLevel()
+      for each row in m.collectablesByRow
+        for each item in row
+          item.visible = true
+          item.isCollected = false
+        end for
+      end for
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -145,7 +158,11 @@ namespace mg
               if tileValue = 23
                 m.createCoin(rowIndex, tileIndex - rowStartIndex, "coin" + str(tileIndex))
                 startIndex = -1
-              else
+              else if tileValue = 24
+                ? "BAD GUY"
+                m.createBadGuy(rowIndex, tileIndex - rowStartIndex, "badGuy" + str(tileIndex))
+                startIndex = -1
+              else if tileValue > 0 and tileValue < 20 and tileValue <> 5 and tileValue <> tileValue <> 9 and tileValue <> 4
                 startIndex = tileIndex - rowStartIndex
               end if
               length = 1
@@ -198,6 +215,30 @@ namespace mg
         size: [m.screenTileWidth, m.screenTileHeight]
         startIndex: startIndex
         length: 1
+        uri: "pkg:/images/sprites/coin-tile.png"
+        effect: "coin"
+        rowIndex: rowIndex
+      }, m.levelGroup)
+      rows = m.collectablesByRow[rowIndex]
+      if rows = invalid
+        rows = []
+        m.collectablesByRow.push(rows)
+      end if
+      rows.push(item)
+      return item
+    end function
+
+    private function createBadGuy(rowIndex as integer, startIndex as integer, id as string)
+      yPos = rowIndex * m.screenTileHeight
+      item = mc.createSGNode({
+        "_type": "Collectable"
+        "id": id
+        uri: "pkg:/images/sprites/bad-guy.png"
+        translation: [startIndex * m.screenTileWidth, yPos]
+        size: [m.screenTileWidth, m.screenTileHeight]
+        startIndex: startIndex
+        length: 1
+        effect: "kill"
         rowIndex: rowIndex
       }, m.levelGroup)
       rows = m.collectablesByRow[rowIndex]

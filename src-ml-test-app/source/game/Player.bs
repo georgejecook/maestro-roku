@@ -202,7 +202,7 @@ namespace mg
       ]
       m.spriteLeft.duration = 0.15
       m.spriteLeft.control = "start"
-      m.spriteLeft.visibe = false
+      m.spriteLeft.visible = false
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -301,15 +301,24 @@ namespace mg
       return m.mapManager@.collectItems(m.top)
     end function
 
+    function onHit(enemy as mc.types.node)
+      m.resetPlayer()
+    end function
+
+    function resetPlayer()
+      m.top.translation = [300, 300]
+      m.setPlayerState(mg.PlayerState.Idle)
+      m.mapManager@.resetLevel()
+      m.currentFloor = invalid
+      m.ySpeed = 0
+    end function
+
     private function onInput()
       if m.gameState.isKeyDown
         pressedKey = m.gameState.pressedKey
 
         if pressedKey = "play"
-          m.top.translation = [300, 300]
-          m.setPlayerState(mg.PlayerState.Idle)
-          m.currentFloor = invalid
-          m.ySpeed = 0
+          m.resetPlayer()
         else if pressedKey = "up"
           if m.currentFloor <> invalid
             m.setPlayerState(mg.PlayerState.Jumping)
