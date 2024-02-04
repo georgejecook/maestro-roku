@@ -234,6 +234,9 @@ namespace mg
           if playerBottomY < platformTopY or (playerBottomY - platformTopY > 20) ' Adjust 20 to your game's scale
             ' This indicates a true lateral collision, not a landing scenario
             m.xSpeed = 0
+            if m.currentFloor = invalid ' or check it's under the wall we hit!!
+              m.startFalling()
+            end if
           end if
         end if
       end if
