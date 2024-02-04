@@ -47,6 +47,46 @@ namespace mg
       return invalid
     end function
 
+    function getSideCollision(target as object, direction as integer) as object
+      feetCollider = target.feetCollider
+      feetTranslation = feetCollider.translation
+      characterTranslation = target.translation
+      characterPosition = [characterTranslation[0] + feetTranslation[0], characterTranslation[1] + feetTranslation[1]]
+
+      currentRow = Int(characterPosition[1] / m.platformHeight)
+      searchRows = [currentRow] ' Consider current row for lateral collision
+
+      for each rowIndex in searchRows
+        if rowIndex < m.platformsByRow.count() and rowIndex >= 0
+          for each platform in m.platformsByRow[rowIndex]
+            platformTranslation = platform.translation
+            platformLeft = platformTranslation[0]
+            platformRight = platformTranslation[0] + platform.width
+            characterLeft = characterPosition[0]
+            characterRight = characterPosition[0] + feetCollider.width
+
+            ' Moving right and approaching the left boundary of a platform
+            if direction = 1 and characterRight > platformLeft and characterLeft < platformRight
+              ' Allow passing through if moving outwards from within a platform
+              if characterLeft < platformLeft
+                return platform ' Collision on the right
+              end if
+
+              ' Moving left and approaching the right boundary of a platform
+            else if direction = -1 and characterLeft < platformRight and characterRight > platformLeft
+              ' Allow passing through if moving outwards from within a platform
+              if characterRight > platformRight
+                return platform ' Collision on the left
+              end if
+            end if
+          end for
+        end if
+      end for
+
+      return invalid ' No collision detected, allowing free movement
+    end function
+
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

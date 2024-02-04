@@ -33,6 +33,14 @@ namespace mg
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private sprite as mc.types.node
+    private walkRightSprite as mc.types.node
+    private walkLeftSprite as mc.types.node
+    private attackLeftSprite as mc.types.node
+    private attackRightSprite as mc.types.node
+    private idleRightSprite as mc.types.node
+    private idleLeftSprite as mc.types.node
+    private jumpRightSprite as mc.types.node
+    private jumpLeftSprite as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -51,7 +59,11 @@ namespace mg
     private deltaTime as float
 
     private playerState = mg.PlayerState.Idle
+    ' private spriteScale = 2
     private spriteScale = 0.75
+    private allSprites = []
+    private spritesByState = []
+    private currentSprite as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -72,9 +84,87 @@ namespace mg
         translation: [50, 180]
       }, m.top)
       m.currentFloor = invalid
-      m.playerState = mg.PlayerState.Falling
+      m.setPlayerState(mg.PlayerState.Falling)
     end function
 
+    private function createPlayerSprite_()
+      m.createAnimatedSprite("walkRightSprite", "right/Run-6frm", 6, true)
+      m.createAnimatedSprite("walkLeftSprite", "left/Run-6frm", 6, true)
+      m.createAnimatedSprite("attackRightSprite", "right/Atk1-6frm", 6)
+      m.createAnimatedSprite("attackLeftSprite", "left/Atk1-6frm", 6)
+      m.createAnimatedSprite("idleRightSprite", "right/Idle-5frm", 5)
+      m.createAnimatedSprite("idleLeftSprite", "left/Idle-5frm", 5)
+      m.createAnimatedSprite("jumpRightSprite", "right/Jump-2frm", 2)
+      m.createAnimatedSprite("jumpLeftSprite", "left/Jump-2frm", 2)
+
+
+      m.allSprites = [
+        m.walkRightSprite
+        m.walkLeftSprite
+        m.attackRightSprite
+        m.attackLeftSprite
+        m.idleRightSprite
+        m.idleLeftSprite
+        m.jumpRightSprite
+        m.jumpLeftSprite
+      ]
+      m.spritesByState = {
+
+      }
+      m.spritesByState["right_" + mg.PlayerState.Walking] = m.walkRightSprite
+      m.spritesByState["right_" + mg.PlayerState.Jumping] = m.jumpRightSprite
+      m.spritesByState["right_" + mg.PlayerState.Idle] = m.idleRightSprite
+      m.spritesByState["right_" + mg.PlayerState.Dead] = m.idleRightSprite
+      m.spritesByState["right_" + mg.PlayerState.Falling] = m.jumpRightSprite
+      m.spritesByState["left_" + mg.PlayerState.Walking] = m.walkLeftSprite
+      m.spritesByState["left_" + mg.PlayerState.Jumping] = m.jumpLeftSprite
+      m.spritesByState["left_" + mg.PlayerState.Idle] = m.idleLeftSprite
+      m.spritesByState["left_" + mg.PlayerState.Dead] = m.idleLeftSprite
+      m.spritesByState["left_" + mg.PlayerState.Falling] = m.jumpLeftSprite
+    end function
+
+    private animstate = "none"
+    private function setPlayerState(state as mg.PlayerState)
+      m.playerState = state
+      'TODO - fix this
+      animState = mg.PlayerState.Walking
+      if animState <> m.animstate
+        m.animstate = animState
+        ' ? "SETTING STATE TO " m.playerState "  animState " animState
+        ' if m.currentSprite <> invalid
+        '   m.currentSprite.control = "stop"
+        '   m.currentSprite.visible = false
+        ' end if
+
+        ' direction = m.xSpeed > 0 ? "right" : "left"
+        ' m.currentSprite = m.spritesByState[direction + "_" + m.playerState]
+        ' m.currentSprite.control = "start"
+        ' m.currentSprite.visible = true
+        ' ? " CURRENT SPRITE IS " m.currentSprite.id
+      end if
+    end function
+
+    private function createAnimatedSprite(fieldName as string, fileName as string, numFrames as integer, repeat = false as boolean)
+      sprite = m.top.createChild("ap_AnimatedPoster")
+      sprite.width = 244 * m.spriteScale
+      sprite.height = 93 * m.spriteScale
+      sprite.id = fieldName
+      sprite.scale = [m.spriteScale, m.spriteScale]
+      sprite.spriteSheetUri = "pkg:/images/sprites/" + fileName + ".png"
+      sprite.visible = false
+      sprite.loopMode = repeat ? "loop" : "once"
+
+      frameOffsets = []
+      for i = 0 to numFrames - 1
+        frameOffsets.push([(244 * i), 0])
+      end for
+
+      sprite.frameOffsets = frameOffsets
+      sprite.duration = 0.3
+      m[fieldName] = sprite
+    end function
+
+    private spriteLeft as mc.types.node
     private function createPlayerSprite()
       m.sprite = m.top.createChild("ap_AnimatedPoster")
       m.sprite.width = 240
@@ -90,20 +180,48 @@ namespace mg
         [960, 0]
         [1200, 0]
       ]
-      m.sprite.duration = 0.3
+      m.sprite.duration = 0.15
       m.sprite.control = "start"
+      m.spriteLeft = m.top.createChild("ap_AnimatedPoster")
+      m.spriteLeft.width = 240
+      m.spriteLeft.height = 240
+      m.spriteLeft.scale = [m.spriteScale, m.spriteScale]
+      m.spriteLeft.spriteSheetUri = "pkg:/images/sprites/player-run-left-fhd.png"
+
+      m.spriteLeft.frameOffsets = [
+        [0, 0]
+        [240, 0]
+        [480, 0]
+        [720, 0]
+        [960, 0]
+        [1200, 0]
+      ]
+      m.spriteLeft.duration = 0.15
+      m.spriteLeft.control = "start"
+      m.spriteLeft.visibe = false
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     function tick()
       ' Update deltaTime in each tick
       m.deltaTime = m.gameState.deltaTime
 
       m.onInput()
       m.applyGravity()
+      m.checkLateralCollision()
       m.updateMovement()
+    end function
+
+    private function checkLateralCollision()
+      ' Check for lateral collisions and adjust movement
+      lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed > 0 ? 1 : -1)
+      if lateralCollisionPlatform <> invalid and (not lateralCollisionPlatform.isSameNode(m.currentFloor))
+        ? "Hit wall " lateralCollisionPlatform.rowIndex
+        m.xSpeed = 0 ' Example adjustment, customize as needed
+      end if
     end function
 
 
@@ -124,9 +242,10 @@ namespace mg
         ' Move vertically based on ySpeed
         m.currentFloor = m.getFloor()
         if m.currentFloor <> invalid
-          m.top.translation[1] = m.currentFloor.translation[1] - m.feetCollider.translation[1]
+          ' ? " LANDED ON FLOOR " m.currentFloor.rowIndex
+          m.top.translation[1] = m.currentFloor.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
           m.ySpeed = 0
-          m.playerState = mg.PlayerState.Idle ' Or Walking, depending on context
+          m.setPlayerState(m.xSpeed = 0 ? mg.PlayerState.Idle : mg.PlayerState.Walking) ' Or Walking, depending on context
         end if
       else
         m.currentFloor = m.getFloor()
@@ -138,7 +257,8 @@ namespace mg
     end function
 
     private function startFalling()
-      m.playerState = mg.PlayerState.Falling
+      ' ? "starting falling"
+      m.setPlayerState(mg.PlayerState.Falling)
       m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
     end function
 
@@ -175,12 +295,12 @@ namespace mg
 
         if pressedKey = "play"
           m.top.translation = [300, 300]
-          m.playerState = mg.PlayerState.Idle
+          m.setPlayerState(mg.PlayerState.Idle)
           m.currentFloor = invalid
           m.ySpeed = 0
         else if pressedKey = "up"
           if m.currentFloor <> invalid
-            m.playerState = mg.PlayerState.Jumping
+            m.setPlayerState(mg.PlayerState.Jumping)
             m.currentFloor = invalid
             m.ySpeed = -m.initialJumpSpeed
             m.jumpHoldTime = 0 ' Reset jump hold time
@@ -198,6 +318,9 @@ namespace mg
 
           ' Determine direction change for immediate response
           if pressedKey = "left" or pressedKey = "right"
+            m.sprite.visible = pressedKey = "right"
+            m.spriteLeft.visible = pressedKey = "left"
+
             directionMultiplier = 1
             if (pressedKey = "left" and m.xSpeed > 0) or (pressedKey = "right" and m.xSpeed < 0)
               ' Increase direction change impact when switching directions
@@ -210,6 +333,7 @@ namespace mg
             else if pressedKey = "right"
               m.xSpeed += speedDelta * directionMultiplier
             end if
+            ? "moving " pressedKey " S=" m.xSpeed
           end if
         end if
       else
@@ -237,7 +361,12 @@ namespace mg
     end function
 
     private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)
-      target.translation = [target.translation[0] + (xSpeed * m.deltaTime), target.translation[1] + (ySpeed * m.deltaTime)]
+      if m.currentFloor <> invalid
+        y = m.currentFloor.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
+      else
+        y = target.translation[1] + (ySpeed * m.deltaTime)
+      end if
+      target.translation = [target.translation[0] + (xSpeed * m.deltaTime), y]
     end function
 
     function max(value1 as float, value2 as float) as float

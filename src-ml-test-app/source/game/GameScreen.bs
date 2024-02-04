@@ -19,10 +19,11 @@ namespace mg
     private levelGroup as mc.types.node
     private backgroundGroup as mc.types.node
     private midGroundGroup as mc.types.node
+    private foregroundGroup as mc.types.node
     private player as mc.types.node
     private bg1 as mc.types.node
     private bg2 as mc.types.node
-    private bgScale = 2
+    private bgScale = 1.5
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
@@ -62,24 +63,40 @@ namespace mg
     end function
 
     private function createViews()
-      bundle = m.styleManager@.loadBundle("pkg:/source/game/GameScreen.json")
-      m.createViewsFromStyleJson(bundle.views, m.top)
-      m.backgroundGroup = m.createSGNode("Group", m.top)
-      m.midGroundGroup = m.createSGNode("Group", m.top)
-      m.createBackground("bg1", 0)
-      m.createBackground("bg2", 1919 * m.bgScale)
-      m.levelGroup = m.createSGNode("Group", m.top)
-      m.gameAnim = new mv.animations.Generic(m.levelGroup, 999999)
-      m.gameAnim.observeFraction(m.onGameAnimFraction)
-      m.gameAnim.start()
+      m.createParallaxBackgrounds()
+
       m.createLevel()
     end function
 
-    private function createBackground(id as string, offset as float)
+    private function createParallaxBackgrounds()
+      m.backgroundGroup = m.createSGNode("Group", m.top)
+      m.midGroundGroup = m.createSGNode("Group", m.top)
+      m.createSGNode({
+        "_type": "mv_Poster"
+        "id": "midGroundPoster"
+        "uri": "pkg:/images/roku-city-mid.png"
+        "translation": [500, 00]
+        "size": [1920, 1080]
+        "scale": [1.3, 1.3]
+      }, m.midGroundGroup)
+      m.createBackground("bg1", 0, "pkg:/images/roku-city.jpeg")
+      m.createBackground("bg2", 1919 * m.bgScale, "pkg:/images/roku-city.jpeg")
+      m.foregroundGroup = m.createSGNode("Group", m.top)
+      m.createSGNode({
+        "_type": "mv_Poster"
+        "id": "foregroundPoster"
+        "uri": "pkg:/images/roku-city-foreground.png"
+        "translation": [230, -30]
+        "size": [1920, 1080]
+        "scale": [2, 2]
+      }, m.foregroundGroup)
+    end function
+
+    private function createBackground(id as string, offset as float, uri as string)
       m[id] = m.createSGNode({
         "_type": "mv_Poster"
         "id": id
-        "uri": "pkg:/images/roku-city.jpeg"
+        "uri": uri
         "translation": [offset * m.bgScale, 0]
         "size": [1920, 1080]
         "scale": [m.bgScale, m.bgScale]
@@ -110,15 +127,12 @@ namespace mg
       cameraX = m.levelGroup.translation[0]
       cameraY = m.levelGroup.translation[1]
 
-      ' Define the parallax factors for the midground and background
-      ' The background moves slower than the midground to create depth
-      ' Adjust these values as needed to get the desired effect
-      midParallaxFactor = 0.3 ' Midground moves at 30% of camera speed
-      backParallaxFactor = 0.15 ' Background moves at 15% of camera speed
+      foregroundarallaxFactor = 0.3
+      midParallaxFactor = 0.25
+      backParallaxFactor = 0.12
 
-      ' Calculate the midground and background positions
-      ' The original position should be considered if the backgrounds have a starting offset
-      ' For simplicity, this example assumes they start at [0,0]
+      foreX = cameraX * foregroundarallaxFactor
+      foreY = cameraY * foregroundarallaxFactor
       midX = cameraX * midParallaxFactor
       midY = cameraY * midParallaxFactor
       backX = cameraX * backParallaxFactor
@@ -128,6 +142,7 @@ namespace mg
       ' Assuming you have m.midgroundLayer and m.backgroundLayer to represent your layers
       m.midGroundGroup.translation = [midX, midY]
       m.backgroundGroup.translation = [backX, backY]
+      m.foregroundGroup.translation = [foreX, foreY]
     end function
 
 
@@ -171,7 +186,15 @@ namespace mg
     end function
 
     private function createLevel()
+      m.levelGroup = m.createSGNode("Group", m.top)
+
       m.createMap()
+
+      'run  main game loop at 60fps
+      m.gameAnim = new mv.animations.Generic(m.levelGroup, 999999)
+      m.gameAnim.observeFraction(m.onGameAnimFraction)
+      m.gameAnim.start()
+
 
       m.player = m.createSGNode({
         "_type": "Player"
