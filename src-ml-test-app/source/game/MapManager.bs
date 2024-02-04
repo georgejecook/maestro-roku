@@ -90,7 +90,7 @@ namespace mg
       ' This accounts for the possibility of falling through multiple rows in a single frame.
       fallSpeedRows = abs(ySpeed) / m.screenTileHeight
       rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
-      rowsToCheck = 0
+      rowsToCheck = 1
 
       ' Check for collision in a range from the current row to the number of rows the player could have fallen through.
       for rowIndex = currentRow to currentRow + rowsToCheck
@@ -122,28 +122,24 @@ namespace mg
 
       currentRow = int(targetTranslation[1] / m.screenTileHeight)
       currentCol = int(targetTranslation[0] / m.screenTileWidth)
-
+      currentColString = currentCol.toStr()
       ' Check for collision in the current row and possibly the row below.
-      ' Adjust the range (e.g., -1 to 1) if the character can fall through more than one row per frame.
       for rowIndex = currentRow - 1 to currentRow
         if rowIndex < m.collectablesByRow.count() and rowIndex >= 0
-          for each item in m.collectablesByRow[rowIndex]
-            if not item.isCollected and item.startIndex = currentCol
-              if item.effect = "kill"
-                target@.onHit(item)
-              else
-                item.visible = false
-                item.isCollected = true
-              end if
+          item = m.collectablesByRow[rowIndex][currentColString]
+          if item <> invalid and not item.isCollected and item.startIndex = currentCol
+            if item.effect = "kill"
+              target@.onHit(item)
+            else
+              item.visible = false
+              item.isCollected = true
             end if
-          end for
+          end if
         end if
       end for
 
       return invalid
     end function
-
-
 
     function getSideCollision(target as object, direction as integer) as object
       feetCollider = target.feetCollider
@@ -184,10 +180,9 @@ namespace mg
       return invalid ' No collision detected, allowing free movement
     end function
 
-
     function resetLevel()
       for each row in m.collectablesByRow
-        for each item in row
+        for each item in row.items()
           item.visible = true
           item.isCollected = false
         end for
@@ -231,7 +226,7 @@ namespace mg
                 m.createCoin(rowIndex, tileIndex - rowStartIndex, "coin" + str(tileIndex))
                 startIndex = -1
               else if tileValue = 24
-                ? "BAD GUY"
+                ' ? "BAD GUY"
                 m.createBadGuy(rowIndex, tileIndex - rowStartIndex, "badGuy" + str(tileIndex))
                 startIndex = -1
               else if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12
@@ -240,17 +235,17 @@ namespace mg
                 platformUri = `pkg:/images/tiles/${tileValue}.png`
                 length = 1
               else if tileValue = 17 or tileValue = 19 or tileValue = 2 or tileValue = 4 or tileValue = 7 or tileValue = 9
-                ? " MAKING A CAP " tileValue
+                ' ? " MAKING A CAP " tileValue
                 startIndex = tileIndex - rowStartIndex
                 platform = m.createPlatform(rowIndex, startIndex, 1, "platform" + str(startIndex))
                 ' platform.visible = false
                 platform.uri = `pkg:/images/tiles/${tileValue}.png`
-                ? " making platform " platformUri
+                ' ? " making platform " platformUri
                 startIndex = -1
                 length = 1
               else
                 if tileValue <> 0 and tileValue <> 5 and tileValue <> 10 and tileValue <> 6
-                  ? " UKNOWNO TILE " tileValue
+                  ? " UNKNOWN TILE " tileValue
                 end if
                 length = 0
               end if
@@ -261,7 +256,7 @@ namespace mg
               ' Create a platform for the sequence of non-zero tiles
               platform = m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
               platform.uri = platformUri
-              ? " making platform " platformUri
+              ' ? " making platform " platformUri
               startIndex = -1
               length = 0
             end if
@@ -270,7 +265,7 @@ namespace mg
           ' Check if the row ends with a platform
           if length > 0 and startIndex > -1
 
-            ? " making platform " platformUri
+            ' ? " making platform " platformUri
             platform = m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
             platform.uri = platformUri
           end if
@@ -314,10 +309,10 @@ namespace mg
       }, m.levelGroup)
       rows = m.collectablesByRow[rowIndex]
       if rows = invalid
-        rows = []
+        rows = {}
         m.collectablesByRow.push(rows)
       end if
-      rows.push(item)
+      rows[startIndex.toStr()] = item
       return item
     end function
 
@@ -336,10 +331,10 @@ namespace mg
       }, m.levelGroup)
       rows = m.collectablesByRow[rowIndex]
       if rows = invalid
-        rows = []
+        rows = {}
         m.collectablesByRow.push(rows)
       end if
-      rows.push(item)
+      rows[startIndex.toStr()] = item
       return item
     end function
 
