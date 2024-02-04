@@ -7,6 +7,7 @@ namespace mg
     Walking = "Walking"
     Falling = "Falling"
     Jumping = "Jumping"
+    JumpSmash = "JumpSmash"
     Dead = "Dead"
     Idle = "Idle"
   end enum
@@ -27,6 +28,7 @@ namespace mg
     mapManager as mc.types.node
     currentFloor as mc.types.node
     feetCollider as mc.types.node
+    velocity = [0, 0]
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
@@ -292,7 +294,7 @@ namespace mg
         ' ? "Falling"
         ' Calculate current row based on the character's feet Y position and platform height.
         ' Assuming platformHeight is a constant that you have defined somewhere.
-        return m.mapManager@.getFloor(m.top)
+        return m.mapManager@.getFloor(m.top, m.ySpeed)
       end if
       return invalid
     end function
@@ -311,6 +313,8 @@ namespace mg
       m.mapManager@.resetLevel()
       m.currentFloor = invalid
       m.ySpeed = 0
+      m.xSpeed = 0
+      m.setPlayerState(mg.PlayerState.Idle)
     end function
 
     private function onInput()
@@ -319,6 +323,9 @@ namespace mg
 
         if pressedKey = "play"
           m.resetPlayer()
+        else if pressedKey = "down" and (m.playerState = mg.PlayerState.Jumping or m.playerState = mg.PlayerState.Falling)
+          m.ySpeed = m.maxYSpeed
+          m.xSpeed = 0
         else if pressedKey = "up"
           if m.currentFloor <> invalid
             m.setPlayerState(mg.PlayerState.Jumping)
@@ -385,6 +392,8 @@ namespace mg
 
       ' Move the view based on current speeds
       m.moveView(m.top, m.xSpeed, m.ySpeed)
+
+      m.velocity = [m.xSpeed, m.ySpeed]
     end function
 
     private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)

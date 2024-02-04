@@ -68,9 +68,32 @@ namespace mg
       m.createLevel()
     end function
 
+
+    private video
+    function createVideoPlayer() as void
+      videoContent = createObject("RoSGNode", "ContentNode")
+      videoContent.url = "https://roku.s.cpl.delvenetworks.com/media/59021fabe3b645968e382ac726cd6c7b/60b4a471ffb74809beb2f7d5a15b3193/roku_ep_111_segment_1_final-cc_mix_033015-a7ec8a288c4bcec001c118181c668de321108861.m3u8"
+      videoContent.title = "Test Video"
+      videoContent.streamformat = "hls"
+
+      m.video = m.createSGNode({
+        _type: "Video"
+        translation: [500, 300]
+        width: 480
+        height: 320
+        enableUI: false
+        enableTrickPlay: false
+      }, m.platformsGroup)
+      m.video.content = videoContent
+      m.video.control = "play"
+    end function
+
+    private contentGroup as mc.types.node
     private function createParallaxBackgrounds()
-      m.backgroundGroup = m.createSGNode("Group", m.top)
-      m.midGroundGroup = m.createSGNode("Group", m.top)
+      m.contentGroup = m.createSGNode("Group", m.top)
+      ' m.contentGroup.scale = [0.8, 0.8]
+      m.backgroundGroup = m.createSGNode("Group", m.contentGroup)
+      m.midGroundGroup = m.createSGNode("Group", m.contentGroup)
       m.createSGNode({
         "_type": "mv_Poster"
         "id": "midGroundPoster"
@@ -81,7 +104,7 @@ namespace mg
       }, m.midGroundGroup)
       m.createBackground("bg1", 0, "pkg:/images/roku-city.jpeg")
       m.createBackground("bg2", 1919 * m.bgScale, "pkg:/images/roku-city.jpeg")
-      m.foregroundGroup = m.createSGNode("Group", m.top)
+      m.foregroundGroup = m.createSGNode("Group", m.contentGroup)
       m.createSGNode({
         "_type": "mv_Poster"
         "id": "foregroundPoster"
@@ -116,6 +139,7 @@ namespace mg
       ' m.updateBackground()
       m.onInput()
       m.tick()
+      m.updateCameraScale(m.gameState.deltaTime)
       m.updateCamera()
       m.updateParallax()
 
@@ -153,8 +177,9 @@ namespace mg
 
     private function updateCamera()
       playerTranslation = m.player.translation
-      playerTranslation[0] = playerTranslation[0] * 0.8
-      playerTranslation[1] = playerTranslation[1] * 0.8
+      playerTranslation[0] = playerTranslation[0] * m.levelScale
+      playerTranslation[1] = playerTranslation[1] * m.levelScale
+      ' screenSize = [1920, 1080]
       screenSize = [1920, 1080]
 
 
@@ -188,9 +213,60 @@ namespace mg
       m.gameState.lastAnimTime = time
     end function
 
+
+
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Camera zoom out
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private levelScale as float = 1.0
+    private targetScale as float = 1.0
+    private scaleSpeed as float = 0.2
+    private scaleSpeedMod as float = 0
+
+    private function updateCameraScale(deltaTime as float)
+      ' Adjust the level scale based on the player's x speed
+      m.adjustLevelScaleBasedOnPlayerSpeed()
+
+      ' Smoothly interpolate the current level scale towards the target scale
+      m.levelScale += (m.targetScale - m.levelScale) * (m.scaleSpeed + m.scaleSpeedMod) * deltaTime
+
+      ' Ensure the levelScale is clamped between a minimum scale and 1
+      m.levelScale = mc.clamp(m.levelScale, 0.65, 1.0)
+
+      ' Apply the level scale to the game level or camera
+      m.applyLevelScale(m.levelScale)
+    end function
+
+    private function adjustLevelScaleBasedOnPlayerSpeed()
+      ' Example calculation for target scale based on player's x velocity
+      ' This is a simple mapping, consider a more complex function for smoother transitions
+      xSpeed = abs(m.player.velocity[0]) ' Consider the absolute value to handle both directions
+
+      ' ? "PLAYER SPEED IS " xSpeed
+      if xSpeed > 800
+        m.targetScale = 0.65 ' Scale down if x speed is high
+        m.scaleSpeedMod = 0
+      else
+        m.targetScale = 1.0 ' Scale back to normal
+        m.scaleSpeedMod = 0.95
+      end if
+    end function
+
+    private function applyLevelScale(scale as float)
+      m.levelGroup.scale = [scale, scale]
+    end function
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Level Creation
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
     private function createLevel()
-      m.levelGroup = m.createSGNode("Group", m.top)
-      m.levelGroup.scale = [0.8, 0.8]
+      m.levelGroup = m.createSGNode("Group", m.contentGroup)
+      ' m.levelGroup.scale = [0.8, 0.8]
 
       m.createMap()
 
@@ -216,6 +292,8 @@ namespace mg
       m.mapManager = m.createSGNode("MapManager")
       m.mapManager@.loadMap(m.platformsGroup, "pkg:/images/map/map.json")
       m.levelSize = m.mapManager.mapSize
+
+      m.createVideoPlayer()
     end function
 
     @gameEngine
