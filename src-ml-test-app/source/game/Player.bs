@@ -61,6 +61,7 @@ namespace mg
     private playerState = mg.PlayerState.Idle
     ' private spriteScale = 2
     private spriteScale = 0.75
+    ' private spriteScale = 0.75 * .66
     private allSprites = []
     private spritesByState = []
     private currentSprite as mc.types.node
@@ -171,7 +172,8 @@ namespace mg
       m.sprite.width = 240
       m.sprite.height = 240
       m.sprite.scale = [m.spriteScale, m.spriteScale]
-      m.sprite.spriteSheetUri = "pkg:/images/sprites/player-run-fhd.png"
+      ' m.sprite.spriteSheetUri = "pkg:/images/sprites/player-run-fhd.png"
+      m.sprite.spriteSheetUri = "pkg:/images/sprites/player-run.png"
 
       m.sprite.frameOffsets = [
         [0, 0]
@@ -187,7 +189,8 @@ namespace mg
       m.spriteLeft.width = 240
       m.spriteLeft.height = 240
       m.spriteLeft.scale = [m.spriteScale, m.spriteScale]
-      m.spriteLeft.spriteSheetUri = "pkg:/images/sprites/player-run-left-fhd.png"
+      ' m.spriteLeft.spriteSheetUri = "pkg:/images/sprites/player-run-left-fhd.png"
+      m.spriteLeft.spriteSheetUri = "pkg:/images/sprites/player-run-left.png"
 
       m.spriteLeft.frameOffsets = [
         [0, 0]
@@ -213,6 +216,7 @@ namespace mg
       m.onInput()
       m.applyGravity()
       m.checkLateralCollision()
+      m.collectItems()
       m.updateMovement()
     end function
 
@@ -230,6 +234,7 @@ namespace mg
     minJumpHoldTime as float = 0.1 ' Min time that we ignore it
     maxJumpHoldTime as float = 1 ' Maximum time the jump force is applied when holding the "up" key
 
+    initialRunSpeed as float = 100 ' Increase for a faster initial jump
     initialJumpSpeed as float = 800 ' Increase for a faster initial jump
     gravity as float = 1800 ' Adjust based on testing for desired jump arc
     jumpHoldForce as float = 1000 ' Increase this force for a stronger sustained jump when holding the button
@@ -278,6 +283,8 @@ namespace mg
     '   return invalid
     ' end function
 
+    private startSpeed = 40
+
     private function getFloor()
       if m.ySpeed < 0
         ' ? "Rising"
@@ -288,6 +295,10 @@ namespace mg
         return m.mapManager@.getFloor(m.top)
       end if
       return invalid
+    end function
+
+    private function collectItems()
+      return m.mapManager@.collectItems(m.top)
     end function
 
     private function onInput()
@@ -317,6 +328,10 @@ namespace mg
           ' Calculate speed change based on current input
           speedDelta = m.speed * m.deltaTime * m.acceleration
 
+          ' Introduce a boost for initial movement to make the start or turn faster
+          initialSpeedBoost = 20 ' Adjust this value as needed for the desired effect
+
+
           ' Determine direction change for immediate response
           if pressedKey = "left" or pressedKey = "right"
             m.sprite.visible = pressedKey = "right"
@@ -325,16 +340,18 @@ namespace mg
             directionMultiplier = 1
             if (pressedKey = "left" and m.xSpeed > 0) or (pressedKey = "right" and m.xSpeed < 0)
               ' Increase direction change impact when switching directions
-              directionMultiplier = 10
+              directionMultiplier = 40
+            else if abs(m.xSpeed) < m.startSpeed ' Check if starting from low velocity
+              ' Apply an initial boost to the speed when starting to move
+              speedDelta += initialSpeedBoost
             end if
 
-            ' Update xSpeed with direction change consideration
+            ' Update xSpeed with direction change consideration and possible boost
             if pressedKey = "left"
               m.xSpeed -= speedDelta * directionMultiplier
             else if pressedKey = "right"
               m.xSpeed += speedDelta * directionMultiplier
             end if
-            ' ? "moving " pressedKey " S=" m.xSpeed
           end if
         end if
       else
