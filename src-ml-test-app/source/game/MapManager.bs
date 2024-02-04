@@ -24,59 +24,6 @@ namespace mg
       m.parseTMXandCreatePlatforms(json)
     end function
 
-    ' function getFloor(target as mc.types.node)
-    '   feetCollider = target.feetCollider
-    '   feetTranslation = feetCollider.translation
-    '   targetTranslation = target.translation
-    '   targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
-
-    '   currentRow = int(targetTranslation[1] / m.screenTileHeight)
-
-    '   ' Check for collision in the current row and possibly the row below.
-    '   ' Adjust the range (e.g., -1 to 1) if the character can fall through more than one row per frame.
-    '   for rowIndex = currentRow to currentRow + 1
-    '     if rowIndex < m.platformsByRow.count() and rowIndex >= 0
-    '       for each platform in m.platformsByRow[rowIndex]
-    '         collisionType = platform@.getFloorCollision(feetCollider)
-    '         if collisionType = mg.FloorCollision.OnFloor
-    '           return platform
-    '         end if
-    '       end for
-    '     end if
-    '   end for
-
-    '   return invalid
-    ' end function
-
-    ' function getFloor(target as mc.types.node, ySpeed as float)
-    '   feetCollider = target.feetCollider
-    '   feetTranslation = feetCollider.translation
-    '   targetTranslation = target.translation
-    '   targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
-
-    '   currentRow = int(targetTranslation[1] / m.screenTileHeight)
-
-    '   ' Calculate the number of rows to check based on the fall speed.
-    '   ' This accounts for the possibility of falling through multiple rows in a single frame.
-    '   fallSpeedRows = abs(ySpeed) / m.screenTileHeight
-    '   rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
-
-    '   ' Check for collision in a range from the current row to the number of rows the player could have fallen through.
-    '   for rowIndex = currentRow to currentRow + rowsToCheck
-    '     if rowIndex < m.platformsByRow.count() and rowIndex >= 0
-    '       for each platform in m.platformsByRow[rowIndex]
-    '         collisionType = platform@.getFloorCollision(feetCollider)
-    '         if collisionType = mg.FloorCollision.OnFloor
-    '           return platform
-    '         end if
-    '       end for
-    '     end if
-    '   end for
-
-    '   return invalid
-    ' end function
-
-
     function getFloor(target as mc.types.node, ySpeed as float)
       feetCollider = target.feetCollider
       feetTranslation = feetCollider.translation
@@ -181,6 +128,7 @@ namespace mg
     end function
 
     function resetLevel()
+      ? "resetting level"
       for each row in m.collectablesByRow
         for each item in row.items()
           item.visible = true

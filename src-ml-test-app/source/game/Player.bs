@@ -54,7 +54,7 @@ namespace mg
     private acceleration = 1
     private maxYSpeed = 2000
     private maxXSpeed = 1000
-    private stopSpeed = 10
+    private stopSpeed = 200
 
     @inject("gameState")
     private gameState as mc.types.node
@@ -223,13 +223,42 @@ namespace mg
     end function
 
     private function checkLateralCollision()
-      ' Check for lateral collisions and adjust movement
-      lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed > 0 ? 1 : -1)
-      if lateralCollisionPlatform <> invalid and (not lateralCollisionPlatform.isSameNode(m.currentFloor))
-        ' ? "Hit wall " lateralCollisionPlatform.rowIndex
-        m.xSpeed = 0 ' Example adjustment, customize as needed
+      ' Only perform lateral collision checks if not in the middle of a fast fall
+      if abs(m.ySpeed) < m.maxYSpeed / 2 ' Adjust threshold as needed
+        lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed > 0 ? 1 : -1)
+
+        if lateralCollisionPlatform <> invalid
+          ' Additional check to ensure we're not detecting a platform the player is about to land on
+          platformTopY = lateralCollisionPlatform.translation[1]
+          playerBottomY = m.top.translation[1] + m.feetCollider.translation[1] + m.feetCollider.height
+          if playerBottomY < platformTopY or (playerBottomY - platformTopY > 20) ' Adjust 20 to your game's scale
+            ' This indicates a true lateral collision, not a landing scenario
+            m.xSpeed = 0
+          end if
+        end if
       end if
     end function
+
+    'FIXME - get lots of false positives when landing on platforms..
+    ' private function checkLateralCollision()
+    '   ' Check for lateral collisions and adjust movement
+    '   lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed > 0 ? 1 : -1)
+
+
+    '   if lateralCollisionPlatform <> invalid and (not lateralCollisionPlatform.isSameNode(m.currentFloor))
+
+    '     feetCollider = m.feetCollider
+    '     feetTranslation = feetCollider.translation
+    '     targetTranslation = m.top.translation
+    '     targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
+
+    '     currentRow = int(targetTranslation[1] / 128)
+    '     if currentRow <> lateralCollisionPlatform.rowIndex
+    '       ? "Hit side wall on row " lateralCollisionPlatform.rowIndex " my row is " currentRow
+    '       m.xSpeed = 0 ' Example adjustment, customize as needed
+    '     end if
+    '   end if
+    ' end function
 
 
     private jumpHoldTime as float = 0
@@ -378,6 +407,7 @@ namespace mg
           ' Apply friction to gradually stop the movement when no key is pressed
           m.xSpeed = m.xSpeed * (1 - m.friction * m.deltaTime)
           if abs(m.xSpeed) < m.stopSpeed
+            ' ? "Player stopped due to stop speed"
             m.xSpeed = 0
           end if
         end if
