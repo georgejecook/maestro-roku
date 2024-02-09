@@ -1,0 +1,130 @@
+import "pkg:/source/core/BaseClass.bs"
+
+namespace sl
+  class Row extends mc.BaseClass
+    list as mc.types.node
+    index = 0
+    height = 500 'this could be calculated, because a row might wrap, or be a grid, or whatever
+    y = 0 'this has to be calculated, when the list adds all it's content
+    isOnScreen = false
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private componentPool as mc.types.node
+    private renderedCells = []
+    container as mc.types.node
+    private content
+    private numCells = 3
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Initialize
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function new(list as mc.types.node, content as mc.types.node, componentPool as mc.types.node)
+      super("Row")
+      m.list = list
+      m.index = content.index
+      m.content = content
+      m.observe(m.content.state, m.onContentState)
+      m.componentPool = componentPool
+    end function
+
+    private function onContentState(state as string)
+      ? "ROW " m.index " " m.content.title " state " state " on screen? " m.isOnScreen
+      if m.isOnScreen and state = "loaded"
+
+        if m.renderedCells.count() = 0
+          m.getCellsForVisibleItems()
+        else
+          m.convertPlaceholderCells()
+        end if
+      end if
+    end function
+
+    private function convertPlaceholderCells()
+      for i = 0 to m.renderedCells.count() - 1
+        item = m.content.getChild(i)
+        cell = m.renderedCells[i]
+        ? " SETTING CONTENT ON item " i
+        cell@.setContent(item)
+        cell.visible = true
+      end for
+    end function
+
+    private function getCell(content as mc.types.node)
+      'TODO - get it from pool
+      ' ? "getting cell for index " content.index
+      cell = m.componentPool@.getComponent("sl_BaseCell")
+      m.renderedCells.push(cell)
+      m.container.appendChild(cell)
+      return cell
+    end function
+
+    private function getCellsForVisibleItems() as void
+      ? m.content.title " GET CELLS "
+      if m.content.state = "loaded"
+        ? " GET CELLS FOR LOADED STATE"
+        'TODO - only load what's in the viewport.. and really - the main list should hande this..
+        items = m.content.getChildren(-1, 0)
+        ? " items " items.count()
+        for i = 0 to items.count() - 1
+          item = items[i]
+          cell = m.getCell(item)
+          cell.index = i
+          ' ? " SETTING CONTENT ON item " i
+          cell@.setContent(item)
+          cell.visible = true
+          if i = m.numCells
+            return
+          end if
+        end for
+      else
+        ? " showing placeholders"
+        m.showPlaceHolders()
+      end if
+    end function
+
+    private function showPlaceholders()
+      ? "row " m.index " is not loaded: using placeholders"
+      for i = 0 to m.numCells - 1
+        cell = m.getCell(m.list.dummyContent)
+        cell.index = i
+        ' ? " SETTING CONTENT ON item " i
+        cell@.setContent(m.list.dummyContent)
+        cell.visible = true
+      end for
+    end function
+
+    function renderOnScreenAtY(y as integer)
+      margin = 30
+      padding = 30
+
+      for each cell in m.renderedCells
+        x = (cell.index * 500) + padding
+        ' ? "RENDERING RI " m.index " item " i " x " x
+        cell.translation = [x, y + margin]
+      end for
+    end function
+
+    function onEnterScreen()
+      ? " row " m.index " " m.content.title " onEnterScreen STATE: " m.content.state
+      m.getCellsForVisibleItems()
+      m.isOnScreen = true
+    end function
+
+    function onExitScreen()
+      ? " row " m.index " onExitScreen"
+      for each cell in m.renderedCells
+        cell@.setContent(invalid)
+      end for
+
+      m.componentPool@.releaseComponents(m.renderedCells)
+      m.renderedCells = []
+      m.isOnScreen = false
+    end function
+
+
+  end class
+end namespace

@@ -1,0 +1,162 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/view/ViewUtils.bs"
+
+namespace sl
+  @node("sl_BaseCell", "Group")
+  class BaseCell
+
+    index as integer = -1
+
+    @observer("onDebugMChange")
+    __debugM = false
+
+    content as mc.types.node
+
+    protected list as mc.types.node
+
+
+    'TODO - make view fully dynami
+    private poster as mc.types.node
+    private label as mc.types.node
+    private backgroundRectangle as mc.types.node
+
+    function new()
+      m.createViews()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function recycle()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ callbacks
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function setContent(content as mc.types.node)
+      m.content = content
+      if m.content <> invalid
+        if content.id = "dummy"
+          m.poster.uri = ""
+          m.poster.visible = false
+          m.backgroundRectangle.color = "#666666"
+          m.label.text = "loading..."
+        else
+          m.poster.uri = content.SDPosterUrl
+          m.backgroundRectangle.color = "#000000"
+          m.poster.visible = true
+          m.label.text = content.title
+          ? " SETTING LABEL " content.title "POSTER " m.poster.uri
+        end if
+      else
+        m.poster.uri = ""
+        m.label.text = ""
+      end if
+    end function
+
+    function onDebugMChange()
+      mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
+    end function
+
+    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+      if mTarget = invalid
+        mTarget = m
+      end if
+      'FIXME - maestro-bsc needs to understand overloaded namespaces
+      'bs:disable-next-line
+      return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
+    end function
+
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+      if mTarget = invalid
+        mTarget = m
+      end if
+      'FIXME - maestro-bsc needs to understand overloaded namespaces
+      'bs:disable-next-line
+      mv.updateViewsWithStyleJson(json, mTarget)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ abstract methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected function createViews()
+      views = [
+        {
+          "id": "backgroundRectangle"
+          "_type": "mv_Rectangle"
+          "size": [480, 320]
+          "color": "#000000"
+        },
+        {
+          "id": "poster"
+          "_type": "mv_Poster"
+          "size": [480, 320]
+          "translation": [0, 0]
+          "loadSync": false
+          "loadDisplayMode": "scaleToFit"
+          "loadWidth": 480
+          "loadHeight": 320
+          "scaleRotateCenter": [240, 160]
+          "failedBitmapUri": "http://via.placeholder.com/480x320"
+          "uri": "http://via.placeholder.com/480x320"
+        },
+        {
+          "id": "rectangle"
+          "_type": "mv_Rectangle"
+          "size": [480, 50]
+          "color": "#000000"
+          "opacity": 0.4
+        },
+        {
+          "id": "label"
+          "_type": "mv_Label"
+          "translation": [10, 10]
+          "size": [0, 0]
+          "fontKey": "mediumBold,20"
+          "color": "#ffffff"
+          "horizAlign": "center"
+          "vertlign": "center"
+        }
+      ]
+      m.createViewsFromStyleJson(views)
+    end function
+
+    protected function cleanup()
+      'override me!
+      ' ? "CLEANING UP " ; m.index
+    end function
+
+    protected function onContentChange(content as mc.types.node)
+      'override me
+    end function
+
+
+    protected function onShowWithContent(content as mc.types.node)
+      'override me
+    end function
+
+    protected function onHide()
+      'override me
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Delegate function
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function _apply(funcName as string, args as mc.types.array, warnIfNoFunction = true as boolean)
+      return mc.apply(funcName, args, m, false)
+    end function
+
+    protected function onDidExit(event as ml.ListEvent)
+      ' ? " ON EXIT CELL "; m.index
+    end function
+
+    protected function onDidEnter(event as ml.ListEvent)
+      ' ? " ON ENTER CELL "; m.index ; " " ; m.isContentDisplayed ; " " ; m.isViewCreated ; " " ; m.content <> invalid
+    end function
+
+  end class
+end namespace

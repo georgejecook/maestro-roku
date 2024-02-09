@@ -1,0 +1,80 @@
+import "pkg:/source/core/BaseClass.bs"
+
+namespace sl
+  @task("GetSubReditTask", "Task")
+  class GetSubRedit extends mc.BaseClass
+    function new()
+      super("GetSubRedit")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Entry point
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function execute(args as mc.types.assocarray) as dynamic
+      content = args.content
+      request = createObject("roUrlTransfer")
+      request.setCertificatesFile("common:/certs/ca-bundle.crt")
+      request.initClientCertificates()
+      url = "https://www.reddit.com/r/" + asString(content.title) + ".json"
+      ? "LOADING URL:" url
+      request.setUrl(url)
+      response = request.getToString()
+      json = parseJson(response)
+      ? " GOT RESPONSE"
+      listItems = []
+      for each postDataContainer in asArray(json.data.children)
+        postData = postDataContainer.data
+        post = {
+          title: postData.title
+          selfText: postData.selfText
+          thumbnail: postData.thumbnail
+          isVideo: postData.is_video
+          url: postData.url
+          isSelf: postData.isSelf
+        }
+
+        itemContent = {
+          subType: "ContentNode"
+          isSelf: post.isSelf
+          title: post.title
+          description: post.selfText
+          url: post.url
+        }
+        if post.thumbnail <> "self" and post.thumbnail <> "default" and post.thumbnail <> "image"
+          itemContent.SDPosterUrl = post.thumbnail
+        end if
+
+        if post.isVideo
+          itemContent.videoUrl = postData.secure_media.reddit_video.hls_url
+          itemContent.streamformat = "hls"
+        end if
+
+        if postData.media <> invalid and postData.media.type = "youtube.com"
+          itemContent.videoUrl = postData.url
+          itemContent.streamFormat = "youtube"
+        end if
+
+        extension = right(postData.url, 4)
+        if extension = ".png" or extension = ".jpg"
+          itemContent.SDPosterUrl = postData.url
+        end if
+
+        if postData.media <> invalid and postData.media.reddit_video <> invalid
+          itemContent.isRedditVideo = true
+        else
+          itemContent.isRedditVideo = false
+        end if
+
+        listItems.push(itemContent)
+      end for
+
+      content.update(listItems, true)
+      state = content.getChildCount() > 0 ? "loaded" : "error"
+      ? content.title " " content.index " PARSED WITH STATE " state
+      content.state = state
+      return true
+    end function
+
+  end class
+end namespace
