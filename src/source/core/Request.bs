@@ -71,8 +71,15 @@ namespace mc.net
       else if headers <> invalid
         m.log.error("received illegal headers type", type(headers))
       end if
+      result = new mc.net.NetResult(-1, invalid, invalid, headers)
 
-      return m.runRequest(method, url, args)
+      try
+        result = m.runRequest(method, url, args)
+        m.log.info(`request for method ${method} with url ${url} and params ${params} was executed successfully`)
+      catch error
+        m.log.warn("there was an error while executing request for method", method, "with url", url, "and params", params, error)
+      end try
+      return result
     end function
 
     function logAsCurl(method as string, url as string, headers as mc.types.assocarray, data as string)

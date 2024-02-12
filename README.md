@@ -23,6 +23,32 @@ Maestro is built to:
 
 ## Quick start
 
+### Sideload without building
+- to view a sample, with no need for compiling, sideload the [maestro sideload.zip](maestro=-sideload.zip), onto your roku.
+
+
+### Building sample apps/playing with maestro frameork
+
+  1. git clone https://github.com/georgejecook/maestro-roku-sample.git
+  2. npm install
+  3. npm run ropm
+  4. open the project in vscode
+  5. ensusre you have the brighterscript vscode extension installed
+  6. .vscode/.env.sample to .vscode/.env and edit the `ROKU_DEV_TARGET` and `ROKU_DEVPASSWORD` variables, to match your roku device.
+  7. launch the `SAMPLE APP` dev target.
+
+note, some sample screens will lose focus when you back out of them. Sorry about that! We will fix that soon - for now, just press home and launch again.
+
+### Interesting notions
+In bsconfig.json, you can change the rokuLog settings to control how logging works (this is part of roku-log)
+ - use `strip` flag to remove logs
+ - use `insertPkgPath` to inject the file details into each log line - if you set the vscode brightscript plugin setting `"brightscript.output.hyperlinkFormat":` to `"FilenameAndFunction"`, then the output will automatically include clickable hyperlinks, which is a very pleasant deubgging experience.
+
+### Sample project
+
+We maintain a simple sample project with sensible examples, which can show you everything you can do with maestro. It is WIP.
+
+**Presently the project may be broken - we will get it fixed up, with a more full example of how to use maestro to build a FULL app in 2024Q2**
 - Clone the [sample project](https://github.com/georgejecook/maestro-roku-sample) and follow the instructions there
 
 ## Docs

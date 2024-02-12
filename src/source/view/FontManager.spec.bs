@@ -32,7 +32,7 @@ namespace tests
     function _(name, size)
       '/* cspell:enable *\
       font = m.manager.getFont(name, size)
-      m.assertEqual(font.uri, "pkg:/fonts/" + name)
+      m.assertEqual(font.uri, "pkg:" + "/fonts/" + name)
       m.assertEqual(font.size, size)
       m.assertSubType(font, "Font")
     end function
@@ -71,6 +71,20 @@ namespace tests
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 30), "Font")
       m.assertSubType(m.manager.getFont("HelveticaNeue.ttf", 40), "Font")
       '/* cspell:enable *\
+    end function
+
+    @it("return tmp language path specific path")
+    @params("tmp:/fonts/HelveticaNeue.ttf", 20)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 30)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 50)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 30)
+    @params("tmp:/fonts/HelveticaNeue.ttf", 30)
+    function _(name, size)
+      '/* cspell:enable *\
+      font = m.manager.getFont(name, size)
+      m.assertEqual(font.uri, name)
+      m.assertEqual(font.size, size)
+      m.assertSubType(font, "Font")
     end function
   end class
 end namespace
