@@ -109,6 +109,9 @@ namespace mioc
     end if
 
     if mioc.isValidType(instance)
+      if mc.isAACompatible(instance)
+        mc.setOrAddNodeField(instance, "isDestroyable", false)
+      end if
       if m.__mioc.doesExist(field)
         m.__mioc[field] = instance
       else

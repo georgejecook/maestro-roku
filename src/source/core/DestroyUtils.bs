@@ -40,7 +40,9 @@ namespace mc.internal.destroyUtils
         end for
         target[key] = []
       else
-        ' target[key] = invalid
+        if (not mc.isAACompatible(target[key]) or (target[key] <> invalid and target[key].isDestroyable <> false)) and key <> "top" and key <> "global"
+          target[key] = invalid
+        end if
       end if
     end for
   end function
