@@ -1,0 +1,120 @@
+import "pkg:/source/roku_modules/maestro/ml/cells/BaseCell.brs"
+
+namespace $NAMESPACE$
+
+  @observersWaitInitialize
+  @node("$CLASSNAME$", "ml_BaseCell")
+  class $CLASSNAME$ extends ml.BaseCell
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Views
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private poster as mc.types.node
+    private group as mc.types.node
+    private label as mc.types.node
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Fields
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private styles as mc.types.assocarray
+    private scale = 1.0
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function createViews() as void
+      bundle = m.global.styleManager@.loadBundle("pkg:/source/list/cells/CustomSimpleCell.bundle")
+      m.styles = bundle.styles
+      m.createViewsFromStyleJson(bundle.views)
+    end function
+
+    protected override function onContentChange(content as mc.types.node)
+      m.label.text = asString(content.json.title)
+      m.poster.uri = asString(content.json.posterUrl)
+      m.label.visible = true
+      m.setScale(1, false)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function toggleHighlighted(highlighted as boolean)
+      if highlighted
+        m.updateViewsWithStyleJson(m.styles.normal)
+      else
+        m.updateViewsWithStyleJson(m.styles.highlighted)
+      end if
+    end function
+
+    private function setScale(fraction as float, isGaining as boolean) as void
+      if isGaining
+        m.scale = mc.clamp((fraction + 0.9), 0.85, 1.1)
+      else
+        m.scale = mc.clamp((1 - fraction) + 0.3, 0.85, 1.1)
+      end if
+      m.group.scale = [m.scale, m.scale]
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Overridden Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onShowWithContent(content as mc.types.node)
+      m.toggleHighlighted(true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Lifecycle Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function onHide()
+      m.toggleHighlighted(true)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Cell Delegate Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    private function onScrollingChange(isScrolling as boolean, isLong as boolean)
+      ' ? "SC: isScrolling " ; " " ; isScrolling ; " IL " ; isLong
+      if not isScrolling
+        m.label.visible = true
+      end if
+    end function
+
+    private function onScrollingUpdate(startIndex as integer, currentIndex as integer)
+      ' ? "SC: isScrolling UPDATE " ; " " ; startIndex ; " SI " ; currentIndex
+      textVisible = abs(startIndex - currentIndex) < 4
+      m.label.visible = textVisible
+    end function
+
+
+    private function onDidGainFocus(event as ml.ListEvent)
+      m.setScale(1, true)
+      m.toggleHighlighted(false)
+    end function
+
+    private function onDidLoseFocus(event as ml.ListEvent)
+      m.setScale(1, false)
+      m.toggleHighlighted(true)
+    end function
+
+    private function onGainingFocus(event as ml.ListEvent)
+      m.setScale(event.fraction, true)
+      m.toggleHighlighted(false)
+    end function
+
+    private function onLosingFocus(event as ml.ListEvent)
+      m.setScale(event.fraction, false)
+      m.toggleHighlighted(true)
+    end function
+  end class
+end namespace

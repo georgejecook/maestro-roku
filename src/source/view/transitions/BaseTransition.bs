@@ -11,8 +11,8 @@ namespace mv.transitions
   '  */
   class BaseTransition extends mv.NodeClass
 
+    progress = 0.0
     private top
-    public progress = 0.0
 
     protected source
     protected target
@@ -59,6 +59,9 @@ namespace mv.transitions
 
       if m.source <> invalid and m.owner.shouldRemoveFromAggregateView
         m.source@.onRemovedFromAggregateView(m.owner)
+        if asBoolean(m.owner.isDestroyingChildViewsOnRemoval) and asBoolean(m.source.isDestroyable) and not asBoolean(m.source.isDestroyed)
+          m.source@.destroy()
+        end if
         if m.owner.pushedView <> invalid
           m.owner.pushedView = invalid
         end if
@@ -88,19 +91,16 @@ namespace mv.transitions
       if m.source <> invalid and not m.source.isSameNode(m.target)
         m.source@._setShown(false)
         m.owner.removeChild(m.source)
-
       end if
+
       if m.target <> invalid
         m.log.method("m.target is valid. isShown", m.owner.isShown, "m.target", m.target.id)
-
         m.owner.appendChild(m.target)
 
         if m.owner.isShown
           m.target@._setShown(true)
         end if
-
       end if
-
       m.finish()
     end function
 

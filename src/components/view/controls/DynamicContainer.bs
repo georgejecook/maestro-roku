@@ -1,5 +1,11 @@
 import "pkg:/source/core/Types-Polyfill.bs"
 
+function init()
+  m.top.shouldRemoveFromAggregateView = true
+  m.top.isDestroyingChildViewsOnRemoval = true
+  m.top.isDestroyable = true
+end function
+
 function setNextView(nextView as mc.types.node) as void
   m.log.info("onNextViewchange", mc.dv(m.top), "nextView", mc.dv(nextView))
   currentView = m.top.currentView
@@ -8,7 +14,5 @@ function setNextView(nextView as mc.types.node) as void
     return
   end if
 
-  m.top.shouldRemoveFromAggregateView = true
   transitionToView(nextView)
-
 end function

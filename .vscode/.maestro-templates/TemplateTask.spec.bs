@@ -1,0 +1,67 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/$SOURCE_PKG_PATH$.bs"
+
+
+namespace tests
+  @suite("$CLASSNAME$ tests")
+  class $CLASSNAME$Tests extends rooibos.BaseTestSuite
+
+    private task
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.task = new $NAMESPACE$.$CLASSNAME$()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("constructor")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("ensures dependencies are correctly set")
+    function _()
+      m.fail("implement me")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("execute")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("handles unknown command")
+    function _()
+      m.expectNotCalled(m.task.exampleCommand)
+      errorMessage = ""
+      try
+        m.task.execute({
+          id: "apiTask"
+          command: "unknown"
+          serviceId: "sid"
+        })
+      catch error
+        errorMessage = error.message
+      end try
+
+      m.assertEqual(errorMessage, "$CLASSNAME$ it not yet implemented")
+    end function
+
+    @it("executes example command")
+    function _()
+      serviceResult = { "id": "serviceResult" }
+
+      m.expectCalled(m.task.exampleCommand("apiTask"), serviceResult)
+      result = m.task.execute({
+        id: "apiTask"
+        command: "exampleCommand"
+      })
+      m.assertEqual(result, serviceResult)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("exampleCommand")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("is not implemented")
+    function _()
+      m.fail("implement me")
+    end function
+  end class
+end namespace

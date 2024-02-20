@@ -13,6 +13,9 @@ function init()
   m.previousCurrFocusRow = 1
   m.isFloatingFocusOffsetApplied = false
   m.rowListFloatingFocusPositionOffset = 0
+  m.top.isDestroyingChildViewsOnRemoval = true
+  m.top.isDestroyable = true
+
   m.protectedChildIds = {
     "container_backgroundGroup": true
     "container_layoutGroup": true
@@ -207,7 +210,7 @@ function getYOfIndex(index as integer)
   if child <> invalid and child.heroControl <> invalid and child.isHeroOffsetApplied
     ' m.log.verbose("child is hero with offset applied")
     ' m.log.verbose(">>> adding child hero height", child.heroControl.boundingRect().height)
-    currentOffset += - child.heroControl.boundingRect().height
+    currentOffset += -child.heroControl.boundingRect().height
   else
     if index < m.top.yOffsets.count()
       currentOffset -= m.top.yOffsets[index]
@@ -235,7 +238,7 @@ function getYOfIndex(index as integer)
   end for
 
   y += currentOffset
-  return - y
+  return -y
 end function
 
 function onNeedsRecalculatingChange()

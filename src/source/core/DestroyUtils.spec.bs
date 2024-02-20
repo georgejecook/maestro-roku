@@ -1,0 +1,140 @@
+import "pkg:/source/tests/BaseTestSuite.spec.bs"
+import "pkg:/source/core/DestroyUtils.bs"
+
+
+namespace tests
+  @suite("DestroyUtils tests")
+  class DestroyUtilTests extends tests.BaseTestSuite
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("destroy")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("destroys the target")
+    function _()
+      target = { "id": "target", top: { "id": "top" } }
+      m.expectCalled(target.cleanup())
+      'bs:disable-next-line
+      m.expectCalled(mc.tasks.cleanScope())
+      'bs:disable-next-line
+      m.expectCalled(target.unobserveAllNotifications())
+
+      m.expectCalled(mc.internal.destroyUtils.processChildren(target.top))
+      m.expectCalled(mc.internal.destroyUtils.processFields(target))
+
+      mc.internal.destroyUtils.destroy(target)
+      m.assertTrue(target.isDestroyed)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("processFields")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("it sets empty array for array fields")
+    function _()
+      target = { views: [{ "id": "views" }] }
+      m.expectCalled(mc.internal.destroyUtils.processValue({ "id": "views" }))
+      mc.internal.destroyUtils.processFields(target)
+      m.assertEmpty(target.views)
+    end function
+
+    @it("doesn't invalidate top, log and global keys")
+    @params("top", { "top": { "id": "top" } })
+    @params("global", { "global": { "id": "global" } })
+    @params("log", { "log": { "id": "log" } })
+    function _(key, target)
+      mc.internal.destroyUtils.processFields(target)
+      m.assertNotInvalid(target[key])
+    end function
+
+    @it("doesn't invalidate associative array that are not destroyable")
+    function _()
+      target = { view: { isDestroyable: false } }
+
+      mc.internal.destroyUtils.processFields(target)
+      m.assertNotInvalid(target.view)
+    end function
+
+    @it("it invalidates associative array that are destroyable")
+    function _()
+      target = { view: { isDestroyable: true } }
+
+      mc.internal.destroyUtils.processFields(target)
+      m.assertInvalid(target.view)
+    end function
+
+    @it("invalidates fields that are not aa compatible")
+    @params(1)
+    @params("text")
+    @params(invalid)
+    @params(true)
+    function _(key)
+      target = { "key": key }
+      mc.internal.destroyUtils.processFields(target)
+      m.assertInvalid(target.key)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("processValue")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("doesn't destroy node values if they are not destroyable")
+    function _()
+      node = mc.createSGNode("Node")
+      mc.setOrAddNodeField(node, "isDestroyable", false)
+      m.expectNotCalled(node@.destroy())
+
+      mc.internal.destroyUtils.processValue(node)
+    end function
+
+    @it("destroys node values if they are destroyable")
+    function _()
+      node = mc.createSGNode("Node")
+      m.stubCall(node@.destroy())
+      mc.setOrAddNodeField(node, "isDestroyable", true)
+
+      mc.internal.destroyUtils.processValue(node)
+    end function
+
+    @it("destroys class or dictionary if they are destroyable")
+    function _()
+      value = { "id": "value", isDestroyable: true }
+      'bs:disable-next-line
+      m.expectCalled(value.destroy())
+      mc.internal.destroyUtils.processValue(value)
+    end function
+
+    @it("doesn't destroy class or dictionary if they are not destroyable")
+    function _()
+      value = { "id": "value", isDestroyable: false }
+      m.expectNotCalled(value.destroy)
+      mc.internal.destroyUtils.processValue(value)
+    end function
+
+    @it("processes fields if value is not destroyable")
+    function _()
+      value = { "id": "value", isDestroyable: false }
+      m.expectNotCalled(value.destroy)
+      m.expectCalled(mc.internal.destroyUtils.processFields(value))
+      mc.internal.destroyUtils.processValue(value)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("processChildren")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("destroys children of the target if they are destroyable")
+    function _()
+      node = mc.createSGNode("Node")
+
+      child = { "id": "child", isDestroyable: true }
+
+      m.stubCall(node.getChildren(-1, 0), [child])
+      m.stubCall(child@.destroy())
+      m.stubCall(node.removeChildren([child]))
+
+      mc.internal.destroyUtils.processChildren(node)
+    end function
+
+  end class
+end namespace
