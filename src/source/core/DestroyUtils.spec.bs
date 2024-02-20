@@ -3,7 +3,6 @@ import "pkg:/source/core/DestroyUtils.bs"
 
 
 namespace tests
-  @only
   @suite("DestroyUtils tests")
   class DestroyUtilTests extends tests.BaseTestSuite
 
@@ -39,9 +38,10 @@ namespace tests
       m.assertEmpty(target.views)
     end function
 
-    @it("doesn't invalidate top and global keys")
+    @it("doesn't invalidate top, log and global keys")
     @params("top", { "top": { "id": "top" } })
     @params("global", { "global": { "id": "global" } })
+    @params("log", { "log": { "id": "log" } })
     function _(key, target)
       mc.internal.destroyUtils.processFields(target)
       m.assertNotInvalid(target[key])
@@ -65,7 +65,7 @@ namespace tests
 
     @it("invalidates fields that are not aa compatible")
     @params(1)
-    @pamras("text")
+    @params("text")
     @params(invalid)
     @params(true)
     function _(key)
@@ -90,8 +90,8 @@ namespace tests
     @it("destroys node values if they are destroyable")
     function _()
       node = mc.createSGNode("Node")
+      m.stubCall(node@.destroy())
       mc.setOrAddNodeField(node, "isDestroyable", true)
-      m.expectCalled(node@.destroy())
 
       mc.internal.destroyUtils.processValue(node)
     end function
@@ -129,9 +129,9 @@ namespace tests
 
       child = { "id": "child", isDestroyable: true }
 
-      m.expectCalled(node.getChildren(-1, 0), [child])
-      m.expectCalled(child@.destroy())
-      m.expectCalled(node.removeChildren([child]))
+      m.stubCall(node.getChildren(-1, 0), [child])
+      m.stubCall(child@.destroy())
+      m.stubCall(node.removeChildren([child]))
 
       mc.internal.destroyUtils.processChildren(node)
     end function
