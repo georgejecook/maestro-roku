@@ -379,7 +379,7 @@ namespace sl
     private function loadNextRows(lastEnteredRow as sl.Row)
       for i = lastEnteredRow.index to lastEnteredRow.index + 2
         row = m.rows[i]
-        if row.content.state = "none"
+        if row <> invalid and row.content.state = "none"
           ? "going tp load row: " row.index " " row.title
           row.content.state = "loading"
           m.tasksByRowId[row.content.id] = m.createTask("GetSubReditTask", { content: row.content })

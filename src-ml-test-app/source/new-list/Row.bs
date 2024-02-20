@@ -33,12 +33,16 @@ namespace sl
 
     private function onContentState(state as string)
       ? "ROW " m.index " " m.content.title " state " state " on screen? " m.isOnScreen
-      if m.isOnScreen and state = "loaded"
+      if m.isOnScreen
+        if state = "loaded"
 
-        if m.renderedCells.count() = 0
-          m.getCellsForVisibleItems()
-        else
-          m.convertPlaceholderCells()
+          if m.renderedCells.count() = 0
+            m.getCellsForVisibleItems()
+          else
+            m.convertPlaceholderCells()
+          end if
+        else if state = "error"
+          'TODO hide
         end if
       end if
     end function
@@ -47,7 +51,7 @@ namespace sl
       for i = 0 to m.renderedCells.count() - 1
         item = m.content.getChild(i)
         cell = m.renderedCells[i]
-        ? " SETTING CONTENT ON item " i
+        ' ? " SETTING CONTENT ON item " i
         cell@.setContent(item)
         cell.visible = true
       end for

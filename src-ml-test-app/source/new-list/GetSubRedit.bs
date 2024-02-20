@@ -21,9 +21,22 @@ namespace sl
       request.setUrl(url)
       response = request.getToString()
       json = parseJson(response)
+      return m.parseData(json, content)
+    end function
+
+    private function parseData(json as mc.types.assocarray, content as mc.types.node)
       ? " GOT RESPONSE"
       listItems = []
-      for each postDataContainer in asArray(json.data.children)
+      i = 0
+      children = asArray(json.data.children)
+      numberOfChildren = children.count()
+      while numberOfChildren > 0 and i < 100
+        i++
+        postDataContainer = children[i mod numberOfChildren]
+        if postDataContainer = invalid
+          exit while
+        end if
+
         postData = postDataContainer.data
         post = {
           title: postData.title
@@ -67,11 +80,11 @@ namespace sl
         end if
 
         listItems.push(itemContent)
-      end for
+      end while
 
       content.update(listItems, true)
-      state = content.getChildCount() > 0 ? "loaded" : "error"
-      ? content.title " " content.index " PARSED WITH STATE " state
+      state = listItems.count() > 0 ? "loaded" : "error"
+      ' ? content.title " " content.index " PARSED WITH STATE " state
       content.state = state
       return true
     end function
