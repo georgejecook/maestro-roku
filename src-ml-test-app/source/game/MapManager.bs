@@ -9,7 +9,15 @@ namespace mg
     private screenTileWidth = 128
     private screenTileHeight = 128
     private platformsByRow = []
-    private collectablesByRow = []
+    private itemsByRow = []
+    private playerStartPosition = [0, 0]
+
+    'levels have different layers
+    private backgroundGroup as mc.types.node
+    private platformsGroup as mc.types.node
+    private itemsGroup as mc.types.node
+    private foregroundGroup as mc.types.node
+
     function new()
     end function
 
@@ -20,11 +28,12 @@ namespace mg
     function loadMap(levelGroup as mc.types.node, file as string)
       m.levelGroup = levelGroup
       text = readAsciiFile(file)
+      m.prepareLevelGroup()
       json = text = invalid ? invalid : parseJson(text)
-      m.parseTMXandCreatePlatforms(json)
+      m.parseTMX(json)
     end function
 
-    function getFloor(target as mc.types.node, ySpeed as float)
+    function getPlatform(target as mc.types.node, ySpeed as float)
       feetCollider = target.feetCollider
       feetTranslation = feetCollider.translation
       targetTranslation = target.translation
@@ -49,8 +58,8 @@ namespace mg
 
             ' Determine if the target's current column intersects with the platform's column range
             if currentCol >= platformStartCol and currentCol <= platformEndCol
-              collisionType = platform@.getFloorCollision(feetCollider)
-              if collisionType = mg.FloorCollision.OnFloor
+              collisionType = platform@.getPlatformCollision(feetCollider)
+              if collisionType = mg.PlatformCollision.OnPlatform
                 return platform
               end if
             end if
@@ -72,8 +81,8 @@ namespace mg
       currentColString = currentCol.toStr()
       ' Check for collision in the current row and possibly the row below.
       for rowIndex = currentRow - 1 to currentRow
-        if rowIndex < m.collectablesByRow.count() and rowIndex >= 0
-          item = m.collectablesByRow[rowIndex][currentColString]
+        if rowIndex < m.itemsByRow.count() and rowIndex >= 0
+          item = m.itemsByRow[rowIndex][currentColString]
           if item <> invalid and not item.isCollected and item.startIndex = currentCol
             if item.effect = "kill"
               target@.onHit(item)
@@ -129,12 +138,16 @@ namespace mg
 
     function resetLevel()
       ? "resetting level"
-      for each row in m.collectablesByRow
+      for each row in m.itemsByRow
         for each item in row.items()
           item.visible = true
           item.isCollected = false
         end for
       end for
+    end function
+
+    function getPlayerStartPosition()
+      return m.playerStartPosition
     end function
 
     function updateVisibility(playerPosition as mc.types.array)
@@ -145,86 +158,147 @@ namespace mg
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    private function prepareLevelGroup()
+      for each group in m.levelGroup.getChildren(-1, 0)
+        group.removeChildren(group.getChildren(-1, 0))
+      end for
+
+      m.levelGroup.removeChildren(m.levelGroup.getChildren(-1, 0))
+      m.backgroundGroup = mc.createSGNode("Group", m.levelGroup, "backgroundGroup")
+      m.platformsGroup = mc.createSGNode("Group", m.levelGroup, "platformsGroup")
+      m.itemsGroup = mc.createSGNode("Group", m.levelGroup, "itemsGroup")
+      m.foregroundGroup = mc.createSGNode("Group", m.levelGroup, "foregroundGroup")
+    end function
+
+    private function parseTMX(tmxData as mc.types.assocarray)
+      for each layerData in tmxData.layers
+        if layerData.name = "foreground"
+          m.parsePlatformLayer(layerData, m.foregroundGroup)
+        else if layerData.name = "background"
+          m.parsePlatformLayer(layerData, m.backgroundGroup)
+        else if layerData.name = "platforms"
+          m.parsePlatformLayer(layerData, m.platformsGroup)
+        else if layerData.name = "items"
+          m.parseItemLayer(layerData, m.itemsGroup)
+        else
+          ? "UNKNOWN LAYER! " layerData.name
+        end if
+      end for
+    end function
+
     'TODO - we should have a finite amount of tiles.. and then reuse them as we scroll
     ' Define a function to parse TMX JSON and create platforms
-    private function parseTMXandCreatePlatforms(tmxData as mc.types.assocarray)
+    private function parsePlatformLayer(layerData as mc.types.assocarray, targetNode as mc.types.node)
       ' Loop through each layer (assuming single layer for simplicity)
-      for each layer in tmxData.layers
-        ' Assuming a single layer for simplicity, process its data
-        rowData = layer.data
-        rowLength = tmxData.width
-        numberOfRows = tmxData.height
-        m.mapSize = [tmxData.width * m.screenTileWidth, tmxData.height * m.screenTileHeight]
-        platformUri = ""
+      ' Assuming a single layer for simplicity, process its data
+      rowData = layerData.data
+      rowLength = layerData.width
+      numberOfRows = layerData.height
+      m.mapSize = [layerData.width * m.screenTileWidth, layerData.height * m.screenTileHeight]
+      platformUri = ""
 
-        ' Process each row
-        for rowIndex = 0 to numberOfRows - 1
-          rowStartIndex = rowIndex * rowLength
-          rowEndIndex = (rowIndex + 1) * rowLength - 1
-          startIndex = -1
-          length = 0
+      ' Process each row
+      for rowIndex = 0 to numberOfRows - 1
+        rowStartIndex = rowIndex * rowLength
+        rowEndIndex = (rowIndex + 1) * rowLength - 1
+        startIndex = -1
+        length = 0
 
-          ' Process each tile in the row
-          for tileIndex = rowStartIndex to rowEndIndex
-            tileValue = rowData[tileIndex]
-
-            ' Check if tile is not empty and start index is not set
-            if tileValue <> 1 and startIndex = -1
-              if tileValue = 23
-                m.createCoin(rowIndex, tileIndex - rowStartIndex, "coin" + str(tileIndex))
-                startIndex = -1
-              else if tileValue = 24
-                ' ? "BAD GUY"
-                m.createBadGuy(rowIndex, tileIndex - rowStartIndex, "badGuy" + str(tileIndex))
-                startIndex = -1
-              else if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12
-                'repeated tiles for efficienccy
-                startIndex = tileIndex - rowStartIndex
-                platformUri = `pkg:/images/tiles/${tileValue}.png`
-                length = 1
-              else if tileValue = 17 or tileValue = 19 or tileValue = 2 or tileValue = 4 or tileValue = 7 or tileValue = 9
-                ' ? " MAKING A CAP " tileValue
-                startIndex = tileIndex - rowStartIndex
-                platform = m.createPlatform(rowIndex, startIndex, 1, "platform" + str(startIndex))
-                ' platform.visible = false
-                platform.uri = `pkg:/images/tiles/${tileValue}.png`
-                ' ? " making platform " platformUri
-                startIndex = -1
-                length = 1
-              else
-                if tileValue <> 0 and tileValue <> 5 and tileValue <> 10 and tileValue <> 6
-                  ? " UNKNOWN TILE " tileValue
-                end if
-                length = 0
-              end if
-            else if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12
-              'repeated tiles
-              length += 1
-            else if length > 0 and startIndex > -1
-              ' Create a platform for the sequence of non-zero tiles
-              platform = m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
-              platform.uri = platformUri
-              ' ? " making platform " platformUri
+        ' Process each tile in the row
+        for tileIndex = rowStartIndex to rowEndIndex
+          tileValue = rowData[tileIndex]
+          ' Check if tile is not empty and start index is not set
+          if tileValue > 1 and startIndex = -1
+            ' ? "FOUND TILE VALUE " tileValue
+            if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12 or tileValue = 13
+              'repeated tiles for efficienccy
+              ' ? "REPEATED TILE"
+              startIndex = tileIndex - rowStartIndex
+              platformUri = `pkg:/images/tiles/${tileValue}.png`
+              length = 1
+            else if tileValue = 17 or tileValue = 19 or tileValue = 2 or tileValue = 4 or tileValue = 7 or tileValue = 9 or tileValue = 16 or tileValue = 20
+              startIndex = tileIndex - rowStartIndex
+              ? " MAKING A CAP " tileValue " id " startIndex
+              platform = m.createPlatform(rowIndex, startIndex, 1, "p_" + str(startIndex))
+              ' platform.visible = false
+              platform.uri = `pkg:/images/tiles/${tileValue}.png`
               startIndex = -1
+              length = 1
+            else
+              if tileValue <> 0 and tileValue <> 5 and tileValue <> 10 and tileValue <> 6
+                ? " UNKNOWN TILE " tileValue
+              end if
               length = 0
             end if
-          next
-
-          ' Check if the row ends with a platform
-          if length > 0 and startIndex > -1
-
-            ' ? " making platform " platformUri
-            platform = m.createPlatform(rowIndex, startIndex, length, "platform" + str(startIndex))
+          else if tileValue = 8 or tileValue = 3 or tileValue = 14 or tileValue = 18 or tileValue = 12
+            'repeated tiles
+            length += 1
+          else if length > 0 and startIndex > -1
+            ' Create a platform for the sequence of non-zero tiles
+            platform = m.createPlatform(rowIndex, startIndex, length, "p_" + str(startIndex))
             platform.uri = platformUri
+            ' ? " making platform " platformUri
+            startIndex = -1
+            length = 0
           end if
-        next
-      next
+        end for
+
+        ' Check if the row ends with a platform
+        if length > 0 and startIndex > -1
+          ? " making platform " platformUri
+          platform = m.createPlatform(rowIndex, startIndex, length, "p_" + str(startIndex))
+          platform.uri = platformUri
+        end if
+      end for
+    end function
+
+    'TODO - we should have a finite amount of tiles.. and then reuse them as we scroll
+    ' Define a function to parse TMX JSON and create platforms
+    private function parseItemLayer(layerData as mc.types.assocarray, targetNode as mc.types.node)
+      ' Loop through each layer (assuming single layer for simplicity)
+      ' Assuming a single layer for simplicity, process its data
+      rowData = layerData.data
+      rowLength = layerData.width
+      numberOfRows = layerData.height
+      m.mapSize = [layerData.width * m.screenTileWidth, layerData.height * m.screenTileHeight]
+
+      ' Process each row
+      for rowIndex = 0 to numberOfRows - 1
+        rowStartIndex = rowIndex * rowLength
+        rowEndIndex = (rowIndex + 1) * rowLength - 1
+        startIndex = -1
+
+        ' Process each tile in the row
+        for tileIndex = rowStartIndex to rowEndIndex
+          tileValue = rowData[tileIndex]
+
+          ' Check if tile is not empty and start index is not set
+          if tileValue <> 1 and startIndex = -1
+            if tileValue = 28
+              ? "found player start position"
+              m.setStartPosition(rowIndex, tileIndex - rowStartIndex)
+              startIndex = -1
+            else if tileValue = 23
+              ? "COIN"
+              m.createItem(rowIndex, tileIndex - rowStartIndex, "c_" + str(tileIndex), mg.GameItemType.Coin)
+              startIndex = -1
+            else if tileValue = 24
+              ? "BAD GUY"
+              m.createItem(rowIndex, tileIndex - rowStartIndex, "e1_" + str(tileIndex), mg.GameItemType.Enemy1)
+              startIndex = -1
+              if tileValue <> 0 and tileValue <> 5 and tileValue <> 10 and tileValue <> 6
+                ? " UNKNOWN ITEM " tileValue
+              end if
+            end if
+          end if
+        end for
+      end for
     end function
 
     private function createPlatform(rowIndex as integer, startIndex as integer, length as integer, id as string)
       yPos = rowIndex * m.screenTileHeight
       platform = mc.createSGNode({
-        "_type": "Floor"
+        "_type": "Platform"
         "id": id
         translation: [startIndex * m.screenTileWidth, yPos]
         size: [length * m.screenTileWidth, m.screenTileHeight]
@@ -232,7 +306,7 @@ namespace mg
         length: length
         rowIndex: rowIndex
         color: "#5A24B6"
-      }, m.levelGroup)
+      }, m.platformsGroup)
       rows = m.platformsByRow[rowIndex]
       if rows = invalid
         rows = []
@@ -242,50 +316,51 @@ namespace mg
       return platform
     end function
 
-    private function createCoin(rowIndex as integer, startIndex as integer, id as string)
+    private function setStartPosition(rowIndex as integer, colIndex as integer)
       yPos = rowIndex * m.screenTileHeight
-      item = mc.createSGNode({
-        "_type": "Collectable"
-        "id": id
-        translation: [startIndex * m.screenTileWidth, yPos]
-        size: [m.screenTileWidth, m.screenTileHeight]
-        startIndex: startIndex
-        length: 1
-        uri: "pkg:/images/sprites/coin-tile.png"
-        effect: "coin"
-        rowIndex: rowIndex
-      }, m.levelGroup)
-      rows = m.collectablesByRow[rowIndex]
-      if rows = invalid
-        rows = {}
-        m.collectablesByRow.push(rows)
-      end if
-      rows[startIndex.toStr()] = item
-      return item
+      m.playerStartPosition = [colIndex * m.screenTileWidth, yPos - m.screenTileHeight + 5]
+      ? " set player start pos to " m.playerStartPosition
     end function
 
-    private function createBadGuy(rowIndex as integer, startIndex as integer, id as string)
+    private function createItem(rowIndex as integer, colIndex as integer, id as string, itemType as mg.GameItemType)
       yPos = rowIndex * m.screenTileHeight
       item = mc.createSGNode({
-        "_type": "Collectable"
+        "_type": "GameItem"
         "id": id
-        uri: "pkg:/images/sprites/bad-guy.png"
-        translation: [startIndex * m.screenTileWidth, yPos]
+
+        translation: [colIndex * m.screenTileWidth, yPos]
         size: [m.screenTileWidth, m.screenTileHeight]
-        startIndex: startIndex
+        startIndex: colIndex
         length: 1
         effect: "kill"
         rowIndex: rowIndex
-      }, m.levelGroup)
-      rows = m.collectablesByRow[rowIndex]
+      }, m.itemsGroup)
+      m.initializeGameItem(item, itemType)
+      rows = m.itemsByRow[rowIndex]
       if rows = invalid
         rows = {}
-        m.collectablesByRow.push(rows)
+        m.itemsByRow.push(rows)
       end if
-      rows[startIndex.toStr()] = item
+      rows[colIndex.toStr()] = item
       return item
     end function
 
+    private function initializeGameItem(item as mc.types.node, itemType as mg.GameItemType)
+      if itemType = mg.GameItemType.coin
+        item.uri = "pkg:/images/sprites/coin-tile.png"
+        item.effect = mg.GameItemEffect.Coin
+      else if itemType = mg.GameItemType.Enemy1
+        item.uri = "pkg:/images/sprites/bad-guy.png"
+        item.effect = mg.GameItemEffect.Kill
+      else if itemType = mg.GameItemType.Enemy2
+        item.uri = "pkg:/images/sprites/bad-guy.png"
+        item.effect = mg.GameItemEffect.Kill
+      else if itemType = mg.GameItemType.Spikes
+        item.effect = mg.GameItemEffect.Kill
+      else
+        ? " UKNOWN GAME ITEM!!"
+      end if
+    end function
 
   end class
 end namespace

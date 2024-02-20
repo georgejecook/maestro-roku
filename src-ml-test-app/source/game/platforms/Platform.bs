@@ -1,0 +1,106 @@
+import "pkg:/source/view/BaseView.bs"
+import "pkg:/source/game/GameEnums.bs"
+
+namespace mg
+  @observersWaitInitialize
+  @node("Platform", "mv_Poster")
+  class Platform extends mv.BaseView
+
+    startIndex as integer
+    length as integer
+    rowIndex as integer
+
+    'moveable platform
+    isMovable = false
+    keyPoints = []
+    keyPointIndex = 0
+    keyPointFraction = 0.0
+    speed = 0.0
+
+    function new()
+      super("Player")
+      m.top.uri = "pkg:/images/sprites/tile.png"
+    end function
+
+    protected override function initialize()
+      super.initialize()
+    end function
+
+    function getPlatformCollision(target as mc.types.node) as object
+      translation = m.top.translation
+      size = m.top.size
+      size[1] = 20 'only first 20 pixels of floor count
+      targetSize = [target.width, target.height]
+      targetTranslation = target.translation
+      parentTranslation = target.getParent().translation
+
+      ' Calculate the absolute position of the target in the scene
+      collisionTranslation = [
+        targetTranslation[0] + parentTranslation[0],
+        targetTranslation[1] + parentTranslation[1]
+      ]
+
+      ' Check for horizontal overlap
+      horizontalOverlap = (translation[0] < collisionTranslation[0] + targetSize[0]) and (translation[0] + size[0] > collisionTranslation[0])
+
+      ' Check for vertical overlap considering the size of both the player and the target
+      verticalOverlap = (translation[1] < collisionTranslation[1] + targetSize[1]) and (translation[1] + size[1] > collisionTranslation[1])
+
+      if horizontalOverlap and verticalOverlap
+        return mg.PlatformCollision.OnPlatform
+      end if
+
+      return mg.PlatformCollision.None
+    end function
+
+    function tick(deltaTime as float)
+      if m.isMovable and m.keyPoints.count() > 1
+        ' Ensure there are at least two points to move between
+        currentPoint = m.keyPoints[m.keyPointIndex]
+        nextIndex = (m.keyPointIndex + 1) mod m.keyPoints.count()
+        nextPoint = m.keyPoints[nextIndex]
+
+        ' Calculate the distance between the current and next points
+        deltaX = nextPoint.x - currentPoint.x
+        deltaY = nextPoint.y - currentPoint.y
+        distance = Sqr(deltaX * deltaX + deltaY * deltaY)
+
+        ' Calculate how much of the distance will be covered in this tick
+        moveDistance = m.speed * deltaTime
+
+        ' Update the fraction of the distance to the next key point
+        ' This fraction helps smoothly interpolate between points
+        m.keyPointFraction += moveDistance / distance
+
+        ' Check if the platform has reached or surpassed the next key point
+        if m.keyPointFraction >= 1.0
+          ' Move to the next key point
+          m.keyPointIndex = nextIndex
+          ' Reset fraction for the next segment
+          m.keyPointFraction = 0.0
+
+          ' Adjust for overshooting the next key point
+          extraDistance = moveDistance - (distance * (m.keyPointFraction - 1.0))
+          if extraDistance > 0 and m.keyPoints.count() > 2
+            ' Recalculate deltaX and deltaY for the new segment if not at the end
+            currentPoint = m.keyPoints[m.keyPointIndex]
+            nextIndex = (m.keyPointIndex + 1) mod m.keyPoints.count()
+            nextPoint = m.keyPoints[nextIndex]
+            deltaX = nextPoint.x - currentPoint.x
+            deltaY = nextPoint.y - currentPoint.y
+            m.keyPointFraction += extraDistance / Sqr(deltaX * deltaX + deltaY * deltaY)
+          end if
+        end if
+
+        ' Interpolate the platform's position for smooth animation
+        interpolatedX = currentPoint.x + (deltaX * m.keyPointFraction)
+        interpolatedY = currentPoint.y + (deltaY * m.keyPointFraction)
+
+        ' Update platform position
+        m.top.translation = [interpolatedX, interpolatedY]
+      end if
+    end function
+
+  end class
+
+end namespace

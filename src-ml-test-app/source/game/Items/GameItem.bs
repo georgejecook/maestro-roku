@@ -3,21 +3,18 @@ import "pkg:/source/game/GameEnums.bs"
 
 namespace mg
   @observersWaitInitialize
-  @node("Collectable", "mv_Poster")
-  class Collectable extends mv.BaseView
+  @node("GameItem", "mv_Poster")
+  class GameItem extends mv.BaseView
 
     startIndex as integer
     length as integer
     rowIndex as integer
     isCollected as boolean
     effect = "none"
+    itemType = mg.GameItemType.None
 
     function new()
       super("Player")
-    end function
-
-    protected override function initialize()
-      super.initialize()
     end function
 
     function getCollision(target as mc.types.node) as object

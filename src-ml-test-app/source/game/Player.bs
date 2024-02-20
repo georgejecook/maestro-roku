@@ -26,7 +26,7 @@ namespace mg
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     mapManager as mc.types.node
-    currentFloor as mc.types.node
+    currentPlatform as mc.types.node
     feetCollider as mc.types.node
     velocity = [0, 0]
 
@@ -69,6 +69,23 @@ namespace mg
     private currentSprite as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Jumping
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+    private jumpHoldTime as float = 0
+    minJumpHoldTime as float = 0.1 ' Min time that we ignore it
+    maxJumpHoldTime as float = 1 ' Maximum time the jump force is applied when holding the "up" key
+
+    initialRunSpeed as float = 100 ' Increase for a faster initial jump
+    initialJumpSpeed as float = 800 ' Increase for a faster initial jump
+    gravity as float = 1800 ' Adjust based on testing for desired jump arc
+    jumpHoldForce as float = 1000 ' Increase this force for a stronger sustained jump when holding the button
+
+    private ySpeed = 0
+
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -87,7 +104,7 @@ namespace mg
         visible: false
         translation: [50, 180]
       }, m.top)
-      m.currentFloor = invalid
+      m.currentPlatform = invalid
       m.setPlayerState(mg.PlayerState.Falling)
     end function
 
@@ -234,7 +251,7 @@ namespace mg
           if playerBottomY < platformTopY or (playerBottomY - platformTopY > 20) ' Adjust 20 to your game's scale
             ' This indicates a true lateral collision, not a landing scenario
             m.xSpeed = 0
-            if m.currentFloor = invalid ' or check it's under the wall we hit!!
+            if m.currentPlatform = invalid ' or check it's under the wall we hit!!
               m.startFalling()
             end if
           end if
@@ -242,54 +259,21 @@ namespace mg
       end if
     end function
 
-    'FIXME - get lots of false positives when landing on platforms..
-    ' private function checkLateralCollision()
-    '   ' Check for lateral collisions and adjust movement
-    '   lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed > 0 ? 1 : -1)
-
-
-    '   if lateralCollisionPlatform <> invalid and (not lateralCollisionPlatform.isSameNode(m.currentFloor))
-
-    '     feetCollider = m.feetCollider
-    '     feetTranslation = feetCollider.translation
-    '     targetTranslation = m.top.translation
-    '     targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
-
-    '     currentRow = int(targetTranslation[1] / 128)
-    '     if currentRow <> lateralCollisionPlatform.rowIndex
-    '       ? "Hit side wall on row " lateralCollisionPlatform.rowIndex " my row is " currentRow
-    '       m.xSpeed = 0 ' Example adjustment, customize as needed
-    '     end if
-    '   end if
-    ' end function
-
-
-    private jumpHoldTime as float = 0
-    minJumpHoldTime as float = 0.1 ' Min time that we ignore it
-    maxJumpHoldTime as float = 1 ' Maximum time the jump force is applied when holding the "up" key
-
-    initialRunSpeed as float = 100 ' Increase for a faster initial jump
-    initialJumpSpeed as float = 800 ' Increase for a faster initial jump
-    gravity as float = 1800 ' Adjust based on testing for desired jump arc
-    jumpHoldForce as float = 1000 ' Increase this force for a stronger sustained jump when holding the button
-
-    private ySpeed = 0
-
     private function applyGravity()
       ' Apply gravity if in the air
       if m.playerState = mg.PlayerState.Jumping or m.playerState = mg.PlayerState.Falling
         m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
         ' Move vertically based on ySpeed
-        m.currentFloor = m.getFloor()
-        if m.currentFloor <> invalid
-          ' ? " LANDED ON FLOOR " m.currentFloor.rowIndex
-          m.top.translation[1] = m.currentFloor.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
+        m.currentPlatform = m.getPlatform()
+        if m.currentPlatform <> invalid
+          ' ? " LANDED ON FLOOR " m.currentPlatform.rowIndex
+          m.top.translation[1] = m.currentPlatform.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
           m.ySpeed = 0
           m.setPlayerState(m.xSpeed = 0 ? mg.PlayerState.Idle : mg.PlayerState.Walking) ' Or Walking, depending on context
         end if
       else
-        m.currentFloor = m.getFloor()
-        if m.currentFloor = invalid
+        m.currentPlatform = m.getPlatform()
+        if m.currentPlatform = invalid
           m.startFalling()
         end if
       end if
@@ -302,14 +286,14 @@ namespace mg
       m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
     end function
 
-    ' private function getFloor()
+    ' private function getPlatform()
     '   if m.ySpeed < 0
     '     ' ? "Rising"
     '   else
     '     ' ? "Falling"
     '     for each platform in m.mapManager.platformsGroup.getChildren(-1, 0)
-    '       collisionType = platform@.getFloorCollision(m.feetCollider)
-    '       if collisionType = mg.FloorCollision.OnFloor
+    '       collisionType = platform@.getPlatformCollision(m.feetCollider)
+    '       if collisionType = mg.PlatformCollision.OnPlatform
     '         return platform
     '       end if
     '     end for
@@ -319,14 +303,14 @@ namespace mg
 
     private startSpeed = 40
 
-    private function getFloor()
+    private function getPlatform()
       if m.ySpeed < 0
         ' ? "Rising"
       else
         ' ? "Falling"
         ' Calculate current row based on the character's feet Y position and platform height.
         ' Assuming platformHeight is a constant that you have defined somewhere.
-        return m.mapManager@.getFloor(m.top, m.ySpeed)
+        return m.mapManager@.getPlatform(m.top, m.ySpeed)
       end if
       return invalid
     end function
@@ -340,10 +324,10 @@ namespace mg
     end function
 
     function resetPlayer()
-      m.top.translation = [300, 300]
+      m.top.translation = m.mapManager@.getPlayerStartPosition()
       m.setPlayerState(mg.PlayerState.Idle)
       m.mapManager@.resetLevel()
-      m.currentFloor = invalid
+      m.currentPlatform = invalid
       m.ySpeed = 0
       m.xSpeed = 0
       m.setPlayerState(mg.PlayerState.Idle)
@@ -359,9 +343,9 @@ namespace mg
           m.ySpeed = m.maxYSpeed
           m.xSpeed = 0
         else if pressedKey = "up"
-          if m.currentFloor <> invalid
+          if m.currentPlatform <> invalid
             m.setPlayerState(mg.PlayerState.Jumping)
-            m.currentFloor = invalid
+            m.currentPlatform = invalid
             m.ySpeed = -m.initialJumpSpeed
             m.jumpHoldTime = 0 ' Reset jump hold time
           else if m.playerState = mg.PlayerState.Jumping and m.jumpHoldTime < m.maxJumpHoldTime
@@ -406,7 +390,7 @@ namespace mg
         m.jumpHoldTime = 0
 
         'friction comes from floor!!
-        if m.currentFloor <> invalid
+        if m.currentPlatform <> invalid
           ' Apply friction to gradually stop the movement when no key is pressed
           m.xSpeed = m.xSpeed * (1 - m.friction * m.deltaTime)
           if abs(m.xSpeed) < m.stopSpeed
@@ -430,8 +414,8 @@ namespace mg
     end function
 
     private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)
-      if m.currentFloor <> invalid
-        y = m.currentFloor.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
+      if m.currentPlatform <> invalid
+        y = m.currentPlatform.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
       else
         y = target.translation[1] + (ySpeed * m.deltaTime)
       end if
