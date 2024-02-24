@@ -67,6 +67,9 @@ namespace mg
     private allSprites = []
     private spritesByState = []
     private currentSprite as mc.types.node
+    private animstate = "none"
+    private spriteLeft as mc.types.node
+
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Jumping
@@ -74,15 +77,16 @@ namespace mg
 
 
     private jumpHoldTime as float = 0
-    minJumpHoldTime as float = 0.1 ' Min time that we ignore it
-    maxJumpHoldTime as float = 1 ' Maximum time the jump force is applied when holding the "up" key
+    minJumpHoldTime as float = 0.1
+    maxJumpHoldTime as float = 1
 
-    initialRunSpeed as float = 100 ' Increase for a faster initial jump
-    initialJumpSpeed as float = 800 ' Increase for a faster initial jump
-    gravity as float = 1800 ' Adjust based on testing for desired jump arc
-    jumpHoldForce as float = 1000 ' Increase this force for a stronger sustained jump when holding the button
+    initialRunSpeed as float = 100
+    initialJumpSpeed as float = 800
+    gravity as float = 1800
+    jumpHoldForce as float = 1000
 
     private ySpeed = 0
+    private startSpeed = 40
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -109,6 +113,8 @@ namespace mg
     end function
 
     private function createPlayerSprite_()
+      m.log.info("Creating player sprites")
+
       m.createAnimatedSprite("walkRightSprite", "right/Run-6frm", 6, true)
       m.createAnimatedSprite("walkLeftSprite", "left/Run-6frm", 6, true)
       m.createAnimatedSprite("attackRightSprite", "right/Atk1-6frm", 6)
@@ -144,7 +150,6 @@ namespace mg
       m.spritesByState["left_" + mg.PlayerState.Falling] = m.jumpLeftSprite
     end function
 
-    private animstate = "none"
     private function setPlayerState(state as mg.PlayerState)
       m.playerState = state
       'TODO - fix this
@@ -166,7 +171,7 @@ namespace mg
     end function
 
     private function createAnimatedSprite(fieldName as string, fileName as string, numFrames as integer, repeat = false as boolean)
-      sprite = m.top.createChild("ap_AnimatedPoster")
+      sprite = m.top.createChild("AnimatedPoster")
       sprite.width = 244 * m.spriteScale
       sprite.height = 93 * m.spriteScale
       sprite.id = fieldName
@@ -185,9 +190,8 @@ namespace mg
       m[fieldName] = sprite
     end function
 
-    private spriteLeft as mc.types.node
     private function createPlayerSprite()
-      m.sprite = m.top.createChild("ap_AnimatedPoster")
+      m.sprite = m.top.createChild("AnimatedPoster")
       m.sprite.width = 240
       m.sprite.height = 240
       m.sprite.scale = [m.spriteScale, m.spriteScale]
@@ -204,7 +208,7 @@ namespace mg
       ]
       m.sprite.duration = 0.15
       m.sprite.control = "start"
-      m.spriteLeft = m.top.createChild("ap_AnimatedPoster")
+      m.spriteLeft = m.top.createChild("AnimatedPoster")
       m.spriteLeft.width = 240
       m.spriteLeft.height = 240
       m.spriteLeft.scale = [m.spriteScale, m.spriteScale]
@@ -229,7 +233,6 @@ namespace mg
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function tick()
-      ' Update deltaTime in each tick
       m.deltaTime = m.gameState.deltaTime
 
       m.onInput()
@@ -248,7 +251,7 @@ namespace mg
           ' Additional check to ensure we're not detecting a platform the player is about to land on
           platformTopY = lateralCollisionPlatform.translation[1]
           playerBottomY = m.top.translation[1] + m.feetCollider.translation[1] + m.feetCollider.height
-          if playerBottomY < platformTopY or (playerBottomY - platformTopY > 20) ' Adjust 20 to your game's scale
+          if playerBottomY < platformTopY or (playerBottomY - platformTopY > 20)
             ' This indicates a true lateral collision, not a landing scenario
             m.xSpeed = 0
             if m.currentPlatform = invalid ' or check it's under the wall we hit!!
@@ -286,30 +289,11 @@ namespace mg
       m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
     end function
 
-    ' private function getPlatform()
-    '   if m.ySpeed < 0
-    '     ' ? "Rising"
-    '   else
-    '     ' ? "Falling"
-    '     for each platform in m.mapManager.platformsGroup.getChildren(-1, 0)
-    '       collisionType = platform@.getPlatformCollision(m.feetCollider)
-    '       if collisionType = mg.PlatformCollision.OnPlatform
-    '         return platform
-    '       end if
-    '     end for
-    '   end if
-    '   return invalid
-    ' end function
-
-    private startSpeed = 40
-
     private function getPlatform()
       if m.ySpeed < 0
         ' ? "Rising"
       else
         ' ? "Falling"
-        ' Calculate current row based on the character's feet Y position and platform height.
-        ' Assuming platformHeight is a constant that you have defined somewhere.
         return m.mapManager@.getPlatform(m.top, m.ySpeed)
       end if
       return invalid
@@ -324,6 +308,8 @@ namespace mg
     end function
 
     function resetPlayer()
+      m.log.info("resetting player")
+
       m.top.translation = m.mapManager@.getPlayerStartPosition()
       m.setPlayerState(mg.PlayerState.Idle)
       m.mapManager@.resetLevel()
@@ -353,15 +339,14 @@ namespace mg
             m.jumpHoldTime = m.jumpHoldTime + m.deltaTime
             ' Only apply additional force if within the max jump hold time
             if m.jumpHoldTime <= m.maxJumpHoldTime and m.jumpHoldTime >= m.minJumpHoldTime
-              m.ySpeed -= (m.jumpHoldForce * m.deltaTime) ' Apply additional upward force
+              m.ySpeed -= (m.jumpHoldForce * m.deltaTime)
             end if
           end if
         else
-          ' Calculate speed change based on current input
           speedDelta = m.speed * m.deltaTime * m.acceleration
 
           ' Introduce a boost for initial movement to make the start or turn faster
-          initialSpeedBoost = 20 ' Adjust this value as needed for the desired effect
+          initialSpeedBoost = 20
 
 
           ' Determine direction change for immediate response
@@ -378,7 +363,6 @@ namespace mg
               speedDelta += initialSpeedBoost
             end if
 
-            ' Update xSpeed with direction change consideration and possible boost
             if pressedKey = "left"
               m.xSpeed -= speedDelta * directionMultiplier
             else if pressedKey = "right"
@@ -402,12 +386,9 @@ namespace mg
     end function
 
     private function updateMovement()
-
-      ' Ensure xSpeed and ySpeed do not exceed the maximum speed
       m.xSpeed = mc.Clamp(m.xSpeed, -m.maxXSpeed, m.maxXSpeed)
       m.ySpeed = mc.Clamp(m.ySpeed, -m.maxYSpeed, m.maxYSpeed)
 
-      ' Move the view based on current speeds
       m.moveView(m.top, m.xSpeed, m.ySpeed)
 
       m.velocity = [m.xSpeed, m.ySpeed]

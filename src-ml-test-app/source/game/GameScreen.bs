@@ -55,7 +55,6 @@ namespace mg
       super.initialize()
       m.createGameState()
       m.createViews()
-      ' m.setInterval(m.updateBackground, 3)
     end function
 
     private function createGameState()
@@ -93,7 +92,6 @@ namespace mg
     private contentGroup as mc.types.node
     private function createParallaxBackgrounds()
       m.contentGroup = m.createSGNode("Group", m.top)
-      ' m.contentGroup.scale = [0.8, 0.8]
       m.backgroundGroup = m.createSGNode("Group", m.contentGroup)
       m.midGroundGroup = m.createSGNode("Group", m.contentGroup)
       m.createSGNode({
@@ -138,7 +136,6 @@ namespace mg
 
     @gameEngine
     private function runGameLoop()
-      ' m.updateBackground()
       m.onInput()
       m.tick()
       m.updateCameraScale(m.gameState.deltaTime)
@@ -149,7 +146,6 @@ namespace mg
     end function
 
     private function updateParallax()
-      ' Get the current camera position from the level group's translation
       levelTranslation = m.levelGroup.translation
       cameraX = levelTranslation[0] * 0.8
       cameraY = levelTranslation[1] * 0.8
@@ -165,8 +161,6 @@ namespace mg
       backX = cameraX * backParallaxFactor
       backY = cameraY * backParallaxFactor
 
-      ' Update the midground and background layer positions
-      ' Assuming you have m.midgroundLayer and m.backgroundLayer to represent your layers
       m.midGroundGroup.translation = [midX, midY]
       m.backgroundGroup.translation = [backX, backY]
       m.foregroundGroup.translation = [foreX, foreY]
@@ -181,27 +175,20 @@ namespace mg
       playerTranslation = m.player.translation
       playerTranslation[0] = playerTranslation[0] * m.levelScale
       playerTranslation[1] = playerTranslation[1] * m.levelScale
-      ' screenSize = [1920, 1080]
       screenSize = [1920, 1080]
 
 
-      ' Calculate the desired camera position
-      ' This example centers the player on the screen, adjust the values as needed
       desiredX = - (playerTranslation[0] - screenSize[0] / 2)
       desiredY = - (playerTranslation[1] - screenSize[1] / 2)
 
-      ' Optional: Set limits to prevent showing areas outside your game world
-      ' For example, if your level is 4000 pixels wide:
       minX = - (m.levelSize[0] - screenSize[0])
       maxX = 0
-      minY = - (m.levelSize[1] - screenSize[1]) ' Assuming the level height is 2000 pixels
+      minY = - (m.levelSize[1] - screenSize[1])
       maxY = 0
 
-      ' Apply limits
       desiredX = mc.clamp(desiredX, minX, maxX)
       desiredY = mc.clamp(desiredY, minY, maxY)
 
-      ' Update the levelGroup translation to move the camera
       m.levelGroup.translation = [desiredX, desiredY]
     end function
 
@@ -209,14 +196,10 @@ namespace mg
     private function updateFrameTimer()
       time = m.frameTimer.totalMilliseconds()
       if m.gameState.lastAnimTime > 0
-        ' Calculate delta time in seconds
         m.gameState.deltaTime = (time - m.gameState.lastAnimTime) / 1000.0
       end if
       m.gameState.lastAnimTime = time
     end function
-
-
-
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -229,30 +212,23 @@ namespace mg
     private scaleSpeedMod as float = 0
 
     private function updateCameraScale(deltaTime as float)
-      ' Adjust the level scale based on the player's x speed
       m.adjustLevelScaleBasedOnPlayerSpeed()
 
-      ' Smoothly interpolate the current level scale towards the target scale
       m.levelScale += (m.targetScale - m.levelScale) * (m.scaleSpeed + m.scaleSpeedMod) * deltaTime
 
-      ' Ensure the levelScale is clamped between a minimum scale and 1
       m.levelScale = mc.clamp(m.levelScale, 0.65, 1.0)
 
-      ' Apply the level scale to the game level or camera
       m.applyLevelScale(m.levelScale)
     end function
 
     private function adjustLevelScaleBasedOnPlayerSpeed()
-      ' Example calculation for target scale based on player's x velocity
-      ' This is a simple mapping, consider a more complex function for smoother transitions
-      xSpeed = abs(m.player.velocity[0]) ' Consider the absolute value to handle both directions
-
+      xSpeed = abs(m.player.velocity[0])
       ' ? "PLAYER SPEED IS " xSpeed
       if xSpeed > 800
-        m.targetScale = 0.65 ' Scale down if x speed is high
+        m.targetScale = 0.65
         m.scaleSpeedMod = 0
       else
-        m.targetScale = 1.0 ' Scale back to normal
+        m.targetScale = 1.0
         m.scaleSpeedMod = 0.95
       end if
     end function
@@ -268,7 +244,6 @@ namespace mg
 
     private function createLevel()
       m.levelGroup = m.createSGNode("Group", m.contentGroup, "levelGroup")
-      ' m.levelGroup.scale = [0.8, 0.8]
 
       m.createMap()
 
@@ -293,11 +268,9 @@ namespace mg
     private function createMap()
       m.platformsGroup = m.createSGNode("Group", m.levelGroup)
       m.mapManager = m.createSGNode("MapManager")
-      ' m.mapManager@.loadMap(m.platformsGroup, "pkg:/images/map/map.json")
       m.mapManager@.loadMap(m.platformsGroup, "pkg:/images/map/level1.json")
       m.levelSize = m.mapManager.mapSize
 
-      ' m.createVideoPlayer()
     end function
 
     @gameEngine
@@ -328,23 +301,6 @@ namespace mg
         end if
       end if
     end function
-
-    'this is for parallax scrolling/bg effects
-    ' private function updateBackground() as boolean
-    '   m.moveBackground(m.bg1, -m.bgSpeed)
-    '   m.moveBackground(m.bg2, -m.bgSpeed)
-    '   return true
-    ' end function
-
-    ' private function moveBackground(target as mc.types.node, speed as float)
-    '   newPos = [target.translation[0] + (speed * m.gameState.deltaTime), target.translation[1]]
-    '   if target.id = "bg1" and newPos[0] <= -1919
-    '     newPos = [0, 0]
-    '   else if target.id = "bg2" and newPos[0] <= -0
-    '     newPos = [1919, 0]
-    '   end if
-    '   target.translation = newPos
-    ' end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Lifecycle Methods
