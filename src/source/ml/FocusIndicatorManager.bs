@@ -15,7 +15,7 @@ namespace ml
     @alwaysnotify
     @observer("onIsHiddenChange")
     public isHidden = true
-    public list as roSGNodeml_List
+    public list as mc.types.node
     public isFocusing = false
     public _isContentUpdating = false
 
@@ -30,31 +30,31 @@ namespace ml
 
     public focusedFraction = 0.0
 
-    private nextFocusIndex as roArray
+    private nextFocusIndex as mc.types.array
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Internal event tracking
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     public isDoingFlowFocus = false
-    public focusScreenPosition as float[] = [0.0, 0.0]
+    public focusScreenPosition = [0, 0]
     public listIsMoving = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private focusPoint as roSGNodemv_Poster
-    private focusIndicator as roSGNodemv_Poster
-    private activeFocusView as roSGNodemv_Poster
-    private nextFocusView as roSGNodemv_Poster
+    private focusPoint as mc.types.node
+    private focusIndicator as mc.types.node
+    private activeFocusView as mc.types.node
+    private nextFocusView as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Animations
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusPointAnim
-    private _list as roSGNodeml_List
+    private _list as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ State
@@ -64,12 +64,12 @@ namespace ml
     private isIndicatorOnTop = true
     private direction = 0
 
-    private flowFocusDelegate as roSGNode
+    private flowFocusDelegate as mc.types.node
 
     private nextConfig as object
 
-    private nextFocusSettings as roSGNodeml_FocusSettings
-    private previousFocusSettings as roSGNodeml_FocusSettings
+    private nextFocusSettings as mc.types.node
+    private previousFocusSettings as mc.types.node
     private previousSize = [0, 0]
     private previousTranslation = [0, 0]
     private rowHasIndicator = true
@@ -80,7 +80,7 @@ namespace ml
     private manualMode = false
     private enabled = false
 
-    private itemFocusManager = new ml.ItemFocusManager("FocusIndicatorManager", m.top as roSGNodeml_FocusIndicatorManager)
+    private itemFocusManager = new ml.ItemFocusManager("FocusIndicatorManager", m)
 
     function new()
       super("ml_FocusIndicatorManager")
@@ -94,7 +94,7 @@ namespace ml
       super.initialize()
       m.createViews()
       m.createAnims()
-      m._list = m.list as roSGNodeml_List
+      m._list = m.list
       m.itemFocusManager.setList(m._list)
     end function
 
@@ -211,11 +211,11 @@ namespace ml
       m.itemFocusManager.reset()
     end function
 
-    function sendManualDelegateRowMessage(method as string, event as roAssociativeArray)
+    function sendManualDelegateRowMessage(method as string, event as mc.types.assocarray)
       m.itemFocusManager.delegateManager.callRowDelegateMethodOnList(method, event)
     end function
 
-    function sendManualDelegateCellMessage(method as string, event as roAssociativeArray)
+    function sendManualDelegateCellMessage(method as string, event as mc.types.assocarray)
       m.itemFocusManager.delegateManager.callCellDelegateMethodOnList(method, event)
     end function
 
@@ -339,11 +339,9 @@ namespace ml
       return m.nextConfig
     end function
 
-    private function setActiveFocusSettings(newSettings as roSGNodeml_FocusSettings)
+    private function setActiveFocusSettings(newSettings as mc.types.node)
       m.previousFocusSettings = m.nextFocusSettings
       m.nextFocusSettings = newSettings
-      'FIXME: should work
-      'bs:disable-next-line
       m.previousSize = m.focusIndicator.size
       m.previousTranslation = m.focusIndicator.translation
       m.focusScreenPosition = m.nextConfig.indicatorTranslation
@@ -392,8 +390,6 @@ namespace ml
       end if
 
       if not m.manualMode
-        'FIXME: should be able to set blendColor to string
-        'bs:disable-next-line
         m.focusIndicator.blendColor = m.nextFocusSettings.feedbackColor
         m.focusIndicator.uri = m.nextFocusSettings.feedbackUri
       end if
@@ -440,7 +436,7 @@ namespace ml
     '++ Flow Focus Support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as roSGNode) as void
+    public function startFlowFocus(focusIndicatorConfig as ml.FocusIndicatorConfig, speed as float, delegate as mc.types.node) as void
 
       if not m.isActive()
         return

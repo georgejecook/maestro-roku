@@ -2,12 +2,11 @@ import "pkg:/source/ml/ItemViewManager.bs"
 
 namespace ml
   class RowItemViewManager extends ml.ItemViewManager
-    lastRowIsRendered = "none"
-    isFlowSupported = false
-    row as roSGNodeml_HorizontalRow
-    content as roSGNodeml_ListContent
+    public row = invalid
+    public lastRowIsRendered = "none"
+    public isFlowSupported = false
 
-    function new(list as roSGNodeml_List, row as roSGNodeml_HorizontalRow, container as roSGNode, componentPool as roSGNodemc_ComponentPool, minPos as integer, maxPos as integer)
+    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("RowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
     end function
@@ -26,7 +25,7 @@ namespace ml
     end function
 
 
-    override function createRenderers(content as roSGNode, forceSync = false as boolean) as boolean
+    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       ' ? "::: CREATE RENDERERS" ; m.renderersByContentId
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
@@ -56,7 +55,7 @@ namespace ml
       for each item in m.content@.getChildren(-1, 0)
         ' ? " U B"
         ' ? ">>>> laying out ", item.title, index
-        settings = ml.listMixin.getCellSettings(m.owner.content as roSGNodeml_ListContent, m.content as roSGNodeml_RowContent, item)
+        settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
         xSpace = settings.space
 
         m.rects.push({
@@ -101,7 +100,7 @@ namespace ml
       end for
     end function
 
-    override function onContentItemsChange(changes as roArray)
+    override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       oldNumComponents = m.numberOfItems
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)

@@ -20,8 +20,9 @@ namespace mc.sample
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
+    private loadingBackgroundGroup as roSGNodeGroup
     private loadingBackground as roSGNode
+    private loadingPosterGroup as roSGNodeGroup
     private loadingIndicator as roSGNode
     private loadingPoster as roSGNode
     private developerScreen as roSGNode
@@ -47,12 +48,14 @@ namespace mc.sample
     end function
 
     private function createView()
-      m.loadingBackground = m.createSGNode("mv_Rectangle", m.top, "loadingBackground", {
+      m.loadingBackgroundGroup = m.createSGNode("mv_Group", m.top, "loadingBackgroundGroup")
+      m.loadingBackground = m.createSGNode("mv_Rectangle", m.loadingBackgroundGroup, "loadingBackground", {
         color: "#000000"
         width: 1920
         height: 1080
       })
-      m.loadingPoster = m.createSGNode("mv_Poster", m.top, "loadingPoster", {
+      m.loadingPosterGroup = m.createSGNode("mv_Group", m.top, "loadingPosterGroup")
+      m.loadingPoster = m.createSGNode("mv_Poster", m.loadingPoster, "loadingPoster", {
         uri: "pkg:/images/app/nba-tv-logo-and-text-medium-$$RES$$.png"
         loadSync: true
         width: 1920
@@ -68,7 +71,6 @@ namespace mc.sample
     end function
 
     function getNode(node as roSGNodeRowList)
-      node.
     end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Log
@@ -184,8 +186,8 @@ namespace mc.sample
       m.global.addFields({ "appController": m.top._appController })
       m.loadingIndicator.isActive = false
       m.top._appController.opacity = 1
-      mv.animations.utils.fadeTo(m.loadingBackground, 0.3, 0)
-      mv.animations.utils.fadeTo(m.loadingPoster, 0.3, 0)
+      mv.animations.utils.fadeTo(m.loadingBackgroundGroup, 0.3, 0)
+      mv.animations.utils.fadeTo(m.loadingPosterGroup, 0.3, 0)
       m.waitAFrame(m.cleanUpLoadingViews, 0.5)
     end function
 

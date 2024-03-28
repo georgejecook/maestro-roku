@@ -1,13 +1,13 @@
-' import "pkg:/source/ml/ListMixin.bs"
-' import "pkg:/source/ml/GridRowItemScroller.bs"
-' import "pkg:/source/ml/GridRowItemViewManager.bs"
-' import "pkg:/source/ml/BaseRow.bs"
-' import "pkg:/source/ml/CellInfo.bs"
+import "pkg:/source/ml/ListMixin.bs"
+import "pkg:/source/ml/GridRowItemScroller.bs"
+import "pkg:/source/ml/GridRowItemViewManager.bs"
+import "pkg:/source/ml/BaseRow.bs"
+import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   ' displays items in a grid, with:
   ' - floating focus scrolling left and right
-  ' - TBD fixed focus vertical\
+  ' - TBD fixed focus vertical
   @node("ml_GridRow", "ml_BaseRow")
   class GridRow extends ml.BaseRow
 
@@ -15,8 +15,8 @@ namespace ml
     '++ managers and private state
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private viewManager as ml.GridRowItemViewManager
-    private itemScroller as ml.GridRowItemScroller
+    private viewManager
+    private itemScroller
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ view tracking
@@ -37,28 +37,25 @@ namespace ml
 
     private function createManagers()
       m.log.info("createManagers")
-      m.viewManager = new ml.GridRowItemViewManager(m.owner, m.top as roSGNodeml_BaseRow, m.contentGroup, (m.global as dynamic).componentPool, 0, m.width)
-
-      'FIXME: why is the case needed on roSGNodeml_FocusIndicatorManager?
-      m.itemScroller = new ml.GridRowItemScroller(m.viewManager, m.owner.focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
+      m.viewManager = new ml.GridRowItemViewManager(m.owner, m.top, m.contentGroup, m.global.componentPool, 0, m.width)
+      m.itemScroller = new ml.GridRowItemScroller(m.viewManager, m.owner.focusIndicatorManager)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Overridden Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected override function onRecycle(newContent as roSGNode)
+    protected override function onRecycle(newContent as mc.types.node)
       super.onRecycle(newContent)
 
       m.cleanHeader()
       m.viewManager.owner = m.owner
       m.viewManager.setContent(invalid)
-      'FIXME: why is the case needed on roSGNodeml_FocusIndicatorManager?
-      m.itemScroller.focusManager = m.owner.focusIndicatorManager as roSGNodeml_FocusIndicatorManager
+      m.itemScroller.focusManager = m.owner.focusIndicatorManager
       m.itemScroller.reset()
     end function
 
-    protected override function onContentChange(content as roSGNodeml_RowContent, keepOldFocusIfPossible = false as boolean)
+    protected override function onContentChange(content as mc.types.node, keepOldFocusIfPossible = false as boolean)
       m.log.info("onContentChange")
       ' ? " GRID CHANGE ========================================"
       m.configureHeader()
@@ -98,11 +95,11 @@ namespace ml
       return m.viewManager.getRenderer(index)
     end function
 
-    override function getRect(index as integer, useScreenCoords = false as boolean) as roAssociativeArray
+    override function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
       return m.viewManager.getRect(index, useScreenCoords = true)
     end function
 
-    override function getItemSize(index as integer) as roArray
+    override function getItemSize(index as integer) as mc.types.array
       return m.viewManager.getItemSize(index)
     end function
 
@@ -173,7 +170,7 @@ namespace ml
       ' ? " GRID onLosingFocus " m.index subRowIndex direction fraction
     end function
 
-    private function callMethodOnFocusedCell(functionName as string, args as roArray)
+    private function callMethodOnFocusedCell(functionName as string, args as mc.types.array)
       cell = m.itemScroller.cellInfo.component
 
       if cell <> invalid

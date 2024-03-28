@@ -5,19 +5,16 @@ import "pkg:/source/ml/ListContentManager.bs"
 namespace ml
   class ListItemViewManager extends ml.ItemViewManager
 
-    isUpdating = false
-    componentBufferMode = "none"
-    contentManager as ml.ListContentManager
+    private batchTimer as mc.types.node
+    private visibleComponents = []
 
-    private batchTimer as mc.tasks.ITrackedTimer
-    visibleComponents = []
-
+    private isUpdating = false
     private isShowingAllComps = false
-
     ' public componentBufferMode = "rendered"
-    content as roSGNodeml_ListContent
+    public componentBufferMode = "none"
+    public contentManager as ml.ListContentManager
 
-    override function reset()
+    public override function reset()
       m.log.info("resetting LIST. numItems: ", m.numberOfItems)
 
       if m.isRendering
@@ -46,7 +43,7 @@ namespace ml
     private batchSize = 3
     private batchDelay = 3
 
-    function new(list as roSGNodeml_List, container as roSGNode, minPos as integer, maxPos as integer, componentPool as roSGNodemc_ComponentPool)
+    function new(list as mc.types.node, container as mc.types.node, minPos as integer, maxPos as integer, componentPool as mc.types.node)
       super("ListItemViewManager", list, container, componentPool, 1, minPos, maxPos)
     end function
 
@@ -65,11 +62,10 @@ namespace ml
       for each id in allComponents
         m.visibleComponents.push(allComponents[id])
       end for
-      'FIXME why is this needed?
-      m.cancelWaitTimer(m.batchTimer as mc.tasks.ITrackedTimer)
+      m.cancelWaitTimer(m.batchTimer)
     end function
 
-    override function createRenderers(content as roSGNodeml_ListContent, forceSync = false as boolean) as boolean
+    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
 
       m.owner._isRenderingUpdate = true
       m.log.verbose(">>> LIST CREATE RENDERERS _isRenderingUpdate", mc.dv(m.owner), m.owner._isRenderingUpdate)
@@ -191,7 +187,7 @@ namespace ml
       'm.log.decreaseIndent()
     end function
 
-    function createRow(rowContent as roSGNodeml_RowContent, index as integer, settings as roSGNodeml_RowSettings, rect as roAssociativeArray)
+    function createRow(rowContent as mc.types.node, index as integer, settings as mc.types.node, rect as mc.types.assocarray)
       compName = settings.componentName <> invalid ? settings.componentName : "ml_HorizontalRow"
       'm.log.increaseIndent()Indent("CREATE ROW " + index.toStr() + " " + compName)
       'TODO - measure height to ascertain how many
@@ -201,6 +197,7 @@ namespace ml
       m.renderersByContentId[rowContent.id] = row
 
       row.setFields(rect)
+
 
       m.log.info("CREATING ROW ", index, " isRendered ", isRendered)
       state = {
@@ -305,7 +302,7 @@ namespace ml
 
         if visible
           if settings.subType() = "ml_GridRowSettings"
-            height = m.calculateGridRowHeight(item, settings as roSGNodeml_GridRowSettings)
+            height = m.calculateGridRowHeight(item, settings)
           else
             height = m.calculateRowHeight(settings)
           end if
@@ -361,7 +358,7 @@ namespace ml
     end function
 
     ' @params{ml_RowSettings} settings for the current row
-    private function calculateRowHeight(settings as roSGNodeml_RowSettings) as integer
+    private function calculateRowHeight(settings as mc.types.node) as integer
       height = 300
       if settings = invalid
         return height
@@ -370,16 +367,16 @@ namespace ml
       if settings.height <> -1
         height = settings.height
       else if settings.cellSettings <> invalid
-        height = (settings.cellSettings as roSGNodeml_CellSettings).size[1]
+        height = settings.cellSettings.size[1]
       end if
 
-      if (settings.headerSettings as roSGNodeml_HeaderSettings).position <> "none"
-        height += (settings.headerSettings as roSGNodeml_HeaderSettings).height
+      if settings.headerSettings.position <> "none"
+        height += settings.headerSettings.height
       end if
       return height
     end function
 
-    private function calculateGridRowHeight(row as roSGNodeml_RowContent, settings as roSGNodeml_GridRowSettings) as integer
+    private function calculateGridRowHeight(row as mc.types.node, settings as mc.types.node) as integer
       numItems = row.length
       numCols = settings.numColumns
       numCols = numCols < 1 ? 1 : numCols
@@ -388,13 +385,13 @@ namespace ml
       height = numRows * rowHeight
 
       ' ? "+>+>+ GRID HEIGHT "; numItems ; "/" numCols ; " NR "; numRows ; " height " ; height
-      if (settings.headerSettings as roSGNodeml_HeaderSettings).position <> "none"
-        height += (settings.headerSettings as roSGNodeml_HeaderSettings).height
+      if settings.headerSettings.position <> "none"
+        height += settings.headerSettings.height
       end if
       return height
     end function
 
-    override function onContentItemsChange(changes as roArray)
+    override function onContentItemsChange(changes as mc.types.array)
       m.log.info("updating row renderers due to contents change")
       m.isUpdating = true
       m.createRenderers(m.content, true)

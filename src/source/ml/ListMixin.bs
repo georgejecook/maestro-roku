@@ -23,14 +23,14 @@ namespace ml.listMixin
     return content
   end function
 
-  function createRowSettings(cellSettings = invalid as roSGNodeml_CellSettings, focusSettings = invalid as roSGNodeml_FocusSettings, space = 30 as integer, headerSettings = invalid as roSGNodeml_HeaderSettings, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function createRowSettings(cellSettings = invalid as roSGNode, focusSettings = invalid as roSGNode, space = 30 as integer, headerSettings = invalid as roSGNode, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
     settings = createObject("roSGNode", "ml_RowSettings")
     settings.isHiddenWhenEmpty = true
     ml.listMixin.configureRowSettings(settings, cellSettings, focusSettings, space, headerSettings, screenPos, compName, height)
     return settings
   end function
 
-  function createGridRowSettings(cellSettings = invalid as roSGNodeml_CellSettings, focusSettings = invalid as roSGNodeml_FocusSettings, space = 30 as integer, headerSettings = invalid as roSGNodeml_HeaderSettings, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
+  function createGridRowSettings(cellSettings = invalid as roSGNode, focusSettings = invalid as roSGNode, space = 30 as integer, headerSettings = invalid as roSGNode, screenPos = -1 as integer, numColumns = 3 as integer, rowHeight = -1 as integer, numRows = 2 as integer, otherScreenPos = -1 as integer, height = -1 as integer, compName = "ml_GridRow" as string)
     settings = createObject("roSGNode", "ml_GridRowSettings")
     settings.isHiddenWhenEmpty = true
     if numRows = invalid or numRows < 1
@@ -60,7 +60,7 @@ namespace ml.listMixin
     return settings
   end function
 
-  function configureRowSettings(settings as roSGNodeml_RowSettings, cellSettings = invalid as roSGNodeml_CellSettings, focusSettings = invalid as roSGNodeml_FocusSettings, space = 30 as integer, headerSettings = invalid as roSGNodeml_HeaderSettings, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
+  function configureRowSettings(settings as mc.types.node, cellSettings = invalid as mc.types.node, focusSettings = invalid as mc.types.node, space = 30 as integer, headerSettings = invalid as mc.types.node, screenPos = -1 as integer, compName = "ml_HorizontalRow" as string, height = -1 as integer)
 
     if cellSettings = invalid
       m.log.warn("there were no cell settings - this is probably a mistake - using defaults!")
@@ -173,16 +173,16 @@ namespace ml.listMixin
 
   end function
 
-  function setTileSettings(compName = "ml_Cell" as string, cellSize = [300, 500] as roArray)
+  function setTileSettings(compName = "ml_Cell" as string, cellSize = [300, 500] as mc.types.array)
   end function
 
-  function getRowSettings(listContent as roSGNodeml_ListContent, rowContent = invalid as roSGNodeml_RowContent) as roSGNodeml_RowSettings
+  function getRowSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node)
     if rowContent <> invalid and rowContent.settings <> invalid
       ' ? " USING ROW SETTINGS " ; rowContent.settings.screenPos
-      return rowContent.settings as roSGNodeml_RowSettings
+      return rowContent.settings
     else if listContent <> invalid and listContent.rowSettings <> invalid
       ' ? " USING LIST SETTINGS"
-      return (listContent.rowSettings as dynamic) as roSGNodeml_RowSettings
+      return listContent.rowSettings
     else
       'THIS SHOULD NOT BE POSSIBLE
       m.log.error("no settings for list - this should not have been called!")
@@ -190,25 +190,24 @@ namespace ml.listMixin
     end if
   end function
 
-  function getCellSettings(listContent as roSGNodeml_ListContent, rowContent = invalid as roSGNodeml_RowContent, itemContent = invalid as roSGNode)
-
-    if itemContent <> invalid and (itemContent as dynamic).settings <> invalid
-      return (itemContent as dynamic).settings
-    else if rowContent <> invalid and rowContent.settings <> invalid and (rowContent as dynamic).settings.cellSettings <> invalid
-      return (rowContent as dynamic).settings.cellSettings
+  function getCellSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node, itemContent = invalid as mc.types.node)
+    if itemContent <> invalid and itemContent.settings <> invalid
+      return itemContent.settings
+    else if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.cellSettings <> invalid
+      return rowContent.settings.cellSettings
     else if listContent <> invalid and listContent.rowSettings <> invalid
-      return ((listContent.rowSettings as dynamic) as dynamic).cellSettings
+      return listContent.rowSettings.cellSettings
     else
       m.log.error("no listContent for list - this should not have been called!")
       return invalid
     end if
   end function
 
-  function getFocusSettings(listContent as roSGNodeml_ListContent, rowContent = invalid as roSGNodeml_RowContent)
-    if rowContent <> invalid and rowContent.settings <> invalid and (rowContent.settings as dynamic).focusSettings <> invalid
-      return (rowContent.settings as dynamic).focusSettings
-    else if listContent <> invalid and listContent.rowSettings <> invalid and (listContent.rowSettings as dynamic).focusSettings <> invalid
-      return (listContent.rowSettings as dynamic).focusSettings
+  function getFocusSettings(listContent as mc.types.node, rowContent = invalid as mc.types.node)
+    if rowContent <> invalid and rowContent.settings <> invalid and rowContent.settings.focusSettings <> invalid
+      return rowContent.settings.focusSettings
+    else if listContent <> invalid and listContent.rowSettings <> invalid and listContent.rowSettings.focusSettings <> invalid
+      return listContent.rowSettings.focusSettings
     else if listContent <> invalid and listContent.focusSettings <> invalid
       m.log.error("no listContent for list - this should not have been called!")
       return listContent.focusSettings

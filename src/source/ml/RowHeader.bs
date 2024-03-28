@@ -7,14 +7,12 @@ class RowHeader
   public height = 0.0
   public width = 0.0
 
-  private content as roSGNodeml_RowContent
-  private isInitialized = false
+  private content
+  private isInitialized
 
-  private bgRect as roSGNodemv_Rectangle
-  private label as roSGNodemv_Label
-
-  'FIXME: remove this
-  private top as roSGNodeGroup
+  'views
+  private bgRect
+  private label
 
   function new()
   end function
@@ -29,7 +27,7 @@ class RowHeader
     end if
   end function
 
-  public function setContent(rowContent as roSGNodeml_RowContent, settings as roSGNodeml_HeaderSettings)
+  public function setContent(rowContent as mc.types.node, settings as mc.types.node)
     m.content = rowContent
     m.createViews()
     if m.content <> invalid
@@ -41,11 +39,7 @@ class RowHeader
       if settings <> invalid
         m.label.translation = settings.labelOffset
         m.label.fontKey = settings.fontKey
-        'FIXME this should be allowed
-        'bs:disable-next-line
         m.label.color = settings.textColor
-        'FIXME this should be allowed
-        'bs:disable-next-line
         m.bgRect.color = settings.backgroundColor
         m.bgRect.visible = settings.backgroundVisible
         m.bgRect.opacity = settings.backgroundOpacity
@@ -56,8 +50,6 @@ class RowHeader
         m.bgRect.visible = false
         m.label.translation = [0, 0]
         m.label.fontKey = settings.fontKey
-        'FIXME this should be allowed
-        'bs:disable-next-line
         m.label.color = settings.textColor
       end if
 

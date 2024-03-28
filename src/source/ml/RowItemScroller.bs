@@ -4,10 +4,7 @@ import "pkg:/source/ml/RowItemViewManager.bs"
 namespace ml
   class RowItemScroller extends ml.ItemScroller
 
-    public viewManager as ml.RowItemViewManager
-
-
-    function new(viewManager as ml.RowItemViewManager, focusManager as roSGNodeRowList)
+    function new(viewManager as ml.RowItemViewManager, focusManager as ml.ItemFocusManager)
       super("RowItemScroller", viewManager, focusManager)
     end function
 
@@ -16,8 +13,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     override function getFocusSettings()
-      'FIXME roSGNodeml_ListContent cast should not be needed
-      return ml.listMixin.getFocusSettings(m.viewManager.owner.content as roSGNodeml_ListContent, m.viewManager.content as roSGNodeml_RowContent)
+      return ml.listMixin.getFocusSettings(m.viewManager.owner.content, m.viewManager.content)
     end function
 
     protected override function getCellInfo(cellInfo as ml.CellInfo, isFromListScroll = false as boolean) as ml.CellInfo

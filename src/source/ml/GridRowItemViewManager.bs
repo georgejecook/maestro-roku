@@ -4,11 +4,7 @@ import "pkg:/source/ml/CellInfo.bs"
 
 namespace ml
   class GridRowItemViewManager extends ml.ItemViewManager
-
-    public content as roSGNodeml_RowContent
-
-
-
+    public row = invalid
     public numRows = 0
     public numCols = 1
     public componentBufferMode = "rendered"
@@ -19,14 +15,14 @@ namespace ml
     private firstFlowIndex = 0
     private otherRowScreenPos = 0
     private perRowHeight = 0
-    isVerticalFlowFocusAllowed = false
+    private isVerticalFlowFocusAllowed = false
     public upScreenPosition = 0
     public downScreenPosition = 0
     private lastFlowDirection = 1
     private placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
     private renderedRows = {}
 
-    function new(list as roSGNodeml_List, row as roSGNodeml_BaseRow, container as roSGNode, componentPool as roSGNodemc_ComponentPool, minPos as integer, maxPos as integer)
+    function new(list as mc.types.node, row as mc.types.node, container as mc.types.node, componentPool as mc.types.node, minPos as integer, maxPos as integer)
       super("GridRowItemViewManager", list, container, componentPool, 0, minPos, maxPos)
       m.row = row
     end function
@@ -45,7 +41,7 @@ namespace ml
       return fix(index / m.numCols)
     end function
 
-    function getCellInfosInRow(rowIndex as integer) as roArray
+    function getCellInfosInRow(rowIndex as integer) as mc.types.array
       infos = []
       firstIndex = rowIndex * m.numCols
       for i = firstIndex to firstIndex + m.numCols - 1
@@ -57,7 +53,7 @@ namespace ml
       return infos
     end function
 
-    function getRenderersInRow(rowIndex as integer, createIfNotReady = false as boolean, forceUpdate = false as boolean) as roArray
+    function getRenderersInRow(rowIndex as integer, createIfNotReady = false as boolean, forceUpdate = false as boolean) as mc.types.array
       infos = m.getCellInfosInRow(rowIndex)
       renderers = []
       ' ? " renderers in row " rowIndex " "
@@ -97,7 +93,7 @@ namespace ml
     '++ Overridden
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as roArray
+    override function getRowInfos(yPosition as integer, forceRecalculate = false as boolean) as mc.types.array
       if m.content = invalid
         m.log.info("gridrow has invalid")
         return []
@@ -155,7 +151,7 @@ namespace ml
       super.reset()
     end function
 
-    override function createRenderers(content as roSGNode, forceSync = false as boolean) as boolean
+    override function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       'renderers are created as needed
       m.previousRendereredByContentId = m.renderersByContentId
       m.renderersByContentId = {}
@@ -182,7 +178,6 @@ namespace ml
 
       x = 0
       y = 0
-      'bs:disable-next-line
       numItems = m.content.length
       children = m.content@.getChildren(-1, 0)
       m.numCols = m.settings.numColumns
@@ -208,7 +203,7 @@ namespace ml
           end if
           renderedIds[item.id] = true
           ' ? "ITEM " ; item.title ; " @ index " ; i ; " RI "; rowIndex
-          settings = ml.listMixin.getCellSettings(m.owner.content as roSGNodeml_ListContent, m.content as roSGNodeml_RowContent, item)
+          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           m.rects.push({
             translation: [x, y]
             size: settings.size
@@ -255,7 +250,7 @@ namespace ml
       ' ? " UPDATE LAYOUT MADE " m.numRows " rows from " m.numberOfItems " items"
     end function
 
-    private function getRowInfo(rowIndex as integer, size as roArray, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
+    private function getRowInfo(rowIndex as integer, size as mc.types.array, yOffset as integer, y as integer, height as integer, maxPos as integer) as ml.CellInfo
 
       yOffset += y
 
@@ -322,7 +317,7 @@ namespace ml
       end if
     end function
 
-    override function onContentItemsChange(changes as roArray) as ml.ListChangeResult
+    override function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
       m.log.info("updating row renderers due to contents change")
       ' ? "((((((((())))))))) GRID IS UPDATING CONTENT ITEMS"
       previousInfo = ml.CellInfoUtils.cellInfoFromAA(m.itemScroller.cellInfo)

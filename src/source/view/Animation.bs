@@ -264,13 +264,13 @@ namespace mv.animations
 
     function setKeys(keys as roArray, keyValues as roArray)
       if not mc.isArray(keys)
-        m.log.error("received invalid keys", keys)
+        m.log.error("received invalid keys", keys.join(","))
       end if
       if not mc.isArray(keyValues)
-        m.log.error("received invalid keys", keyValues)
+        m.log.error("received invalid keys", keyValues.join(","))
       end if
       if keys.count() <> keyValues.count()
-        m.log.error("keys have different count from keyValues", keys.count(), keyValues.count())
+        m.log.error(`keys have different count from keyValues", ${keys.count()}, ${keyValues.count()}`)
       end if
 
       for each value in keyValues
@@ -888,14 +888,14 @@ namespace mv.animations
   'special animation, which animates multiple views at once, based on view json
   class ViewJson extends mv.animations.AbstractAnimation
 
-    private fromJson as roAssociativeArray
-    private toJson as roAssociativeArray
+    private fromJson as roArray
+    private toJson as roArray
     private startMap as roAssociativeArray
     private toMap as roAssociativeArray
     private targetM as roAssociativeArray
     private isObserving = false
 
-    function new(fromJson as roAssociativeArray, toJson as roAssociativeArray, duration as float, delay = 0 as float)
+    function new(fromJson as roArray, toJson as roArray, duration as float, delay = 0 as float)
       super(mc.getTop() as roSGNodeGroup, "#ga_random", duration, 0, 1, "ViewJson", delay)
       m.fromJson = fromJson
       m.toJson = toJson

@@ -1,9 +1,7 @@
 import "pkg:/source/ml/CommonListApi.bs"
 namespace ml
 
-  'FIXME - why is row not in scope as `ml_BaseRow?
-  ' function createFocusIndicatorConfig(row as roSGNodeml_BaseRow, cell as roSGNodeml_BaseCell, direction = 1 as integer, contentIndex = -1 as integer, isHidden = true as boolean, settings = invalid as roSGNode, indicatorTranslation = [0, 0] as roArray, indicatorSize = [0, 0] as roArray)
-  function createFocusIndicatorConfig(row as roSGNode, cell as roSGNodeml_BaseCell, direction = 1 as integer, contentIndex = -1 as integer, isHidden = true as boolean, settings = invalid as roSGNode, indicatorTranslation = [0, 0] as roArray, indicatorSize = [0, 0] as roArray)
+  function createFocusIndicatorConfig(row as roSGNode, cell as mc.types.node, direction = 1 as integer, contentIndex = -1 as integer, isHidden = true as boolean, settings = invalid as mc.types.node, indicatorTranslation = [0, 0] as mc.types.array, indicatorSize = [0, 0] as mc.types.array)
     if cell <> invalid
       cellIndex = cell.index
     else
@@ -11,7 +9,7 @@ namespace ml
     end if
 
     if row <> invalid
-      rowIndex = (row as dynamic).index as integer
+      rowIndex = row.index
     else
       rowIndex = -1
     end if

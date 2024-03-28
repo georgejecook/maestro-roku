@@ -7,61 +7,57 @@ import "pkg:/source/ml/CellInfo.bs"
 namespace ml
   class ItemViewManager extends mc.BaseClass
 
-    screenRect = { translation: [0, 0], size: [1920, 1080] }
-    componentBufferMode = "none"
-    protected componentPool as roSGNodemc_ComponentPool
-
-    numRows = 0
-    numCols = 1
+    public screenRect = { translation: [0, 0], size: [1920, 1080] }
+    public componentBufferMode = "none"
+    private componentPool as mc.types.node
 
     'owning views
     'we wrap the container to make it very easy to reason about content offsets
-    container = invalid
-    owner as roSGNodeml_List 'TODO make list content
-    delegate = invalid
-    contentGroup = invalid
-    cellInfos = [] as ml.CellInfo[]
-    rowInfos = []
-    renderersByContentId = {}
-    rendereredCellInfosByIndex = {}
+    public container = invalid
+    public owner = invalid
+    public delegate = invalid
+    public contentGroup = invalid
+    public cellInfos = []
+    private rowInfos as mc.types.array
+    private renderersByContentId = {}
+    private rendereredCellInfosByIndex = {}
 
 
     'tracking used for reusing cells during multi-render batches
-    protected previousRendereredByContentId = {}
-    protected reusedRenderers = []
+    private previousRendereredByContentId = {}
+    private reusedRenderers = []
 
     'content
-    content as roSGNodemc_Node
-    rects = []
-    settings = invalid
-    listSettings = invalid
+    public content = invalid
+    public rects = []
+    public settings = invalid
+    public listSettings = invalid
 
     'tracking
-    direction = 0
-    visibleItems = []
-    numberOfItems = 0
-    numberOfVisibleItems = 0
-    row as roSGNodeml_BaseRow
+    public direction = 0
+    public visibleItems = []
+    public numberOfItems = 0
+    public numberOfVisibleItems = 0
 
     ' 0 - x, 1 - y, 2 - both
-    axes = 0
-    minPos = 0
-    maxPos = 1080
-    lastScrollIndex = 0
-    lastScrollDirection = 0
-    isScrolling = false
-    scrollingStartIndex = -1
-    protected isRendering = false
+    public axes = 0
+    public minPos = 0
+    public maxPos = 1080
+    public lastScrollIndex = 0
+    public lastScrollDirection = 0
+    public isScrolling = false
+    public scrollingStartIndex = -1
+    private isRendering = false
 
     'TODO - move into settings or calculate this
-    protected renderedIndexUpdateInterval = 10
+    private renderedIndexUpdateInterval = 10
 
     'stored so we can send it with initialstate
-    itemScroller as ml.ItemScroller
+    public itemScroller as ml.ItemScroller
 
     protected placeHolderCell = m.createSGNode("ml_BaseCell", invalid, "#_#phc")
 
-    function new(name as string, owner as roSGNodeml_List, container as roSGNode, componentPool as roSGNodemc_ComponentPool, axes as integer, minPos as integer, maxPos as integer)
+    function new(name as string, owner as mc.types.node, container as mc.types.node, componentPool as mc.types.node, axes as mc.types.array, minPos as integer, maxPos as integer)
       super(name)
       m.container = container
       m.contentGroup = container.getParent()
@@ -82,7 +78,7 @@ namespace ml
       m.screenRect = { translation: [bounds.x, bounds.y], size: [m.owner.width, m.owner.height] }
     end function
 
-    function reset()
+    public function reset()
       m.log.info ("resetting itemViewManager", m.__classname)
 
       m.content = invalid
@@ -107,11 +103,11 @@ namespace ml
       m._updateLayout(fullUpdate)
     end function
 
-    function setContent(content as roSGNodeml_RowContent)
+    function setContent(content as mc.types.node)
       m.log.verbose("setContent")
       m.content = content
-      m.settings = ml.listMixin.getRowSettings((m.owner.content as roSGNodeml_ListContent), m.content as roSGNodeml_RowContent)
-      m.listSettings = (m.owner.content as roSGNodeml_ListContent).listSettings
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, m.content)
+      m.listSettings = m.owner.content.listSettings
 
       if content = invalid
         ' ? " RESETTING CONTENT"
@@ -127,7 +123,7 @@ namespace ml
       end if
     end function
 
-    function _createRenderers(content as roSGNode) as boolean
+    function _createRenderers(content as mc.types.node) as boolean
       m.visibleItems = []
 
       return m.createRenderers(content)
@@ -156,11 +152,11 @@ namespace ml
     '++ util
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function convertChildTranslationToOwner(containerTranslation as roArray)
+    function convertChildTranslationToOwner(containerTranslation as mc.types.array)
       return [m.container.translation[0] + containerTranslation[0], m.container.translation[1] + containerTranslation[1]]
     end function
 
-    function convertOwnerTranslationToChild(ownerTranslation as roArray)
+    function convertOwnerTranslationToChild(ownerTranslation as mc.types.array)
       return [m.container.translation[0] - ownerTranslation[0], m.container.translation[1] - ownerTranslation[1]]
     end function
 
@@ -217,7 +213,7 @@ namespace ml
       ' end if
     end function
 
-    function getCellInfoForContentIndex(contentIndex as integer) as ml.CellInfo
+    private function getCellInfoForContentIndex(contentIndex as integer) as ml.CellInfo
       info = invalid
       ' ? "getCellInfoForContentIndex" ; contentIndex
       for each info in m.cellInfos
@@ -231,7 +227,7 @@ namespace ml
     end function
 
     'FIXME - this is expensive
-    function getCellInfoForContent(content as roSGNode) as ml.CellInfo
+    function getCellInfoForContent(content as mc.types.node) as ml.CellInfo
       info = invalid
       if content <> invalid and m.cellInfos <> invalid
         ' ? "getCellInfoForContentIndex" ; contentIndex
@@ -313,7 +309,7 @@ namespace ml
         cell = m.renderersByContentId[item.id]
         if cell = invalid or cell.id = "#_#phc"
           ' ? "REPLACING PLACEHOLDER CELL AT INDEX "; index
-          settings = ml.listMixin.getCellSettings(m.owner.content as roSGNodeml_ListContent, m.content as roSGNodeml_RowContent, item)
+          settings = ml.listMixin.getCellSettings(m.owner.content, m.content, item)
           cell = m.getCellForCreation(item, index, settings.compName, true, true)
           m.updateCell(cell, index, item)
           return cell
@@ -322,7 +318,7 @@ namespace ml
       return cell
     end function
 
-    protected function updateCell(cell as roSGNodeml_BaseCell, index as integer, item as roSGNode)
+    protected function updateCell(cell as mc.types.node, index as integer, item as mc.types.node)
       if cell <> invalid
         ' ? " updating rendered cell IDX" cell.index " CT " asString(item.title) " index " index " ID " asString(item.id)
         m.previousRendereredByContentId.delete(item.id)
@@ -360,7 +356,7 @@ namespace ml
       end if
     end function
 
-    protected function getCellForCreation(item as roSGNode, index as integer, compName as string, isRendered as boolean, force as boolean)
+    protected function getCellForCreation(item as mc.types.node, index as integer, compName as string, isRendered as boolean, force as boolean)
       ' ? " GETTING CELL FOR CREATION "; index; " isRendered "; isRendered
       ' if not isRendered and not force'index > 10 and not force
       ' if false and not isRendered and not force'index > 10 and not force
@@ -394,8 +390,7 @@ namespace ml
       end if
     end function
 
-    'FIXME
-    function releaseCell(cell as dynamic)
+    function releaseCell(cell as mc.types.node)
       m.log.verbose("releasing cell")
 
       if cell <> invalid and cell.id <> "#_#phc"
@@ -417,7 +412,7 @@ namespace ml
       end if
     end function
 
-    function cleanupCell(cell as roSGNodeml_BaseCell)
+    function cleanupCell(cell as mc.types.node)
       if cell <> invalid and cell.id <> "#_#phc"
         m.log.verbose("releasing cell at index ", cell.index)
         m.componentPool@.releaseComponent(cell)
@@ -428,7 +423,7 @@ namespace ml
       end if
     end function
 
-    function notifyExitEvent(indexes as roArray) as void
+    function notifyExitEvent(indexes as mc.types.array) as void
       m.log.verbose("notifyExitEvent", m.__classname, indexes)
 
       for each index in indexes
@@ -446,7 +441,7 @@ namespace ml
       m.itemScroller.viewPortEventNotifier.isAllRendered = false
     end function
 
-    function notifyEnterEvent(indexes as roArray) as void
+    function notifyEnterEvent(indexes as mc.types.array) as void
       m.log.verbose("notifyEnterEvent", m.__classname, indexes)
 
       for each index in indexes
@@ -519,7 +514,7 @@ namespace ml
     '++ general item api
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function getRect(index as integer, useScreenCoords = false as boolean) as roAssociativeArray
+    function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
       rect = m.rects[index]
 
       if rect <> invalid
@@ -557,7 +552,7 @@ namespace ml
       return m.settings
     end function
 
-    function getItemSize(index as integer) as roArray
+    function getItemSize(index as integer) as mc.types.array
       itemRect = m.rects[index]
       if itemRect <> invalid
         return itemRect.size
@@ -606,7 +601,7 @@ namespace ml
       return true
     end function
 
-    function createRenderers(content as roSGNode, forceSync = false as boolean) as boolean
+    function createRenderers(content as mc.types.node, forceSync = false as boolean) as boolean
       m.log.error("You must override this method")
       return false
     end function
@@ -615,7 +610,7 @@ namespace ml
       m.log.error("You must override this method")
     end function
 
-    function applyRenderStateMap(renderedStateMap as roAssociativeArray)
+    function applyRenderStateMap(renderedStateMap as mc.types.assocarray)
       m.log.error("You must override this method")
     end function
 
@@ -651,14 +646,14 @@ namespace ml
       end if
     end function
 
-    function onContentItemsChange(changes as roArray) as ml.ListChangeResult
+    function onContentItemsChange(changes as mc.types.array) as ml.ListChangeResult
       return {
         isLayoutRequired: false
         isFocusChangeRequired: false
       }
     end function
 
-    function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as roArray
+    function getRowInfos(yOffset as integer, forceRecalculate = false as boolean) as mc.types.array
       if forceRecalculate
         m.rowInfos = invalid
       end if
@@ -693,7 +688,7 @@ namespace ml
       end for
     end function
 
-    function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
+    protected function getIndexAfterItemUpdate(previousInfo as ml.CellInfo) as integer
       if previousInfo = invalid or previousInfo.index = -1
         return 0
       end if

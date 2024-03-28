@@ -7,10 +7,6 @@ import "pkg:/source/ml/FocusIndicatorConfig.bs"
 import "pkg:/source/ml/CommonListApi.bs"
 
 namespace ml
-  interface RowOwner
-    optional delegate as roSGNode
-  end interface
-
   @node("ml_BaseRow", "mv_BaseView")
   class BaseRow extends mv.BaseView
 
@@ -27,26 +23,19 @@ namespace ml
     public isInViewport = false
     public height = 0
     public width = 0
-    public translation = [0.0, 0.0]
 
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
-    'FIXME - check node classes work
-    ' public owner as ml.RowOwner
-    'FIXME - this should work
-    public owner as roSGNodeml_List
-    ' public owner as roSGNodemv_BaseView
-    '// cspell:disable-next-line
-    ' public owner as roSGNodeml_List
+    public owner as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected backgroundGroup as roSGNodeGroup
-    protected contentGroup as roSGNodeGroup
-    protected foregroundGroup as roSGNodeGroup
+    protected backgroundGroup as roSGNode
+    protected contentGroup as roSGNode
+    protected foregroundGroup as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -59,7 +48,7 @@ namespace ml
     '++ Header Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected header as roSGNodeGroup
+    protected header as roSGNode
     protected currentHeaderType = invalid
 
     function new()
@@ -96,8 +85,7 @@ namespace ml
       end if
 
       m.log.info("This content has changed in some way")
-      'FIXME(bsc)
-      changes = (m.content as dynamic).changes as roArray
+      changes = m.content.changes
       if changes <> invalid and changes.count() > 0
         m.log.info("doing a content update, in case this is important for the row, itself")
         m.onContentUpdate(m.content)
@@ -109,7 +97,7 @@ namespace ml
       end if
     end function
 
-    function applyChildChanges(changes as roArray) as ml.ListChangeResult
+    function applyChildChanges(changes as mc.types.array) as ml.ListChangeResult
       m.log.verbose(" applying child changes ", mc.dv(m.top), " # changes", changes.count())
       'bs:disable-next-line
       if m.viewManager <> invalid
@@ -135,9 +123,8 @@ namespace ml
       }
     end function
 
-    function setContent(content as roSGNodeml_RowContent, isForced = false as boolean) as ml.ListChangeResult
-      'FIXME - use real node type
-      m.settings = ml.listMixin.getRowSettings((m.owner as dynamic).content, content)
+    function setContent(content as roSGNode, isForced = false as boolean) as ml.ListChangeResult
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
       m._content = content
       m.log.verbose(" SET CONTENT ", mc.dv(m.top))
       if isForced
@@ -162,9 +149,7 @@ namespace ml
       if m.owner = invalid or m._content = invalid
         return
       end if
-
-      'FIXME - use real node type
-      m.settings = ml.listMixin.getRowSettings((m.owner as dynamic).content, m._content)
+      m.settings = ml.listMixin.getRowSettings(m.owner.content, m._content)
       m.log.verbose(" forceUPdate ", mc.dv(m.top))
       m.onContentChange(m._content)
 
@@ -222,17 +207,17 @@ namespace ml
       return invalid
     end function
 
-    function getRenderersAtSubRowIndex(subRowIndex as integer) as roArray
+    function getRenderersAtSubRowIndex(subRowIndex as integer) as mc.types.array
       'implement me
       return []
     end function
 
-    function getRect(index as integer, useScreenCoords = false as boolean) as roAssociativeArray
+    function getRect(index as integer, useScreenCoords = false as boolean) as mc.types.assocarray
       'implement me
       return invalid
     end function
 
-    function getRowInfos(forceRecalculate = false as boolean) as roArray
+    function getRowInfos(forceRecalculate = false as boolean) as mc.types.array
       'bs:disable-next-line
       if m.viewManager <> invalid
         'bs:disable-next-line
@@ -241,7 +226,6 @@ namespace ml
         focusSettings = m.settings.focusSettings
 
         screenPos = m.settings.screenPos
-        'bs:disable-next-line
         yOffset = m.top.translation[1]
 
         positions = [
@@ -262,7 +246,7 @@ namespace ml
         'bs:disable-next-line
         return m.itemScroller.getFocusIndicatorConfig(cellInfo, direction, isFloatingFocus, isFromListScroll)
       else
-        return ml.createFocusIndicatorConfig(m.top as dynamic, invalid, direction)
+        return ml.createFocusIndicatorConfig(m.top, invalid, direction)
       end if
     end function
 
@@ -285,9 +269,9 @@ namespace ml
 
     'sends a row data event back to the owning list
     protected function sendRowData(data as roAssociativeArray)
-      if m.owner <> invalid and (m.owner as dynamic).delegate <> invalid
-        (m.owner as dynamic).delegate@._apply("onRowData", [{
-          rowIndex: (m.top as dynamic).index
+      if m.owner <> invalid and m.owner.delegate <> invalid
+        m.owner.delegate@._apply("onRowData", [{
+          rowIndex: m.top.index
           data: data
         }], false)
       end if
@@ -298,7 +282,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     protected function onContentChange(content as roSGNode) as ml.ListChangeResult
-      ? "ON CONTENT CHANGE"
+      ' ? "ON CONTENT CHANGE"
       return {
         isLayoutRequired: false
         isFocusChangeRequired: false
@@ -306,7 +290,7 @@ namespace ml
     end function
 
     protected function onContentUpdate(content as roSGNode)
-      ? "ON CONTENT UPDATED"
+      ' ? "ON CONTENT UPDATED"
       m.configureHeader(false)
     end function
 
@@ -324,7 +308,7 @@ namespace ml
       return false
     end function
 
-    function getItemSize(index as integer) as roArray
+    function getItemSize(index as integer) as mc.types.array
       'implement me
       return invalid
     end function
@@ -362,7 +346,7 @@ namespace ml
         if forceUpdate = true or m.currentHeaderType = invalid or m.currentHeaderType <> headerSettings.compName
           m.cleanHeader()
           m.currentHeaderType = headerSettings.compName
-          m.header = (m.global as dynamic).componentPool@.getComponent(headerSettings.compName, 1)
+          m.header = m.global.componentPool@.getComponent(headerSettings.compName, 1)
 
           if m.header <> invalid
             if headerSettings.position = "onTop"
@@ -375,8 +359,8 @@ namespace ml
 
         if m.header <> invalid
           m.header.translation = [-m.settings.contentOffset[0], 0] 'cancel out this row's offset
-          (m.header as dynamic).width = m.width
-          (m.header as dynamic).height = headerSettings.height
+          m.header.width = m.width
+          m.header.height = headerSettings.height
           m.header@.setContent(m._content, headerSettings)
           m.contentGroup.translation = [0, headerSettings.height]
         else
@@ -389,7 +373,7 @@ namespace ml
       if m.header <> invalid
         m.log.info("cleaning header")
         m.header@.setContent(invalid)
-        (m.global as dynamic).componentPool@.releaseComponent(m.header)
+        m.global.componentPool@.releaseComponent(m.header)
         m.header = invalid
         m.currentHeaderType = invalid
       end if

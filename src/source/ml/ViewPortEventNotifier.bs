@@ -6,7 +6,7 @@ namespace ml
   class ViewPortEventNotifier extends mc.BaseClass
     'rendered component maps
     private viewManager as ml.ItemViewManager
-    private container as roSGNode
+    private container as mc.types.node
     private axes = 0
     public delegates = []
 
@@ -40,7 +40,7 @@ namespace ml
         m.delegates.push(m.viewManager.delegate)
       end if
 
-      if (m.viewManager as dynamic).row = invalid or m.viewManager.__classname = "ml.GridRowItemViewManager"
+      if m.viewManager.row = invalid or m.viewManager.__classname = "ml.GridRowItemViewManager"
         'grids use the list settings
         settings = m.viewManager.listSettings
       else
@@ -184,7 +184,7 @@ namespace ml
 
     function notifyListViewportEvents(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, forceAll = false as boolean) as void
       ' ? " NLVE nextCellInfo" nextCellInfo " VC " m.viewManager.visibleComponents
-      if nextCellInfo = invalid or (m.viewManager as ml.ListItemViewManager).visibleComponents = invalid
+      if nextCellInfo = invalid or m.viewManager.visibleComponents = invalid
         return
       end if
 

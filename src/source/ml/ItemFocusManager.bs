@@ -6,46 +6,43 @@ import "pkg:/source/ml/ListDelegateManager.bs"
 
 namespace ml
   interface InternalListEvent
-    optional name as string
-    optional index as integer
-    optional rowIndex as integer
-    optional subRowIndex as integer
-    optional direction as integer
-    optional fraction as float
-    optional isRowEvent as boolean
-    optional isSendingCell as boolean
-    optional isSendingRow as boolean
-    optional cell as roSGNode
-    optional row as roSGNode
+    name as string
+    index as integer
+    rowIndex as integer
+    subRowIndex as integer
+    direction as integer
+    fraction as float
+    isRowEvent as boolean
+    cell as mc.types.node
+    row as mc.types.node
   end interface
 
   class ItemFocusManager extends mc.BaseClass
 
     public isNotifyingListDelegate = true
 
-    delegateManager
-    didStart = false
-    didFinish = false
-
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    '++ Private Fields
+    '++ PrivateFields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private focusIndicatorConfig = ml.createFocusIndicatorConfig(invalid, invalid)
     private previousFocusIndicatorConfig = ml.createFocusIndicatorConfig(invalid, invalid)
+    private delegateManager
+    private didStart = false
+    private didFinish = false
     private lastSentFraction = -1
     private direction = 0
 
     private fromEvent as ml.InternalListEvent
     private toEvent as ml.InternalListEvent
 
-    private focusIndicatorManager as roSGNodeml_FocusIndicatorManager
+    private focusIndicatorManager as ml.FocusIndicatorManager
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function new(name as string, focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
+    function new(name as string, focusIndicatorManager as mc.types.node)
       super("ItemFocusManager")
       m.name = name
       m.focusIndicatorManager = focusIndicatorManager
@@ -64,9 +61,9 @@ namespace ml
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private list as roSGNodeml_List
+    private list as mc.types.node
 
-    function setList(list as roSGNodeml_List)
+    function setList(list as mc.types.node)
       m.list = list
       m.delegateManager = new ml.ListDelegateManager(list)
     end function
@@ -209,13 +206,13 @@ namespace ml
         m.didFinish = true
         name = "didLoseFocus"
         nextName = "didGainFocus"
-        m.focusIndicatorManager@.setFocusComplete(m.focusIndicatorConfig)
+        m.focusIndicatorManager.setFocusComplete(m.focusIndicatorConfig)
       else
         name = "losingFocus"
         nextName = "gainingFocus"
       end if
 
-      m.focusIndicatorManager@.setFocusedFraction(fraction)
+      m.focusIndicatorManager.setFocusedFraction(fraction)
 
       m.sendEvents(name, nextName, fraction)
     end function

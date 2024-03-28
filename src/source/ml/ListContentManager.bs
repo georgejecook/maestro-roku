@@ -5,36 +5,41 @@ import "pkg:/source/ml/ListItemScroller.bs"
 import "pkg:/source/ml/List.bs"
 
 namespace ml
-  class ListContentManager extends mc.BaseClass
-    public content as roSGNodeml_ListContent
+  interface RowContentInfo
+    row as mc.types.node
+    version as integer
+    isHidden as boolean
+    isFocusEnabled as boolean
+  end interface
 
-    private list as ml.IListClassPrivate
-    private listNode as roSGNodeml_List
+  class ListContentManager extends mc.BaseClass
+    public content as mc.types.node
+
+    private list as ml.List
+    private listNode as mc.types.node
     private isUpdateEnabled = true
 
     private viewManager as ml.ListItemViewManager
     private itemScroller as ml.ListItemScroller
-    private focusIndicatorManager as roSGNodeml_FocusIndicatorManager
+    private focusIndicatorManager as mc.types.node
     private rowContentInfoByContentId = {}
     private previousFocusedRowInfo as ml.CellInfo
     private previousFocusedCellInfo as ml.CellInfo
-    private previousRowContent as roSGNode
-    private previousCellContent as roSGNode
-    isForcingUpdateAll = false
+    private previousRowContent as mc.types.node
+    private previousCellContent as mc.types.node
+    private isForcingUpdateAll = false
 
-    function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as roSGNodeml_FocusIndicatorManager)
+    function new(list as ml.List, viewManager as ml.ListItemViewManager, itemScroller as ml.ListItemScroller, focusIndicatorManager as mc.types.node)
       super("ListContentManager")
       m.list = list
-      m.listNode = (list as dynamic).top as roSGNodeml_List
+      m.listNode = list.top
       m.viewManager = viewManager
       viewManager.contentManager = m
       m.itemScroller = itemScroller
-
-      'FIXME - type not working
       m.focusIndicatorManager = focusIndicatorManager
     end function
 
-    public function setContent(content as roSGNodeml_ListContent, forceUpdate = false as boolean) as void
+    public function setContent(content as mc.types.node, forceUpdate = false as boolean) as void
 
       if content = invalid
         m.log.info("listContent set to invalid. Resetting list")
@@ -42,14 +47,12 @@ namespace ml
         content.id = "invalidContent"
         m.content = content
         m.listNode.content = content
-        'bs:disable-next-line
         m.list.cleanup()
         ' ? " LCM RENDERING SET CONTENT INVALID"
         m.setListRendering(false)
         return
       end if
 
-      'bs:disable-next-line
       m.list.contentGroup.visible = false
 
       m.setListRendering(true)
@@ -65,8 +68,6 @@ namespace ml
         if forceUpdate
           m.ascertainPreviousFocusInfo()
         end if
-
-        'bs:disable-next-line
         m.list.resetState()
         m.updateListFocusAfterApplyingChanges()
       else if forceUpdate
@@ -120,8 +121,6 @@ namespace ml
 
       'm.log.increaseIndent()Indent("list changes are")
 
-      'Changes is a legit field and should be supported
-      'bs:disable-next-line
       listResult.isLayoutRequired = m.isForcingUpdateAll or m.isListLayoutRequired(m.content.changes)
       if listResult.isLayoutRequired
         listResult.isFocusChangeRequired = true
@@ -151,7 +150,7 @@ namespace ml
       end if
     end function
 
-    private function isListLayoutRequired(changes as roSGNode) as boolean
+    private function isListLayoutRequired(changes as mc.types.node) as boolean
       m.log.info("ascertaining if layout updates are required")
       'TODO..
       return true
@@ -268,7 +267,7 @@ namespace ml
       return false
     end function
 
-    private function getIndicesAfterApplyingChanges() as roArray
+    private function getIndicesAfterApplyingChanges() as mc.types.array
 
       'm.log.increaseIndent()Indent("updateListFocusAfterApplyingChanges")
       indices = []
@@ -281,7 +280,7 @@ namespace ml
       return indices
     end function
 
-    private function getIndicesUsingStandardBehavior() as roArray
+    private function getIndicesUsingStandardBehavior() as mc.types.array
       rowIndex = 0
       cellIndex = 0
 
@@ -367,7 +366,7 @@ namespace ml
       end if
     end function
 
-    private function updateContentOnRow(row as roSGNodeml_BaseRow, content as roSGNodeml_RowContent, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
+    private function updateContentOnRow(row as mc.types.node, content as mc.types.node, notifyRow = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
         m.log.verbose("applyRowContentUpdate cannot set content on invalid row")
         return
@@ -388,7 +387,7 @@ namespace ml
       end if
     end function
 
-    public function setContentOnRow(row as roSGNodeml_BaseRow, content as roSGNodeml_RowContent, isRecycled = false as boolean, result = invalid as ml.ListChangeResult) as void
+    public function setContentOnRow(row as mc.types.node, content as mc.types.node, isRecycled = false as boolean, result = invalid as ml.ListChangeResult) as void
       if row = invalid
         m.log.verbose("setContentOnRow cannot set content on invalid row")
         return
@@ -417,7 +416,7 @@ namespace ml
     '++ Row Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function applyRowContentChange(row as roSGNodeml_BaseRow, content as roSGNodeml_RowContent, result as ml.ListChangeResult)
+    private function applyRowContentChange(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult)
       ' ? " APPLYING ROW " mc.dv(row) " content " mc.dv(content)
 
       rowResult = row@.setContent(content, m.isForcingUpdateAll)
@@ -432,7 +431,7 @@ namespace ml
       end if
     end function
 
-    private function applyRowContentUpdate(row as roSGNodeml_BaseRow, content as roSGNodeml_RowContent, result as ml.ListChangeResult)
+    private function applyRowContentUpdate(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult)
       rowResult = row@.onContentItemsChange(content)
 
       if result <> invalid
@@ -445,7 +444,7 @@ namespace ml
       end if
     end function
 
-    private function updateRowContentInfo(row as roSGNodeml_BaseRow, content as roSGNodeml_RowContent, result as ml.ListChangeResult) as boolean
+    private function updateRowContentInfo(row as mc.types.node, content as mc.types.node, result as ml.ListChangeResult) as boolean
       m.log.verbose("updateRowContentInfo")
 
       if row = invalid
@@ -463,7 +462,7 @@ namespace ml
       return isChanged
     end function
 
-    private function getRowContentInfoForRow(row as roSGNodeml_BaseRow) as ml.ListRowContentInfo
+    private function getRowContentInfoForRow(row as mc.types.node) as ml.RowContentInfo
       content = row.content
       if content <> invalid
         return m.rowContentInfoByContentId[content.id]
@@ -471,13 +470,13 @@ namespace ml
       return invalid
     end function
 
-    private function removeRowContentInfo(rowContentInfo as ml.ListRowContentInfo)
+    private function removeRowContentInfo(rowContentInfo as ml.RowContentInfo)
       if rowContentInfo <> invalid
         m.rowContentInfoByContentId.delete(rowContentInfo.id)
       end if
     end function
 
-    private function getNewRowContentInfo(row as roSGNodeml_BaseRow, content as roSGNodeml_RowContent) as ml.ListRowContentInfo
+    private function getNewRowContentInfo(row as mc.types.node, content as mc.types.node) as ml.RowContentInfo
       if content <> invalid
         ' store pertinent info about the content a given row
         newRowContentInfo = {
@@ -542,7 +541,7 @@ namespace ml
     '++ List Content Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function onListContentItemsChange(changes as roArray)
+    private function onListContentItemsChange(changes as mc.types.array)
       m.log.info("The list content items have changed")
       m.focusIndicatorManager@.cancelFlowFocus()
       m.viewManager.onContentItemsChange(changes)

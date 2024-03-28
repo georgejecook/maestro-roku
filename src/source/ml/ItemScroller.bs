@@ -12,14 +12,13 @@ import "pkg:/source/core/DebugTimer.bs"
 namespace ml
   class ItemScroller extends mc.BaseClass
 
-    public container as roSGNodeGroup
-    public offsetContainer as roSGNodeGroup
+    public container as mc.types.node
+    public offsetContainer as mc.types.node
 
-    public viewManager as ml.ItemViewManager
-
-    public focusManager as roSGNodeml_FocusIndicatorManager
+    public viewManager
+    public focusManager
     public viewPortEventNotifier
-    protected settings as roSGNodeml_FocusSettings
+    private settings
 
     public isMovingMultiple = false
 
@@ -30,12 +29,12 @@ namespace ml
     public nextFocusIndicatorConfig as ml.FocusIndicatorConfig
     public targetCellInfo as ml.CellInfo
 
-    public focusedItem as roSGNode
+    public focusedItem as mc.types.node
 
     public index = 0
     public nextIndex = 0
 
-    public focusedIndex = 0
+    public focusedIndex = 0 as integer
     public nextPosition = 0
     public targetIndex = 0
     public scrollStartIndex = 0
@@ -49,23 +48,22 @@ namespace ml
 
     public moveAnimation
 
-    protected animSpeed = 0.05
-    protected animSpeedIndex = 0.05
+    private animSpeed = 0.05
+    private animSpeedIndex = 0.05
 
-    protected activeScrollLocation = 0
-    protected lastScrollOffsetFraction = 0
-    protected nextScrollLocation = 0
-    protected postHopIndex = 0
-    protected isScrollCancelled = false
-    protected keyPressIndex = 0
+    private activeScrollLocation = 0
+    private lastScrollOffsetFraction = 0
+    private nextScrollLocation = 0
+    private postHopIndex = 0
+    private isScrollCancelled = false
+    private keyPressIndex = 0
 
     protected previousScreenPos = 0
-    protected disableScrollOffsetAnim = false
 
-    protected isMultiMoveFinished = false
-    disableNonAnimatedFocusUpdates = false
+    private isMultiMoveFinished = false
+    private disableNonAnimatedFocusUpdates = false
 
-    function new(name as string, viewManager as ml.ItemViewManager, focusManager as roSGNodeml_FocusIndicatorManager)
+    function new(name as string, viewManager as ml.ItemViewManager, focusManager as mc.types.node)
       super(name)
       m.viewManager = viewManager
       viewManager.itemScroller = m
@@ -181,6 +179,7 @@ namespace ml
       return false
     end function
 
+    private disableScrollOffsetAnim = false
 
     function moveFromPress(offset as integer, forceSequential = true as boolean, isPage = false as boolean) as boolean
       m.isScrollCancelled = false
@@ -707,7 +706,7 @@ namespace ml
       end if
     end function
 
-    function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
+    protected function setFocusManagerInfo(cellInfo as ml.CellInfo, nextCellInfo as ml.CellInfo, direction as integer, isFloatingFocus as boolean) as void
       if isFloatingFocus
         m.nextFocusIndicatorConfig = m.getFocusIndicatorConfig(nextCellInfo, m.direction, true)
       else
@@ -900,8 +899,7 @@ namespace ml
         end function)
       end if
     end function
-
-    function notifyViewportEvents(direction as integer, forceAll = false as boolean)
+    protected function notifyViewportEvents(direction as integer, forceAll = false as boolean)
       'bs:disable-next-line
       isInViewPort = m.viewManager.row = invalid or m.viewManager.row.isInViewPort
 
@@ -967,7 +965,7 @@ namespace ml
 
       isHidden = mc.getPath(m.viewManager.content, "isHidden", false)
 
-      config = ml.createFocusIndicatorConfig(m.viewManager.row, info.component as roSGNodeml_BaseCell, direction, info.contentIndex, isHidden, m.settings, indicatorTranslation, indicatorSize)
+      config = ml.createFocusIndicatorConfig(m.viewManager.row, info.component, direction, info.contentIndex, isHidden, m.settings, indicatorTranslation, indicatorSize)
       return config
     end function
 
