@@ -15,7 +15,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     'Instance of RowContent
-    public content as roSGNode
+    public content as mc.types.node
 
     public index = -1
     public renderState = "none"
@@ -27,15 +27,15 @@ namespace ml
     'set this to true, if you have row content that changes other fields you want to know about in `onContentChange`
     public alwaysNotifyContentChange = false
 
-    public owner as roSGNode
+    public owner as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected backgroundGroup as roSGNode
-    protected contentGroup as roSGNode
-    protected foregroundGroup as roSGNode
+    protected backgroundGroup as mc.types.node
+    protected contentGroup as mc.types.node
+    protected foregroundGroup as mc.types.node
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Protected Fields
@@ -48,7 +48,7 @@ namespace ml
     '++ Header Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected header as roSGNode
+    protected header as mc.types.node
     protected currentHeaderType = invalid
 
     function new()
@@ -123,7 +123,7 @@ namespace ml
       }
     end function
 
-    function setContent(content as roSGNode, isForced = false as boolean) as ml.ListChangeResult
+    function setContent(content as mc.types.node, isForced = false as boolean) as ml.ListChangeResult
       m.settings = ml.listMixin.getRowSettings(m.owner.content, content)
       m._content = content
       m.log.verbose(" SET CONTENT ", mc.dv(m.top))
@@ -268,7 +268,7 @@ namespace ml
     end function
 
     'sends a row data event back to the owning list
-    protected function sendRowData(data as roAssociativeArray)
+    protected function sendRowData(data as mc.types.assocarray)
       if m.owner <> invalid and m.owner.delegate <> invalid
         m.owner.delegate@._apply("onRowData", [{
           rowIndex: m.top.index
@@ -281,7 +281,7 @@ namespace ml
     '++ Abstract methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function onContentChange(content as roSGNode) as ml.ListChangeResult
+    protected function onContentChange(content as mc.types.node) as ml.ListChangeResult
       ' ? "ON CONTENT CHANGE"
       return {
         isLayoutRequired: false
@@ -289,12 +289,12 @@ namespace ml
       }
     end function
 
-    protected function onContentUpdate(content as roSGNode)
+    protected function onContentUpdate(content as mc.types.node)
       ' ? "ON CONTENT UPDATED"
       m.configureHeader(false)
     end function
 
-    protected function onRecycle(newContent as roSGNode)
+    protected function onRecycle(newContent as mc.types.node)
       m.log.verbose("recycling row", mc.dv(m.top), "content", mc.dv(newContent))
       m.isInViewport = false
     end function
@@ -330,7 +330,7 @@ namespace ml
       return m.contentGroup
     end function
 
-    function recycle(newContent as roSGNode)
+    function recycle(newContent as mc.types.node)
       m.onRecycle(newContent)
     end function
 

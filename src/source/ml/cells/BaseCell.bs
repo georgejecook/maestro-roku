@@ -16,18 +16,18 @@ namespace ml
 
     public isInViewPort = false
 
-    public listEvent as roAssociativeArray
+    public listEvent as mc.types.assocarray
     public contentVersion as integer = -1
 
     private isViewCreated = false
     private isRecyclePending = true
 
-    public content as roSGNode
-    protected list as roSGNode
-    protected row as roSGNode
-    protected size as roArray
+    public content as mc.types.node
+    protected list as mc.types.node
+    protected row as mc.types.node
+    protected size as mc.types.array = [0, 0]
     protected isContentDisplayed = false
-    protected top as roSGNodeGroup
+    protected top as mc.types.node
 
     private isCreatingViewsOnInitialize = true
 
@@ -58,7 +58,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function onDebugMChange()
-      mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m as roAssociativeArray))
+      mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m as mc.types.assocarray))
     end function
 
     private function _createViews()
@@ -69,7 +69,7 @@ namespace ml
       end if
     end function
 
-    private function _onContentChange(content as roSGNode) as void
+    private function _onContentChange(content as mc.types.node) as void
       isChanged = false
       if content = invalid
         m.contentVersion = -1
@@ -105,7 +105,7 @@ namespace ml
       end if
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
+    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -114,7 +114,7 @@ namespace ml
       return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -136,12 +136,12 @@ namespace ml
       ' ? "CLEANING UP " ; m.index
     end function
 
-    protected function onContentChange(content as roSGNode)
+    protected function onContentChange(content as mc.types.node)
       'override me
     end function
 
 
-    protected function onShowWithContent(content as roSGNode)
+    protected function onShowWithContent(content as mc.types.node)
       'override me
     end function
 
@@ -153,8 +153,8 @@ namespace ml
     '++ Delegate function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function _apply(funcName as string, args as roArray, warnIfNoFunction = true as boolean)
-      return mc.apply(funcName, args, m as roAssociativeArray, false)
+    function _apply(funcName as string, args as mc.types.array, warnIfNoFunction = true as boolean)
+      return mc.apply(funcName, args, m as mc.types.assocarray, false)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -186,6 +186,5 @@ namespace ml
         end if
       end if
     end function
-
   end class
 end namespace

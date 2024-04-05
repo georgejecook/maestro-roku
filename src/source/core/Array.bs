@@ -42,6 +42,7 @@ namespace mc.collections
     protected top
 
     function new()
+      'bs:disable-next-line
       m.log = new rlog.Logger("mc_Map")
     end function
 
@@ -197,19 +198,17 @@ namespace mc.collections
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function serialize() as roAssociativeArray
-      serialized = {
-        items: []
-      } as roAssociativeArray
+      items = []
 
       for each item in m.data
         data = mc.utils.Serialization.serialize(item)
         if data <> invalid
-          serialized.items.push(data)
+          items.push(data)
         else
-          serialized.items.push(item)
+          items.push(item)
         end if
       end for
-      return serialized
+      return { "items": items }
     end function
 
     function deserialize(data as roAssociativeArray)
