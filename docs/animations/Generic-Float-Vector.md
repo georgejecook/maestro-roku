@@ -14,14 +14,14 @@ This is the constructor method for the `FloatValue` class. It initializes a new 
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The node that the animation will be applied to. |
-| field | string |  | The name of the field to animate. |
-| duration | float |  | The length of time in seconds that the animation will take to complete. |
-| fromValue | float |  | The initial value for the animation. |
-| toValue | float |  | The final value for the animation. |
-| delay | float | 0 | The amount of time in seconds to wait before starting the animation. |
+| argument name | type     | defaultValue | description                                                             |
+|---------------|----------|--------------|-------------------------------------------------------------------------|
+| target        | roSGnode |              | The node that the animation will be applied to.                         |
+| field         | string   |              | The name of the field to animate.                                       |
+| duration      | float    |              | The length of time in seconds that the animation will take to complete. |
+| fromValue     | float    |              | The initial value for the animation.                                    |
+| toValue       | float    |              | The final value for the animation.                                      |
+| delay         | float    | 0            | The amount of time in seconds to wait before starting the animation.    |
 
 ## `clone`
 
@@ -47,14 +47,14 @@ This is the constructor method for the `VectorValue` class. It initial
 
 #### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The node that the animation will be applied to. |
-| field | string |  | The name of the field to animate. |
-| duration | float |  | The length of time in seconds that the animation will take to complete. |
-| fromValue | float |  | The initial value for the animation. |
-| toValue | float |  | The final value for the animation. |
-| delay | float | 0 | The amount of time in seconds to wait before starting the animation. |
+| argument name | type     | defaultValue | description                                                             |
+|---------------|----------|--------------|-------------------------------------------------------------------------|
+| target        | roSGnode |              | The node that the animation will be applied to.                         |
+| field         | string   |              | The name of the field to animate.                                       |
+| duration      | float    |              | The length of time in seconds that the animation will take to complete. |
+| fromValue     | float    |              | The initial value for the animation.                                    |
+| toValue       | float    |              | The final value for the animation.                                      |
+| delay         | float    | 0            | The amount of time in seconds to wait before starting the animation.    |
 
 <br />
 
@@ -75,11 +75,11 @@ This is the constructor method for the `Generic` class. It initializes a new ins
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The node that the animation will be applied to. |
-| duration | float |  | The length of time in seconds that the animation will take to complete. |
-| delay | float | 0 | The amount of time in seconds to wait before starting the animation. |
+| argument name | type     | defaultValue | description                                                             |
+|---------------|----------|--------------|-------------------------------------------------------------------------|
+| target        | roSGnode |              | The node that the animation will be applied to.                         |
+| duration      | float    |              | The length of time in seconds that the animation will take to complete. |
+| delay         | float    | 0            | The amount of time in seconds to wait before starting the animation.    |
 
 ## `clone`
 

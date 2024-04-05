@@ -10,8 +10,8 @@ Your node or class must adhere to the Serializable interface
 
   - have isSerializable field set to true
   - have public functions (i.e. for nodes, a func interface) for:
-    - public function serialize() as mc.types.assocarray - returns an aa of the values to serialize the node
-    - public function deserialize(data as mc.types.assocarray) - takes the values in data, and assigns them to itself
+    - public function serialize() as roAssociativeArray - returns an aa of the values to serialize the node
+    - public function deserialize(data as roAssociativeArray) - takes the values in data, and assigns them to itself
 
 ## Serializing and Deserializing
 
@@ -21,7 +21,7 @@ Your node or class must adhere to the Serializable interface
 
 Objects are serialized with:
 
-  `mc.utils.Serialization.serialize(serializable as object) as mc.types.assocarray`
+  `mc.utils.Serialization.serialize(serializable as object) as roAssociativeArray`
 
 Which returns an associative array, if successful, invalid otherwise
 If the passed in object is a node, then the field `_serializationType` with the type of the node will be appended to the serialized data
@@ -29,7 +29,7 @@ If the passed in object is a node, then the field `_serializationType` with the 
 #### Deserializing
 
 Objects can be deserialized with:
-`mc.utils.Serialization.deSerialize(data as mc.types.assocarray, serializable = invalid as object) as object`
+`mc.utils.Serialization.deSerialize(data as roAssociativeArray, serializable = invalid as object) as object`
 
 note, one can pass in a target serializable object to serialize into. If an object is not passed in the function will assume that the serialize object is node, and will use the `data._serializationType` to create an instance of that node, and serialize it.
 

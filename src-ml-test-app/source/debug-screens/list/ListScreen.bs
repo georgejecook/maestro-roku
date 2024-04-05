@@ -10,20 +10,20 @@ class ListScreen extends mv.BaseScreen
   public removeItems = 0
 
   'views
-  private list
-  private listHolder
-  private bgRect
+  private list as mc.types.node
+  private listHolder as roSGNodeGroup
+  private bgRect as roSGNodemv_Rectangle
 
   'style
   private numberOfRows = 3
   private defaultCellType = "ml_SimpleCell"
 
   'state
-  public componentPool as mc.types.node
+  public componentPool as roSGNodemc_ComponentPool
   private contentId = 0
-  private rowSettings
-  private focusSettings
-  private cellSettings
+  private rowSettings as mc.types.node
+  private focusSettings as mc.types.node
+  private cellSettings as mc.types.node
   private originalChildren
   private loadingIndicator
   private scrollSpeed = 2
@@ -43,7 +43,7 @@ class ListScreen extends mv.BaseScreen
       color: "#6a307d"
     })
     m.listHolder = m.createSGNode("Group", m.top, "listHolder")
-    m.componentPool = m.global.componentPool
+    m.componentPool = (m.global as dynamic).componentPool
 
     m.list = m.createSGNode("ml_List", m.listHolder, "list", {
       translation: translation
@@ -190,7 +190,7 @@ class ListScreen extends mv.BaseScreen
     return items
   end function
 
-  private function makeItem(cellType as string, title as string) as mc.types.node
+  private function makeItem(cellType as string, title as string) as roSGNode
     id = rnd(2147483647).toStr()
     child = m.createSGNode("Item", invalid, id, {
       json: {

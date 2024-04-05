@@ -89,7 +89,7 @@ A LaunchSequence has some conventions built into it, that help repeatable initia
 e.g.
 
 ```
-    protected function getCustomCommands() as mc.types.array
+    protected function getCustomCommands() as roArray
       'override point to provide sequential custom commands
       return [
         new mc.TaskCommand("Load Data", "LoadDataTask")]
@@ -101,7 +101,7 @@ To assist with rapid app development, there is a default maestro initialization 
 
 ```
 
-    protected function getMaestroInitializationCommands() as mc.types.array
+    protected function getMaestroInitializationCommands() as roArray
       return [
         new mc.Command("Create FontManger", m.createFontManger)
         new mc.Command("Load Styles", m.loadStyles)

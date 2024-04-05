@@ -10,13 +10,13 @@ class AdvancedAnimationExampleScreen extends mv.BaseScreen
   '++ Views
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private controlsGroup as mc.types.node
-  private button1 as mc.types.node
-  private button2 as mc.types.node
-  private button3 as mc.types.node
-  private button4 as mc.types.node
-  private button5 as mc.types.node
-  private animButton as mc.types.node
+  private controlsGroup as roSGNode
+  private button1 as roSGNode
+  private button2 as roSGNode
+  private button3 as roSGNode
+  private button4 as roSGNode
+  private button5 as roSGNode
+  private animButton as roSGNode
 
   private buttonJson = [
     {
@@ -70,7 +70,7 @@ class AdvancedAnimationExampleScreen extends mv.BaseScreen
         },
       ]
     }
-  ]
+  ] as roArray
 
 
   private updatedButtonJson = [
@@ -95,7 +95,7 @@ class AdvancedAnimationExampleScreen extends mv.BaseScreen
       translation: [170, 0]
       blendColor: "#ff0000"
     },
-  ]
+  ] as roArray
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Animations
@@ -169,10 +169,11 @@ class AdvancedAnimationExampleScreen extends mv.BaseScreen
 
   private function onTitleChange(value as string)
     m.log.info("the title changed")
+    'bs:disable-next-line
     m.button1.text = `spoilers: ${m.title}`
   end function
 
-  private function setStyleColor(buttonStyle as mc.types.assocarray, bgn as string, bgf as string, bgs as string, ln as string, lf as string, ls as string)
+  private function setStyleColor(buttonStyle as roAssociativeArray, bgn as string, bgf as string, bgs as string, ln as string, lf as string, ls as string)
     mc.setPath(buttonStyle, "normal.backgroundPoster.blendColor", bgn)
     mc.setPath(buttonStyle, "focused.backgroundPoster.blendColor", bgf)
     mc.setPath(buttonStyle, "selected.backgroundPoster.blendColor", bgs)

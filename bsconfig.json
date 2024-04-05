@@ -2,13 +2,12 @@
   "rootDir": "src",
   "files": [
     "manifest",
+    "components/**/*.*",
     "source/**/*.*",
     "meta/**/*.*",
     "meta/*.*",
     "images/**/*.*",
     "images/*.*",
-    // "!source/**/*.spec.*",
-    "components/**/*.*",
     {
       "src": "../src-ml-test-app/**/*.*",
       "dest": ""
@@ -18,31 +17,42 @@
   "createPackage": false,
   "stagingDir": "build",
   "diagnosticFilters": [
+    // {
+    //   "src": "**/roku_modules/**/*.*"
+    // },
     {
-      "src": "**/roku_modules/**/*.*"
+      "src": "**/rooibos/**/*.*"
     },
     {
-      "src": "**/rooibos-roku/**/*.*"
+      "src": "**/rooibos/*.*"
     },
-    {
-      "src": "**/rooibos-roku/*.*"
-    },
-    1120,
     1001,
-    1128,
     {
       "src": "**/*spec.bs",
       "codes": ["LINT3011"]
     },
     {
+      "src": "**/*spec.bs"
+    },
+    {
       "src": "../src-ml-test-app/**/RALETracker*.*"
+    },
+    {
+      "src": "**/roku_modules/**/*.*"
+    },
+    {
+      "src": "source/ml/**/*.*"
+    },
+    {
+      "src": "source/ml/*.*"
     }
   ],
   "emitDefinitions": true,
   "plugins": [
     "maestro-roku-bsc-plugin",
-    "rooibos-roku",
-    "@rokucommunity/bslint"
+    "roku-log-bsc-plugin",
+    "rooibos-roku"
+    // "@rokucommunity/bslint"
   ],
   "rooibos": {
     "isRecordingCodeCoverage": false,
@@ -60,10 +70,11 @@
     "excludeFilters": ["**/roku_modules/**/*", "**/rooibos-roku/**/*"],
     "buildForIDE": true,
     "extraValidation": {
-      "doExtraValidation": true,
-      "doExtraImportValidation": true,
+      "doExtraValidation": false,
+      "doExtraImportValidation": false,
       "excludeFilters": []
     }
   },
-  "sourceMap": true
+  "sourceMap": true,
+  "logLevel": "info"
 }

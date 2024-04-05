@@ -4,6 +4,7 @@ import "pkg:/source/core/Tasks.bs"
 import "BaseObservable.bs"
 import "pkg:/source/core/MIOC.bs"
 import "pkg:/source/view/ViewUtils.bs"
+import "pkg:/source/core/CommonInterfaces.bs"
 
 namespace mx
   ' /**
@@ -57,7 +58,7 @@ namespace mx
       m.state = "destroyed"
     end function
 
-    protected function onAddedToAggregateView(view as mc.types.node)
+    protected function onAddedToAggregateView(view as roSGNode)
     end function
 
     protected function onFirstShow()
@@ -68,7 +69,7 @@ namespace mx
       m.isShown = true
     end function
 
-    protected function onRemovedFromAggregateView(view as mc.types.node)
+    protected function onRemovedFromAggregateView(view as roSGNode)
     end function
 
     protected function onHide()
@@ -94,7 +95,7 @@ namespace mx
       end if
     end function
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray)
+    protected function initializeView(view as roSGNode, args = invalid as roAssociativeArray)
       if view <> invalid
         view@._initialize(args)
       else
@@ -102,12 +103,12 @@ namespace mx
       end if
     end function
 
-    protected function setFocus(target as mc.types.node, forceSet = false as boolean)
+    protected function setFocus(target as roSGNode, forceSet = false as boolean)
       'bs:disable-next-line
       mv_setFocus(target, forceSet)
     end function
 
-    protected function setFocusLocked(target as mc.types.node, message = "" as string)
+    protected function setFocusLocked(target as roSGNode, message = "" as string)
       'bs:disable-next-line
       mv_setFocusLocked(target, message)
     end function
@@ -116,15 +117,15 @@ namespace mx
     '++ creation
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function createSGNode(nodeType as mc.types.node, parent = invalid as mc.types.node, id = invalid as string, args = invalid as mc.types.assocarray, callInitialize = true as boolean, mTarget = invalid as mc.types.assocarray) as mc.types.node
+    protected function createSGNode(nodeType as roSGNode, parent = invalid as roSGNode, id = invalid as string, args = invalid as roAssociativeArray or roArray, callInitialize = true as boolean, mTarget = invalid as mc.IBaseClass) as dynamic
       return mc.createSGNode(nodeType, parent, id, args, callInitialize, mTarget)
     end function
 
-    protected function createNode(nodeType as string) as mc.types.node
+    protected function createNode(nodeType as string) as dynamic
       return mc.createNode(nodeType)
     end function
 
-    protected function createViewsFromStyleJson(childrenJson as mc.types.array, targetNode = invalid as mc.types.node, assignViewsToM = true as boolean, mTarget = invalid as mc.types.assocarray)
+    protected function createViewsFromStyleJson(childrenJson as roArray, targetNode = invalid as roSGNode, assignViewsToM = true as boolean, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -133,7 +134,7 @@ namespace mx
       return mv.createViewsFromStyleJson(childrenJson, targetNode, assignViewsToM, mTarget)
     end function
 
-    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as mc.types.assocarray)
+    protected function updateViewsWithStyleJson(json as dynamic, mTarget = invalid as roAssociativeArray)
       if mTarget = invalid
         mTarget = m
       end if
@@ -166,8 +167,15 @@ namespace mx
 
       if result and press
 
+        longPressInterval = 0.0
         'bs:disable-next-line
-        if mc.isFunction(m.getLongPressIntervalForKey) then longPressInterval = m.getLongPressIntervalForKey(key) else longPressInterval = 0
+        if mc.isFunction(m.getLongPressIntervalForKey)
+          'bs:disable-next-line
+          longPressInterval = m.getLongPressIntervalForKey(key) as float
+        else
+          longPressInterval = 0
+        end if
+
         if longPressInterval > 0
           m.log.info("entering long press for key ", key)
           m.longPressKey = key
@@ -214,16 +222,17 @@ namespace mx
     '  * @description wrapper for push
     '  * @param {view} the view to push, if this is a string, then it is looked up on m - so you can push views by their id, as well as actual views
     '  */
-    protected function push(view as mc.types.node, animated = true as boolean)
+    protected function push(view as roSGNode or string, animated = true as boolean)
 
+      'TODO IS THIS STILL SUPPORTED?
       if mc.isString(view)
-        view = m.getViewById(view)
+        view = m.getViewById(view as string)
       end if
       'bs:disable-next-line
       push(view, animated)
     end function
 
-    protected function pop(animated = true as boolean) as mc.types.node
+    protected function pop(animated = true as boolean) as roSGNode
       'bs:disable-next-line
       return(pop(animated))
     end function
@@ -239,7 +248,7 @@ namespace mx
       end if
     end function
 
-    protected function getViewById(id as string) as mc.types.node
+    protected function getViewById(id as string) as roSGNode
       view = mc.getMField(id)
 
       if view = invalid
@@ -254,12 +263,12 @@ namespace mx
       resetNavControllerToRoot(animated)
     end function
 
-    protected function resetNavController(newFirstScreen = invalid as mc.types.node, endIndex = -1 as integer, animated = false as boolean)
+    protected function resetNavController(newFirstScreen = invalid as roSGNode, endIndex = -1 as integer, animated = false as boolean)
       'bs:disable-next-line
       resetNavController(newFirstScreen, endIndex, animated)
     end function
 
-    protected function replaceNavControllerScreen(targetScreen as mc.types.node, animated = false as boolean)
+    protected function replaceNavControllerScreen(targetScreen as roSGNode, animated = false as boolean)
       'bs:disable-next-line
       replaceNavControllerScreen(targetScreen, animated)
     end function
@@ -268,11 +277,11 @@ namespace mx
     '++ task wrappers, for easy stubbing
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function observeNodeField(node as mc.types.node, fieldName as string, callback as function, sendMode = "value" as string, once = false as boolean)
+    protected function observeNodeField(node as roSGNode, fieldName as string, callback as function or string, sendMode = "value" as string, once = false as boolean)
       mc.tasks.observeNodeField(node, fieldName, callback, sendMode, once, m)
     end function
 
-    protected function unobserveNodeField(node as mc.types.node, fieldName as string, callback = invalid as function)
+    protected function unobserveNodeField(node as roSGNode, fieldName as string, callback = invalid as function)
       'TODO - we need to be a bitmore clever about observing things, as they might be going to various callbacks
       mc.tasks.cleanNodeObserver(node, fieldName)
     end function
@@ -285,19 +294,21 @@ namespace mx
       'substituted by plugin
     end function
 
-    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as mc.types.node
+    protected function waitAFrame(callback as function, duration = 0.01 as float, sendMode = "none" as string) as roSGNode
       return mc.tasks.waitAFrame(callback, duration, sendMode, m)
     end function
 
-    protected function cancelWaitTimer(timer as mc.types.node)
-      mc.tasks.cancelWaitTimer(timer)
+    'FIXME - should not need the or here
+    protected function cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
+      'FIXME: why is this cast needed?
+      mc.tasks.cancelWaitTimer(timer as mc.tasks.ITrackedTimer)
     end function
 
-    protected function createTask(taskType as string, fields as mc.types.assocarray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as mc.types.node
+    protected function createTask(taskType as string, fields as roAssociativeArray, callback = invalid as function, isRunning = true as boolean, sendMode = "value" as string, fieldName = "output" as string) as roSGNode
       return mc.tasks.createTask(taskType, fields, callback, isRunning, sendMode, m, fieldName)
     end function
 
-    protected function cancelTask(task as mc.types.node)
+    protected function cancelTask(task as roSGNodeTask)
       mc.tasks.cancelTask(task)
     end function
 
@@ -317,11 +328,11 @@ namespace mx
       mioc.updateInstance(instanceName, path, value)
     end function
 
-    protected function getClassInstance(className as string, args = [] as mc.types.array, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as object
+    protected function getClassInstance(className as string, args = [] as roArray, createTypeIfNotPresent = true as boolean, storeInstance = true as boolean) as object
       return mioc.getClassInstance(className, args, createTypeIfNotPresent, storeInstance)
     end function
 
-    protected function createClassInstance(className as string, args = [] as mc.types.array) as object
+    protected function createClassInstance(className as string, args = [] as roArray) as object
       return mioc.createClassInstance(className, args)
     end function
 

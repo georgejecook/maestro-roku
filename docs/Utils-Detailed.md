@@ -12,9 +12,9 @@ Determines if the given value is undefined.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is undefined. |
+| argument name | type    | defaultValue | description                            |
+|---------------|---------|--------------|----------------------------------------|
+| value         | dynamic |              | The value to check if it is undefined. |
 
 ### Returns
 
@@ -29,10 +29,10 @@ Determines if the given value is an instance of the given subType.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is an instance of the given subType. |
-| subType | string |  | The subType to check if the value is an instance of. |
+| argument name | type    | defaultValue | description                                                   |
+|---------------|---------|--------------|---------------------------------------------------------------|
+| value         | dynamic |              | The value to check if it is an instance of the given subType. |
+| subType       | string  |              | The subType to check if the value is an instance of.          |
 
 ### Returns
 
@@ -48,9 +48,9 @@ Determines if the given value is invalid.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is invalid. |
+| argument name | type    | defaultValue | description                          |
+|---------------|---------|--------------|--------------------------------------|
+| value         | dynamic |              | The value to check if it is invalid. |
 
 ### Returns
 
@@ -66,9 +66,9 @@ Determines if the given value is an array.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is an array. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| value         | dynamic |              | The value to check if it is an array. |
 
 ### Returns
 
@@ -84,9 +84,9 @@ Determines if the given value is an associative array.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is an associative array. |
+| argument name | type    | defaultValue | description                                       |
+|---------------|---------|--------------|---------------------------------------------------|
+| value         | dynamic |              | The value to check if it is an associative array. |
 
 ### Returns
 
@@ -102,9 +102,9 @@ Determines if the given value is a string.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a string. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| value         | dynamic |              | The value to check if it is a string. |
 
 ### Returns
 
@@ -120,9 +120,9 @@ Determines if the given value is a boolean.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a boolean. |
+| argument name | type    | defaultValue | description                            |
+|---------------|---------|--------------|----------------------------------------|
+| value         | dynamic |              | The value to check if it is a boolean. |
 
 ### Returns
 
@@ -138,9 +138,9 @@ Determines if the given value is a function.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a function. |
+| argument name | type    | defaultValue | description                             |
+|---------------|---------|--------------|-----------------------------------------|
+| value         | dynamic |              | The value to check if it is a function. |
 
 ### Returns
 
@@ -156,9 +156,9 @@ Determines if the given value is an integer.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a function. |
+| argument name | type    | defaultValue | description                             |
+|---------------|---------|--------------|-----------------------------------------|
+| value         | dynamic |              | The value to check if it is a function. |
 
 ### Returns
 
@@ -174,9 +174,9 @@ Determines if the given value is a double.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a double. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| value         | dynamic |              | The value to check if it is a double. |
 
 ### Returns
 
@@ -192,9 +192,9 @@ Determines if the given value is a number (either an integer, float, or double).
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a number. |
+| argument name | type    | defaultValue | description                           |
+|---------------|---------|--------------|---------------------------------------|
+| value         | dynamic |              | The value to check if it is a number. |
 
 ### Returns
 
@@ -210,9 +210,9 @@ Determines if the given value is a float.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a float. |
+| argument name | type    | defaultValue | description                          |
+|---------------|---------|--------------|--------------------------------------|
+| value         | dynamic |              | The value to check if it is a float. |
 
 ### Returns
 *   boolean: True if the value is a float, false otherwise.
@@ -227,9 +227,9 @@ Determines if the given value is a point (an array of length 2).
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a point. |
+| argument name | type    | defaultValue | description                          |
+|---------------|---------|--------------|--------------------------------------|
+| value         | dynamic |              | The value to check if it is a point. |
 
 ### Returns
 
@@ -245,9 +245,9 @@ Determines if the given value is a rectangle (an array of length 4).
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a rectangle. |
+| argument name | type    | defaultValue | description                              |
+|---------------|---------|--------------|------------------------------------------|
+| value         | dynamic |              | The value to check if it is a rectangle. |
 
 ### Returns
 
@@ -263,9 +263,9 @@ Determines if the given value is a class (an associative array with a `__classna
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to check if it is a class. |
+| argument name | type    | defaultValue | description                          |
+|---------------|---------|--------------|--------------------------------------|
+| value         | dynamic |              | The value to check if it is a class. |
 
 ### Returns
 
@@ -280,10 +280,10 @@ Determines if the given points are equal (have the same x and y values).
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The first point to compare. |
-| otherValue | dynamic |  | The second point to compare. |
+| argument name | type    | defaultValue | description                  |
+|---------------|---------|--------------|------------------------------|
+| value         | dynamic |              | The first point to compare.  |
+| otherValue    | dynamic |              | The second point to compare. |
 
 ### Returns
 
@@ -299,9 +299,9 @@ Gets a string representation of the given view (a `roSGNode` object).
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| view | dynamic |  | The view to get a string representation of. |
+| argument name | type    | defaultValue | description                                 |
+|---------------|---------|--------------|---------------------------------------------|
+| view          | dynamic |              | The view to get a string representation of. |
 
 ### Returns
 
@@ -318,13 +318,13 @@ Calls the specified function on the given target object, with the given paramete
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The object to call the function on. |
-| funcName | string |  | The name of the function to call. |
-| p1 | dynamic | "#M\_NONE#" | The first parameter to pass to the function. |
-| p2 | dynamic | "#M\_NONE#" | The second parameter to pass to the function. |
-| p3 | dynamic | "#M\_NONE#" | The third parameter to pass to the function. |
+| argument name | type     | defaultValue | description                                   |
+|---------------|----------|--------------|-----------------------------------------------|
+| target        | roSGnode |              | The object to call the function on.           |
+| funcName      | string   |              | The name of the function to call.             |
+| p1            | dynamic  | "#M\_NONE#"  | The first parameter to pass to the function.  |
+| p2            | dynamic  | "#M\_NONE#"  | The second parameter to pass to the function. |
+| p3            | dynamic  | "#M\_NONE#"  | The third parameter to pass to the function.  |
 
 ### Returns
 
@@ -340,12 +340,12 @@ Calls the specified function with the given parameters, on the given target obje
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| func | dynamic |  | The function to call. |
-| args | mc.types.array | \[\] | An array of arguments to pass to the function. |
-| target | mc.types.assocarray | invalid | The object to call the function on. |
-| warnIfNoFunction | boolean | true | If true, logs an error if the target object does not have the specified function. |
+| argument name    | type               | defaultValue | description                                                                       |
+|------------------|--------------------|--------------|-----------------------------------------------------------------------------------|
+| func             | dynamic            |              | The function to call.                                                             |
+| args             | roArray            | \[\]         | An array of arguments to pass to the function.                                    |
+| target           | roAssociativeArray | invalid      | The object to call the function on.                                               |
+| warnIfNoFunction | boolean            | true         | If true, logs an error if the target object does not have the specified function. |
 
 ### Returns
 
@@ -361,14 +361,14 @@ Removes key/value pairs from an associative array that have the same key and val
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| aa | mc.types.assocarray | invalid | The associative array to remove key/value pairs from. |
-| otherAA | mc.types.assocarray | invalid | The other associative array to compare against. |
+| argument name | type               | defaultValue | description                                           |
+|---------------|--------------------|--------------|-------------------------------------------------------|
+| aa            | roAssociativeArray | invalid      | The associative array to remove key/value pairs from. |
+| otherAA       | roAssociativeArray | invalid      | The other associative array to compare against.       |
 
 ### Returns
 
-*   mc.types.assocarray: The modified `aa` associative array, or the original `aa` if either `aa` or `otherAA` is invalid.
+*   roAssociativeArray: The modified `aa` associative array, or the original `aa` if either `aa` or `otherAA` is invalid.
 
 
 
@@ -381,12 +381,12 @@ Gets the value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | invalid | The default value to return if the value at the specified path is invalid. |
-| disableIndexing | boolean | false | If true, disables indexing of arrays and associative arrays using the path. |
+| argument name   | type    | defaultValue | description                                                                 |
+|-----------------|---------|--------------|-----------------------------------------------------------------------------|
+| content         | object  |              | The object to get the value from.                                           |
+| path            | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                |
+| default         | dynamic | invalid      | The default value to return if the value at the specified path is invalid.  |
+| disableIndexing | boolean | false        | If true, disables indexing of arrays and associative arrays using the path. |
 
 ### Returns
 
@@ -401,12 +401,12 @@ Gets the string value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | "" | The default value to return if the value at the specified path is invalid or not a string. |
-| disableIndexing | boolean | false | If true, disables indexing of arrays and associative arrays using the path. |
+| argument name   | type    | defaultValue | description                                                                                |
+|-----------------|---------|--------------|--------------------------------------------------------------------------------------------|
+| content         | object  |              | The object to get the value from.                                                          |
+| path            | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                               |
+| default         | dynamic | ""           | The default value to return if the value at the specified path is invalid or not a string. |
+| disableIndexing | boolean | false        | If true, disables indexing of arrays and associative arrays using the path.                |
 
 ### Returns
 
@@ -421,11 +421,11 @@ Gets the integer value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | 0 | The default value to return if the value at the specified path is invalid or not an integer |
+| argument name | type    | defaultValue | description                                                                                 |
+|---------------|---------|--------------|---------------------------------------------------------------------------------------------|
+| content       | object  |              | The object to get the value from.                                                           |
+| path          | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                                |
+| default       | dynamic | 0            | The default value to return if the value at the specified path is invalid or not an integer |
 
 ### Returns
 
@@ -440,16 +440,16 @@ Gets the array value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | \[\] | The default value to return if the value at the specified path is invalid or not an array. |
-| disableIndexing | boolean | false | If true, disables indexing of arrays and associative arrays using the path. |
+| argument name   | type    | defaultValue | description                                                                                |
+|-----------------|---------|--------------|--------------------------------------------------------------------------------------------|
+| content         | object  |              | The object to get the value from.                                                          |
+| path            | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                               |
+| default         | dynamic | \[\]         | The default value to return if the value at the specified path is invalid or not an array. |
+| disableIndexing | boolean | false        | If true, disables indexing of arrays and associative arrays using the path.                |
 
 ### Returns
 
-*   mc.types.array: The array value at the specified path, or the default value if the value is invalid or not an array.
+*   roArray: The array value at the specified path, or the default value if the value is invalid or not an array.
 
 <br/>
 
@@ -460,16 +460,16 @@ Gets the associative array value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | {} | The default value to return if the value at the specified path is invalid or not an associative array. |
-| disableIndexing | boolean | false | If true, disables indexing of arrays and associative arrays using the path. |
+| argument name   | type    | defaultValue | description                                                                                            |
+|-----------------|---------|--------------|--------------------------------------------------------------------------------------------------------|
+| content         | object  |              | The object to get the value from.                                                                      |
+| path            | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                                           |
+| default         | dynamic | {}           | The default value to return if the value at the specified path is invalid or not an associative array. |
+| disableIndexing | boolean | false        | If true, disables indexing of arrays and associative arrays using the path.                            |
 
 ### Returns
 
-*   mc.types.assocarray: The associative array value at the specified path, or the default value
+*   roAssociativeArray: The associative array value at the specified path, or the default value
 
 <br/>
 
@@ -480,12 +480,12 @@ Gets the float value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | 0.0 | The default value to return if the value at the specified path is invalid or not a float. |
-| disableIndexing | boolean | false | If true, disables indexing of arrays and associative arrays using the path. |
+| argument name   | type    | defaultValue | description                                                                               |
+|-----------------|---------|--------------|-------------------------------------------------------------------------------------------|
+| content         | object  |              | The object to get the value from.                                                         |
+| path            | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                              |
+| default         | dynamic | 0.0          | The default value to return if the value at the specified path is invalid or not a float. |
+| disableIndexing | boolean | false        | If true, disables indexing of arrays and associative arrays using the path.               |
 
 ### Returns
 
@@ -501,12 +501,12 @@ Gets the boolean value at the specified path in the given object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| content | object |  | The object to get the value from. |
-| path | string | invalid | The path to the value, in the form of "items.2.path.syntax". |
-| default | dynamic | false | The default value to return if the value at the specified path is invalid or not a boolean. |
-| disableIndexing | boolean | false | If true, disables indexing of arrays and associative arrays using the path. |
+| argument name   | type    | defaultValue | description                                                                                 |
+|-----------------|---------|--------------|---------------------------------------------------------------------------------------------|
+| content         | object  |              | The object to get the value from.                                                           |
+| path            | string  | invalid      | The path to the value, in the form of "items.2.path.syntax".                                |
+| default         | dynamic | false        | The default value to return if the value at the specified path is invalid or not a boolean. |
+| disableIndexing | boolean | false        | If true, disables indexing of arrays and associative arrays using the path.                 |
 
 ### Returns
 
@@ -522,12 +522,12 @@ This method retrieves a point value from the specified `content` object at the s
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `content` | `object` |  | The object to retrieve the point value from. |
-| `path` | `string` | `invalid` | The path to the point value within `content`. |
-| `default` | `dynamic` | `[0, 0]` | The default value to return if no point value is found at the specified path. |
-| `disableIndexing` | `boolean` | `false` | If `true`, the method will not treat `content` as an array and will instead treat it as a dictionary. |
+| argument name     | type      | default value | description                                                                                           |
+|-------------------|-----------|---------------|-------------------------------------------------------------------------------------------------------|
+| `content`         | `object`  |               | The object to retrieve the point value from.                                                          |
+| `path`            | `string`  | `invalid`     | The path to the point value within `content`.                                                         |
+| `default`         | `dynamic` | `[0, 0]`      | The default value to return if no point value is found at the specified path.                         |
+| `disableIndexing` | `boolean` | `false`       | If `true`, the method will not treat `content` as an array and will instead treat it as a dictionary. |
 
 ### Returns
 
@@ -543,12 +543,12 @@ This method retrieves a `roSGNode` object from the specified `content` object at
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `content` | `object` |  | The object to retrieve the `roSGNode` from. |
-| `path` | `string` | `invalid` | The path to the `roSGNode` within `content`. |
-| `default` | `dynamic` | `invalid` | The default value to return if no `roSGNode` is found at the specified path. |
-| `disableIndexing` | `boolean` | `false` | If `true`, the method will not treat `content` as an array and will instead treat it as a dictionary. |
+| argument name     | type      | default value | description                                                                                           |
+|-------------------|-----------|---------------|-------------------------------------------------------------------------------------------------------|
+| `content`         | `object`  |               | The object to retrieve the `roSGNode` from.                                                           |
+| `path`            | `string`  | `invalid`     | The path to the `roSGNode` within `content`.                                                          |
+| `default`         | `dynamic` | `invalid`     | The default value to return if no `roSGNode` is found at the specified path.                          |
+| `disableIndexing` | `boolean` | `false`       | If `true`, the method will not treat `content` as an array and will instead treat it as a dictionary. |
 
 ### Returns
 
@@ -563,11 +563,11 @@ This method retrieves a numeric value from the specified `content` object at the
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `content` | `object` |  | The object to retrieve the numeric value from. |
-| `path` | `string` | `invalid` | The path to the numeric value within `content`. |
-| `default` | `dynamic` | `0` | The default value to return if no numeric value is found at the specified path. |
+| argument name | type      | default value | description                                                                     |
+|---------------|-----------|---------------|---------------------------------------------------------------------------------|
+| `content`     | `object`  |               | The object to retrieve the numeric value from.                                  |
+| `path`        | `string`  | `invalid`     | The path to the numeric value within `content`.                                 |
+| `default`     | `dynamic` | `0`           | The default value to return if no numeric value is found at the specified path. |
 | `disableIndexing` | `boolean` | `false` | If `true`, the method will not treat \` |
 
 ### Returns
@@ -583,12 +583,12 @@ This method retrieves a value of any type from the specified `content` object at
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `content` | `object` |  | The object to retrieve the value from. |
-| `path` | `string` | `invalid` | The path to the value within `content`. |
-| `default` | `dynamic` | `invalid` | The default value to return if no value is found at the specified path. |
-| `disableIndexing` | `boolean` | `false` | If `true`, the method will not treat `content` as an array and will instead treat it as a dictionary. |
+| argument name     | type      | default value | description                                                                                           |
+|-------------------|-----------|---------------|-------------------------------------------------------------------------------------------------------|
+| `content`         | `object`  |               | The object to retrieve the value from.                                                                |
+| `path`            | `string`  | `invalid`     | The path to the value within `content`.                                                               |
+| `default`         | `dynamic` | `invalid`     | The default value to return if no value is found at the specified path.                               |
+| `disableIndexing` | `boolean` | `false`       | If `true`, the method will not treat `content` as an array and will instead treat it as a dictionary. |
 
 ### Returns
 
@@ -603,14 +603,14 @@ This method appends the values in the `other` associative array to the `source` 
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `source` | `mc.types.assocarray` |  | The associative array to which the values from `other` will be appended. |
-| `other` | `mc.types.assocarray` |  | The associative array whose values will be appended to `source`. |
+| argument name | type                 | default value | description                                                              |
+|---------------|----------------------|---------------|--------------------------------------------------------------------------|
+| `source`      | `roAssociativeArray` |               | The associative array to which the values from `other` will be appended. |
+| `other`       | `roAssociativeArray` |               | The associative array whose values will be appended to `source`.         |
 
 ### Returns
 
-`mc.types.assocarray` - The modified `source` associative array with the values from `other` appended to it.
+`roAssociativeArray` - The modified `source` associative array with the values from `other` appended to it.
 
 <br/>
 
@@ -622,12 +622,12 @@ This method sets the value at the specified `path` within the `content` object t
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `content` | `dynamic` |  | The object in which the value at the specified path will be set. |
-| `path` | `string` |  | The path within `content` at which the value will be set. |
-| `value` | `dynamic` | `invalid` | The value to set at the specified path within `content`. |
-| `insertAAsForMissingValues` | `boolean` | `true` | If `true`, the method will insert empty associative arrays or arrays as needed to create the specified path within `content`. |
+| argument name               | type      | default value | description                                                                                                                   |
+|-----------------------------|-----------|---------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `content`                   | `dynamic` |               | The object in which the value at the specified path will be set.                                                              |
+| `path`                      | `string`  |               | The path within `content` at which the value will be set.                                                                     |
+| `value`                     | `dynamic` | `invalid`     | The value to set at the specified path within `content`.                                                                      |
+| `insertAAsForMissingValues` | `boolean` | `true`        | If `true`, the method will insert empty associative arrays or arrays as needed to create the specified path within `content`. |
 
 ### Returns
 
@@ -642,15 +642,15 @@ This method creates an associative array with a value at the specified `path`. I
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `path` | `string` |  | The path within the returned associative array at which the value will be set. |
-| `value` | `dynamic` | `invalid` | The value to set at the specified path within the returned associative array. |
-| `insertAAsForMissingValues` | `boolean` | `true` | If `true`, the method will insert empty associative arrays as needed to create the specified path within the returned associative array. |
+| argument name               | type      | default value | description                                                                                                                              |
+|-----------------------------|-----------|---------------|------------------------------------------------------------------------------------------------------------------------------------------|
+| `path`                      | `string`  |               | The path within the returned associative array at which the value will be set.                                                           |
+| `value`                     | `dynamic` | `invalid`     | The value to set at the specified path within the returned associative array.                                                            |
+| `insertAAsForMissingValues` | `boolean` | `true`        | If `true`, the method will insert empty associative arrays as needed to create the specified path within the returned associative array. |
 
 ### Returns
 
-`mc.types.assocarray` - An associative array with a value at the specified `path`.
+`roAssociativeArray` - An associative array with a value at the specified `path`.
 
 <br/>
 
@@ -661,11 +661,11 @@ This method sets the value of the field with the specified `field` name within t
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `node` | `mc.types.node` |  | The `roSGNode` object or associative array in which the field value will be set or added. |
-| `field` | `string` |  | The name of the field within `node` to set or add. |
-| `value` | `dynamic` | `invalid` | The value to set for the field within `node`. |
+| argument name | type       | default value | description                                                                               |
+|---------------|------------|---------------|-------------------------------------------------------------------------------------------|
+| `node`        | `roSGnode` |               | The `roSGNode` object or associative array in which the field value will be set or added. |
+| `field`       | `string`   |               | The name of the field within `node` to set or add.                                        |
+| `value`       | `dynamic`  | `invalid`     | The value to set for the field within `node`.                                             |
 
 ### Returns
 
@@ -681,12 +681,12 @@ This method sets the value of the specified `key` within the field with the spec
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `node` | `mc.types.node` |  | The `roSGNode` object or associative array in which the field value will be set or added. |
-| `field` | `string` |  | The name of the field within `node` to set or add. |
-| `key` | `string` |  | The key within the field to set or add. |
-| `value` | `dynamic` | `invalid` | The value to set for the key within the field within `node`. |
+| argument name | type       | default value | description                                                                               |
+|---------------|------------|---------------|-------------------------------------------------------------------------------------------|
+| `node`        | `roSGnode` |               | The `roSGNode` object or associative array in which the field value will be set or added. |
+| `field`       | `string`   |               | The name of the field within `node` to set or add.                                        |
+| `key`         | `string`   |               | The key within the field to set or add.                                                   |
+| `value`       | `dynamic`  | `invalid`     | The value to set for the key within the field within `node`.                              |
 
 ### Returns
 
@@ -701,12 +701,12 @@ This method sets the value at the specified `index` within the field with the sp
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `node` | `mc.types.node` |  | The `roSGNode` object or associative array in which the field value will be set or added. |
-| `field` | `string` |  | The name of the field within `node` to set or add. |
-| `index` | `integer` |  | The index within the field to set or add. |
-| `value` | `dynamic` | `invalid` | The value to set at the specified index within the field within `node`. |
+| argument name | type       | default value | description                                                                               |
+|---------------|------------|---------------|-------------------------------------------------------------------------------------------|
+| `node`        | `roSGnode` |               | The `roSGNode` object or associative array in which the field value will be set or added. |
+| `field`       | `string`   |               | The name of the field within `node` to set or add.                                        |
+| `index`       | `integer`  |               | The index within the field to set or add.                                                 |
+| `value`       | `dynamic`  | `invalid`     | The value to set at the specified index within the field within `node`.                   |
 
 ### Returns
 
@@ -721,10 +721,10 @@ This method sets or adds the fields in the `fields` array to the `node` object w
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `node` | `mc.types.node` |  | The `roSGNode` object or associative array in which the fields will be set or added. |
-| `fields` | `mc.types.array` |  | The array of fields to be set or added to `node`, with their corresponding values. |
+| argument name | type       | default value | description                                                                          |
+|---------------|------------|---------------|--------------------------------------------------------------------------------------|
+| `node`        | `roSGnode` |               | The `roSGNode` object or associative array in which the fields will be set or added. |
+| `fields`      | `roArray`  |               | The array of fields to be set or added to `node`, with their corresponding values.   |
 
 ### Returns
 
@@ -739,9 +739,9 @@ This method converts the specified `s` string to a boolean value. If `s` is `inv
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `s` | `string` |  | The string to be converted to a boolean value. |
+| argument name | type     | default value | description                                    |
+|---------------|----------|---------------|------------------------------------------------|
+| `s`           | `string` |               | The string to be converted to a boolean value. |
 
 ### Returns
 
@@ -756,9 +756,9 @@ This method converts the specified `s` string to an integer value. If `s` is `in
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `s` | `string` |  | The string to be converted to an integer value. |
+| argument name | type     | default value | description                                     |
+|---------------|----------|---------------|-------------------------------------------------|
+| `s`           | `string` |               | The string to be converted to an integer value. |
 
 ### Returns
 
@@ -773,9 +773,9 @@ This method converts the specified `value` string to a long integer value. If `v
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `value` | `string` |  | The string to be converted to a long integer value. |
+| argument name | type     | default value | description                                         |
+|---------------|----------|---------------|-----------------------------------------------------|
+| `value`       | `string` |               | The string to be converted to a long integer value. |
 
 ### Returns
 
@@ -790,10 +790,10 @@ This method returns the index of the specified `item` within the children of the
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `parent` | `mc.types.node` |  | The parent node whose children will be searched for the specified `item`. |
-| `item` | `mc.types.node` |  | The child node whose index within the children of `parent` will be returned. |
+| argument name | type       | default value | description                                                                  |
+|---------------|------------|---------------|------------------------------------------------------------------------------|
+| `parent`      | `roSGnode` |               | The parent node whose children will be searched for the specified `item`.    |
+| `item`        | `roSGnode` |               | The child node whose index within the children of `parent` will be returned. |
 
 ### Returns
 
@@ -808,18 +808,18 @@ This method creates a new `roSGNode` object of the specified `nodeType` and assi
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| `nodeType` | `string` |  | The type of the new `roSGNode` object to be created. |
-| `parent` | `mc.types.node` | `invalid` | The optional parent node to which the new node will be appended as a child. |
-| `id` | `string` | `invalid` | The optional ID to be assigned to the new node. If not provided, a random integer ID will be generated. |
-| `args` | `mc.types.assocarray` or `mc.types.array` | `invalid` | The optional associative array or array of associative arrays of fields to be applied to the new node on creation. |
-| `isCallingInitialize` | `boolean` | `true` | A flag indicating whether the `_initialize()` method of the new node should be called. |
-| `mTarget` | `mc.types.assocarray` | `invalid` | The optional target object on which the observer functions specified in the `observe` field of `args` will be looked up. If not provided, the global `m` object will be used as the target. |
+| argument name         | type                              | default value | description                                                                                                                                                                                 |
+|-----------------------|-----------------------------------|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `nodeType`            | `string`                          |               | The type of the new `roSGNode` object to be created.                                                                                                                                        |
+| `parent`              | `roSGnode`                        | `invalid`     | The optional parent node to which the new node will be appended as a child.                                                                                                                 |
+| `id`                  | `string`                          | `invalid`     | The optional ID to be assigned to the new node. If not provided, a random integer ID will be generated.                                                                                     |
+| `args`                | `roAssociativeArray` or `roArray` | `invalid`     | The optional associative array or array of associative arrays of fields to be applied to the new node on creation.                                                                          |
+| `isCallingInitialize` | `boolean`                         | `true`        | A flag indicating whether the `_initialize()` method of the new node should be called.                                                                                                      |
+| `mTarget`             | `roAssociativeArray`              | `invalid`     | The optional target object on which the observer functions specified in the `observe` field of `args` will be looked up. If not provided, the global `m` object will be used as the target. |
 
 
 
-### Returns `mc.types.node`
+### Returns `roSGnode`
 
 <br/>
 
@@ -830,13 +830,13 @@ This method creates an object with the given `nodeType`.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| nodeType | string | N/A | The type of object to create. |
+| argument name | type   | defaultValue | description                   |
+|---------------|--------|--------------|-------------------------------|
+| nodeType      | string | N/A          | The type of object to create. |
 
 ### Returns
 
-*   mc.types.node: The newly created object.
+*   roSGnode: The newly created object.
 
 <br/>
 
@@ -847,9 +847,9 @@ This method gets the name of a function as a string.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| value | function | N/A | The function to get the name of. |
+| argument name | type     | defaultValue | description                      |
+|---------------|----------|--------------|----------------------------------|
+| value         | function | N/A          | The function to get the name of. |
 
 ### Returns
 
@@ -864,11 +864,11 @@ This method adds or removes an observer for a field on a given object. If `callb
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| target | object | N/A | The object to add or remove an observer from. |
-| field | string | N/A | The field to observe. |
-| callbackName | string | `invalid` | The name of the callback function to be called when the field changes. |
+| argument name | type   | defaultValue | description                                                            |
+|---------------|--------|--------------|------------------------------------------------------------------------|
+| target        | object | N/A          | The object to add or remove an observer from.                          |
+| field         | string | N/A          | The field to observe.                                                  |
+| callbackName  | string | `invalid`    | The name of the callback function to be called when the field changes. |
 
 ### Returns
 
@@ -883,12 +883,12 @@ This method clamps a number between a given range. If `wrap` is `true`, the numb
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| number | dynamic | N/A | The number to clamp. |
-| low | dynamic | N/A | The lower bound of the range. |
-| high | dynamic | N/A | The upper bound of the range. |
-| wrap | boolean | `false` | Determines whether the number should wrap around the range if it is outside of it. |
+| argument name | type    | defaultValue | description                                                                        |
+|---------------|---------|--------------|------------------------------------------------------------------------------------|
+| number        | dynamic | N/A          | The number to clamp.                                                               |
+| low           | dynamic | N/A          | The lower bound of the range.                                                      |
+| high          | dynamic | N/A          | The upper bound of the range.                                                      |
+| wrap          | boolean | `false`      | Determines whether the number should wrap around the range if it is outside of it. |
 
 ### Returns
 
@@ -933,9 +933,9 @@ This method gets a field of the top level `m` object.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| fieldName | string | N/A | The name of the field to get. |
+| argument name | type   | defaultValue | description                   |
+|---------------|--------|--------------|-------------------------------|
+| fieldName     | string | N/A          | The name of the field to get. |
 
 ### Returns
 
@@ -970,7 +970,7 @@ This method gets the top level node in the hierarchy.
 
 ### Returns
 
-*   mc.types.node: The top level node in the hierarchy.
+*   roSGnode: The top level node in the hierarchy.
 
 <br/>
 
@@ -985,7 +985,7 @@ This method gets the current scene node in the hierarchy.
 
 ### Returns
 
-*   mc.types.node: The current scene node in the hierarchy.
+*   roSGnode: The current scene node in the hierarchy.
 
 <br/>
 
@@ -996,15 +996,15 @@ This method interpolates between two arrays of length 2.
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| a | mc.types.array | N/A | The first array to interpolate between. |
-| b | mc.types.array | N/A | The second array to interpolate between. |
-| fraction | float | N/A | The fraction to interpolate between the two arrays. |
+| argument name | type    | defaultValue | description                                         |
+|---------------|---------|--------------|-----------------------------------------------------|
+| a             | roArray | N/A          | The first array to interpolate between.             |
+| b             | roArray | N/A          | The second array to interpolate between.            |
+| fraction      | float   | N/A          | The fraction to interpolate between the two arrays. |
 
 ### Returns
 
-*   mc.types.array: The interpolated array.
+*   roArray: The interpolated array.
 
 <br/>
 
@@ -1015,10 +1015,10 @@ This method divides a number by another number and rounds up if there is a remai
 
 ### Arguments
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| number | integer | N/A | The number to divide. |
-| toValue | integer | N/A | The number to divide by. |
+| argument name | type    | defaultValue | description              |
+|---------------|---------|--------------|--------------------------|
+| number        | integer | N/A          | The number to divide.    |
+| toValue       | integer | N/A          | The number to divide by. |
 
 ### Returns
 

@@ -30,7 +30,7 @@ namespace mc.tasks
       m.removeTask(id)
     end function
 
-    function scheduleDelayedTask(nodeType as string, id as string, delay as float, fields as mc.types.assocarray, resultField = "output" as string)
+    function scheduleDelayedTask(nodeType as string, id as string, delay as float, fields as roAssociativeArray, resultField = "output" as string)
       m.log.info("creating delayed task of type", nodeType, "id", id, "delay", delay)
 
       if m.activeTimers[id] <> invalid or m.delayedTasks[id] <> invalid
@@ -44,11 +44,11 @@ namespace mc.tasks
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function createTimer(nodeType as string, id as string, delay as float, fields as mc.types.assocarray, resultField = "output" as string)
-      fields.id = id
+    private function createTimer(nodeType as string, id as string, delay as float, fields as roAssociativeArray, resultField = "output" as string)
+      (fields as dynamic).id = id
 
       timer = m.setTimeout(m.onDelayedTaskTimerFire, delay, "node")
-      mc.setOrAddNodeFields(timer, {
+      mc.setOrAddNodeFields(timer as roSGNode, {
         id: id
         taskInfo: {
           fields: fields
@@ -80,8 +80,9 @@ namespace mc.tasks
       end if
     end function
 
-    private function onDelayedTaskTimerFire(timer as mc.types.node)
-      taskInfo = timer.taskInfo
+    private function onDelayedTaskTimerFire(timer as roSGNode)
+      'bs:disable-next-line
+      taskInfo = timer.taskInfo as dynamic
       if taskInfo <> invalid
         m.activeTimers.delete(timer.id)
         m.delayedTasks[timer.id] = m.createTask(taskInfo.nodeType, taskInfo.fields)

@@ -34,14 +34,16 @@ namespace mc.collections
     @observer("onDebugAsChildrenChange")
     public _debugAsChildren = false
 
-    public __contents as mc.types.array
+    public __contents as roArray
 
     private pendingChanges = []
     private notifyChanges = true
     protected log
+    protected top
 
     function new()
-      m.log = new log.Logger("mc_Map")
+      'bs:disable-next-line
+      m.log = new rlog.Logger("mc_Map")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -129,7 +131,7 @@ namespace mc.collections
       m.top.changes = [{ type: "add", item: value, index: 0 }]
     end function
 
-    function append(other as mc.types.assocarray)
+    function append(other as roArray)
       index = m.top.length - 1
       m.data.append(other)
       m.top.length = m.data.count()
@@ -195,22 +197,21 @@ namespace mc.collections
     '++ Serializable support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function serialize() as mc.types.assocarray
-      serialized = {
-        items: []
-      }
+    function serialize() as roAssociativeArray
+      items = []
+
       for each item in m.data
         data = mc.utils.Serialization.serialize(item)
         if data <> invalid
-          serialized.items.push(data)
+          items.push(data)
         else
-          serialized.items.push(item)
+          items.push(item)
         end if
       end for
-      return serialized
+      return { "items": items }
     end function
 
-    function deserialize(data as mc.types.assocarray)
+    function deserialize(data as roAssociativeArray)
       m.clear()
       if mc.isAACompatible(data) and mc.isArray(data.items)
         for each item in data.items
@@ -231,7 +232,7 @@ namespace mc.collections
     '++ Changes
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private function addChange(change as mc.types.assocarray)
+    private function addChange(change as roAssociativeArray)
       if m.notifyChanges
         m.changes = [change]
       else

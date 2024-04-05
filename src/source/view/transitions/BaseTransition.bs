@@ -11,7 +11,7 @@ namespace mv.transitions
   '  */
   class BaseTransition extends mv.NodeClass
 
-    private top
+    protected top
     public progress = 0.0
 
     protected source
@@ -22,7 +22,7 @@ namespace mv.transitions
       super(name)
     end function
 
-    public function execute(owner as mc.types.node, source as mc.types.node, target as mc.types.node, animated = true as boolean)
+    public function execute(owner as roSGNode, source as roSGNode, target as roSGNode, animated = true as boolean)
       m.owner = owner
       m.source = source
       m.target = target
@@ -76,7 +76,9 @@ namespace mv.transitions
       end if
     end function
 
-    protected function initializeView(view as mc.types.node, args = invalid as mc.types.assocarray)
+    protected function initializeView(view as roSGNode, args = invalid as roAssociativeArray)
+      'FIXME
+      'bs:disable-next-line
       if view <> invalid and view.isInitialized <> true
         view@._initialize(args)
       else

@@ -19,10 +19,12 @@ namespace cells
       super()
     end function
 
-    protected override function onContentChange(content as mc.types.node)
+    protected override function onContentChange(content as roSGNode)
       if content = invalid or content.isSameNode(m.lastContent)
+        'bs:disable-next-line
         m.global.cellTracker@.unbindCell(m.top)
       end if
+      'bs:disable-next-line
       m.global.cellTracker@.bindCellToContent(m.top, content)
 
       super.onContentChange(content)

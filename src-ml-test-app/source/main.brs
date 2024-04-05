@@ -9,7 +9,6 @@ function initScreen() as void
   screen = CreateObject("roSGScreen")
   m.port = CreateObject("roMessagePort")
   screen.setMessagePort(m.port)
-
   rootScene = screen.CreateScene("MainScene")
   rootScene.id = "MainScene"
 

@@ -12,11 +12,11 @@ namespace ml
 
     ' any item in a list will have this set whenever it gets recycled
     @observer("onInitialStateChange")
-    public initialState as mc.types.AssocArray
+    public initialState as ml.IInitialCellState
 
     public isInViewPort = false
 
-    public listEvent as mc.types.AssocArray
+    public listEvent as mc.types.assocarray
     public contentVersion as integer = -1
 
     private isViewCreated = false
@@ -25,8 +25,9 @@ namespace ml
     public content as mc.types.node
     protected list as mc.types.node
     protected row as mc.types.node
-    protected size as mc.types.array
+    protected size as mc.types.array = [0, 0]
     protected isContentDisplayed = false
+    protected top as mc.types.node
 
     private isCreatingViewsOnInitialize = true
 
@@ -57,7 +58,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function onDebugMChange()
-      mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m))
+      mc.setOrAddNodeField(m.top, "__m", mc.private.getDebugMObject(m as mc.types.assocarray))
     end function
 
     private function _createViews()
@@ -73,14 +74,14 @@ namespace ml
       if content = invalid
         m.contentVersion = -1
         isChanged = true
-      else if m.contentVersion = -1 or content.version <> invalid
-        m.contentVersion = content.version
+      else if m.contentVersion = -1 or (content as dynamic).version <> invalid
+        m.contentVersion = (content as dynamic).version
         isChanged = true
       end if
 
       if isChanged
         m.onContentChange(content)
-        if m.top.isInViewPort
+        if (m.top as dynamic).isInViewPort
           ' ? " IN VIEW PORT SHOWING "; m.index
           m.onShowWithContent(content)
         end if
@@ -88,7 +89,7 @@ namespace ml
       m.isRecyclePending = false
     end function
 
-    protected function onInitialStateChange(state as mc.types.assocarray)
+    protected function onInitialStateChange(state as ml.IInitialCellState)
       ' ? " ON INITIAL STATE CHANGE " m.top.index
       m.list = state.list
       m.row = state.row
@@ -153,7 +154,7 @@ namespace ml
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function _apply(funcName as string, args as mc.types.array, warnIfNoFunction = true as boolean)
-      return mc.apply(funcName, args, m, false)
+      return mc.apply(funcName, args, m as mc.types.assocarray, false)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -185,6 +186,5 @@ namespace ml
         end if
       end if
     end function
-
   end class
 end namespace

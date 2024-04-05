@@ -29,15 +29,15 @@ This method creates a new `AbstractAnimation` object and initializes it with a `
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| target | mc.types.node | N/A | The node whose `field` will be animated. |
-| field | string | N/A | The name of the field to animate. |
-| duration | float | N/A | The duration of the animation in seconds. |
-| fromValue | dynamic | N/A | The starting value for the animation. |
-| toValue | dynamic | N/A | The ending value for the animation. |
-| name | string | "AbstractAnimation" | The name of the animation. |
-| delay | float | 0 | The delay before the animation begins, in seconds. |
+| Argument name | Type     | Default value       | Description                                        |
+|---------------|----------|---------------------|----------------------------------------------------|
+| target        | roSGnode | N/A                 | The node whose `field` will be animated.           |
+| field         | string   | N/A                 | The name of the field to animate.                  |
+| duration      | float    | N/A                 | The duration of the animation in seconds.          |
+| fromValue     | dynamic  | N/A                 | The starting value for the animation.              |
+| toValue       | dynamic  | N/A                 | The ending value for the animation.                |
+| name          | string   | "AbstractAnimation" | The name of the animation.                         |
+| delay         | float    | 0                   | The delay before the animation begins, in seconds. |
 
 
 
@@ -48,9 +48,9 @@ This method sets the `easeFunction` property of the `node` associated with the `
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| easeFunction | dynamic | N/A | The easing function to use for the animation. |
+| Argument name | Type    | Default value | Description                                   |
+|---------------|---------|---------------|-----------------------------------------------|
+| easeFunction  | dynamic | N/A           | The easing function to use for the animation. |
 
 
 <br/>
@@ -62,9 +62,9 @@ This method sets the `animateFromCurrentValue` property of the `AbstractAnimatio
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| value | dynamic | N/A | Determines whether the animation should always start from the current value of the `field` being animated. |
+| Argument name | Type    | Default value | Description                                                                                                |
+|---------------|---------|---------------|------------------------------------------------------------------------------------------------------------|
+| value         | dynamic | N/A           | Determines whether the animation should always start from the current value of the `field` being animated. |
 
 
 
@@ -75,10 +75,10 @@ This method sets the `key` and `keyValue` properties of the `interpolator` objec
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| keys | mc.types.array | N/A | An array of key values representing the position of each key value in the animation. |
-| keyValues | mc.types.array | N/A | An array of key values representing the values at each key position in the animation. |
+| Argument name | Type    | Default value | Description                                                                           |
+|---------------|---------|---------------|---------------------------------------------------------------------------------------|
+| keys          | roArray | N/A           | An array of key values representing the position of each key value in the animation.  |
+| keyValues     | roArray | N/A           | An array of key values representing the values at each key position in the animation. |
 
 
 <br />
@@ -99,9 +99,9 @@ This method starts the animation. If the `fractionValueObserver` object is not `
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| resume | boolean | `false` | A boolean value indicating whether the animation should resume from the current position or start from the beginning. |
+| Argument name | Type    | Default value | Description                                                                                                           |
+|---------------|---------|---------------|-----------------------------------------------------------------------------------------------------------------------|
+| resume        | boolean | `false`       | A boolean value indicating whether the animation should resume from the current position or start from the beginning. |
 
 
 
@@ -115,9 +115,9 @@ This method sets the `duration` property of the `AbstractAnimation` object and t
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| duration | float | N/A | The duration of the animation in seconds. |
+| Argument name | Type  | Default value | Description                               |
+|---------------|-------|---------------|-------------------------------------------|
+| duration      | float | N/A           | The duration of the animation in seconds. |
 
 <br />
 
@@ -128,9 +128,9 @@ This method sets the `delay` property of the `AbstractAnimation` object and the 
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| delay | float | N/A | The delay before the animation begins, in seconds. |
+| Argument name | Type  | Default value | Description                                        |
+|---------------|-------|---------------|----------------------------------------------------|
+| delay         | float | N/A           | The delay before the animation begins, in seconds. |
 
 <br />
 
@@ -155,11 +155,11 @@ This method modifies the `AbstractAnimation` object to animate the `field` of th
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| toValue | dynamic | N/A | The final value to animate to. |
-| stepSpeed | float | N/A | The speed at which the animation should progress, in seconds per step. |
-| stepUnit | string | "pixel" | The unit of measure for the number of steps. Can be "pixel" (animation progresses 100 pixels per step) or "float" (animation progresses 0.1 per step). |
+| Argument name | Type    | Default value | Description                                                                                                                                            |
+|---------------|---------|---------------|--------------------------------------------------------------------------------------------------------------------------------------------------------|
+| toValue       | dynamic | N/A           | The final value to animate to.                                                                                                                         |
+| stepSpeed     | float   | N/A           | The speed at which the animation should progress, in seconds per step.                                                                                 |
+| stepUnit      | string  | "pixel"       | The unit of measure for the number of steps. Can be "pixel" (animation progresses 100 pixels per step) or "float" (animation progresses 0.1 per step). |
 
 <br />
 
@@ -171,10 +171,10 @@ and sets the `keyValue` property of the `interpolator` object associated with th
 Arguments
 ---------
 
-| Argument name | Type | Default value | Description |
-| ---| ---| ---| --- |
-| fromValue | dynamic | N/A | The starting value of the animation. |
-| toValue | dynamic | N/A | The ending value of the animation. |
+| Argument name | Type    | Default value | Description                          |
+|---------------|---------|---------------|--------------------------------------|
+| fromValue     | dynamic | N/A           | The starting value of the animation. |
+| toValue       | dynamic | N/A           | The ending value of the animation.   |
 
 <br />
 
@@ -189,10 +189,10 @@ Observes the `fraction` field of the `interpolator` node and calls the `callback
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| callback | function |  | The function to be called with the new value when the `fraction` field changes. |
-| scope | dynamic | invalid | The object to use as `this` when calling the `callback` function. |
+| argument name | type     | defaultValue | description                                                                     |
+|---------------|----------|--------------|---------------------------------------------------------------------------------|
+| callback      | function |              | The function to be called with the new value when the `fraction` field changes. |
+| scope         | dynamic  | invalid      | The object to use as `this` when calling the `callback` function.               |
 
 <br />
 
@@ -202,10 +202,10 @@ Observes the `state` field of the `node` and calls the `callback` function with 
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| callback | function |  | The function to be called with the new value when the `state` field changes. |
-| scope | dynamic | invalid | The object to use as `this` when calling the `callback` function. |
+| argument name | type     | defaultValue | description                                                                  |
+|---------------|----------|--------------|------------------------------------------------------------------------------|
+| callback      | function |              | The function to be called with the new value when the `state` field changes. |
+| scope         | dynamic  | invalid      | The object to use as `this` when calling the `callback` function.            |
 
 <br />
 
@@ -222,8 +222,8 @@ Calls the `func` function with `scope` as `this` when the `fraction` field of th
 Arguments
 ---------
 
-| argument name | type | defaultValue | description |
-| ---| ---| ---| --- |
-| fraction | float |  | The value that the `fraction` field should reach or surpass to trigger the `func` function. |
-| func | function |  | The function to be called when the `fraction` field becomes greater than or equal to the specified `fraction` value. |
-| scope | dynamic | invalid | The object to use as `this` when calling the `func` function. |
+| argument name | type     | defaultValue | description                                                                                                          |
+|---------------|----------|--------------|----------------------------------------------------------------------------------------------------------------------|
+| fraction      | float    |              | The value that the `fraction` field should reach or surpass to trigger the `func` function.                          |
+| func          | function |              | The function to be called when the `fraction` field becomes greater than or equal to the specified `fraction` value. |
+| scope         | dynamic  | invalid      | The object to use as `this` when calling the `func` function.                                                        |

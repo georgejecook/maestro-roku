@@ -15,12 +15,12 @@ This is the constructor for the Sequence class. It creates a new instance of the
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The node that the animation will be applied to. |
-| animations | mc.types.array | invalid | An array of animations that will be played in sequence. |
-| repeat | boolean | false | If `true`, the sequence will repeat indefinitely. |
-| delay | float | 0 | The delay before the animation starts, in seconds. |
+| argument name | type     | default value | description                                             |
+|---------------|----------|---------------|---------------------------------------------------------|
+| target        | roSGnode |               | The node that the animation will be applied to.         |
+| animations    | roArray  | invalid       | An array of animations that will be played in sequence. |
+| repeat        | boolean  | false         | If `true`, the sequence will repeat indefinitely.       |
+| delay         | float    | 0             | The delay before the animation starts, in seconds.      |
 
 <br/>
 
@@ -29,9 +29,9 @@ This method sets the `animateFromCurrentValue` property, which determines whethe
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| value | dynamic |  | The value to set for the `animateFromCurrentValue` property. |
+| argument name | type    | default value | description                                                  |
+|---------------|---------|---------------|--------------------------------------------------------------|
+| value         | dynamic |               | The value to set for the `animateFromCurrentValue` property. |
 
 <br/>
 
@@ -43,9 +43,9 @@ This method starts the animation. If the `animateFromCurrentValue` property is `
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| resume | boolean | false | If `true`, the animation will resume from the point it was paused. |
+| argument name | type    | default value | description                                                        |
+|---------------|---------|---------------|--------------------------------------------------------------------|
+| resume        | boolean | false         | If `true`, the animation will resume from the point it was paused. |
 
 <br/>
 
@@ -57,9 +57,9 @@ This method sets the delay before the first animation in the `animations` array 
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| delay | float |  | The delay before the first animation starts, in seconds. |
+| argument name | type  | default value | description                                              |
+|---------------|-------|---------------|----------------------------------------------------------|
+| delay         | float |               | The delay before the first animation starts, in seconds. |
 
 <br/>
 
@@ -67,9 +67,9 @@ This method sets the delay before the first animation in the `animations` array 
 This method adds an array of animations to the `animations` array.
 
 ### Arguments
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| animations | mc.types.array |  | An array of animations to be added to the `animations` array. |
+| argument name | type    | default value | description                                                   |
+|---------------|---------|---------------|---------------------------------------------------------------|
+| animations    | roArray |               | An array of animations to be added to the `animations` array. |
 
 </br>
 
@@ -81,10 +81,10 @@ This method registers a callback function to be called whenever the state of the
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| callback | function |  | The callback function to be called when the state of the sequence changes. |
-| scope | dynamic | invalid | The scope in which the callback function will be executed. |
+| argument name | type     | default value | description                                                                |
+|---------------|----------|---------------|----------------------------------------------------------------------------|
+| callback      | function |               | The callback function to be called when the state of the sequence changes. |
+| scope         | dynamic  | invalid       | The scope in which the callback function will be executed.                 |
 
 <br/>
 

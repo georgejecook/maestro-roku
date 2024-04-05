@@ -27,9 +27,9 @@ This method cancels a delayed task with the given ID.
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `id` | `string` | N/A | The ID of the task to be cancelled. |
+| Argument Name | Type     | Default Value | Description                         |
+|---------------|----------|---------------|-------------------------------------|
+| `id`          | `string` | N/A           | The ID of the task to be cancelled. |
 
 ### Returns
 
@@ -43,13 +43,13 @@ This method schedules a delayed task with the given ID, node type, delay, and fi
 
 ### Arguments
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `nodeType` | `string` | N/A | The type of the node to be created for the task. |
-| `id` | `string` | N/A | The ID of the task. |
-| `delay` | `float` | N/A | The delay in seconds before the task is executed. |
-| `fields` | `mc.types.assocarray` | N/A | The fields to be set on the task node. |
-| `resultField` | `string` | "output" | The name of the field in which the task's output will be stored. |
+| Argument Name | Type                 | Default Value | Description                                                      |
+|---------------|----------------------|---------------|------------------------------------------------------------------|
+| `nodeType`    | `string`             | N/A           | The type of the node to be created for the task.                 |
+| `id`          | `string`             | N/A           | The ID of the task.                                              |
+| `delay`       | `float`              | N/A           | The delay in seconds before the task is executed.                |
+| `fields`      | `roAssociativeArray` | N/A           | The fields to be set on the task node.                           |
+| `resultField` | `string`             | "output"      | The name of the field in which the task's output will be stored. |
 
 ### Returns
 

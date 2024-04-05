@@ -5,10 +5,10 @@ Creating custom cells with maestro list is very easy:
 1. Create a _node class_ that `ml_BaseCell`
 
 2. Override the following functions
-|   Function    |  Description     |
-|  ---  |  ---  |
-|   `createViews`    | Implement to create your views by instantiating, them in code, or from json      |
-|   `onContentChange`|Implement to configure your cell with the passed in `content`|
+| Function          | Description                                                                 |
+|-------------------|-----------------------------------------------------------------------------|
+| `createViews`     | Implement to create your views by instantiating, them in code, or from json |
+| `onContentChange` | Implement to configure your cell with the passed in `content`               |
 
 1. (optional) Implement any of the delegate callback functions, to further tailor your cell's behavior.
 
@@ -44,7 +44,7 @@ class SimpleCell extends ml.BaseCell
     m.createViewsFromStyleJson(bundle.views)
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onContentChange(content as roSGnode)
     m.label.text = content.title
     m.poster.uri = content.HDGRIDPOSTERURL
     m.label.visible = true
@@ -65,15 +65,15 @@ class SimpleCell extends ml.BaseCell
   '++ Views
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private poster as mc.types.node
-  private rectangle as mc.types.node
-  private label as mc.types.node
+  private poster as roSGnode
+  private rectangle as roSGnode
+  private label as roSGnode
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Private Fields
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-  private styles as mc.types.assocarray
+  private styles as roAssociativeArray
 
   '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
   '++ Overridden Methods
@@ -85,7 +85,7 @@ class SimpleCell extends ml.BaseCell
     m.createViewsFromStyleJson(bundle.views)
   end function
 
-  protected override function onContentChange(content as mc.types.node)
+  protected override function onContentChange(content as roSGnode)
     m.label.text = content.title
     m.poster.uri = content.HDGRIDPOSTERURL
     m.label.visible = true

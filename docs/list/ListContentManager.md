@@ -12,14 +12,14 @@ Creates a new instance of the `ListContentManager` class.
 An interface representing information about a row in the `List`.
 
 
-*   `row` (`mc.types.node`): The row node.
+*   `row` (`roSGnode`): The row node.
 *   `version` (`integer`): The version of the row.
 *   `isHidden` (`boolean`): A flag indicating whether the row is hidden.
 *   `isFocusEnabled` (`boolean`): A flag indicating whether the row is focusable.
 
 
 ## Properties
-### `content` (`mc.types.node`)
+### `content` (`roSGnode`)
 
 Gets or sets the content of the `List`.
 
@@ -31,12 +31,12 @@ Gets or sets the content of the `List`.
 This is the constructor for the ListContentManager class.
 
 ### Arguments
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `list` | `mc.types.node` | N/A | The list  object. |
-| `viewManager` | `mc.types.node` | N/A | ListItemViewManager object. |
-| `itemScroller` | `object` | N/A | ListItemScroller object |
-| `focusIndicatorManager` | `mc.types.node`  | A node that manages the focus indicators for the `List`. |
+| Argument Name  | Type       | Default Value | Description                 |
+|----------------|------------|---------------|-----------------------------|
+| `list`         | `roSGnode` | N/A           | The list  object.           |
+| `viewManager`  | `roSGnode` | N/A           | ListItemViewManager object. |
+| `itemScroller` | `object`   | N/A           | ListItemScroller object     |
+| `focusIndicatorManager` | `roSGnode`  | A node that manages the focus indicators for the `List`. |
 
 
 
@@ -46,9 +46,9 @@ Sets the content of the `List`. If the content has changed, the `List` is reset 
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `content` | `mc.types.node` | N/A | The content to set for the `List`. |
+| Argument Name | Type       | Default Value | Description                        |
+|---------------|------------|---------------|------------------------------------|
+| `content`     | `roSGnode` | N/A           | The content to set for the `List`. |
 
 
 ## `setUpdatesEnabled`
@@ -58,9 +58,9 @@ Enables or disables updates to the `List`. If updates are disabled, the `List` w
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `enabled` | `boolean` | N/A | A flag indicating whether updates should be enabled or disabled. |
+| Argument Name | Type      | Default Value | Description                                                      |
+|---------------|-----------|---------------|------------------------------------------------------------------|
+| `enabled`     | `boolean` | N/A           | A flag indicating whether updates should be enabled or disabled. |
 
 
 
@@ -73,9 +73,9 @@ Synchronizes the content of the `List` with the `ListItemViewManager` and `ListI
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `notifyRows` | `boolean` | `true` | A flag indicating whether the rows should be notified of the content changes. |
+| Argument Name | Type      | Default Value | Description                                                                   |
+|---------------|-----------|---------------|-------------------------------------------------------------------------------|
+| `notifyRows`  | `boolean` | `true`        | A flag indicating whether the rows should be notified of the content changes. |
 
 
 
@@ -96,12 +96,12 @@ Sets the content of a row in the `List`.
 ### Arguments
 ---------
 
-| Argument Name | Type | Default Value | Description |
-| ---| ---| ---| --- |
-| `row` | `mc.types.node` | N/A | The row node to set the content for. |
-| `content` | `mc.types.node` | N/A | The content to set for the row. |
-| `notifyRow` | `boolean` | `false` | A flag indicating whether the row should be notified of the content change. |
-| `result` | `ml.ListChangeResult` | `invalid` | An object that contains information about the changes made to the `List`. |
+| Argument Name | Type                  | Default Value | Description                                                                 |
+|---------------|-----------------------|---------------|-----------------------------------------------------------------------------|
+| `row`         | `roSGnode`            | N/A           | The row node to set the content for.                                        |
+| `content`     | `roSGnode`            | N/A           | The content to set for the row.                                             |
+| `notifyRow`   | `boolean`             | `false`       | A flag indicating whether the row should be notified of the content change. |
+| `result`      | `ml.ListChangeResult` | `invalid`     | An object that contains information about the changes made to the `List`.   |
 
 This method does the following:
 

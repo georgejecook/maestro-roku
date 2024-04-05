@@ -4,12 +4,12 @@ import "pkg:/source/core/Result.bs"
 namespace sample
   @task("WaitTask", "Task")
   class WaitTask
-    private log = new log.Logger("RequestTask")
+    protected log = new rlog.Logger("RequestTask")
 
     function new()
     end function
 
-    private function execute(args as mc.types.assocarray) as dynamic
+    private function execute(args as roAssociativeArray) as dynamic
       m.log.info("waiting", args.delay, "before returning", args.isOk)
       port = CreateObject("roMessagePort")
       wait(args.delay * 1000, port)

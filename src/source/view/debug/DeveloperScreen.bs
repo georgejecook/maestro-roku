@@ -12,24 +12,24 @@ namespace mv.debug
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private controls
-    private buttonGroup
-    private outputText
-    private statusText
-    private navController
-    private infoLabel
+    private controls as roSGNodemv_LayoutGroup
+    private buttonGroup as roSGNodeButtonGroup
+    private outputText as roSGNodemv_Label
+    private statusText as roSGNodemv_Label
+    private navController as roSGNodemv_NavController
+    private infoLabel as roSGnodemv_Label
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private subScreen as mc.types.node
+    private subScreen as roSGNode
     private isBusy = false
     private pageIndex = 0
     private numberOfPages = 0
     private registry = new mc.Registry()
     private pageBuilderFunctions = []
-    private activeButtons = {}
+    private activeButtons = []
     private previousMenuIndex = 0
     private subMenuButtonFunction = invalid
 
@@ -122,7 +122,7 @@ namespace mv.debug
     '++ Protected Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    protected function getMenuPageBuilderFunctions() as mc.types.array
+    protected function getMenuPageBuilderFunctions() as roArray
       'override, and return your DeveloperMenuPage instances here
       return [
         m.getDefaultPage
@@ -140,7 +140,7 @@ namespace mv.debug
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 
-    private function showSubMenu(buttonFunction as mc.types.array)
+    private function showSubMenu(buttonFunction as function)
       m.previousMenuIndex = m.buttonGroup.buttonSelected
       m.subMenuButtonFunction = buttonFunction
       m.updateButtons()
@@ -201,7 +201,7 @@ namespace mv.debug
       ]
     end function
 
-    private function setButtonFunctions(control as mc.types.node, buttons as mc.types.array)
+    private function setButtonFunctions(control as roSGNodeButtonGroup, buttons as roArray)
       control.buttons = mc.collections.map(buttons, function(item as string)
         return item[0]
       end function)
@@ -210,7 +210,7 @@ namespace mv.debug
       m.observeNodeField(control, "buttonSelected", m.onButtonGroupSelectedChange, "both")
     end function
 
-    function onButtonGroupSelectedChange(index as integer, node as mc.types.node) as void
+    function onButtonGroupSelectedChange(index as integer, node as roSGNode) as void
       if m.isBusy
         m.log.info("ignoring - screen is still busy")
         return
@@ -218,14 +218,14 @@ namespace mv.debug
       m.activeButtons[index][1]()
     end function
 
-    private function showScreen(screen as mc.types.node)
+    protected function showScreen(screen as roSGNode)
       m.subScreen = screen
       m.observeNodeField(screen, "state", m.onScreenStateChange)
       m.navController@.push(screen)
       m.setFocus(m.navController)
     end function
 
-    private function hideSubScreen()
+    protected function hideSubScreen()
       m.unobserveNodeField(m.subScreen, "state", m.onScreenStateChange)
       if m.subScreen.getParent() <> invalid
         m.navController@.pop()
@@ -329,7 +329,7 @@ namespace mv.debug
     end function
 
     function onKeyPressOptions() as boolean
-      poster = mc.getScene()._debugOverlayPoster
+      poster = (mc.getScene() as dynamic)._debugOverlayPoster as roSGNodePoster
       if poster = invalid
         poster = mc.createSGNode("mv_Poster", mc.getScene(), "_debugOverlayPoster", {
           size: [1920, 1080]

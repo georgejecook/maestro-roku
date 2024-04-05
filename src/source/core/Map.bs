@@ -1,5 +1,6 @@
 import "Serialization.bs"
 import "pkg:/source/roku_modules/log/LogMixin.brs"
+import "pkg:/source/view/BaseView.bs"
 
 namespace mc.collections
   ' /**
@@ -18,12 +19,13 @@ namespace mc.collections
     @observer("onDebugChange")
     public _debug = false
 
-    public __contents as mc.types.AssocArray
+    public __contents as roAssociativeArray
 
     protected log
 
     function new()
-      m.log = new log.Logger("mc_Map")
+      'bs:disable-next-line
+      m.log = new rlog.Logger("mc_Map")
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -32,7 +34,7 @@ namespace mc.collections
 
     public function clear()
       m.data = {}
-      m.top.length = 0
+      m.length = 0
     end function
 
     public function remove(key as string) as void
@@ -40,7 +42,7 @@ namespace mc.collections
         return
       end if
       m.data.delete(key)
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function set(key as string, value as dynamic) as void
@@ -48,7 +50,7 @@ namespace mc.collections
         return
       end if
       m.data[key] = value
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function append(other as dynamic)
@@ -56,7 +58,7 @@ namespace mc.collections
         other = other@.getValues()
       end if
       m.data.append(other)
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     public function get(key as string) as dynamic
@@ -73,12 +75,12 @@ namespace mc.collections
       return m.data[key] <> invalid
     end function
 
-    public function getAA() as mc.types.assocarray
+    public function getAA() as roAssociativeArray
       return m.data
     end function
 
     ' @returns{array} - array of values
-    function getValues() as mc.types.array
+    function getValues() as roArray
       values = []
       for each key in m.data
         values.push(m.data[key])
@@ -87,7 +89,7 @@ namespace mc.collections
     end function
 
     ' @returns{array} - array of values
-    function getKeys() as mc.types.array
+    function getKeys() as roArray
       return m.data.keys()
     end function
 
@@ -95,7 +97,7 @@ namespace mc.collections
     '++ Serializable support
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function serialize() as mc.types.assocarray
+    public function serialize() as roAssociativeArray
       data = {}
       for each key in m.data
         item = m.data[key]
@@ -111,7 +113,7 @@ namespace mc.collections
       }
     end function
 
-    public function deserialize(data as mc.types.assocarray)
+    public function deserialize(data as roAssociativeArray)
       m.clear()
       data = mc.getPath(data, "data", {})
       for each key in data
@@ -126,7 +128,7 @@ namespace mc.collections
           end if
         end if
       end for
-      m.top.length = m.data.count()
+      m.length = m.data.count()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -135,7 +137,7 @@ namespace mc.collections
 
     private function onDebugChange(value as dynamic)
       ' ? "dumping contents"
-      m.top.__contents = m.data
+      m.__contents = m.data
     end function
   end class
 end namespace

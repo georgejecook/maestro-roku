@@ -71,7 +71,7 @@ Then, when scheduling refreshing an auth token, with an `AuthTask`, something li
 
 ```
     @inject("delayedTaskManager")
-    private delayedTaskManager as mc.types.node
+    private delayedTaskManager as roSGnode
 
     protected function setRefreshTimer()
       delayedTaskManager@.scheduleDelayedTask("AuthTask", "refreshTask", 300, { "command": "refresh" })

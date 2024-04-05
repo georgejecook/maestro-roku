@@ -15,13 +15,13 @@ This is the constructor for the SimpleKenBurns class. It creates a new instance 
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| target | mc.types.node |  | The node that the animation will be applied to. |
-| duration | float |  | The duration of the animation, in seconds. |
-| scale | mc.types.array |  | An array containing the scale values for the x and y axes. |
-| movement | mc.types.array |  | An array containing the movement values for the x and y axes. |
-| delay | float | 0 | The delay before the animation starts, in seconds. |
+| argument name | type     | default value | description                                                   |
+|---------------|----------|---------------|---------------------------------------------------------------|
+| target        | roSGnode |               | The node that the animation will be applied to.               |
+| duration      | float    |               | The duration of the animation, in seconds.                    |
+| scale         | roArray  |               | An array containing the scale values for the x and y axes.    |
+| movement      | roArray  |               | An array containing the movement values for the x and y axes. |
+| delay         | float    | 0             | The delay before the animation starts, in seconds.            |
 
 <br/>
 
@@ -33,9 +33,9 @@ This method sets the easing function for the scaling and movement animations.
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| easeFunction | dynamic |  | The easing function to be used for the scaling and movement animations. |
+| argument name | type    | default value | description                                                             |
+|---------------|---------|---------------|-------------------------------------------------------------------------|
+| easeFunction  | dynamic |               | The easing function to be used for the scaling and movement animations. |
 
 <br/>
 
@@ -47,9 +47,9 @@ This method sets the duration of the scaling and movement animations.
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| duration | float |  | The duration of the scaling and movement animations, in seconds. |
+| argument name | type  | default value | description                                                      |
+|---------------|-------|---------------|------------------------------------------------------------------|
+| duration      | float |               | The duration of the scaling and movement animations, in seconds. |
 
 <br/>
 
@@ -58,9 +58,9 @@ This method sets the delay before the scaling and movement animations start.
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| delay | float |  | The delay before the scaling and movement animations start, in seconds. |
+| argument name | type  | default value | description                                                             |
+|---------------|-------|---------------|-------------------------------------------------------------------------|
+| delay         | float |               | The delay before the scaling and movement animations start, in seconds. |
 
 <br/>
 
@@ -79,7 +79,7 @@ This method registers a callback function to be called with the current fraction
 
 ### Arguments
 
-| argument name | type | default value | description |
-| ---| ---| ---| --- |
-| callback | function |  | The callback function to be called with the current fraction of the scaling animation at each frame. |
-| scope | dynamic | invalid | The |
+| argument name | type     | default value | description                                                                                          |
+|---------------|----------|---------------|------------------------------------------------------------------------------------------------------|
+| callback      | function |               | The callback function to be called with the current fraction of the scaling animation at each frame. |
+| scope         | dynamic  | invalid       | The                                                                                                  |

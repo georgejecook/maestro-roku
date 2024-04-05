@@ -3,6 +3,17 @@ import "pkg:/source/roku_modules/log/LogMixin.brs"
 
 namespace mc
 
+  interface IComponentPooledNode extends roSGNode
+    optional _mComponentType as string
+  end interface
+
+  interface IComponentPoolItem
+    usedComponentsById as roAssociativeArray
+    allComponents as roArray
+    freeComponentsById as roAssociativeArray
+    numberOfComponentsInPool as integer
+  end interface
+
   ' all purpose component pool that can store any kind of components for reuse
   @node("mc_ComponentPool", "Group")
   class ComponentPool
@@ -17,10 +28,12 @@ namespace mc
     public numberOfComponents = 0
 
     private poolsByComponentType = {}
-    private log
+    protected log
+    private top as roSGNode
 
     function new()
-      m.log = new log.Logger("ComponentPool")
+      'bs:disable-next-line
+      m.log = new rlog.Logger("ComponentPool")
       m.reset()
     end function
 
@@ -40,10 +53,11 @@ namespace mc
       m.numberOfComponentsInUse = 0
     end function
 
-    function getComponentPool(componentType as string) as mc.types.assocarray
+    function getComponentPool(componentType as string) as IComponentPoolItem
       pool = m.poolsByComponentType[componentType]
       if pool = invalid
-        pool = { usedComponentsById: {}
+        pool = {
+          usedComponentsById: {}
           allComponents: []
           freeComponentsById: {}
           numberOfComponentsInPool: 0
@@ -75,7 +89,7 @@ namespace mc
       end for
     end function
 
-    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as mc.types.node
+    function getComponent(componentType as string, numToCreateIfDry = -1 as integer) as roSGNode
 
       pool = m.getComponentPool(componentType)
 
@@ -123,7 +137,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponent(component as mc.types.node)
+    function releaseComponent(component as IComponentPooledNode)
       if component <> invalid
         ' ? ">>>>releasing component "; mc.dv(component)
         if component.getParent() <> invalid
@@ -137,7 +151,7 @@ namespace mc
       end if
     end function
 
-    function releaseComponents(components as mc.types.array)
+    function releaseComponents(components as roArray)
       for each component in components
         m.releaseComponent(component)
       end for

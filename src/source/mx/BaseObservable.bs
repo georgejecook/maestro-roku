@@ -23,11 +23,13 @@ namespace mx
     '++ Base observer class
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private log
+    protected log
+    protected __className as string
     public __name
 
     public function new(name as string)
-      m.log = new log.Logger(name)
+      'bs:disable-next-line
+      m.log = new rlog.Logger(name)
       m.__name = name
     end function
 
@@ -41,7 +43,7 @@ namespace mx
     '++ Utils
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    public function getNodeFieldBindingKey(node as mc.types.node, field as string, targetField as string)
+    public function getNodeFieldBindingKey(node as roSGNode, field as string, targetField as string)
       return "vm_" + node.id + "_" + field + "_" + targetField
     end function
 
@@ -100,7 +102,7 @@ namespace mx
         return false
       end if
 
-      if not m.doesExist(fieldName)
+      if not (m as roAssociativeArray).doesExist(fieldName)
         m.log.error("called setField on unknown field '", fieldName, "'", "class", m.__className)
         return false
       end if
@@ -266,7 +268,7 @@ namespace mx
     '  * @param {function} transformFunc - pointer to function to call to modify this value when executing the binding
     '  * @param {boolean} isFiringOnce - if true, then the binding is removed as soon as as it is invoked
     '  */
-    public function bindField(fieldName as string, targetNode as mc.types.node, targetField as string, fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean) as boolean
+    public function bindField(fieldName as string, targetNode as roSGNode, targetField as string, fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean) as boolean
       bindings = m.bindings[fieldName]
 
       if bindings = invalid
@@ -309,7 +311,7 @@ namespace mx
     '  * @param {string} targetField - field on node to update with change values
     '  * @returns {boolean} true if successful
     '  */
-    public function unbindField(fieldName as string, targetNode as mc.types.node, targetField as string) as boolean
+    public function unbindField(fieldName as string, targetNode as roSGNode, targetField as string) as boolean
       bindings = m.bindings[fieldName]
       if bindings = invalid
         bindings = {}
@@ -406,7 +408,7 @@ namespace mx
       return [fireOnSet, transformFunc, isFiringOnce, sendMode, func]
     end function
 
-    function createNodeBindingProperties(field as string, node as mc.types.node, targetField as string, fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean)
+    function createNodeBindingProperties(field as string, node as roSGNode, targetField as string, fireOnSet = false as boolean, transformFunc = invalid as function, isFiringOnce = false as boolean)
       return [field, node, targetField, fireOnSet, transformFunc, isFiringOnce]
     end function
 

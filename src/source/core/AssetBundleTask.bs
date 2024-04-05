@@ -8,7 +8,7 @@ namespace mc
   @strict
   @task("mc_AssetBundleTask", "Task")
   class AssetBundleTask
-    private log
+    protected log
     private baseBundleUrl
     private bundleId
     private registry
@@ -17,12 +17,13 @@ namespace mc
     private url = ""
 
     function new()
-      m.log = new log.Logger("ImageRequestTask")
+      'bs:disable-next-line
+      m.log = new rlog.Logger("ImageRequestTask")
     end function
 
-    private function execute(args as mc.types.assocarray)
-      m.bundleId = args.bundleId
-      m.baseBundleUrl = args.baseBundleUrl
+    private function execute(args as roAssociativeArray)
+      m.bundleId = (args as dynamic).bundleId
+      m.baseBundleUrl = (args as dynamic).baseBundleUrl
 
       m.registry = new mc.Registry()
       m.request = m.makeRequest()
@@ -55,7 +56,7 @@ namespace mc
         assetsToLoad.append(currentBundle.getChangedAssets(latestBundle))
       end if
 
-      '4. also load any assets thare are missing from cachefs
+      '4. also load any assets there are missing from cachefs
       assetsToLoad.append(latestBundle.getMissingAssets())
 
       if assetsToLoad.count() > 0
@@ -84,7 +85,7 @@ namespace mc
       return new mc.AssetBundle(data)
     end function
 
-    private function loadAssetBundleData() as mc.types.assocarray
+    private function loadAssetBundleData() as roAssociativeArray
       url = `${m.baseBundleUrl}/${m.bundleId}-data.json`
       m.log.info("loading bundle info from url", url)
       result = m.request.get(url)
@@ -99,7 +100,7 @@ namespace mc
     end function
 
     private function makeRequest()
-      return new mc.net.Request()
+      return new mc.network.Request()
     end function
 
   end class

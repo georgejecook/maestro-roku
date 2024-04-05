@@ -13,26 +13,28 @@ namespace mc.sample
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Debug Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-    public _rLog as mc.types.node
-    public _appController as mc.types.node
-    public _global as mc.types.node
+    public _rLog as roSGNode
+    public _appController as roSGNode
+    public _global as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private loadingBackground as mc.types.node
-    private loadingIndicator as mc.types.node
-    private loadingPoster as mc.types.node
-    private developerScreen as mc.types.node
+    private loadingBackgroundGroup as roSGNodeGroup
+    private loadingBackground as roSGNode
+    private loadingPosterGroup as roSGNodeGroup
+    private loadingIndicator as roSGNode
+    private loadingPoster as roSGNode
+    private developerScreen as roSGNode
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    private log as log.Logger
+    protected log as rLog.Logger
     private args = {}
-    private launchSequence as mc.types.node
+    private launchSequence as roSGNode
+    protected top as dynamic
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialize
@@ -46,12 +48,14 @@ namespace mc.sample
     end function
 
     private function createView()
-      m.loadingBackground = m.createSGNode("mv_Rectangle", m.top, "loadingBackground", {
+      m.loadingBackgroundGroup = m.createSGNode("mv_Group", m.top, "loadingBackgroundGroup")
+      m.loadingBackground = m.createSGNode("mv_Rectangle", m.loadingBackgroundGroup, "loadingBackground", {
         color: "#000000"
         width: 1920
         height: 1080
       })
-      m.loadingPoster = m.createSGNode("mv_Poster", m.top, "loadingPoster", {
+      m.loadingPosterGroup = m.createSGNode("mv_Group", m.top, "loadingPosterGroup")
+      m.loadingPoster = m.createSGNode("mv_Poster", m.loadingPoster, "loadingPoster", {
         uri: "pkg:/images/app/nba-tv-logo-and-text-medium-$$RES$$.png"
         loadSync: true
         width: 1920
@@ -65,20 +69,23 @@ namespace mc.sample
         "translation": [0, 0]
       })
     end function
+
+    function getNode(node as roSGNodeRowList)
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Log
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     private function configureLogger()
-      rLog = log.initializeLogManager(["log_PrintTransport"], 5)
-      m.log = new log.Logger("MainScene")
+      logger = rLog.initializeLogManager(["log_PrintTransport"], 5)
+      m.log = new rlog.Logger("MainScene")
       m.log.info("Configuring log")
-      rLog.includeFilters = {
+      logger.includeFilters = {
         ' "mv_TabController": true
         ' "mv_SimpleTransition": true
         ' "ButtonScreen": true
       }
-      rLog.excludeFilters = {
+      logger.excludeFilters = {
         "__ml_FocusIndicatorManager": true
         "FocusIndicatorManager": true
       }
@@ -179,8 +186,8 @@ namespace mc.sample
       m.global.addFields({ "appController": m.top._appController })
       m.loadingIndicator.isActive = false
       m.top._appController.opacity = 1
-      mv.animations.utils.fadeTo(m.loadingBackground, 0.3, 0)
-      mv.animations.utils.fadeTo(m.loadingPoster, 0.3, 0)
+      mv.animations.utils.fadeTo(m.loadingBackgroundGroup, 0.3, 0)
+      mv.animations.utils.fadeTo(m.loadingPosterGroup, 0.3, 0)
       m.waitAFrame(m.cleanUpLoadingViews, 0.5)
     end function
 
