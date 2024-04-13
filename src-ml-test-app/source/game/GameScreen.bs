@@ -33,6 +33,7 @@ namespace mg
     private gameAnim
     private bgSpeed = 80
     private levelSize = 80
+    private isMapMovingMode = true
 
     @gameEngine
     private gameState as mc.types.node
@@ -177,7 +178,10 @@ namespace mg
       m.player@.tick()
     end function
 
-    private function updateCamera()
+    private function updateCamera() as void
+      if m.isMapMovingMode
+        return
+      end if
       playerTranslation = m.player.translation
       playerTranslation[0] = playerTranslation[0] * m.levelScale
       playerTranslation[1] = playerTranslation[1] * m.levelScale
@@ -203,6 +207,16 @@ namespace mg
 
       ' Update the levelGroup translation to move the camera
       m.levelGroup.translation = [desiredX, desiredY]
+      ' Calculate visible tile ranges
+      ' startX = -desiredX / m.screenTileWidth
+      ' startY = -desiredY / m.screenTileHeight
+      startX = -desiredX / 128
+      startY = -desiredY / 128
+      endX = int(startX + screenSize[0] / 128)
+      endY = startY + screenSize[1] / 128
+      if not m.isMapMovingMode
+        m.mapManager@.updateCameraView(startX, startY, endX, endY)
+      end if
     end function
 
     @gameEngine
@@ -214,9 +228,6 @@ namespace mg
       end if
       m.gameState.lastAnimTime = time
     end function
-
-
-
 
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -327,7 +338,32 @@ namespace mg
           end if
         end if
       end if
+      if m.isMapMovingMode
+        m.onMapInput()
+      end if
     end function
+
+    private mapX = 0
+    private mapY = 0
+    private function onMapInput()
+      if m.gameState.isKeyDown
+        pressedKey = m.gameState.pressedKey
+
+        if pressedKey = "down"
+          m.mapY++
+        else if pressedKey = "up"
+          m.mapY--
+        else if pressedKey = "left"
+          m.mapX--
+        else if pressedKey = "right"
+          m.mapX++
+        end if
+      end if
+
+      m.mapManager@.updateCameraView(m.mapX, m.mapY, m.mapX + (1920 / 128), m.mapY + (1080 / 128))
+      m.levelGroup.translation = [m.mapX * -128, m.mapY * -128]
+    end function
+
 
     'this is for parallax scrolling/bg effects
     ' private function updateBackground() as boolean

@@ -29,6 +29,7 @@ namespace mg
     currentPlatform as mc.types.node
     feetCollider as mc.types.node
     velocity = [0, 0]
+    isInputEnabled = false
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
@@ -310,7 +311,8 @@ namespace mg
         ' ? "Falling"
         ' Calculate current row based on the character's feet Y position and platform height.
         ' Assuming platformHeight is a constant that you have defined somewhere.
-        return m.mapManager@.getPlatform(m.top, m.ySpeed)
+        ' return m.mapManager@.getPlatform(m.top, m.ySpeed)
+        return m.mapManager@.getPlatformPoster(m.top, m.ySpeed)
       end if
       return invalid
     end function
@@ -333,8 +335,11 @@ namespace mg
       m.setPlayerState(mg.PlayerState.Idle)
     end function
 
-    private function onInput()
+    private function onInput() as void
       if m.gameState.isKeyDown
+        if not m.isInputEnabled
+          return
+        end if
         pressedKey = m.gameState.pressedKey
 
         if pressedKey = "play"
