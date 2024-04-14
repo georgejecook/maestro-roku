@@ -1,25 +1,27 @@
-import "pkg:/source/view/BaseView.bs"
 import "pkg:/source/game/GameEnums.bs"
 
 namespace mg
-  @observersWaitInitialize
-  @node("GameItem", "mv_Poster")
-  class GameItem extends mv.BaseView
+  class GameItem
 
-    startIndex as integer
-    length as integer
-    rowIndex as integer
-    isCollected as boolean
-    effect = "none"
+    index as integer
+    isCollected = false
     itemType = mg.GameItemType.None
 
-    function new()
-      super("Player")
+    function new(index as integer, itemType as mg.GameItemType)
+      m.index = index
+      m.itemType = itemType
     end function
 
-    function getCollision(target as mc.types.node) as object
-      translation = m.top.translation
-      size = m.top.size
+    function reset()
+      m.isCollected = false
+    end function
+
+    function getCollision(target as mc.types.node, poster as mc.types.node) as object
+      if poster = invalid
+        return mg.Collision.None
+      end if
+      translation = poster.translation
+      size = poster.size
       size[1] = 20 'only first 20 pixels of floor count
       targetSize = [target.width, target.height]
       targetTranslation = target.translation
@@ -43,6 +45,39 @@ namespace mg
 
       return mg.Collision.None
     end function
+
+    private function getUri() as string
+      uri = ""
+      if m.itemType = mg.GameItemType.coin
+        uri = "pkg:/images/sprites/coin-tile.png"
+      else if m.itemType = mg.GameItemType.Enemy1
+        uri = "pkg:/images/sprites/bad-guy.png"
+      else if m.itemType = mg.GameItemType.Enemy2
+        uri = "pkg:/images/sprites/bad-guy.png"
+      else if m.itemType = mg.GameItemType.Spikes
+        uri = "pkg:/images/sprites/bad-guy.png"
+      else
+        ? " UKNOWN GAME ITEM!!"
+      end if
+      return uri
+    end function
+
+    private function getEffect() as mg.GameItemEffect
+      effect = mg.GameItemEffect.None
+      if m.itemType = mg.GameItemType.coin
+        effect = mg.GameItemEffect.Coin
+      else if m.itemType = mg.GameItemType.Enemy1
+        effect = mg.GameItemEffect.Kill
+      else if m.itemType = mg.GameItemType.Enemy2
+        effect = mg.GameItemEffect.Kill
+      else if m.itemType = mg.GameItemType.Spikes
+        effect = mg.GameItemEffect.Kill
+      else
+        ? " UKNOWN GAME ITEM!!"
+      end if
+      return effect
+    end function
+
 
   end class
 

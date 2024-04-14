@@ -29,7 +29,7 @@ namespace mg
     currentPlatform as mc.types.node
     feetCollider as mc.types.node
     velocity = [0, 0]
-    isInputEnabled = false
+    isInputEnabled = true
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
@@ -265,7 +265,7 @@ namespace mg
       if m.playerState = mg.PlayerState.Jumping or m.playerState = mg.PlayerState.Falling
         m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
         ' Move vertically based on ySpeed
-        m.currentPlatform = m.getPlatform()
+        m.currentPlatform = m.getTile()
         if m.currentPlatform <> invalid
           ' ? " LANDED ON FLOOR " m.currentPlatform.rowIndex
           m.top.translation[1] = m.currentPlatform.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
@@ -273,7 +273,7 @@ namespace mg
           m.setPlayerState(m.xSpeed = 0 ? mg.PlayerState.Idle : mg.PlayerState.Walking) ' Or Walking, depending on context
         end if
       else
-        m.currentPlatform = m.getPlatform()
+        m.currentPlatform = m.getTile()
         if m.currentPlatform = invalid
           m.startFalling()
         end if
@@ -287,13 +287,13 @@ namespace mg
       m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
     end function
 
-    ' private function getPlatform()
+    ' private function getTile()
     '   if m.ySpeed < 0
     '     ' ? "Rising"
     '   else
     '     ' ? "Falling"
     '     for each platform in m.mapManager.platformsGroup.getChildren(-1, 0)
-    '       collisionType = platform@.getPlatformCollision(m.feetCollider)
+    '       collisionType = platform@.getTileCollision(m.feetCollider)
     '       if collisionType = mg.PlatformCollision.OnPlatform
     '         return platform
     '       end if
@@ -304,15 +304,15 @@ namespace mg
 
     private startSpeed = 40
 
-    private function getPlatform()
+    private function getTile()
       if m.ySpeed < 0
         ' ? "Rising"
       else
         ' ? "Falling"
         ' Calculate current row based on the character's feet Y position and platform height.
         ' Assuming platformHeight is a constant that you have defined somewhere.
-        ' return m.mapManager@.getPlatform(m.top, m.ySpeed)
-        return m.mapManager@.getPlatformPoster(m.top, m.ySpeed)
+        ' return m.mapManager@.getTile(m.top, m.ySpeed)
+        return m.mapManager@.getPlatformTilePoster(m.top, m.ySpeed)
       end if
       return invalid
     end function

@@ -1,0 +1,152 @@
+import "pkg:/source/core/Utils.bs"
+import "pkg:/source/game/Items/GameItem.bs"
+import "pkg:/source/game/MapLayer.bs"
+
+namespace mg
+  class MapItemLayer extends mg.MapLayer
+    private items
+    private spawnPoint
+
+    function new(group as mc.types.node, numberToCache as integer, prefix as string)
+      super(group, numberToCache, prefix)
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Public Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    function collectItems(target as mc.types.node)
+      feetCollider = target.feetCollider
+      feetTranslation = feetCollider.translation
+      targetTranslation = target.translation
+      targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
+
+      currentRow = int(targetTranslation[1] / m.screenTileHeight)
+      currentCol = int(targetTranslation[0] / m.screenTileWidth)
+      ' Check for collision in the current row and possibly the row below.
+      for rowIndex = currentRow - 1 to currentRow
+        tileIndex = rowIndex * m.rowLength + currentCol
+        tileKey = m.prefix + tileIndex.toStr()
+        item = m.items[tileKey]
+        if item <> invalid
+          effect = item.getEffect()
+          if effect = mg.GameItemEffect.Kill
+            target@.onHit(item)
+          else if effect = mg.GameItemEffect.Coin
+            item.isCollected = true
+            poster = m.usedPosters[tileKey]
+            if poster <> invalid
+              m.releasePoster(poster)
+            end if
+            'TODO
+            ' target@.collectCoin(item)
+          end if
+        end if
+      end for
+
+      return invalid
+    end function
+
+    private function getEffect(tileType as mg.GameItemType)
+      if tileType = mg.GameItemType.Coin
+        return mg.GameItemEffect.Coin
+      else if tileType = mg.GameItemType.Enemy1
+        return mg.GameItemEffect.Kill
+      else
+        ? "Unhandled type " tileType
+        return mg.GameItemEffect.none
+      end if
+
+    end function
+
+    override function reset()
+      ' ? "resetting collected items"
+      for each id in m.items
+        item = m.items[id]
+        ' ? "RESETTING " id item
+        item.reset()
+      end for
+      m.items = {}
+      super.reset()
+    end function
+
+
+    function getStartPositiion()
+      row = int(m.spawnPoint.index / m.rowLength)
+      col = m.spawnPoint.index mod m.rowLength
+      return [col * m.screenTileWidth, row * m.screenTileHeight]
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    '++ Private Methods
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    protected override function parseData(layerData as mc.types.assocarray)
+      super.parseData(layerData)
+      m.items = {}
+      m.parseItems()
+    end function
+
+    protected override function renderTile(tileIndex as integer, rowIndex as integer, colIndex as integer, tileValue as integer)
+      'TODO - DO NOT RENDER THE TILE; but instead render the item!
+      if m.usedPosters[m.prefix + tileIndex.toStr()] = invalid
+        tileKey = m.prefix + tileIndex.toStr()
+        item = m.items[tileKey]
+        if item <> invalid
+          poster = m.getPosterForTile(tileIndex)
+          yPos = rowIndex * m.screenTileHeight
+          poster.translation = [colIndex * m.screenTileWidth, yPos]
+          poster.uri = item.getUri()
+        else
+          ' ? " MISSING ITEM FOR ITEM TILE"
+        end if
+      else
+        'already rendered
+      end if
+    end function
+
+    protected override function initializePool(numberToCache as integer)
+      for i = 0 to numberToCache
+        m.freePosters.push(mc.createSGNode({
+          "_type": "mv_Poster"
+          "id": m.prefix + i.toStr()
+          tileId: 0
+          scale: [2.0, 2.0]
+        }, m.group))
+      end for
+      m.usedPosters = {}
+    end function
+
+    private function parseItems()
+      for rowIndex = 0 to m.numberOfRows
+        for colIndex = 0 to m.rowLength
+          tileIndex = (rowIndex * m.rowLength) + colIndex
+          tileValue = m.tileData[tileIndex]
+          itemType = m.getItemType(tileIndex, tileValue)
+          if itemType <> mg.GameItemType.None
+            item = new mg.GameItem(tileIndex, itemType)
+            m.items[m.prefix + tileIndex.toStr()] = item
+            if itemType = mg.GameItemType.SpawnPoint
+              m.spawnPoint = item
+            end if
+          end if
+        end for
+      end for
+    end function
+
+    'TODO - we should have a finite amount of tiles.. and then reuse them as we scroll
+    ' Define a function to parse TMX JSON and create platforms
+    private function getItemType(tileIndex as integer, tileValue as integer) as mg.GameItemType
+      ' Check if tile is not empty and start index is not set
+      if tileValue = 28
+        return mg.GameItemType.SpawnPoint
+      else if tileValue = 23
+        return mg.GameItemType.Coin
+      else if tileValue = 24
+        return mg.GameItemType.Enemy1
+      end if
+      return mg.GameItemType.None
+    end function
+
+  end class
+end namespace
