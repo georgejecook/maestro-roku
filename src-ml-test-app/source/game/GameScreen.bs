@@ -1,6 +1,7 @@
 import "pkg:/source/view/BaseScreen.bs"
 import "../view/Animation.bs"
 import "pkg:/source/game/MapManager.bs"
+import "pkg:/source/game/EffectManager.bs"
 
 namespace mg
 
@@ -24,11 +25,13 @@ namespace mg
     private bg1 as mc.types.node
     private bg2 as mc.types.node
     private bgScale = 1.5
+    private minLevelScale = 0.75
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Fields
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
+    private deltaTime
     private animatedPosters
     private gameAnim
     private bgSpeed = 80
@@ -40,6 +43,7 @@ namespace mg
     @gameEngine
     private frameTimer = createObject("roTimespan")
 
+    private effectManager as mc.types.node
 
     private video as mc.types.node
 
@@ -190,9 +194,10 @@ namespace mg
       m.foregroundGroup.translation = [foreX, foreY]
     end function
 
-
     private function tick()
       m.player@.tick()
+      m.mapManager@.fixBrokenPosition(m.player)
+      m.effectManager@.tick(m.deltaTime)
     end function
 
     private function updateCamera() as void
@@ -244,7 +249,8 @@ namespace mg
       time = m.frameTimer.totalMilliseconds()
       if m.gameState.lastAnimTime > 0
         ' Calculate delta time in seconds
-        m.gameState.deltaTime = (time - m.gameState.lastAnimTime) / 1000.0
+        m.deltaTime = (time - m.gameState.lastAnimTime) / 1000.0
+        m.gameState.deltaTime = m.deltaTime
       end if
       m.gameState.lastAnimTime = time
     end function
@@ -277,7 +283,7 @@ namespace mg
       m.levelScale += (m.targetScale - m.levelScale) * (m.scaleSpeed + m.scaleSpeedMod) * deltaTime
 
       ' Ensure the levelScale is clamped between a minimum scale and 1
-      m.levelScale = mc.clamp(m.levelScale, 0.65, 1.0)
+      m.levelScale = mc.clamp(m.levelScale, m.minLevelScale, 1.0)
 
       ' Apply the level scale to the game level or camera
       m.applyLevelScale(m.levelScale)
@@ -290,7 +296,7 @@ namespace mg
 
       ' ? "PLAYER SPEED IS " xSpeed
       if xSpeed > 800
-        m.targetScale = 0.65 ' Scale down if x speed is high
+        m.targetScale = m.minLevelScale ' Scale down if x speed is high
         m.scaleSpeedMod = 0
       else
         m.targetScale = 1.0 ' Scale back to normal
@@ -300,6 +306,7 @@ namespace mg
 
     private function applyLevelScale(scale as float)
       m.levelGroup.scale = [scale, scale]
+      m.mapManager.levelScale = m.levelScale
     end function
 
 
@@ -325,6 +332,12 @@ namespace mg
         mapManager: m.mapManager
       }, m.levelGroup, "player")
       m.gameState.player = m.player
+      m.effectManager = m.createSGNode({
+        "_type": "EffectManager"
+        "id": "effectManager"
+        container: m.levelGroup
+      }, m.top)
+      m.player.effectManager = m.effectManager
     end function
 
     private platformsGroup as mc.types.node

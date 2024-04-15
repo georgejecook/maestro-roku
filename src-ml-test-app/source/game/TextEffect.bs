@@ -1,0 +1,47 @@
+import "pkg:/source/core/BaseClass.bs"
+
+namespace mg
+  class TextEffect extends mc.BaseClass
+    id as string
+    isActive = false
+
+    private label as mc.types.node
+    private currentTime as integer = 0
+    private duration as integer = 0
+
+    function new(container as mc.types.node, id as string)
+      super("TextEffect")
+      m.id = id
+      m.label = mc.createSGNode({
+        _type: "mv_Label"
+        vertAlign: "center"
+        horizAlign: "left"
+        size: [0, 50]
+        font: "font:MediumBoldSystemFont"
+      }, container)
+    end function
+
+    function showText(target as mc.types.node, text as string, duration as integer, color as string)
+      m.label.text = text
+      m.label.color = color
+      m.currentTime = 0
+      m.duration = duration
+      ' m.label.translation = [target.translation[0], target.translation[1] - 50]
+      m.label.translation = [target.translation[0], target.translation[1] - 50]
+      m.isActive = true
+      ? " showing text " text
+    end function
+
+    function tick(deltaTime as integer)
+      m.currentTime += deltaTime
+      'calculate % completion
+      completion = m.currentTime / m.duration
+      m.label.opacity = 1 - completion
+      m.label.translation = [m.label.translation[0], m.label.translation[1] - (1 - completion) * 10]
+      if completion >= 1
+        m.isActive = false
+      end if
+    end function
+
+  end class
+end namespace

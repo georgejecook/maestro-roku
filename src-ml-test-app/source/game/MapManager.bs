@@ -8,6 +8,7 @@ namespace mg
   @node("MapManager", "Group")
   class MapManager extends mc.BaseClass
     mapSize = [0, 0]
+    levelScale = 1.0
 
     private levelGroup as mc.types.node
 
@@ -33,7 +34,6 @@ namespace mg
     private screenWidth = 1920
     private tilesPerVisibleRow = int(m.screenWidth / m.screenTileWidth)
     private tilesPerVisibleColumn = int(m.screenHeight / m.screenTileHeight)
-
 
     private tileData = []
 
@@ -65,7 +65,8 @@ namespace mg
 
     function renderTilesAtCurrentPosition()
       for each layer in m.mapLayers
-        layer.renderTilesAtCurrentPosition()
+        'bs:disable-next-line
+        layer.renderTilesAtCurrentPosition(m.levelScale)
       end for
     end function
 
@@ -80,6 +81,7 @@ namespace mg
       m.endY = int(endY)
       m.update()
     end function
+
 
     function update() as void
       ' Retrieve current translation of levelGroup to determine which part of the map is visible
@@ -100,17 +102,22 @@ namespace mg
       m.mapX = newMapX
       m.mapY = newMapY
 
+      ' Adjust the number of visible tiles based on the levelScale
+      scale = mc.clamp(m.levelScale, 0.75, 1.0) - (0.15) 'always render a little more
+      visibleColumns = int((m.screenWidth / m.screenTileWidth) / scale)
+      visibleRows = int((m.screenHeight / m.screenTileHeight) / scale)
+
       ' Calculate the bounds of the previously visible area
       oldStartX = m.mapX - deltaX
       oldStartY = m.mapY - deltaY
-      oldEndX = oldStartX + (m.screenWidth / m.screenTileWidth)
-      oldEndY = oldStartY + (m.screenHeight / m.screenTileHeight)
+      oldEndX = oldStartX + visibleColumns
+      oldEndY = oldStartY + visibleRows
 
       ' Calculate the bounds of the new visible area
       newStartX = m.mapX
       newStartY = m.mapY
-      newEndX = newStartX + (m.screenWidth / m.screenTileWidth)
-      newEndY = newStartY + (m.screenHeight / m.screenTileHeight)
+      newEndX = newStartX + visibleColumns
+      newEndY = newStartY + visibleRows
 
       updateEvent = {
         newStartX: newStartX
@@ -123,12 +130,62 @@ namespace mg
         oldEndY: oldEndY
         deltaX: deltaX
         deltaY: deltaY
+        levelScale: m.levelScale
       }
 
       for each layer in m.mapLayers
         layer.update(updateEvent)
       end for
     end function
+
+    ' function update() as void
+    '   ' Retrieve current translation of levelGroup to determine which part of the map is visible
+    '   newMapX = m.startX
+    '   newMapY = m.startY
+
+    '   ' Check if the map position has changed since the last update
+    '   if newMapX = m.mapX and newMapY = m.mapY
+    '     return ' If the position hasn't changed, no need to update
+    '   end if
+
+    '   ? " UPDATING MAP " newMapX " " newMapY
+    '   ' Calculate delta changes
+    '   deltaX = newMapX - m.mapX
+    '   deltaY = newMapY - m.mapY
+
+    '   ' Update current map positions for the next check
+    '   m.mapX = newMapX
+    '   m.mapY = newMapY
+
+    '   ' Calculate the bounds of the previously visible area
+    '   oldStartX = m.mapX - deltaX
+    '   oldStartY = m.mapY - deltaY
+    '   oldEndX = oldStartX + (m.screenWidth / m.screenTileWidth)
+    '   oldEndY = oldStartY + (m.screenHeight / m.screenTileHeight)
+
+    '   ' Calculate the bounds of the new visible area
+    '   newStartX = m.mapX
+    '   newStartY = m.mapY
+    '   newEndX = newStartX + (m.screenWidth / m.screenTileWidth)
+    '   newEndY = newStartY + (m.screenHeight / m.screenTileHeight)
+
+    '   updateEvent = {
+    '     newStartX: newStartX
+    '     newStartY: newStartY
+    '     newEndX: newEndX
+    '     newEndY: newEndY
+    '     oldStartX: oldStartX
+    '     oldStartY: oldStartY
+    '     oldEndX: oldEndX
+    '     oldEndY: oldEndY
+    '     deltaX: deltaX
+    '     deltaY: deltaY
+    '   }
+
+    '   for each layer in m.mapLayers
+    '     layer.update(updateEvent)
+    '   end for
+    ' end function
 
     function collectItems(target as mc.types.node)
       return m.itemMapLayer.collectItems(target)
@@ -148,6 +205,10 @@ namespace mg
 
     function getPlayerStartPosition()
       return m.itemMapLayer.getStartPosition()
+    end function
+
+    function fixBrokenPosition(target as mc.types.node)
+      m.itemMapLayer.fixBrokenPosition(target)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -177,12 +238,12 @@ namespace mg
 
         else if layerData.name = "platforms"
           m.configureMapSettings(layerData, m.platformsGroup)
-          m.tileMapLayer = new mg.MapLayer(m.levelGroup, 200, "t_")
+          m.tileMapLayer = new mg.MapLayer(m.levelGroup, 300, "t_")
           m.tileMapLayer.parseData(layerData)
 
         else if layerData.name = "items"
           ' m.parseItemLayer(layerData, m.itemsGroup)
-          m.itemMapLayer = new mg.MapItemLayer(m.itemsGroup, 200, "i_")
+          m.itemMapLayer = new mg.MapItemLayer(m.itemsGroup, 300, "i_")
           m.itemMapLayer.parseData(layerData)
         else
           ? "UNKNOWN LAYER! " layerData.name

@@ -40,37 +40,38 @@ namespace mg
     '++ Public Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-    function renderTilesAtCurrentPosition()
-      ' m.log.info("Rendering tiles at current position")
+    function renderTilesAtCurrentPosition(levelScale as float)
+      ' Ensure the levelScale is clamped between a minimum scale and 1
+      levelScale = mc.clamp(levelScale, 0.65, 1.0)
 
-      ' Clear previously rendered platforms (assuming you have a method to reset or clear posters)
+      ' Adjust the number of tiles to render based on the level scale
+      visibleColumns = int((m.screenWidth / m.screenTileWidth) / levelScale)
+      visibleRows = int((m.screenHeight / m.screenTileHeight) / levelScale)
+
+      ' Clear previously rendered platforms
       for each id in m.usedPosters
         poster = m.usedPosters[id]
         if poster <> invalid
           m.releasePoster(poster)
-          poster.visible = false ' Make sure to hide the poster
+          poster.visible = false
         end if
       end for
       m.usedPosters = {} ' Reset the dictionary after releasing posters
 
-      ' m.log.info("Rendering map at position", m.mapX, m.mapY, m.tilesPerVisibleColumn, "x", m.tilesPerVisibleRow)
-
-      ' Iterate over all tiles starting from the current map position
-      for rowIndex = m.mapY to m.mapY + m.tilesPerVisibleColumn
-        for colIndex = m.mapX to m.mapX + m.tilesPerVisibleRow
-          tileIndex = rowIndex * m.rowLength + colIndex ' Use m.rowLength here
+      ' Iterate over all tiles starting from the current map position adjusted for level scale
+      for rowIndex = m.mapY to m.mapY + visibleRows
+        for colIndex = m.mapX to m.mapX + visibleColumns
+          tileIndex = rowIndex * m.rowLength + colIndex
           if tileIndex >= 0 and tileIndex < m.tileData.count()
             tileValue = m.tileData[tileIndex]
-            ' ? " TILE INDEX " tileIndex " VALUE " tileValue
-
             if m.isRenderedTile(tileValue)
-              ' ? " RENDERING TILE AT " rowIndex ", " colIndex " WITH VALUE " tileValue
               m.renderTile(tileIndex, rowIndex, colIndex, tileValue)
             end if
           end if
         end for
       end for
     end function
+
 
     ' function getPlatformTilePoster(target as mc.types.node, ySpeed as float)
     '   return m.getTilePoster(target, ySpeed)
@@ -95,17 +96,6 @@ namespace mg
       end if
 
       return invalid
-    end function
-
-
-    function updateCameraView(startX as integer, startY as integer, endX as integer, endY as integer)
-      m.startX = int(startX)
-      m.startY = int(startY)
-      m.endX = int(endX)
-      m.endY = int(endY)
-      ' m.mapX = m.startX
-      ' m.mapY = m.startY
-      m.update()
     end function
 
     function update(event as mc.types.assocarray) as void
@@ -203,6 +193,7 @@ namespace mg
             characterLeft = characterPosition[0]
             characterRight = characterPosition[0] + feetCollider.width
 
+            'FIXME - need tweaking in here
             if (direction = 1 and characterRight > platformLeft and characterLeft < platformRight) or (direction = -1 and characterLeft < platformRight and characterRight > platformLeft)
               ' Found valid collision, return the associated poster or platform data
               if m.usedPosters.doesExist(m.prefix + tileIndex.toStr())
@@ -218,7 +209,7 @@ namespace mg
 
 
     function reset()
-      m.renderTilesAtCurrentPosition()
+      m.renderTilesAtCurrentPosition(1.0)
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -251,19 +242,15 @@ namespace mg
     end function
 
     private function getTilePosterBelowPlayer(targetTranslation as mc.types.array, feetCollider as mc.types.node, ySpeed as float, currentCol as integer)
-
       currentRow = int(targetTranslation[1] / m.screenTileHeight)
-
-      ' Calculate the number of rows to check based on the fall speed.
       fallSpeedRows = abs(ySpeed) / m.screenTileHeight
-      rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
+      rowsToCheck = mc.clamp(int(fallSpeedRows), 1, 5) ' Adjusted for more dynamic range based on speed
 
       for rowIndex = currentRow to currentRow + rowsToCheck
-        tileIndex = (rowIndex * m.mapSize[0]) + currentCol
+        tileIndex = (rowIndex * m.rowLength) + currentCol
         if tileIndex >= 0 and tileIndex < m.tileData.count()
           tileValue = m.tileData[tileIndex]
           if m.isCollidableTile(tileValue)
-            ' Verify vertical alignment
             platformTop = rowIndex * m.screenTileHeight
             playerBottom = targetTranslation[1] + feetCollider.height
             if playerBottom >= platformTop and playerBottom < platformTop + m.screenTileHeight
@@ -275,6 +262,57 @@ namespace mg
 
       return invalid
     end function
+
+    function fixBrokenPosition(target as mc.types.node)
+      feetCollider = target.feetCollider
+      targetTranslation = target.translation
+      targetHeight = feetCollider.height
+      targetBottomY = targetTranslation[1] + targetHeight
+
+      currentCol = int(targetTranslation[0] / m.screenTileWidth)
+      currentRow = int(targetBottomY / m.screenTileHeight)
+
+      tileIndex = currentRow * m.rowLength + currentCol
+      if tileIndex >= 0 and tileIndex < m.tileData.count()
+        tileValue = m.tileData[tileIndex]
+        if m.isCollidableTile(tileValue)
+          ' The player is intersecting a tile, adjust position
+          platformTop = (currentRow * m.screenTileHeight) - 120
+          if targetBottomY > platformTop
+            ' Reposition to stand exactly on top of the collidable tile
+            target.translation = [targetTranslation[0], platformTop - targetHeight]
+            target.currentPlaform = m.usedPosters["t_" + tileIndex.toStr()]
+          end if
+        end if
+      end if
+    end function
+
+
+    ' private function getTilePosterBelowPlayer(targetTranslation as mc.types.array, feetCollider as mc.types.node, ySpeed as float, currentCol as integer)
+
+    '   currentRow = int(targetTranslation[1] / m.screenTileHeight)
+
+    '   ' Calculate the number of rows to check based on the fall speed.
+    '   fallSpeedRows = abs(ySpeed) / m.screenTileHeight
+    '   rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
+
+    '   for rowIndex = currentRow to currentRow + rowsToCheck
+    '     tileIndex = (rowIndex * m.mapSize[0]) + currentCol
+    '     if tileIndex >= 0 and tileIndex < m.tileData.count()
+    '       tileValue = m.tileData[tileIndex]
+    '       if m.isCollidableTile(tileValue)
+    '         ' Verify vertical alignment
+    '         platformTop = rowIndex * m.screenTileHeight
+    '         playerBottom = targetTranslation[1] + feetCollider.height
+    '         if playerBottom >= platformTop and playerBottom < platformTop + m.screenTileHeight
+    '           return m.usedPosters[m.prefix + tileIndex.toStr()]
+    '         end if
+    '       end if
+    '     end if
+    '   end for
+
+    '   return invalid
+    ' end function
 
 
     private sideTiles = {
