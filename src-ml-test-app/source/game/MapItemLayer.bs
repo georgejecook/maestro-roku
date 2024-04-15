@@ -21,28 +21,28 @@ namespace mg
       targetTranslation = target.translation
       targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
 
+      'TODO -we can fine tune which tiles we are checking
       currentRow = int(targetTranslation[1] / m.screenTileHeight)
       currentCol = int(targetTranslation[0] / m.screenTileWidth)
-      ' Check for collision in the current row and possibly the row below.
-      for rowIndex = currentRow - 1 to currentRow
-        tileIndex = rowIndex * m.rowLength + currentCol
-        tileKey = m.prefix + tileIndex.toStr()
-        item = m.items[tileKey]
-        if item <> invalid
-          effect = item.getEffect()
-          if effect = mg.GameItemEffect.Kill
-            target@.onHit(item)
-          else if effect = mg.GameItemEffect.Coin
-            item.isCollected = true
-            poster = m.usedPosters[tileKey]
-            if poster <> invalid
-              m.releasePoster(poster)
-            end if
-            'TODO
-            ' target@.collectCoin(item)
+
+      tileIndex = currentRow * m.rowLength + currentCol
+      tileKey = m.prefix + tileIndex.toStr()
+      item = m.items[tileKey]
+      if item <> invalid and item.isActive
+        'TODO - we can fine check the collision here
+        'By actually checking the players bounding rect, and even having a bounding rect for the item
+        effect = item.getEffect()
+        if effect = mg.GameItemEffect.Kill
+          target@.onHit(item)
+        else if effect = mg.GameItemEffect.Coin
+          target@.onCollectItem(mg.GameItemType.Coin)
+          item.isActive = false
+          poster = m.usedPosters[tileKey]
+          if poster <> invalid
+            m.releasePoster(poster)
           end if
         end if
-      end for
+      end if
 
       return invalid
     end function
@@ -56,7 +56,6 @@ namespace mg
         ? "Unhandled type " tileType
         return mg.GameItemEffect.none
       end if
-
     end function
 
     override function reset()
@@ -66,15 +65,18 @@ namespace mg
         ' ? "RESETTING " id item
         item.reset()
       end for
-      m.items = {}
       super.reset()
     end function
 
 
-    function getStartPositiion()
+    function getStartPosition()
+
       row = int(m.spawnPoint.index / m.rowLength)
       col = m.spawnPoint.index mod m.rowLength
-      return [col * m.screenTileWidth, row * m.screenTileHeight]
+      ' m.log.info("getting start position tile index ", m.spawnPoint.index, row, col)
+      ' position = [col * m.screenTileWidth, row * m.screenTileHeight]
+      position = [col * m.screenTileWidth, row * m.screenTileHeight - 100]
+      return position
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -92,11 +94,12 @@ namespace mg
       if m.usedPosters[m.prefix + tileIndex.toStr()] = invalid
         tileKey = m.prefix + tileIndex.toStr()
         item = m.items[tileKey]
-        if item <> invalid
+        if item <> invalid and item.isActive
           poster = m.getPosterForTile(tileIndex)
           yPos = rowIndex * m.screenTileHeight
           poster.translation = [colIndex * m.screenTileWidth, yPos]
           poster.uri = item.getUri()
+          poster.visible = true
         else
           ' ? " MISSING ITEM FOR ITEM TILE"
         end if

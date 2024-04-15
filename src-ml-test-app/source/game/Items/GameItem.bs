@@ -4,7 +4,7 @@ namespace mg
   class GameItem
 
     index as integer
-    isCollected = false
+    isActive = true
     itemType = mg.GameItemType.None
 
     function new(index as integer, itemType as mg.GameItemType)
@@ -13,7 +13,7 @@ namespace mg
     end function
 
     function reset()
-      m.isCollected = false
+      m.isActive = true
     end function
 
     function getCollision(target as mc.types.node, poster as mc.types.node) as object
@@ -56,8 +56,10 @@ namespace mg
         uri = "pkg:/images/sprites/bad-guy.png"
       else if m.itemType = mg.GameItemType.Spikes
         uri = "pkg:/images/sprites/bad-guy.png"
+      else if m.itemType = mg.GameItemType.SpawnPoint
+        uri = ""
       else
-        ? " UKNOWN GAME ITEM!!"
+        ? " NO URI FOR ITEM: " m.index " " m.itemType
       end if
       return uri
     end function
@@ -72,8 +74,10 @@ namespace mg
         effect = mg.GameItemEffect.Kill
       else if m.itemType = mg.GameItemType.Spikes
         effect = mg.GameItemEffect.Kill
+      else if m.itemType = mg.GameItemType.SpawnPoint
+        effect = mg.GameItemEffect.None
       else
-        ? " UKNOWN GAME ITEM!!"
+        ? " NO EFFECT FOR ITEM " m.index " " m.itemType
       end if
       return effect
     end function

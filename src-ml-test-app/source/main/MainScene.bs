@@ -17,6 +17,9 @@ namespace mc.sample
     public _appController as mc.types.node
     public _global as mc.types.node
 
+    @alwaysNotify
+    public playSound = {}
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Views
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -135,7 +138,8 @@ namespace mc.sample
 
     private function showInitialScreen()
       m.log.info("show initial screen")
-      m.developerScreen = mc.createSGNode("DeveloperScreen", m.top, "developerScreen")
+      ' m.developerScreen = mc.createSGNode("DeveloperScreen", m.top, "developerScreen")
+      m.developerScreen = mc.createSGNode("GameScreen", m.top, "developerScreen")
       if m.developerScreen <> invalid
         m.log.warn("Launching in dev mode!")
         m.observeNodeField(m.developerScreen, "state", m.onDeveloperScreenState)

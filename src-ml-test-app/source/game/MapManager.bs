@@ -10,7 +10,6 @@ namespace mg
     mapSize = [0, 0]
 
     private levelGroup as mc.types.node
-    private playerStartPosition = [0, 0]
 
     'levels have different layers
     private backgroundGroup as mc.types.node
@@ -92,6 +91,7 @@ namespace mg
         return ' If the position hasn't changed, no need to update
       end if
 
+      ? " UPDATING MAP " newMapX " " newMapY
       ' Calculate delta changes
       deltaX = newMapX - m.mapX
       deltaY = newMapY - m.mapY
@@ -134,8 +134,8 @@ namespace mg
       return m.itemMapLayer.collectItems(target)
     end function
 
-    function getSideCollision(target as object, direction as integer) as object
-      return m.tileMapLayer.getSideCollision(target, direction)
+    function getSideCollision(target as object, xSpeed as float, isOnGround as boolean) as object
+      return m.tileMapLayer.getSideCollision(target, xSpeed, isOnGround)
     end function
 
     function resetLevel()
@@ -147,7 +147,7 @@ namespace mg
     end function
 
     function getPlayerStartPosition()
-      return m.playerStartPosition
+      return m.itemMapLayer.getStartPosition()
     end function
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -193,10 +193,6 @@ namespace mg
     private function configureMapSettings(layerData as mc.types.assocarray, targetNode as mc.types.node)
       m.tileData = layerData.data
       m.mapSize = [layerData.width * m.screenTileWidth, layerData.height * m.screenTileHeight]
-    end function
-
-    private function getStartPosition()
-      return m.itemMapLayer.getStartPosition()
     end function
 
   end class

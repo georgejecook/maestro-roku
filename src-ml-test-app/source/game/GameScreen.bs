@@ -41,8 +41,18 @@ namespace mg
     private frameTimer = createObject("roTimespan")
 
 
-    'video playing experiment - ignore
     private video as mc.types.node
+
+    private mapX = 0
+    private mapY = 0
+
+    'camera zoom
+    private levelScale as float = 1.0
+    private targetScale as float = 1.0
+    private scaleSpeed as float = 0.2
+    private scaleSpeedMod as float = 0
+
+    private currentSoundChannel = 0
 
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Initialization
@@ -59,6 +69,13 @@ namespace mg
       ' m.setInterval(m.updateBackground, 3)
     end function
 
+    function playSound(soundName as string, volume = 100 as integer)
+      m.top.getScene().playSound = {
+        "name": soundName
+        "volume": volume
+      }
+    end function
+
     private function createGameState()
       m.gameState = m.createSGNode({
         "_type": "GameState"
@@ -72,7 +89,6 @@ namespace mg
       m.createLevel()
     end function
 
-
     function createVideoPlayer() as void
       videoContent = createObject("RoSGNode", "ContentNode")
       videoContent.url = "https://roku.s.cpl.delvenetworks.com/media/59021fabe3b645968e382ac726cd6c7b/60b4a471ffb74809beb2f7d5a15b3193/roku_ep_111_segment_1_final-cc_mix_033015-a7ec8a288c4bcec001c118181c668de321108861.m3u8"
@@ -81,14 +97,14 @@ namespace mg
 
       m.video = m.createSGNode({
         _type: "Video"
-        translation: [4000, 500]
+        translation: [500, 1400]
         width: 640
         height: 480
         enableUI: false
         enableTrickPlay: false
       }, m.platformsGroup)
       m.video.content = videoContent
-      m.video.control = "play"
+      ' m.video.control = "play"
     end function
 
     private contentGroup as mc.types.node
@@ -144,6 +160,7 @@ namespace mg
       m.tick()
       m.updateCameraScale(m.gameState.deltaTime)
       m.updateCamera()
+      ' m.updateGameItems()
       m.updateParallax()
 
       m.resetKeyStates()
@@ -179,9 +196,7 @@ namespace mg
     end function
 
     private function updateCamera() as void
-      if m.isMapMovingMode
-        return
-      end if
+
       playerTranslation = m.player.translation
       playerTranslation[0] = playerTranslation[0] * m.levelScale
       playerTranslation[1] = playerTranslation[1] * m.levelScale
@@ -205,6 +220,11 @@ namespace mg
       desiredX = mc.clamp(desiredX, minX, maxX)
       desiredY = mc.clamp(desiredY, minY, maxY)
 
+      if m.isMapMovingMode
+        'we are in god mode - so make the player move to mapX, mapY with 100 px and 200 px offset
+        m.player.translation = [m.mapX * 128 + 100, m.mapY * 128 + 200]
+        return
+      end if
       ' Update the levelGroup translation to move the camera
       m.levelGroup.translation = [desiredX, desiredY]
       ' Calculate visible tile ranges
@@ -230,14 +250,24 @@ namespace mg
     end function
 
 
+    private function updateGameItems()
+      'TODO - work out where video plyayers and items that need activating are
+      'if the players position is within the video player screen area, play
+      'if not pause
+      translation = m.player.translation
+      if translation[0] < 1000 and translation[1] < 2000 and translation[1] > 200
+        if m.video.control <> "play"
+          m.video.control = "play"
+        end if
+      else
+        if m.video.control <> "pause"
+          m.video.control = "pause"
+        end if
+      end if
+    end function
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Camera zoom out
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    private levelScale as float = 1.0
-    private targetScale as float = 1.0
-    private scaleSpeed as float = 0.2
-    private scaleSpeedMod as float = 0
 
     private function updateCameraScale(deltaTime as float)
       ' Adjust the level scale based on the player's x speed
@@ -330,6 +360,11 @@ namespace mg
     private function onInput()
       ' ? "KD " m.gameState.isKeyDown " K " m.pressedKey " start " m.gameState.isPressStart " LP " m.gameState.isLongPress
       if m.gameState.isPressStart
+        if m.gameState.pressedKey = "options"
+          m.isMapMovingMode = not m.isMapMovingMode
+          m.player.isInputEnabled = not m.isMapMovingMode
+          m.log.info("setting mapMoving mode to", m.isMapMovingMode)
+        end if
         if m.gameState.pressedKey = "OK"
           ' ? "BOOST!"
           m.bgSpeed += 80
@@ -343,8 +378,6 @@ namespace mg
       end if
     end function
 
-    private mapX = 0
-    private mapY = 0
     private function onMapInput()
       if m.gameState.isKeyDown
         pressedKey = m.gameState.pressedKey

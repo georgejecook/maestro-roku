@@ -147,7 +147,12 @@ namespace mg
 
     private animstate = "none"
     private function setPlayerState(state as mg.PlayerState)
-      m.playerState = state
+      if m.playerState <> state
+        m.playerState = state
+        if state = mg.PlayerState.Jumping
+          m.playSound("jump")
+        end if
+      end if
       'TODO - fix this
       animState = mg.PlayerState.Walking
       if animState <> m.animstate
@@ -243,7 +248,8 @@ namespace mg
     private function checkLateralCollision()
       ' Only perform lateral collision checks if not in the middle of a fast fall
       if abs(m.ySpeed) < m.maxYSpeed / 2 ' Adjust threshold as needed
-        lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed > 0 ? 1 : -1)
+        isOnGround = m.playerState = mg.PlayerState.Walking or m.playerState = mg.PlayerState.Idle
+        lateralCollisionPlatform = m.mapManager@.getSideCollision(m.top, m.xSpeed, isOnGround)
 
         if lateralCollisionPlatform <> invalid
           ' Additional check to ensure we're not detecting a platform the player is about to land on
@@ -260,25 +266,47 @@ namespace mg
       end if
     end function
 
-    private function applyGravity()
+
+    private function applyGravity() as void
+      if not m.isInputEnabled
+        return
+      end if
+
       ' Apply gravity if in the air
       if m.playerState = mg.PlayerState.Jumping or m.playerState = mg.PlayerState.Falling
-        m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
+        m.ySpeed += (m.gravity * m.deltaTime)
         ' Move vertically based on ySpeed
-        m.currentPlatform = m.getTile()
-        if m.currentPlatform <> invalid
-          ' ? " LANDED ON FLOOR " m.currentPlatform.rowIndex
-          m.top.translation[1] = m.currentPlatform.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
-          m.ySpeed = 0
-          m.setPlayerState(m.xSpeed = 0 ? mg.PlayerState.Idle : mg.PlayerState.Walking) ' Or Walking, depending on context
+        potentialPlatform = m.getTile()
+        if potentialPlatform <> invalid
+          platformTopY = potentialPlatform.translation[1]
+          playerBottomY = m.top.translation[1] + m.feetCollider.height
+          ' Ensure the player only lands when the feet are above the platform top within a tolerance
+          if playerBottomY < platformTopY + 10 ' Tolerance of 10 pixels
+            m.top.translation[1] = platformTopY - m.feetCollider.height
+            m.ySpeed = 0
+            m.setPlayerState(m.xSpeed = 0 ? mg.PlayerState.Idle : mg.PlayerState.Walking)
+          end if
         end if
       else
+        ' Check if the player should start falling
+        wasInAir = m.currentPlatform = invalid
         m.currentPlatform = m.getTile()
         if m.currentPlatform = invalid
           m.startFalling()
+        else if wasInAir
+          m.playSound("landing", 80)
         end if
       end if
+    end function
 
+    private function getTile()
+      if m.ySpeed < 0
+        ' ? "Rising"
+      else
+        ' ? "Falling"
+        return m.mapManager@.getPlatformTilePoster(m.top, m.ySpeed)
+      end if
+      return invalid
     end function
 
     private function startFalling()
@@ -304,25 +332,27 @@ namespace mg
 
     private startSpeed = 40
 
-    private function getTile()
-      if m.ySpeed < 0
-        ' ? "Rising"
-      else
-        ' ? "Falling"
-        ' Calculate current row based on the character's feet Y position and platform height.
-        ' Assuming platformHeight is a constant that you have defined somewhere.
-        ' return m.mapManager@.getTile(m.top, m.ySpeed)
-        return m.mapManager@.getPlatformTilePoster(m.top, m.ySpeed)
-      end if
-      return invalid
+    function playSound(soundName as string, volume = 100 as integer)
+      m.top.getScene().playSound = {
+        "name": soundName
+        "volume": volume
+      }
     end function
 
     private function collectItems()
       return m.mapManager@.collectItems(m.top)
     end function
 
+
     function onHit(enemy as mc.types.node)
       m.resetPlayer()
+    end function
+
+    function onCollectItem(itemType as mg.GameItemType)
+      if itemType = mg.GameItemType.Coin
+        ? " COLLECTED COIN"
+        m.playSound("coin")
+      end if
     end function
 
     function resetPlayer()

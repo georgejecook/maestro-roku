@@ -41,7 +41,7 @@ namespace mg
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     function renderTilesAtCurrentPosition()
-      m.log.info("Rendering tiles at current position")
+      ' m.log.info("Rendering tiles at current position")
 
       ' Clear previously rendered platforms (assuming you have a method to reset or clear posters)
       for each id in m.usedPosters
@@ -53,7 +53,7 @@ namespace mg
       end for
       m.usedPosters = {} ' Reset the dictionary after releasing posters
 
-      m.log.info("Rendering map at position", m.mapX, m.mapY, m.tilesPerVisibleColumn, "x", m.tilesPerVisibleRow)
+      ' m.log.info("Rendering map at position", m.mapX, m.mapY, m.tilesPerVisibleColumn, "x", m.tilesPerVisibleRow)
 
       ' Iterate over all tiles starting from the current map position
       for rowIndex = m.mapY to m.mapY + m.tilesPerVisibleColumn
@@ -61,10 +61,10 @@ namespace mg
           tileIndex = rowIndex * m.rowLength + colIndex ' Use m.rowLength here
           if tileIndex >= 0 and tileIndex < m.tileData.count()
             tileValue = m.tileData[tileIndex]
-            ? " TILE INDEX " tileIndex " VALUE " tileValue
+            ' ? " TILE INDEX " tileIndex " VALUE " tileValue
 
             if m.isRenderedTile(tileValue)
-              ? " RENDERING TILE AT " rowIndex ", " colIndex " WITH VALUE " tileValue
+              ' ? " RENDERING TILE AT " rowIndex ", " colIndex " WITH VALUE " tileValue
               m.renderTile(tileIndex, rowIndex, colIndex, tileValue)
             end if
           end if
@@ -72,9 +72,31 @@ namespace mg
       end for
     end function
 
+    ' function getPlatformTilePoster(target as mc.types.node, ySpeed as float)
+    '   return m.getTilePoster(target, ySpeed)
+    ' end function
+
     function getPlatformTilePoster(target as mc.types.node, ySpeed as float)
-      return m.getTilePoster(target, ySpeed)
+      feetCollider = target.feetCollider
+      feetTranslation = feetCollider.translation
+      targetTranslation = target.translation
+      targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1] + feetCollider.height] ' Adjust to check platform tops
+
+      currentRow = int(targetTranslation[1] / m.screenTileHeight)
+      currentCol = int(targetTranslation[0] / m.screenTileWidth)
+
+      ' Check directly under the player's feet
+      tileIndex = currentRow * m.rowLength + currentCol
+      if tileIndex >= 0 and tileIndex < m.tileData.count()
+        tileValue = m.tileData[tileIndex]
+        if m.isCollidableTile(tileValue)
+          return m.usedPosters["t_" + tileIndex.toStr()] ' Ensure this refers to a valid platform poster or platform data
+        end if
+      end if
+
+      return invalid
     end function
+
 
     function updateCameraView(startX as integer, startY as integer, endX as integer, endY as integer)
       m.startX = int(startX)
@@ -116,47 +138,84 @@ namespace mg
       end for
     end function
 
-    function getSideCollision(target as object, direction as integer) as object
-      'FIXME - update to use tile data
-      ' feetCollider = target.feetCollider
-      ' feetTranslation = feetCollider.translation
-      ' characterTranslation = target.translation
-      ' characterPosition = [characterTranslation[0] + feetTranslation[0], characterTranslation[1] + feetTranslation[1]]
+    ' function getSideCollision(target as object, xSpeed as float) as object
+    '   'FIXME - update to use tile data
+    '   ' feetCollider = target.feetCollider
+    '   ' feetTranslation = feetCollider.translation
+    '   ' characterTranslation = target.translation
+    '   ' characterPosition = [characterTranslation[0] + feetTranslation[0], characterTranslation[1] + feetTranslation[1]]
 
-      ' currentRow = Int(characterPosition[1] / m.screenTileHeight)
-      ' searchRows = [currentRow] ' Consider current row for lateral collision
+    '   ' currentRow = Int(characterPosition[1] / m.screenTileHeight)
+    '   ' searchRows = [currentRow] ' Consider current row for lateral collision
 
-      ' for each rowIndex in searchRows
-      '   if rowIndex < m.platformsByRow.count() and rowIndex >= 0
-      '     for each platform in m.platformsByRow[rowIndex]
-      '       if platform <> invalid
-      '         platformTranslation = platform.translation
-      '         platformLeft = platformTranslation[0]
-      '         platformRight = platformTranslation[0] + platform.size[0]
-      '         characterLeft = characterPosition[0]
-      '         characterRight = characterPosition[0] + feetCollider.width
+    '   ' for each rowIndex in searchRows
+    '   '   if rowIndex < m.platformsByRow.count() and rowIndex >= 0
+    '   '     for each platform in m.platformsByRow[rowIndex]
+    '   '       if platform <> invalid
+    '   '         platformTranslation = platform.translation
+    '   '         platformLeft = platformTranslation[0]
+    '   '         platformRight = platformTranslation[0] + platform.size[0]
+    '   '         characterLeft = characterPosition[0]
+    '   '         characterRight = characterPosition[0] + feetCollider.width
 
-      '         ' Moving right and approaching the left boundary of a platform
-      '         if direction = 1 and characterRight > platformLeft and characterLeft < platformRight
-      '           ' Allow passing through if moving outwards from within a platform
-      '           if characterLeft < platformLeft
-      '             return platform ' Collision on the right
-      '           end if
+    '   '         ' Moving right and approaching the left boundary of a platform
+    '   '         if direction = 1 and characterRight > platformLeft and characterLeft < platformRight
+    '   '           ' Allow passing through if moving outwards from within a platform
+    '   '           if characterLeft < platformLeft
+    '   '             return platform ' Collision on the right
+    '   '           end if
 
-      '           ' Moving left and approaching the right boundary of a platform
-      '         else if direction = -1 and characterLeft < platformRight and characterRight > platformLeft
-      '           ' Allow passing through if moving outwards from within a platform
-      '           if characterRight > platformRight
-      '             return platform ' Collision on the left
-      '           end if
-      '         end if
-      '       end if
-      '     end for
-      '   end if
-      ' end for
+    '   '           ' Moving left and approaching the right boundary of a platform
+    '   '         else if direction = -1 and characterLeft < platformRight and characterRight > platformLeft
+    '   '           ' Allow passing through if moving outwards from within a platform
+    '   '           if characterRight > platformRight
+    '   '             return platform ' Collision on the left
+    '   '           end if
+    '   '         end if
+    '   '       end if
+    '   '     end for
+    '   '   end if
+    '   ' end for
 
-      return invalid ' No collision detected, allowing free movement
+    '   return invalid ' No collision detected, allowing free movement
+    ' end function
+    function getSideCollision(target as object, xSpeed as float, isOnGround as boolean) as object
+      feetCollider = target.feetCollider
+      feetTranslation = feetCollider.translation
+      targetTranslation = target.translation
+      characterPosition = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
+
+      currentRow = Int(characterPosition[1] / m.screenTileHeight)
+      currentCol = Int(characterPosition[0] / m.screenTileWidth)
+
+      ' Calculate potential tiles based on movement direction
+      direction = xSpeed > 0 ? 1 : -1
+      checkColumns = [currentCol, currentCol + direction] ' Check current and next/previous column based on direction
+
+      for each col in checkColumns
+        tileIndex = currentRow * m.rowLength + col
+        if tileIndex >= 0 and tileIndex < m.tileData.count()
+          tileValue = m.tileData[tileIndex]
+          if m.isSideCollidableTile(tileValue) or isOnGround and m.isCollidableTile(tileValue)
+            ' Verify horizontal alignment to ensure collision
+            platformLeft = col * m.screenTileWidth
+            platformRight = platformLeft + m.screenTileWidth
+            characterLeft = characterPosition[0]
+            characterRight = characterPosition[0] + feetCollider.width
+
+            if (direction = 1 and characterRight > platformLeft and characterLeft < platformRight) or (direction = -1 and characterLeft < platformRight and characterRight > platformLeft)
+              ' Found valid collision, return the associated poster or platform data
+              if m.usedPosters.doesExist(m.prefix + tileIndex.toStr())
+                return m.usedPosters[m.prefix + tileIndex.toStr()]
+              end if
+            end if
+          end if
+        end if
+      end for
+
+      return invalid ' No collision detected
     end function
+
 
     function reset()
       m.renderTilesAtCurrentPosition()
@@ -165,30 +224,51 @@ namespace mg
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     '++ Private Methods
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
     private function getTilePoster(target as mc.types.node, ySpeed as float)
       feetCollider = target.feetCollider
       feetTranslation = feetCollider.translation
       targetTranslation = target.translation
       targetTranslation = [targetTranslation[0] + feetTranslation[0], targetTranslation[1] + feetTranslation[1]]
 
-      currentRow = int(targetTranslation[1] / m.screenTileHeight)
       currentCol = int(targetTranslation[0] / m.screenTileWidth)
+      overlapThreshold = 50 ' pixels of overlap required to check adjacent columns
+      currentColPixelOffset = targetTranslation[0] mod m.screenTileWidth
+
+      ' Check the tile directly below the player first
+      tilePoster = m.getTilePosterBelowPlayer(targetTranslation, feetCollider, ySpeed, currentCol)
+
+      ' Check if player overlaps the next column by at least 50 pixels
+      if tilePoster = invalid and (currentColPixelOffset + feetCollider.width) > m.screenTileWidth + (overlapThreshold / 4)
+        tilePoster = m.getTilePosterBelowPlayer(targetTranslation, feetCollider, ySpeed, currentCol + 1)
+      end if
+
+      ' Check if player overlaps the previous column by at least 50 pixels
+      if tilePoster = invalid and currentColPixelOffset < overlapThreshold
+        tilePoster = m.getTilePosterBelowPlayer(targetTranslation, feetCollider, ySpeed, currentCol - 1)
+      end if
+
+      return tilePoster
+    end function
+
+    private function getTilePosterBelowPlayer(targetTranslation as mc.types.array, feetCollider as mc.types.node, ySpeed as float, currentCol as integer)
+
+      currentRow = int(targetTranslation[1] / m.screenTileHeight)
 
       ' Calculate the number of rows to check based on the fall speed.
-      ' This accounts for the possibility of falling through multiple rows in a single frame.
       fallSpeedRows = abs(ySpeed) / m.screenTileHeight
       rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
-      rowsToCheck = 1
 
       for rowIndex = currentRow to currentRow + rowsToCheck
         tileIndex = (rowIndex * m.mapSize[0]) + currentCol
-        ' tileIndex = (rowIndex * m.tilesPerVisibleRow) + currentCol
         if tileIndex >= 0 and tileIndex < m.tileData.count()
           tileValue = m.tileData[tileIndex]
           if m.isCollidableTile(tileValue)
-            'assume there is a poster here..
-            return m.usedPosters[m.prefix + tileIndex.toStr()]
+            ' Verify vertical alignment
+            platformTop = rowIndex * m.screenTileHeight
+            playerBottom = targetTranslation[1] + feetCollider.height
+            if playerBottom >= platformTop and playerBottom < platformTop + m.screenTileHeight
+              return m.usedPosters[m.prefix + tileIndex.toStr()]
+            end if
           end if
         end if
       end for
@@ -196,8 +276,33 @@ namespace mg
       return invalid
     end function
 
+
+    private sideTiles = {
+      "7": true
+      "9": true
+      "16": true
+      "20": true
+      "20": true
+      "13": true
+    }
+
+    private platformTiles = {
+      "2": true
+      "3": true
+      "4": true
+      "11": true
+      "15": true
+      "17": true
+      "17": true
+      "18": true
+      "19": true
+    }
     private function isCollidableTile(tileValue as integer)
-      return tileValue <> 0 and tileValue <> 5 and tileValue <> 10 and tileValue <> 6
+      return m.platformTiles[tileValue.toStr()] = true
+    end function
+
+    private function isSideCollidableTile(tileValue as integer)
+      return m.sideTiles[tileValue.toStr()] = true
     end function
 
     private function isRenderedTile(tileValue as integer)
@@ -240,7 +345,7 @@ namespace mg
       m.tileData = layerData.data
       m.rowLength = layerData.width
       m.numberOfRows = layerData.height
-      m.mapSize = [layerData.width * m.screenTileWidth, layerData.height * m.screenTileHeight]
+      m.mapSize = [layerData.width, layerData.height]
     end function
 
     protected function renderTile(tileIndex as integer, rowIndex as integer, colIndex as integer, tileValue as integer)
