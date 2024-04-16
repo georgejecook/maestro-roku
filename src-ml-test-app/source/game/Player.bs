@@ -148,8 +148,13 @@ namespace mg
 
     private animstate = "none"
     private function setPlayerState(state as mg.PlayerState)
-      if m.playerState <> state
+      oldState = m.playerState
+      if oldState <> state
         m.playerState = state
+        if oldState <> mg.PlayerState.Walking and oldState <> mg.PlayerState.Idle and (state = mg.PlayerState.Walking or state = mg.PlayerState.Idle)
+          ? " FINISHED FALLING"
+          m.fallDistance = 0
+        end if
         if state = mg.PlayerState.Jumping
           m.playSound("jump")
         end if
@@ -244,6 +249,14 @@ namespace mg
       m.checkLateralCollision()
       m.collectItems()
       m.updateMovement()
+      m.fixCurrentPlatform()
+    end function
+
+    private function fixCurrentPlatform()
+      if m.ySpeed > 0 and m.playerState <> mg.PlayerState.Jumping and m.fallDistance > 50
+        ? " FIXNG BORKEN POS"
+        m.mapManager@.fixBrokenPosition(m.top)
+      end if
     end function
 
     private function checkLateralCollision()
@@ -310,26 +323,14 @@ namespace mg
       return invalid
     end function
 
+    private fallDistance = 0.0
+
     private function startFalling()
       ' ? "starting falling"
       m.setPlayerState(mg.PlayerState.Falling)
+      m.fallDistance = 0
       m.ySpeed = m.ySpeed + (m.gravity * m.deltaTime)
     end function
-
-    ' private function getTile()
-    '   if m.ySpeed < 0
-    '     ' ? "Rising"
-    '   else
-    '     ' ? "Falling"
-    '     for each platform in m.mapManager.platformsGroup.getChildren(-1, 0)
-    '       collisionType = platform@.getTileCollision(m.feetCollider)
-    '       if collisionType = mg.PlatformCollision.OnPlatform
-    '         return platform
-    '       end if
-    '     end for
-    '   end if
-    '   return invalid
-    ' end function
 
     private startSpeed = 40
 
@@ -351,7 +352,7 @@ namespace mg
 
     function onCollectItem(itemType as mg.GameItemType)
       if itemType = mg.GameItemType.Coin
-        ? " COLLECTED COIN"
+        ' ? " COLLECTED COIN"
         m.playSound("coin")
         m.effectManager@.showText(m.top, "100", 1, "#ffffff")
       end if
@@ -448,13 +449,19 @@ namespace mg
       m.moveView(m.top, m.xSpeed, m.ySpeed)
 
       m.velocity = [m.xSpeed, m.ySpeed]
+
     end function
 
     private function moveView(target as mc.types.node, xSpeed as float, ySpeed as float)
       if m.currentPlatform <> invalid
         y = m.currentPlatform.translation[1] - (m.feetCollider.translation[1] + m.feetCollider.height)
       else
-        y = target.translation[1] + (ySpeed * m.deltaTime)
+        distance = (ySpeed * m.deltaTime)
+        y = target.translation[1] + distance
+
+        if m.playerState = mg.PlayerState.falling
+          m.fallDistance += distance
+        end if
       end if
       target.translation = [target.translation[0] + (xSpeed * m.deltaTime), y]
     end function

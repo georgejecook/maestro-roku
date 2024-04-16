@@ -265,55 +265,35 @@ namespace mg
 
     function fixBrokenPosition(target as mc.types.node)
       feetCollider = target.feetCollider
+      feetTranslation = feetCollider.translation
       targetTranslation = target.translation
-      targetHeight = feetCollider.height
-      targetBottomY = targetTranslation[1] + targetHeight
+      targetBottomY = targetTranslation[1] + feetTranslation[1]
+      targetTranslation = [targetTranslation[0] + feetTranslation[0], targetBottomY]
 
+      currentRow = int(targetTranslation[1] / m.screenTileHeight)
       currentCol = int(targetTranslation[0] / m.screenTileWidth)
-      currentRow = int(targetBottomY / m.screenTileHeight)
 
       tileIndex = currentRow * m.rowLength + currentCol
       if tileIndex >= 0 and tileIndex < m.tileData.count()
         tileValue = m.tileData[tileIndex]
+        ' ? " FIXNG BROKEN POS tileIndex: " tileIndex " currenrRow: " currentRow " currentCol: " currentCol "value: " tileValue
+        if target.currentPlatform <> invalid
+          ' ? " HAS PLATOFRM " target.currentPlatform.id
+        end if
         if m.isCollidableTile(tileValue)
+          ' ? "PLAYE RINSIDE COLLIDABLE TILE"
           ' The player is intersecting a tile, adjust position
-          platformTop = (currentRow * m.screenTileHeight) - 120
-          if targetBottomY > platformTop
+          platformY = (currentRow * m.screenTileHeight)
+          if targetBottomY > platformY - 20
+            ? " FIXING POSITIOON!!!!! "
             ' Reposition to stand exactly on top of the collidable tile
-            target.translation = [targetTranslation[0], platformTop - targetHeight]
-            target.currentPlaform = m.usedPosters["t_" + tileIndex.toStr()]
+            y = platformY - (feetTranslation[1] + feetCollider.height)
+            target.translation = [target.translation[0], y]
+            target.currentPlatform = m.usedPosters["t_" + tileIndex.toStr()]
           end if
         end if
       end if
     end function
-
-
-    ' private function getTilePosterBelowPlayer(targetTranslation as mc.types.array, feetCollider as mc.types.node, ySpeed as float, currentCol as integer)
-
-    '   currentRow = int(targetTranslation[1] / m.screenTileHeight)
-
-    '   ' Calculate the number of rows to check based on the fall speed.
-    '   fallSpeedRows = abs(ySpeed) / m.screenTileHeight
-    '   rowsToCheck = mc.clamp(int(fallSpeedRows), 2, 5)
-
-    '   for rowIndex = currentRow to currentRow + rowsToCheck
-    '     tileIndex = (rowIndex * m.mapSize[0]) + currentCol
-    '     if tileIndex >= 0 and tileIndex < m.tileData.count()
-    '       tileValue = m.tileData[tileIndex]
-    '       if m.isCollidableTile(tileValue)
-    '         ' Verify vertical alignment
-    '         platformTop = rowIndex * m.screenTileHeight
-    '         playerBottom = targetTranslation[1] + feetCollider.height
-    '         if playerBottom >= platformTop and playerBottom < platformTop + m.screenTileHeight
-    '           return m.usedPosters[m.prefix + tileIndex.toStr()]
-    '         end if
-    '       end if
-    '     end if
-    '   end for
-
-    '   return invalid
-    ' end function
-
 
     private sideTiles = {
       "7": true
