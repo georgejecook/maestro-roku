@@ -1,0 +1,45 @@
+import "pkg:/source/rooibos/BaseTestSuite.bs"
+import "pkg:/$SOURCE_PKG_PATH$.bs"
+
+namespace tests
+  @suite("$CLASSNAME$ tests")
+  class $CLASSNAME$Tests extends rooibos.BaseTestSuite
+
+    private view
+
+    protected override function beforeEach()
+      super.beforeEach()
+      m.view = m.createNodeClass($NAMESPACE$.$CLASSNAME$)
+      m.createMockViews(m.view, "pkg:/$SOURCE_PKG_PATH$/$CLASSNAME$.json")
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("initialize")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates views")
+    function _()
+      m.expectCalled(m.view.createViews())
+      m.view.initialize()
+    end function
+
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    @describe("createViews")
+    '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    @it("creates views from bundle, and sets default view")
+    function _()
+      bundle = {
+        "id": "bundle"
+        "views": ["views"]
+      }
+      m.view.styleManager = { "id": "styleManager" }
+
+      m.expectCalled(m.view.styleManager@.loadBundle("pkg:/$SOURCE_PKG_PATH$/$CLASSNAME$.json"), bundle)
+      m.view.createViews()
+
+      m.assertEqual(m.view.focusedControl, m.view.focusedControl)
+    end function
+
+  end class
+end namespace

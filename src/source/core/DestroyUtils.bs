@@ -1,0 +1,83 @@
+
+namespace mc.internal.destroyUtils
+
+  'called by a maestro class
+  function destroy(target as dynamic)
+    '1. -- prepare for efficient destruction --
+    'first clean the target, to ensure any large json structures will not be
+    'processed by accident
+    'and give it the best opportunity to clean itself properly
+    target.cleanUp()
+
+    '1. -- destroy everything --
+    'now destroy:
+    'observers
+    mc.tasks.cleanScope()
+    'notifications
+    target.unobserveAllNotifications()
+    'children
+    mc.internal.destroyUtils.processChildren(target.top)
+    'fields
+    mc.internal.destroyUtils.processFields(target)
+    target.isDestroyed = true
+  end function
+
+  function processFields(target as dynamic)
+    if type(target) = "roSGNode"
+      fields = target.getFields()
+    else
+      fields = target
+    end if
+
+    'iterate over the aa-like object to find things to destroy
+    for each key in fields
+      value = target[key]
+
+      if mc.isArray(value)
+        'destroy each item in an array
+        for each item in value
+          mc.internal.destroyUtils.processValue(item)
+        end for
+        target[key] = []
+      else
+        if (not mc.isAACompatible(target[key]) or (target[key] <> invalid and target[key].isDestroyable <> false)) and key <> "top" and key <> "global" and key <> "log"
+          target[key] = invalid
+        end if
+      end if
+    end for
+  end function
+
+  function processValue(value as dynamic)
+    if type(value) = "roSGNode"
+      'destroy node items
+      if asBoolean(value.isDestroyable) and not asBoolean(value.isDestroyed)
+        value@.destroy()
+      end if
+
+    else if mc.isAACompatible(value)
+      'class or dictionary
+      if asBoolean(value.isDestroyable)
+        'this means it's a destroyable class
+        if not asBoolean(value.isDestroyed)
+          value.destroy()
+        end if
+      else
+        'destroy all fields in turn
+        mc.internal.destroyUtils.processFields(value)
+      end if
+    end if
+  end function
+
+  function processChildren(target as dynamic)
+    if type(target) = "roSGNode"
+      children = target.getChildren(-1, 0)
+      for each child in children
+        if asBoolean(child.isDestroyable) and not asBoolean(child.isDestroyed)
+          child@.destroy()
+        end if
+      end for
+      target.removeChildren(children)
+    end if
+  end function
+
+end namespace

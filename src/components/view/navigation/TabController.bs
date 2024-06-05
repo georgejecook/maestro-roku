@@ -7,6 +7,7 @@ function init()
   m.log.method("init")
   m.top.currentItem = invalid
   m.top.isDestroyingChildViewsOnRemoval = false
+  m.top.isDestroyable = false
   m.top.shouldRemoveFromAggregateView = true
   m.viewsByMenuItemId = {}
 end function
@@ -28,7 +29,7 @@ function changeCurrentItem(item as mc.types.node)
 
   if m.top.currentItem = invalid or not m.top.currentItem.isSameNode(item)
     m.top.currentItem = item
-    view = getViewForMenuItemContent(m.top.currentItem, item.screenType <> "DeepLinkingController")
+    view = getViewForMenuItemContent(m.top.currentItem, asString(item.screenType) <> "DeepLinkingController")
     if view = invalid
       m.log.error("no view for item", m.top.currentItem)
     end if

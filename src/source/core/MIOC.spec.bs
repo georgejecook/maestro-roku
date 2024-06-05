@@ -77,6 +77,14 @@ namespace tests
       m.assertEqual(mioc.getInstance("v1"), "b")
     end function
 
+    @it("will set isDestroyable false to item that are aa compatible")
+    function _()
+      instance = { "id": "instance" }
+
+      m.assertTrue(mioc.setInstance("v1", instance))
+      m.assertEqual(mioc.getInstance("v1"), { "id": "instance", "isDestroyable": false })
+    end function
+
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     @describe("getInstance")
     '+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++

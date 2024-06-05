@@ -266,7 +266,7 @@ namespace mv
           end if
         else
           for each key in style
-            style[key] = m.resolveNestedStyleValue(style[key])
+            style[key] = m.resolveNestedStyleValue(style[key], style, key)
           end for
         end if
       else if mc.isArray(style)
@@ -278,16 +278,40 @@ namespace mv
       return style
     end function
 
-    private function resolveNestedStyleValue(value as dynamic) as dynamic
-      if mc.isString(value) and len(value) > 1 and left(value, 1) = "~"
-        nestedKey = right(value, len(value) - 1)
-        nestedStyle = m.getStyle(nestedKey, true)
-        if nestedStyle = invalid
-          m.log.warn("Could not find nested style with key", nestedKey)
-          'leave the value as is - it _might_ not have been a nested style
-          nestedStyle = value
+    private function resolveNestedStyleValue(value as dynamic, style = invalid as mc.types.assocarray, key = invalid as string) as dynamic
+      if mc.isString(value)
+        firstCharacter = left(value, 1)
+        if firstCharacter = "~"
+          nestedKey = right(value, len(value) - 1)
+          nestedStyle = m.getStyle(nestedKey, true)
+          if nestedStyle = invalid
+            m.log.warn("Could not find nested style with key", nestedKey)
+            'leave the value as is - it _might_ not have been a nested style
+            nestedStyle = value
+          end if
+          return nestedStyle
+        else if firstCharacter = "$"
+          'binding support
+          if value.instr("${") = 0
+            if style._dataMap = invalid
+              style._dataMap = {}
+            end if
+            'TODO add parsing for template types
+            if value.instr("[") <> -1
+              value = value.replace("[", ".")
+              value = value.replace("]", "")
+            end if
+            style._dataMap[key] = mid(value, 3, len(value) - 3)
+          else if value.instr("$(") = 0
+            'callback support
+            if style.observe = invalid
+              style.observe = {}
+            end if
+            'TODO add parsing for full observe types
+            style.observe[key] = mid(value, 3, len(value) - 3)
+          end if
         end if
-        return nestedStyle
+        return value
       else if mc.isArray(value) or mc.isAACompatible(value)
         return m.resolveNestedStyles(value)
       else
