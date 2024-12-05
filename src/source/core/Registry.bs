@@ -23,8 +23,18 @@ namespace mc
       sectionName = lcase(sectionName)
       key = lcase(key)
       section = createObject("roRegistrySection", sectionName)
-      section.write(key, formatJson(value))
-      section.flush()
+
+      success = section.write(key, formatJson(value))
+      if not success
+        m.log.error("Call to roRegistrySection.write() failed.")
+        return false
+      end if
+
+      success = section.flush()
+      if not success
+        m.log.error("Call to roRegistrySection.flush() failed.")
+        return false
+      end if
     end function
 
     public function delete(sectionName as string, key as string) as void
@@ -32,7 +42,14 @@ namespace mc
       key = lcase(key)
       section = createObject("roRegistrySection", sectionName)
       if section.exists(key)
-        section.delete(key)
+        success = section.delete(key)
+        if not success
+          m.log.error("Failed to delete key '" + key + "' from registry section '" + sectionName + "'")
+          return false
+        end if
+      else
+        m.log.warn("Attempted to delete registry section " + sectionName + ", but registry section does not exist.")
+        return true ' return as success even if registry doesn't exist, as this technically fulfills goal of a delete() call
       end if
     end function
 
@@ -56,6 +73,7 @@ namespace mc
     end function
 
     public function writeAll(data as object) as void
+      success = true
       registry = createObject("roRegistry")
 
       if data <> invalid and type(data) = "roAssociativeArray"
@@ -70,33 +88,53 @@ namespace mc
             for each key in sectionData
               value = sectionData[key]
               key = lcase(`${key}`)
-              section.write(key, formatJson(value))
+
+              if not section.write(key, formatJson(value))
+                success = false ' flip success=false if there is any failure; subsequent successes do not negate failure
+                if not success
+                  m.log.error("Failed to write registry data for registry section '" + sectionName + "', key '" + key + "'")
+                end if
+              end if
             end for
 
           end if
-          section.flush()
+
+          if not section.flush()
+            success = false
+            m.log.error("Call to roRegistrySection.flush() failed.")
+          end if
 
         end for
 
       end if
 
-      registry.flush()
+      if not registry.flush()
+        success = false
+        m.log.error("Call to roRegistry.flush() failed.")
+      end if
+
+      return success
     end function
 
     public function deleteAll() as void
+      success = true
       registry = createObject("roRegistry")
       sections = registry.getSectionList()
 
       for each sectionName in sections
-        registry.delete(sectionName)
+        if not registry.delete(sectionName)
+          success = false
+          m.log.error("Failed to delete registry section '" + sectionName + "'")
+        end if
       end for
+
+      return success
     end function
 
     function writeSerializable(section as string, key as string, serializable as object) as boolean
       data = mc.utils.Serialization.serialize(serializable)
       if data <> invalid
-        m.write(section, key, data)
-        return true
+        return m.write(section, key, data)
       else
         m.log.warn("asked to write from non-serializebale object")
         return false

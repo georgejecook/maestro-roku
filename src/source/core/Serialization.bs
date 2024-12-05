@@ -7,7 +7,7 @@ namespace mc.utils.Serialization
       if type(serializable) = "roSGNode"
         data = serializable@.serialize()
         if not mc.isAACompatible(data)
-          m.log.error("received non aa value when serialize - cannot proceed")
+          m.log.error("Expected AssociativeArray value. Received type of " + type(data) + " instead.")
           return invalid
         end if
         data._serializationType = serializable.subType()
@@ -18,7 +18,7 @@ namespace mc.utils.Serialization
         return serializable.serialize()
       end if
     else
-      m.log.warn("asked to serialize non-serializebale object")
+      m.log.error("Expected serializable value. Received type of " + type(data) + " instead.")
     end if
     return invalid
   end function
