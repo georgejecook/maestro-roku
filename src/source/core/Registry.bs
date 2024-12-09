@@ -19,7 +19,7 @@ namespace mc
       end if
     end function
 
-    public function write(sectionName as string, key as string, value as dynamic) as void
+    public function write(sectionName as string, key as string, value as dynamic) as boolean
       sectionName = lcase(sectionName)
       key = lcase(key)
       section = createObject("roRegistrySection", sectionName)
@@ -39,7 +39,7 @@ namespace mc
       return true
     end function
 
-    public function delete(sectionName as string, key as string) as void
+    public function delete(sectionName as string, key as string) as boolean
       sectionName = lcase(sectionName)
       key = lcase(key)
       section = createObject("roRegistrySection", sectionName)
@@ -74,7 +74,7 @@ namespace mc
       return data
     end function
 
-    public function writeAll(data as object) as void
+    public function writeAll(data as object) as boolean
       success = true
       registry = createObject("roRegistry")
 
@@ -118,7 +118,7 @@ namespace mc
       return success
     end function
 
-    public function deleteAll() as void
+    public function deleteAll() as boolean
       success = true
       registry = createObject("roRegistry")
       sections = registry.getSectionList()
@@ -138,7 +138,7 @@ namespace mc
       if data <> invalid
         return m.write(section, key, data)
       else
-        m.log.warn("asked to write from non-serializebale object")
+        m.log.warn("asked to write from non-serializeable object")
         return false
       end if
     end function
@@ -148,7 +148,7 @@ namespace mc
         data = m.read(section, key)
         return mc.utils.Serialization.deSerialize(data, serializable)
       else
-        m.log.warn("asked to read into non-serializebale object")
+        m.log.warn("asked to read into non-serializeable object")
       end if
       return false
     end function
