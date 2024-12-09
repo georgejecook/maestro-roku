@@ -35,6 +35,8 @@ namespace mc
         m.log.error("Call to roRegistrySection.flush() failed.")
         return false
       end if
+
+      return true
     end function
 
     public function delete(sectionName as string, key as string) as void
@@ -44,13 +46,13 @@ namespace mc
       if section.exists(key)
         success = section.delete(key)
         if not success
-          m.log.error("Failed to delete key '" + key + "' from registry section '" + sectionName + "'")
+          m.log.error(`Failed to delete key '${key}' from registry section '${sectionName}'`)
           return false
         end if
-      else
-        m.log.warn("Attempted to delete registry section " + sectionName + ", but registry section does not exist.")
-        return true ' return as success even if registry doesn't exist, as this technically fulfills goal of a delete() call
       end if
+
+      m.log.warn(`Attempted to delete registry section ${sectionName}, but registry section does not exist.`)
+      return true ' return as success even if registry doesn't exist, as this technically fulfills goal of a delete() call
     end function
 
     public function readAll() as object
@@ -92,7 +94,7 @@ namespace mc
               if not section.write(key, formatJson(value))
                 success = false ' flip success=false if there is any failure; subsequent successes do not negate failure
                 if not success
-                  m.log.error("Failed to write registry data for registry section '" + sectionName + "', key '" + key + "'")
+                  m.log.error(`Failed to write registry data for registry section '${sectionName}', key '${key}'`)
                 end if
               end if
             end for
@@ -124,7 +126,7 @@ namespace mc
       for each sectionName in sections
         if not registry.delete(sectionName)
           success = false
-          m.log.error("Failed to delete registry section '" + sectionName + "'")
+          m.log.error(`Failed to delete registry section '${sectionName}'`)
         end if
       end for
 
