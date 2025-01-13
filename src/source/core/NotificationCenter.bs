@@ -71,9 +71,12 @@ namespace mc
     protected override function sendNotification(notification as dynamic, data = invalid as dynamic)
       try
         observers = m.observersByNotificationKey[notification.name]
-        for each observer in observers.items()
-          observer.value@.callVMFunc("_onNotification", notification)
-        end for
+        if observers <> invalid
+          for each observer in observers.items()
+            observer.value@.callVMFunc("_onNotification", notification)
+          end for
+          m.log.warn("no observers for notification", notification)
+        end if
       catch error
         m.log.error("error sending notification", error)
       end try
