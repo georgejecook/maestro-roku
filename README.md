@@ -1,5 +1,31 @@
 # A development platform for building roku channels in brighterscript
 
+
+# Notice of Deprecation: Maestro Framework
+
+We’re announcing that Tantawowa Ltd has officially deprecated the Maestro framework.
+
+Over the past months, our team has been building a next-generation, cross-platform TV app framework, designed from the ground up to support platforms like Roku—and go far beyond it. This marks a major leap forward in how we approach TV app development.
+
+What This Means
+	•	As of today, Maestro is officially deprecated.
+	•	We will no longer maintain the framework or provide updates.
+	•	Critical fixes will still be available to existing clients on a case-by-case basis, upon request.
+
+Maestro has been an exciting chapter—it helped make Roku development accessible to a broader range of developers, and we’re proud of what we accomplished with it.
+
+Looking Ahead
+
+Later this year, we’ll be unveiling the new framework that eclipses Maestro in every dimension—from design flexibility to performance and developer experience.
+
+We can’t wait to show you what’s next. Stay tuned over the coming months—exciting things are on the horizon.
+
+—
+The Tantawowa Team
+
+
+
+
 [![build](https://img.shields.io/github/actions/workflow/status/georgejecook/maestro-roku/build.yml?logo=github&branch=master)](https://github.com/georgejecook/maestro-roku/actions/workflows/build.yml)
 [![GitHub](https://img.shields.io/github/release/georgejecook/maestro-roku.svg?style=flat-square)](https://github.com/georgejecook/maestro-roku/releases)
 [![NPM Version](https://badge.fury.io/js/maestro-roku.svg?style=flat)](https://npmjs.org/package/maestro-roku)
